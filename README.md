@@ -1,4 +1,4 @@
-# gfxlib
+# GFXLIB
 GFXLIB is a graphic library which is allow low level pixel accessing. It use SDL2 as render system and SDL_image to load textures from image files.
 
 # How to build
