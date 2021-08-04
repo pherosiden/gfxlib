@@ -6,8 +6,8 @@ GFXLIB is a graphic library which is allow low level pixel accessing. It use SDL
 - **MacOS**: direct build from Xcode 12.
 
 # Dependencies
-- [SDL2](https://www.libsdl.org/).
-- [SDL2 Image](https://www.libsdl.org/projects/SDL_image/).
+- [SDL2](https://www.libsdl.org/)
+- [SDL2 Image](https://www.libsdl.org/projects/SDL_image/)
 
 # Screenshots
 - ![Test Image 1](screenshots/3DTest.png)
