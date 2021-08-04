@@ -2,8 +2,8 @@
 GFXLIB is a graphic library which is allow low level pixel accessing. It use SDL2 as render system and SDL_image to load textures from image files.
 
 # How to build
-- **Windows**: direct build from Visual Studio 2019 solution file
-- **MacOS**: direct build from Xcode 12.5
+- **Windows**: direct build from Visual Studio 2019 solution file.
+- **MacOS**: direct build from Xcode 12.
 
 # Dependencies
 - [SDL2](https://www.libsdl.org/).
