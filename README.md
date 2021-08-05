@@ -64,6 +64,7 @@ GFXLIB is a graphic library which is allow low level pixel accessing. It use SDL
 ![Test Image 1](screenshots/image108.png)
 ![Test Image 1](screenshots/image115.png)
 ![Test Image 1](screenshots/image127.png)
+![Test Image 1](screenshots/image131.png)
 ![Test Image 1](screenshots/image132.png)
 ![Test Image 1](screenshots/image136.png)
 ![Test Image 1](screenshots/image133.png)
