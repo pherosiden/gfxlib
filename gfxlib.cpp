@@ -5,12 +5,14 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.1.5                                   //
-//          Last Update: 2021-08-04                              //
+//              Version: 1.1.6                                   //
+//          Last Update: 2021-07-24                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
-//           References: http://crossfire-designs.de             //
-//                       http://lodev.org                        //
+//           References: https://crossfire-designs.de            //
+//                       https://lodev.org                       //
+//                       https://permadi.com                     //
+//                       https://sources.ru                      //
 //              License: MIT                                     //
 //===============================================================//
 

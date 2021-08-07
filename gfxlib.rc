@@ -81,7 +81,7 @@ BEGIN
             VALUE "FileDescription", "GFXLIB Demo & Effects"
             VALUE "FileVersion", "1.1.6.0"
             VALUE "InternalName", "gfxdemo.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2021"
+            VALUE "LegalCopyright", "Copyright (C) 1998 - 2021 VNN Studio. All rights reserved."
             VALUE "OriginalFilename", "gfxdemo.exe"
             VALUE "ProductName", "GFXLIB Library"
             VALUE "ProductVersion", "1.1.6.1"

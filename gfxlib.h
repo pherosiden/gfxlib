@@ -7,12 +7,14 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.1.2                                   //
+//              Version: 1.1.6                                   //
 //          Last Update: 2021-07-24                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
-//           References: http://crossfire-designs.de             //
-//                       http://lodev.org                        //
+//           References: https://crossfire-designs.de            //
+//                       https://lodev.org                       //
+//                       https://permadi.com                     //
+//                       https://sources.ru                      //
 //              License: MIT                                     //
 //===============================================================//
 
@@ -291,16 +293,16 @@ extern uint32_t randSeed;                   //global random seed
 extern uint32_t factor;                     //global factor
 
 //pattern filled styles
-extern uint8_t  ptrnLine[];
-extern uint8_t  ptrnLiteSlash[];
-extern uint8_t  ptrnSlash[];
-extern uint8_t  ptrnBackSlash[];
-extern uint8_t  ptrnLiteBackSlash[];
-extern uint8_t  ptrnHatch[];
-extern uint8_t  ptrnHatchX[];
-extern uint8_t  ptrnInterLeave[];
-extern uint8_t  ptrnWideDot[];
-extern uint8_t  ptrnCloseDot[];
+extern uint8_t  ptnLine[];
+extern uint8_t  ptnLiteSlash[];
+extern uint8_t  ptnSlash[];
+extern uint8_t  ptnBackSlash[];
+extern uint8_t  ptnLiteBackSlash[];
+extern uint8_t  ptnHatch[];
+extern uint8_t  ptnHatchX[];
+extern uint8_t  ptnInterLeave[];
+extern uint8_t  ptnWideDot[];
+extern uint8_t  ptnCloseDot[];
 
 //functions handler for video mode
 extern void     (*clearScreen)(uint32_t);
