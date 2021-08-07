@@ -13,6 +13,7 @@
 //                       https://lodev.org                       //
 //                       https://permadi.com                     //
 //                       https://sources.ru                      //
+//                       http://eyecandyarchive.com              //
 //              License: MIT                                     //
 //===============================================================//
 

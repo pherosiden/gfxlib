@@ -1427,6 +1427,7 @@ void displayPlasma()
         "lodev.org",
         "sources.ru",
         "permadi.com",
+        "eyecandyarchive.com",
         "crossfire-designs.de",
         "And all persons which helped me in any way.",
         "",
