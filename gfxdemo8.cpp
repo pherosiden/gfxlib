@@ -37,8 +37,8 @@ double      gx1 = 0, gx2 = 0, gy1 = 0, gy2 = 0;
 double      f1 = 0, f2 = 0, f3 = 0, f4 = 0;
 double      incX = 0, incY = 0, echX = 0, echY = 0;
 
-double      u = 0, debutU = 0, finU = 0, du = 0;
-double      v = 0, debutV = 0, finV = 0, dv = 0;
+double      u, debutU = 0, finU = 0, du = 0;
+double      v, debutV = 0, finV = 0, dv = 0;
 
 char        vue = 'r';
 
@@ -52,7 +52,9 @@ void findRepeat(double *rept)
     double lim1 = 0.0, lim2 = 0.0;
     double rmax = 200 * M_PI;
     double fx = 0.0, fy = 0.0;
-    
+
+    if (!rept) return;
+
     do {
         *rept += 2 * M_PI;
         r = sin(3 * *rept);
@@ -65,34 +67,34 @@ void findRepeat(double *rept)
 
 void drawCylodiod(int32_t xc, int32_t yc, int32_t rd, uint8_t a, uint8_t b, double rept, uint32_t col)
 {
-    double theta = 0.0;
+    double angle = 0.0;
     double x1, y1, x2, y2;
 
-    x1 = xc + rd * sin(3 * theta) * cos(theta) * cos(a * theta);
-    y1 = yc + rd * sin(3 * theta) * sin(theta) * sin(b * theta);
+    x1 = xc + rd * sin(3 * angle) * cos(angle) * cos(a * angle);
+    y1 = yc + rd * sin(3 * angle) * sin(angle) * sin(b * angle);
     moveTo(int32_t(x1), int32_t(y1));
 
-    while (theta < rept)
+    while (angle < rept)
     {
-        x2 = xc + rd * sin(3 * theta) * cos(theta) * cos(a * theta);
-        y2 = yc + rd * sin(3 * theta) * sin(theta) * sin(b * theta);
-        lineTo(int32_t(x2), int32_t(y2), uint32_t(theta + col));
-        theta += 0.001;
+        x2 = xc + rd * sin(3 * angle) * cos(angle) * cos(a * angle);
+        y2 = yc + rd * sin(3 * angle) * sin(angle) * sin(b * angle);
+        lineTo(int32_t(x2), int32_t(y2), uint32_t(angle + col));
+        angle += 0.001;
 	}
     render();
 }
 
 void drawPolygon(int32_t xc, int32_t yc, int32_t rd, uint8_t odre, uint8_t pas)
 {
-    double theta;
-    int32_t phi = 0;
+    double rad;
+    int32_t angle = 0;
     
-    while (phi < 360)
+    while (angle < 360)
     {
-        theta = M_PI * phi / 180;
-        moveTo(int32_t(xc + rd * cos(theta)), int32_t(yc + rd * sin(theta)));
-        lineTo(int32_t(xc + rd * cos(odre * theta)), int32_t(yc + rd * sin(odre * theta)), phi % 192 + 16);
-        phi += pas;
+        rad = M_PI * angle / 180;
+        moveTo(int32_t(xc + rd * cos(rad)), int32_t(yc + rd * sin(rad)));
+        lineTo(int32_t(xc + rd * cos(odre * rad)), int32_t(yc + rd * sin(odre * rad)), angle % 192 + 16);
+        angle += pas;
     }
     render();
 }
@@ -100,13 +102,15 @@ void drawPolygon(int32_t xc, int32_t yc, int32_t rd, uint8_t odre, uint8_t pas)
 void rotatePolygon(POINT2D *pt, int32_t n, int32_t xc, int32_t yc, int32_t rd, int32_t num, uint8_t odre, uint32_t col)
 {
     int32_t i, j;
-    double phi = 0.0;
+    double angle = 0.0;
+
+    if (!pt) return;
 
     for (i = 0; i < n; i++)
     {
-        pt[i].x = xc + rd * cos(phi);
-        pt[i].y = yc - rd * sin(phi);
-        phi += 2 * M_PI / n;
+        pt[i].x = xc + rd * cos(angle);
+        pt[i].y = yc - rd * sin(angle);
+        angle += 2 * M_PI / n;
     }
 
     for (j = 0; j < num; j++)
@@ -124,6 +128,8 @@ void rotatePolygon(POINT2D *pt, int32_t n, int32_t xc, int32_t yc, int32_t rd, i
 void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uint8_t odre, uint32_t col)
 {
     int32_t i, j, k;
+
+    if (!pt) return;
 
     for (i = 0; i < n; i++)
     {
@@ -146,20 +152,23 @@ void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uin
 void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, int32_t rd, uint8_t odre, uint32_t col)
 {
     int32_t i, j, k, m;
-    double coef = 2 * M_PI / num, phi;
+    double angle = 0.0;
+    double coef = 2 * M_PI / num;
+    
+    if (!pt) return;
 
     for (i = 1; i <= num; i++)
     {
         pt[0].x = xc;
         pt[0].y = yc;
 
-        phi = (i - 1.0) * coef;
-        pt[1].x = xc + rd * cos(phi);
-        pt[1].y = yc - rd * sin(phi);
+        angle = (i - 1.0) * coef;
+        pt[1].x = xc + rd * cos(angle);
+        pt[1].y = yc - rd * sin(angle);
 
-        phi = i * coef;
-        pt[2].x = xc + rd * cos(phi);
-        pt[2].y = yc - rd * sin(phi);
+        angle = i * coef;
+        pt[2].x = xc + rd * cos(angle);
+        pt[2].y = yc - rd * sin(angle);
 
         for (j = 0; j < n; j++)
         {
@@ -297,23 +306,23 @@ void graphDemo4(int32_t xc, int32_t yc, int32_t r)
 
 void graphDemo5(int32_t xi, int32_t yi, int32_t r, int32_t xr, int32_t yr)
 {
-    double x, y, sx, sy;
     double a, e;
-    int32_t n, phi, i, k;
+    double x, y, sx, sy;
+    int32_t n, i, j, k;
 
     sx = sy = 0;
     for (n = 2; n <= 7; n++)
     {
-        for (phi = 1; phi <= 6; phi++)
+        for (j = 1; j <= 6; j++)
         {
             k = !(n % 2) ? 2 : 1;
             a = 0;
 
             for (i = 0; i <= 15 * n * k; i++)
             {
-                e = r / 5.0 * sin(a * n * phi) + r * sin(n * a);
+                e = r / 5.0 * sin(a * n * j) + r * sin(n * a);
                 x = e * cos(a) + xr * (n - 2.0) + xi;
-                y = e * sin(a) + yr * (phi - 1.0) + yi;
+                y = e * sin(a) + yr * (j - 1.0) + yi;
 
                 if (!i)
                 {
@@ -322,10 +331,10 @@ void graphDemo5(int32_t xi, int32_t yi, int32_t r, int32_t xr, int32_t yr)
                     sy = y;
                 }
                 
-                lineTo(int32_t(x), int32_t(y), 6 * n + phi + 48);
+                lineTo(int32_t(x), int32_t(y), 6 * n + j + 48);
                 a += M_PI / 15.0 / n;
             }
-            lineTo(int32_t(sx), int32_t(sy), 6 * n + phi + 48);
+            lineTo(int32_t(sx), int32_t(sy), 6 * n + j + 48);
         }
     }
     render();
@@ -338,14 +347,14 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
 
     double x = 4.0 * r;
     double sx, sy, x1, y1, x2, y2;
-    double theta, a = 0.0;
+    double angle, a = 0.0;
     int32_t px, py, i;
 
     for (i = 0; i < 120; i++)
     {
-        theta = 66 * sqrt(fabs(cos(3 * a))) + 12 * sqrt(fabs(cos(9 * a)));
-        xx[i] = int32_t(theta * cos(a) * 1.2 / 320.0 * r);
-        yy[i] = int32_t(theta * sin(a) / 320.0 * r);
+        angle = 66 * sqrt(fabs(cos(3 * a))) + 12 * sqrt(fabs(cos(9 * a)));
+        xx[i] = int32_t(angle * cos(a) * 1.2 / 320.0 * r);
+        yy[i] = int32_t(angle * sin(a) / 320.0 * r);
         a += M_PI / 60;
     }
 
@@ -358,9 +367,9 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
             {
                 x1 = double(xx[i]) + (px * r >> 1) - (r >> 2);
                 y1 = double(yy[i]) + (py * r >> 1) - (r >> 2);
-                theta = 2 * M_PI * (x - x1) / x;
-                x2 = xc + y1 * cos(theta);
-                y2 = yc + y1 * sin(theta);
+                angle = 2 * M_PI * (x - x1) / x;
+                x2 = xc + y1 * cos(angle);
+                y2 = yc + y1 * sin(angle);
     
                 if (i == 0)
                 {
@@ -381,20 +390,20 @@ void graphDemo7(int32_t xc, int32_t yc, int32_t r)
 {
     int32_t xx[120] = {0};
     int32_t yy[120] = {0};
-
-    double x = 4.0 * r, sx, sy, x1, y1, x2, y2;
-    double theta, a = 0.0, m, n;
     int32_t px, py, i;
 
+    double angle, a = 0.0, m, n;
+    double x = 4.0 * r, sx, sy, x1, y1, x2, y2;
+    
     for (i = 0; i < 120; i++)
     {
-        theta = 40 * sin(4 * (a + M_PI / 8));
+        angle = 40 * sin(4 * (a + M_PI / 8));
         
         m = sin(a);
         n = cos(a);
 
-        xx[i] = int32_t((theta * n + 45 * n * n * n) / 320.0 * r);
-        yy[i] = int32_t((theta * m + 45 * m * m * m) / 320.0 * r);
+        xx[i] = int32_t((angle * n + 45 * n * n * n) / 320.0 * r);
+        yy[i] = int32_t((angle * m + 45 * m * m * m) / 320.0 * r);
 
         a += M_PI / 60;
     }
@@ -409,10 +418,10 @@ void graphDemo7(int32_t xc, int32_t yc, int32_t r)
                 x1 = double(xx[i]) + (px * r >> 1) - (r >> 2);
                 y1 = double(yy[i]) + (py * r >> 1) - (r >> 2);
 
-                theta = 2 * M_PI * (x - x1) / x;
+                angle = 2 * M_PI * (x - x1) / x;
 
-                x2 = xc + y1 * cos(theta);
-                y2 = yc + y1 * sin(theta);
+                x2 = xc + y1 * cos(angle);
+                y2 = yc + y1 * sin(angle);
 
                 if (i == 0)
                 {
@@ -436,7 +445,7 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
 
     double dd, un, uv, k, s, x, y;
     double px, py, sx, sy, sq;
-    double theta, sc, a, m;
+    double angle, sc, a, m;
 
     a = 0.0;
     un = 12.0;
@@ -447,9 +456,9 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
 
     for (i = 0; i < 120; i++)
     {
-        theta = 90 * (0.8 + 0.2 * sin(12 * a)) * (0.5 + 0.5 * sin(4 * a));
-        xx[i] = int32_t(theta * cos(a));
-        yy[i] = int32_t(theta * sin(a));
+        angle = 90 * (0.8 + 0.2 * sin(12 * a)) * (0.5 + 0.5 * sin(4 * a));
+        xx[i] = int32_t(angle * cos(a));
+        yy[i] = int32_t(angle * sin(a));
         a += M_PI / 60;
     }
 
@@ -467,10 +476,10 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
                 if (sq < 1.0 * r * r)
                 {
                     s = (x < 0) ? -1 : 1;
-                    theta = atan(y / (x + 0.1));
+                    angle = atan(y / (x + 0.1));
                     m = r * sin(2 * atan(sqrt(sq) / r));
-                    x = s * m * cos(theta);
-                    y = s * m * sin(theta);
+                    x = s * m * cos(angle);
+                    y = s * m * sin(angle);
                 }
 
                 x = x * 23.0 / 15 + xc;
@@ -619,13 +628,13 @@ void graphDemo10(int32_t xc, int32_t yc, int32_t rx, int32_t ry, int32_t col)
     int32_t i;
     int32_t data[120][2] = {0};
 
-    for (i = 0; i != 120; i++)
+    for (i = 0; i < 120; i++)
     {
         data[i][0] = grData[i][0] * rx / 100 + xc;
         data[i][1] = grData[i][1] * ry / 100 + yc;
     }
 
-    for (i = 0; i != 119; i++) drawLine(data[i][0], data[i][1], data[i + 1][0], data[i + 1][1], col);
+    for (i = 0; i < 119; i++) drawLine(data[i][0], data[i][1], data[i + 1][0], data[i + 1][1], col);
     drawLine(data[119][0], data[119][1], data[0][0], data[0][1], col);
     render();
 }
@@ -673,6 +682,7 @@ void graphDemo11()
 
 void checkBounds(int32_t a, int32_t c, int32_t *b)
 {
+    if (!b) return;
     if (a > c) *b = -1;
     else if (a < 0) *b = 1;
 }
@@ -719,15 +729,15 @@ void graphDemo12()
 
 double FX1(double x, double y)
 {
-     double phi = sqrt(x * x + y * y);
-     if (phi == 0.0) phi = DBL_MIN;
-     return 10 * sin(phi) / phi;
+     double ph = sqrt(x * x + y * y);
+     if (ph == 0.0) ph = DBL_MIN;
+     return 10 * sin(ph) / ph;
 }
 
 double FX2(double x, double y)
 {
-     double phi = sqrt(x * x + y * y);
-     return -phi + fabs(sin(phi));
+     double ph = sqrt(x * x + y * y);
+     return -ph + fabs(sin(ph));
 }
 
 double FX3(double x, double y)
@@ -748,74 +758,75 @@ double FX5(double x, double y)
     return 0.2 * sin(x) * cos(y) - 3 * exp(-x * x - y * y) * cos(1.75 * (x * x + y * y));
 }
 
-double FX11(double u, double v)
+double FX11(double a, double b)
 {
-    return 6 * cos(u) * cos(v);
+    return 6 * cos(a) * cos(b);
 }
 
-double FY11(double u, double v)
+double FY11(double a, double b)
 {
-  return 3 * cos(u) * sin(v);
+  return 3 * cos(a) * sin(b);
 }
 
-double FZ11(double u, double v)
+double FZ11(double a, double b)
 {
-    v = 0;
-    return 2 * sin(u) + v;
+    b = 0;
+    return 2 * sin(a) + b;
 }
 
-double FX21(double u, double v)
+double FX21(double a, double b)
 {
-    return (6 + 3 * cos(u)) * cos(v);
+    return (6 + 3 * cos(a)) * cos(b);
 }
 
-double FY21(double u, double v)
+double FY21(double a, double b)
 {
-  return (6 + 3 * cos(u)) * sin(v);
+  return (6 + 3 * cos(a)) * sin(b);
 }
 
-double FZ21(double u, double v)
+double FZ21(double a, double b)
 {
-    v = 0;
-    return 3 * sin(u) + v;
+    b = 0;
+    return 3 * sin(a) + b;
 }
 
-double FX31(double u, double v)
+double FX31(double a, double b)
 {
-    return (3 + 3 * cos(u)) * cos(v);
+    return (3 + 3 * cos(a)) * cos(b);
 }
 
-double FY31(double u, double v)
+double FY31(double a, double b)
 {
-  return (3 + 3 * cos(u)) * sin(v);
+  return (3 + 3 * cos(a)) * sin(b);
 }
 
-double FZ31(double u, double v)
+double FZ31(double a, double b)
 {
-    v = 0;
-    return 3 * sin(u) + v;
+    b = 0;
+    return 3 * sin(a) + b;
 }
 
-double FX41(double u, double v)
+double FX41(double a, double b)
 {
-    v = 0;
-    return u + v;
+    b = 0;
+    return a + b;
 }
 
-double FY41(double u, double v)
+double FY41(double a, double b)
 {
-    u = 0;
-    return v + u;
+    a = 0;
+    return b + a;
 }
 
-double FZ41(double u, double v)
+double FZ41(double a, double b)
 {
-    return u * u - v * v;
+    return a * a - b * b;
 }
 
 void familleDesCourbesEnU()
 {
     double x, y, z;
+    
     u = debutU;
 
     while (u <= finU)
@@ -840,6 +851,7 @@ void familleDesCourbesEnU()
 void familleDesCourbesEnV()
 {
     double x, y, z;
+    
     v = debutV;
 
     while (v <= finV)
@@ -1293,16 +1305,16 @@ void scrollLed(const char *msg)
 void displaySprite(const char *fname)
 {
     uint32_t frames = 0;
-    int32_t x, y, lx, ly, dx, dy, f1, f2;
+    int32_t x, y, lx, ly, dx, dy, v1, v2;
     GFX_IMAGE bkg, spr, img1, img2, page1, page2;
-    const char *fbkg[] = {"pics/1lan8.bmp", "pics/1lan16.bmp", "pics/1lan24.bmp", "pics/1lan32.bmp"};
+    const char *fbkg[] = {"assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp"};
 
     lx = 0;
     ly = 0;
     dx = 8;
     dy = 1;
-    f1 = 0;
-    f2 = 0;
+    v1 = 0;
+    v2 = 0;
     x = (20 + dx) >> 1;
     y = (12 + dy) >> 1;
 
@@ -1331,11 +1343,11 @@ void displaySprite(const char *fname)
         //drawing on page 1st
         setActivePage(&page1);
         setVisualPage(&page2);
-        if (f1) putImage(lx, ly, &img1);
+        if (v1) putImage(lx, ly, &img1);
 
         lx = x;
         ly = y;
-        f1 = 1;
+        v1 = 1;
 
         x += dx;
         if (x > cmaxX - spr.mWidth || x <= 0)
@@ -1358,11 +1370,11 @@ void displaySprite(const char *fname)
         //draw on 2nd page
         setActivePage(&page2);
         setVisualPage(&page1);
-        if (f2) putImage(lx, ly, &img2);
+        if (v2) putImage(lx, ly, &img2);
 
         lx = x;
         ly = y;
-        f2 = 1;
+        v2 = 1;
 
         x += dx;
         if (x > cmaxX - spr.mWidth || x <= 0)
@@ -1414,14 +1426,15 @@ void displayPlasma()
         "scene.org",
         "lodev.org",
         "sources.ru",
+        "permadi.com",
         "crossfire-designs.de",
         "And all persons which helped me in any way.",
         "",
         "CYA!"
     };
 
+    RGB pal[256] = { 0 };
     GFX_IMAGE src, dst;
-    RGB pal[256] = {0};
 
     int32_t ypos = 0, endPos = 0;
 	int32_t x = 0, y = 0, decx = 0, decy = 0;
@@ -1433,7 +1446,7 @@ void displayPlasma()
     uint8_t cost[256] = {0};
 
     //load text font
-    loadFont("pics/hyena.xfn", 0);
+    loadFont("assets/hyena.xfn", 0);
 
     //plasma image buffer
     newImage(160, 120, &src);
@@ -1461,7 +1474,7 @@ void displayPlasma()
 
     //setup font palette
     getPalette(pal);
-    for (x = 0; x != 32; x++)
+    for (x = 0; x < 32; x++)
     {
         pal[x].r = x << 3;
         pal[x].g = x << 3;
@@ -1492,7 +1505,7 @@ void gfxDemo8()
 {
     RGB 	pal1[256] = {0};
     RGB 	pal2[256] = {0};
-    POINT2D	points[50] = { 0 };
+    POINT2D	pts[50] = { 0 };
 
     double ratio = 0.0, rept = 0.0;
 
@@ -1524,20 +1537,20 @@ void gfxDemo8()
     char msgLoading[] = "D9ang ta3i du74 lie65u a3nh PNG & BMP 32bit ma2u, vui lo2ng d9o75i mo65t la1t....";
 
     initScreen(800, 600, 32, 0, "GFX-Demo8");
-    loadFont("pics/fontvn.xfn", 0);
+    loadFont("assets/fontvn.xfn", 0);
     makeFont(msgLoading);
     writeText(centerX - (getFontWidth(msgLoading) >> 1), centerY - getFontHeight(msgLoading), RGB2INT(255, 255, 64), 0, msgLoading);
     render();
     sleepFor(2000);
-    showPNG("pics/caibang.png");
+    showPNG("assets/caibang.png");
     sleepFor(2000);
     fadeCircle(2, 0);
-    showBMP("pics/1lan32.bmp");
+    showBMP("assets/1lan32.bmp");
     sleepFor(2000);
     fadeCircle(3, 0);
 
-    handleMouse("pics/mouse24.png");
-    displaySprite("pics/smile24.png");
+    handleMouse("assets/mouse24.png");
+    displaySprite("assets/smile32.png");
 
     freeFont(0);
     cleanup();
@@ -1557,7 +1570,7 @@ void gfxDemo8()
     getBasePalette(pal2);
     clearPalette();
     
-    loadFont("pics/odhl.xfn", 0);
+    loadFont("assets/odhl.xfn", 0);
     writeText(centerX - (getFontWidth(msgWelcome[0]) >> 1), msgY, 40, 1, msgWelcome[0]);
     writeText(centerX - (getFontWidth(msgWelcome[1]) >> 1), msgY + 60, 32, 1, msgWelcome[1]);
     writeText(centerX - (getFontWidth(msgWelcome[2]) >> 1), msgY + 120, 35, 1, msgWelcome[2]);
@@ -1698,17 +1711,17 @@ void gfxDemo8()
 
     clearScreen(0);
     memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
-    rotatePolygon(points, 6, centerX, centerY, centerX - 140, 100, 20, 40);
+    rotatePolygon(pts, 6, centerX, centerY, centerX - 140, 100, 20, 40);
     rotatePalette(40, 103, 64, FPS_60);
     
     clearScreen(0);
     memcpy(&pal1[37], &pal2[37], 67 * sizeof(RGB));
-    randomPoly(points, 12, cmaxX, cmaxY, 40, 20, 37);
+    randomPoly(pts, 12, cmaxX, cmaxY, 40, 20, 37);
     rotatePalette(37, 103, 67, FPS_60);
 
     clearScreen(0);
     memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
-    drawHexagon(points, 12, centerX, centerY, 35, centerX - 140, 20, 40);
+    drawHexagon(pts, 12, centerX, centerY, 35, centerX - 140, 20, 40);
     rotatePalette(40, 103, 64, FPS_60);
 
     clearScreen(0);
@@ -1722,8 +1735,8 @@ void gfxDemo8()
     clearScreen(0);
     clearPalette();
 
-    loadFont("pics/sys8x16.xfn", 0);
-    loadFont("pics/trip.xfn", 1);
+    loadFont("assets/sys8x16.xfn", 0);
+    loadFont("assets/trip.xfn", 1);
     
     FX = FX1;
 
@@ -1872,7 +1885,7 @@ void gfxDemo8()
     clearScreen(0);
     
     j = introY;
-    loadFont("pics/fontvn.xfn", 0);
+    loadFont("assets/fontvn.xfn", 0);
     for (i = 0; i < numTitles; i++)
     {
         j += i * getFontHeight(msgTitle[i]);

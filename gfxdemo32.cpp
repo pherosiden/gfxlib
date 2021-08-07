@@ -105,10 +105,10 @@ void runIntro()
     double startTime, waitTime;
     
     //load image
-    loadImage("pics/gfxtheultimate.png", &ult);
-    loadImage("pics/gfxlogo.png", &gfx);
-    loadImage("pics/gfxwelcome.png", &wcb);
-    loadImage("pics/map03.png", &map);
+    loadImage("assets/gfxtheultimate.png", &ult);
+    loadImage("assets/gfxlogo.png", &gfx);
+    loadImage("assets/gfxwelcome.png", &wcb);
+    loadImage("assets/map03.png", &map);
 
     //initialize buffer
     newImage(cresX, cresY, &scr);
@@ -237,7 +237,7 @@ void runBlocking(int32_t sx, int32_t sy)
     freeImage(&img2);
 
     //load next step
-    loadImage("pics/gfxtext.png", &img1);
+    loadImage("assets/gfxtext.png", &img1);
     newImage(img1.mWidth, img1.mHeight, &img2);
 
     //calculate current position and save current buffer
@@ -271,7 +271,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
     GFX_IMAGE img1, img2, img3;
 
     //initialize buffer
-    loadImage("pics/gfxspr.png", &img3);
+    loadImage("assets/gfxspr.png", &img3);
     newImage(centerX, centerY, &img1);
     newImage(centerX, centerY, &img2);
        
@@ -690,32 +690,32 @@ void gfxDemo32()
     memset(&scr, 0, sizeof(GFX_IMAGE));
     memset(&old, 0, sizeof(GFX_IMAGE));
     
-    loadFont("pics/sysfont.xfn", 0);
+    loadFont("assets/sysfont.xfn", 0);
     initScreen(800, 600, 32, 0, "GFXLIB-Demo32");
     writeText(centerX - 8 * (int32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY127, 2, initMsg);
     render();
 
     initSystemInfo();
-    loadImage("pics/gfxbg2.png", &bg);
-    loadImage("pics/gfxbumpchn.png", &bumpch);
-    loadImage("pics/gfxbumpimg.png", &bumpimg);
-    loadImage("pics/gfxlogosm.png", &logo);
-    loadImage("pics/gfxsky.png", &sky);
+    loadImage("assets/gfxbg4.png", &bg);
+    loadImage("assets/gfxbumpchn.png", &bumpch);
+    loadImage("assets/gfxbumpimg.png", &bumpimg);
+    loadImage("assets/gfxlogosm.png", &logo);
+    loadImage("assets/gfxsky.png", &sky);
     
     for (i = 0; i < 16; i++)
     {
-        sprintf(sbuff, "pics/flare-%dx.png", i + 1);
+        sprintf(sbuff, "assets/flare-%dx.png", i + 1);
         loadImage(sbuff, &flares[i]);
     }
 
     runIntro();
     putImage(0, 0, &bg);
-    putImageAlpha(cmaxX - logo.mWidth, cmaxY - logo.mHeight, &logo);
+    putImageAlpha(cresX - logo.mWidth + 1, cresY - logo.mHeight + 1, &logo);
 
     xc = centerX + 40;
     yc = centerY + 40;
 
-    fillRectPatternAdd(10, 10, xc - 10, yc - 10, RGB_GREY32, ptrnHatchX);
+    fillRectPatternAdd(10, 10, xc - 10, yc - 10, RGB_GREY32, ptnHatchX);
     fillRectSub(10, yc, xc - 10, cmaxY - 10, RGB_GREY64);
     fillRect(20, 20, xc - 20 - 1, yc - 20 - 1, 0);
     getImage(10, yc, xc - 20, cmaxY - yc - 10, &tx);
@@ -739,11 +739,11 @@ void gfxDemo32()
     render();
     fullSpeed = 1;
     showText(10, yc, &tx, "Please wait while loading images...");
-    loadImage("pics/fade1x.png", &fade1);
+    loadImage("assets/fade1x.png", &fade1);
     showText(10, yc, &tx, " - fade1x.png");
-    loadImage("pics/fade2x.png", &fade2);
+    loadImage("assets/fade2x.png", &fade2);
     showText(10, yc, &tx, " - fade2x.png");
-    loadImage("pics/flare0.png", &flare);
+    loadImage("assets/flare0.png", &flare);
     showText(10, yc, &tx, " - flare0.png");
     showText(10, yc, &tx, "");
     fullSpeed = 0;

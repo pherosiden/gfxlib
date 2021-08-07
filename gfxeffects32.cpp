@@ -14,17 +14,17 @@ void juliaDemo()
     double cRe, cIm;           //real and imaginary part of the constant c, determinate shape of the Julia Set
     double newRe, newIm, oldRe, oldIm;   //real and imaginary parts of new and old
     double zoom = 1, moveX = 0, moveY = 0; //you can change these to zoom and change position
+    
     RGB color; //the RGB color value for the pixel
     int32_t maxIterations = 300; //after how much iterations the function should stop
-    int32_t i;
 
     //pick some values for the constant c, this determines the shape of the Julia Set
     cRe = -0.7;
     cIm = 0.27015;
     
     //get raw pixels data
-    int32_t cwidth, cheight;
-    uint32_t* pixels = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    int32_t i, cwidth, cheight;
+    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
 
     //loop through every pixel
     for (int32_t y = 0; y != cheight; y++)
@@ -54,7 +54,10 @@ void juliaDemo()
             color = HSV2RGB(i & 255, 255, 255 * (i < maxIterations));
 
             //direct access texture
-            *pixels++ = RGB2INT(color.r, color.g, color.b);
+            pixels[0] = color.b;
+            pixels[1] = color.g;
+            pixels[2] = color.r;
+            pixels += 4;
         }
     }
 
@@ -235,7 +238,7 @@ void fireDemo2()
     cleanup();
 }
 
-///////////////////////////////RAY CASTING /////////////////////////////////
+///////////////////////////////RAY CASTING/////////////////////////////////
 
 #define TEXTURE_WIDTH		64
 #define TEXTURE_HEIGHT		64
@@ -309,7 +312,7 @@ SPRITE sprite[NUM_SPRITES] =
 };
 
 //1D Zbuffer
-double ZBuffer[SCREEN_WIDTH];
+double zBuffer[SCREEN_WIDTH];
 
 //arrays used to sort the sprites
 int32_t spriteOrder[NUM_SPRITES];
@@ -345,33 +348,33 @@ void rayCasting()
     double time = 0, oldTime = 0;
 
     int32_t tw, th;
-    uint32_t* texture[11];
+    uint32_t* texture[11] = { 0 };
 
     //init initScreen mode
-    loadFont("pics/sysfont.xfn", 0);
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting-Demo");
+    loadFont("assets/sysfont.xfn", 0);
+    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting-Demo -- Keys controls: Arrows: move your works!");
 
     //load some textures
-    loadTexture(&texture[0], &tw, &th, "pics/eagle.png");
-    loadTexture(&texture[1], &tw, &th, "pics/redbrick.png");
-    loadTexture(&texture[2], &tw, &th, "pics/purplestone.png");
-    loadTexture(&texture[3], &tw, &th, "pics/greystone.png");
-    loadTexture(&texture[4], &tw, &th, "pics/bluestone.png");
-    loadTexture(&texture[5], &tw, &th, "pics/mossy.png");
-    loadTexture(&texture[6], &tw, &th, "pics/wood.png");
-    loadTexture(&texture[7], &tw, &th, "pics/colorstone.png");
+    loadTexture(&texture[0], &tw, &th, "assets/eagle.png");
+    loadTexture(&texture[1], &tw, &th, "assets/redbrick.png");
+    loadTexture(&texture[2], &tw, &th, "assets/purplestone.png");
+    loadTexture(&texture[3], &tw, &th, "assets/greystone.png");
+    loadTexture(&texture[4], &tw, &th, "assets/bluestone.png");
+    loadTexture(&texture[5], &tw, &th, "assets/mossy.png");
+    loadTexture(&texture[6], &tw, &th, "assets/wood.png");
+    loadTexture(&texture[7], &tw, &th, "assets/colorstone.png");
 
     //load some sprite textures
-    loadTexture(&texture[8], &tw, &th, "pics/barrel.png");
-    loadTexture(&texture[9], &tw, &th, "pics/pillar.png");
-    loadTexture(&texture[10], &tw, &th, "pics/greenlight.png");
+    loadTexture(&texture[8], &tw, &th, "assets/barrel.png");
+    loadTexture(&texture[9], &tw, &th, "assets/pillar.png");
+    loadTexture(&texture[10], &tw, &th, "assets/greenlight.png");
 
     //get the drawing buffer
     int32_t cwidth, cheight;
     uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
     //start the main loop
-    while (!finished(SDL_SCANCODE_RETURN))
+    do
     {
         //FLOOR CASTING
         for (int32_t y = cheight / 2 + 1; y < cheight; y++)
@@ -551,7 +554,7 @@ void rayCasting()
             }
 
             //SET THE ZBUFFER FOR THE SPRITE CASTING
-            ZBuffer[x] = perpWallDist; //perpendicular distance is used
+            zBuffer[x] = perpWallDist; //perpendicular distance is used
         }
 
         //SPRITE CASTING
@@ -611,7 +614,7 @@ void rayCasting()
                 //2) it's on the initScreen (left)
                 //3) it's on the initScreen (right)
                 //4) ZBuffer, with perpendicular distance
-                if (transformY > 0 && stripe > 0 && stripe < cwidth && transformY < ZBuffer[stripe])
+                if (transformY > 0 && stripe > 0 && stripe < cwidth && transformY < zBuffer[stripe])
                 {
                     for (int32_t y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
                     {
@@ -636,6 +639,7 @@ void rayCasting()
 
         //fetch user input
         readKeys();
+        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
         //speed modifiers
         double moveSpeed = frameTime * 3.0; //the constant value is in squares/second
@@ -680,7 +684,7 @@ void rayCasting()
 
         //correct frames rate
         delay(FPS_60);
-    }
+    } while (!keyDown(SDL_SCANCODE_RETURN));
 
     for (int32_t i = 0; i != 11; i++) free(texture[i]);
     freeFont(0);
@@ -719,24 +723,25 @@ void imageArithmetic()
     RGB *image1, *image2, *image3, *result;
 
     //load the images into the buffers. This assumes all have the same size.
-    loadTextureRGB(&image1, &w, &h, "pics/photo1.png");
-    loadTextureRGB(&image2, &w, &h, "pics/photo2.png");
-    loadTextureRGB(&image3, &w, &h, "pics/photo3.png");
+    loadTextureRGB(&image1, &w, &h, "assets/photo1.png");
+    loadTextureRGB(&image2, &w, &h, "assets/photo2.png");
+    loadTextureRGB(&image3, &w, &h, "assets/photo3.png");
 
-    result = (RGB*)malloc(w * h * sizeof(RGB));
+    result = (RGB*)calloc(w * h, sizeof(RGB));
+    if (!result) return;
 
     //set up the initScreen
     initScreen(w, h, 32, 0, "Image Arithmetic");
 
     //do the image arithmetic (here: 'average')
-    for (y = 0; y != h; y++)
+    for (y = 0; y < h; y++)
     {
-        for (x = 0; x != w; x++)
+        for (x = 0; x < w; x++)
         {
             //average
-            result[y * w + x].r = (image1[y * w + x].r + image2[y * w + x].r) / 2;
-            result[y * w + x].g = (image1[y * w + x].g + image2[y * w + x].g) / 2;
-            result[y * w + x].b = (image1[y * w + x].b + image2[y * w + x].b) / 2;
+            result[y * w + x].r = (image1[y * w + x].r + image2[y * w + x].r) >> 1;
+            result[y * w + x].g = (image1[y * w + x].g + image2[y * w + x].g) >> 1;
+            result[y * w + x].b = (image1[y * w + x].b + image2[y * w + x].b) >> 1;
 
             //adding
             result[y * w + x].r = min(image2[y * w + x].r + image3[y * w + x].r, 255);
@@ -791,9 +796,9 @@ void imageArithmetic()
     }
 
     //draw the result buffer to the initScreen
-    for (y = 0; y != h; y++)
+    for (y = 0; y < h; y++)
     {
-        for (x = 0; x != w; x++)
+        for (x = 0; x < w; x++)
         {
             RGB rgb = result[y * w + x];
             putPixel(x, y, RGB2INT(rgb.r, rgb.g, rgb.b));
@@ -816,26 +821,26 @@ void crossFading()
     int32_t w = 0, h = 0;
 
     //declare image buffers
-    RGB *image1, *image2, *result;
+    RGB *image1, *image2;
 
     //load the images into the buffers. This assumes all have the same size.
-    loadTextureRGB(&image1, &w, &h, "pics/photo1.png");
-    loadTextureRGB(&image2, &w, &h, "pics/photo2.png");
-    result = (RGB*)malloc(w * h * sizeof(RGB));
+    loadTextureRGB(&image1, &w, &h, "assets/photo1.png");
+    loadTextureRGB(&image2, &w, &h, "assets/photo2.png");
+    
+    RGB* result = (RGB*)calloc(w * h, sizeof(RGB));
+    if (!result) return;
 
     //set up the initScreen
     initScreen(w, h, 32, 0, "Cross-Fading");
 
-    double weight;
-
     while (!finished(SDL_SCANCODE_RETURN))
     {
-        weight = (1.0 + cos(getTime() / 1000.0)) / 2.0;
+        double weight = (1.0 + cos(getTime() / 1000.0)) / 2.0;
 
         //do the image arithmetic
-        for (y = 0; y != h; y++)
+        for (y = 0; y < h; y++)
         {
-            for (x = 0; x != w; x++)
+            for (x = 0; x < w; x++)
             {
                 result[y * w + x].r = int32_t(image1[y * w + x].r * weight + image2[y * w + x].r * (1 - weight));
                 result[y * w + x].g = int32_t(image1[y * w + x].g * weight + image2[y * w + x].g * (1 - weight));
@@ -844,9 +849,9 @@ void crossFading()
         }
 
         //draw the result buffer to the initScreen
-        for (y = 0; y != h; y++)
+        for (y = 0; y < h; y++)
         {
-            for (x = 0; x != w; x++)
+            for (x = 0; x < w; x++)
             {
                 RGB rgb = result[y * w + x];
                 putPixel(x, y, RGB2INT(rgb.r, rgb.g, rgb.b));
@@ -865,33 +870,33 @@ void crossFading()
 
 void juliaExplorer()
 {
-    loadFont("pics/sysfont.xfn", 0);
+    loadFont("assets/sysfont.xfn", 0);
     initScreen(320, 240, 32, 0, "Julia-Explorer");
 
     //each iteration, it calculates: new = old*old + c, where c is a constant and old starts at current pixel
-    double cRe, cIm;           //real and imaginary part of the constant c, determines shape of the Julia Set
     double newRe, newIm, oldRe, oldIm;   //real and imaginary parts of new and old
     double zoom = 1, moveX = 0, moveY = 0; //you can change these to zoom and change position
 
-    RGB color; //the RGB color value for the pixel
+    int32_t showText = 0;   //use to show/hide text
     int32_t maxIterations = 128; //after how much iterations the function should stop
 
-    double time = 0, oldTime = 0, frameTime = 0; //current and old time, and their difference (for input)
-    int32_t showText = 0;
+    //current and old time, and their difference (for input)
+    double time = 0, oldTime = 0, frameTime = 0;
+    
 
     //pick some values for the constant c, this determines the shape of the Julia Set
-    cRe = -0.7;
-    cIm = 0.27015;
+    double cRe = -0.7;
+    double cIm = 0.27015;
 
     //retrive the current pixel buffer
-    uint32_t* ptrPixels;
-    int32_t cwidth, cheight;
-    uint32_t* pixels = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    int32_t i, cwidth, cheight;
+    uint8_t* plots = NULL;
+    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
 
     //begin the program loop
     do
     {
-        ptrPixels = pixels;
+        plots = pixels;
 
         //draw the fractal
         for (int32_t y = 0; y < cheight; y++)
@@ -901,9 +906,6 @@ void juliaExplorer()
                 //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
                 newRe = 1.5 * ((double)x - cwidth / 2) / (0.5 * zoom * cwidth) + moveX;
                 newIm = ((double)y - cheight / 2) / (0.5 * zoom * cheight) + moveY;
-
-                //i will represent the number of iterations
-                int32_t i;
 
                 //start the iteration process
                 for (i = 0; i < maxIterations; i++)
@@ -921,10 +923,13 @@ void juliaExplorer()
                 }
 
                 //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
+                RGB color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
 
                 //draw the pixel
-                *ptrPixels++ = RGB2INT(color.r, color.g, color.b);
+                plots[0] = color.b;
+                plots[1] = color.g;
+                plots[2] = color.r;
+                plots += 4;
             }
         }
 
@@ -991,15 +996,13 @@ void mandelbrotSet()
     initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Mandelbrot-Set"); //make larger to see more detail!
 
     //each iteration, it calculates: newz = oldz*oldz + p, where p is the current pixel, and oldz stars at the origin
-    double pr, pi;           //real and imaginary part of the pixel p
     double newRe, newIm, oldRe, oldIm;   //real and imaginary parts of new and old z
     double zoom = 1, moveX = -0.5, moveY = 0; //you can change these to zoom and change position
 
-    RGB color; //the RGB color value for the pixel
     int32_t maxIterations = 300;//after how much iterations the function should stop
 
-    int32_t cwidth, cheight;
-    uint32_t* pixels = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    int32_t i, cwidth = 0, cheight = 0;
+    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
 
     //loop through every pixel
     for (int32_t y = 0; y < cheight; y++)
@@ -1007,12 +1010,10 @@ void mandelbrotSet()
         for (int32_t x = 0; x < cwidth; x++)
         {
             //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-            pr = 1.5 * ((double)x - cwidth / 2) / (0.5 * zoom * cwidth) + moveX;
-            pi = ((double)y - cheight / 2) / (0.5 * zoom * cheight) + moveY;
+            double pr = 1.5 * ((double)x - cwidth / 2) / (0.5 * zoom * cwidth) + moveX;
+            double pi = ((double)y - cheight / 2) / (0.5 * zoom * cheight) + moveY;
+            
             newRe = newIm = oldRe = oldIm = 0; //these should start at 0,0
-
-            //"i" will represent the number of iterations
-            int32_t i;
 
             //start the iteration process
             for (i = 1; i <= maxIterations; i++)
@@ -1030,10 +1031,13 @@ void mandelbrotSet()
             }
 
             //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
+            RGB color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
 
             //draw the pixel
-            *pixels++ = RGB2INT(color.r, color.g, color.b);
+            pixels[0] = color.b;
+            pixels[1] = color.g;
+            pixels[2] = color.r;
+            pixels += 4;
         }
     }
 
@@ -1045,28 +1049,26 @@ void mandelbrotSet()
 
 void mandelbrotExporer()
 {
-    loadFont("pics/sysfont.xfn", 0);
+    loadFont("assets/sysfont.xfn", 0);
     initScreen(320, 240, 32, 0, "Mandelbrot-Explorer");
 
     //each iteration, it calculates: new = old*old + c, where c is a constant and old starts at current pixel
-    long double pr, pi;           //real and imaginary part of the pixel p
-    long double newRe, newIm, oldRe, oldIm;   //real and imaginary parts of new and old
-    long double zoom = 1, moveX = -0.5, moveY = 0; //you can change these to zoom and change position
+    double newRe, newIm, oldRe, oldIm;   //real and imaginary parts of new and old
+    double zoom = 1, moveX = -0.5, moveY = 0; //you can change these to zoom and change position
 
-    RGB color; //the RGB color value for the pixel
     int32_t maxIterations = 128; //after how much iterations the function should stop
 
     int32_t showText = 0;
     double time = 0, oldTime = 0, frameTime = 0; //current and old time, and their difference (for input)
     
-    uint32_t* ptrPixels;
-    int32_t cwidth, cheight;
-    uint32_t* pixels = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    int32_t i, cwidth = 0, cheight = 0;
+    uint8_t* plots = NULL;
+    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
 
     //begin main program loop
     do
     {
-        ptrPixels = pixels;
+        plots = pixels;
 
         //draw the fractal
         for (int32_t y = 0; y < cheight; y++)
@@ -1074,12 +1076,9 @@ void mandelbrotExporer()
             for (int32_t x = 0; x < cwidth; x++)
             {
                 //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-                pr = 1.5 * ((double)x - cwidth / 2) / (0.5 * zoom * cwidth) + moveX;
-                pi = ((double)y - cheight / 2) / (0.5 * zoom * cheight) + moveY;
+                double pr = 1.5 * ((double)x - cwidth / 2) / (0.5 * zoom * cwidth) + moveX;
+                double pi = ((double)y - cheight / 2) / (0.5 * zoom * cheight) + moveY;
                 newRe = newIm = oldRe = oldIm = 0; //these should start at 0,0
-
-                //i will represent the number of iterations
-                int32_t i;
 
                 //start the iteration process
                 for (i = 1; i <= maxIterations; i++)
@@ -1097,10 +1096,13 @@ void mandelbrotExporer()
                 }
 
                 //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
+                RGB color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
 
                 //draw the pixel
-                *ptrPixels++ = RGB2INT(color.r, color.g, color.b);
+                plots[0] = color.b;
+                plots[1] = color.g;
+                plots[2] = color.r;
+                plots += 4;
             }
         }
 
@@ -1165,7 +1167,7 @@ void plasmaDemo()
 
     //generate the palette
     RGB rgb;
-    for (int32_t x = 0; x != 256; x++)
+    for (int32_t x = 0; x < 256; x++)
     {
         //use HSV2RGB to vary the Hue of the color through the palette
         rgb = HSV2RGB(x, 255, 255);
@@ -1175,9 +1177,9 @@ void plasmaDemo()
     uint32_t color;
 
     //generate the plasma once
-    for (int32_t y = 0; y != cheight; y++)
+    for (int32_t y = 0; y < cheight; y++)
     {
-        for (int32_t x = 0; x != cwidth; x++)
+        for (int32_t x = 0; x < cwidth; x++)
         {
             //the plasma buffer is a sum of sines
             color = uint32_t (
@@ -1213,9 +1215,9 @@ void plasmaDemo()
         paletteShift = int32_t(getTime() / 10.0);
 
         //draw every pixel again, with the shifted palette color
-        for (int32_t y = 0; y != cheight; y++)
+        for (int32_t y = 0; y < cheight; y++)
         {
-            for (int32_t x = 0; x != cwidth; x++)
+            for (int32_t x = 0; x < cwidth; x++)
             {
                 renderBuff[y * cwidth + x] = colors[(plasma[y][x] + paletteShift) % 256];
             }
@@ -1239,9 +1241,9 @@ void tunnelDemo()
     initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Tunnel");
 
     //load tunnel texture
-    loadTexture(&texture, &w, &h, "pics/map03.png");
+    loadTexture(&texture, &w, &h, "assets/map03.png");
     
-    const double ratio = 32.0;
+    const double ratio = 128.0;
     int32_t cwidth, cheight;
     uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
@@ -1263,8 +1265,8 @@ void tunnelDemo()
         double animation = getTime() / 1000;
 
         //calculate the shift values out of the animation value
-        int32_t shiftX = int32_t(w * 1.0 * animation);
-        int32_t shiftY = int32_t(h * 0.25 * animation);
+        int32_t shiftX = int32_t(w * animation * 1.0);
+        int32_t shiftY = int32_t(h * animation * 0.25);
 
         for (int32_t y = 0; y < cheight; y++)
         {
@@ -1276,7 +1278,7 @@ void tunnelDemo()
                 renderBuff[y * cwidth + x] = texture[oy * w + ox];
             }
         }
-        delay(FPS_60);
+        delay(FPS_30);
         render();
     }
 
@@ -1376,17 +1378,18 @@ void imageFillter()
     //load the image into the buffer
     RGB* image;
     int32_t w = 0, h = 0;
-    loadTextureRGB(&image, &w, &h, "pics/photo3.png");
+    loadTextureRGB(&image, &w, &h, "assets/photo3.png");
 
-    RGB* result = (RGB*)malloc(w * h * sizeof(RGB));
+    RGB* result = (RGB*)calloc(w * h, sizeof(RGB));
+    if (!result) return;
 
     //set up the initScreen
     initScreen(w, h, 32, 0, "Filters");
 
     //apply the filter
-    for (int32_t x = 0; x != w; x++)
+    for (int32_t x = 0; x < w; x++)
     {
-        for (int32_t y = 0; y != h; y++)
+        for (int32_t y = 0; y < h; y++)
         {
             double red = 0.0, green = 0.0, blue = 0.0;
 
@@ -1433,7 +1436,10 @@ void imageFillter()
     cleanup();
 }
 
-///////////////////////////////RAY CASTING WITH SHADER EFFECT /////////////////////////////////
+//=================================================================================//
+//                     RAY CASTING WITH SHADER EFFECT                              //
+// Reference: https://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/  //
+//=================================================================================//
 
 //initScreen size
 #define SCREEN_WIDTH			740 //640 + world map width (20 * MINI_MAP_WIDTH)
@@ -1553,7 +1559,8 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     int32_t deltaY = abs(y2 - y1); //The difference between the y's
     int32_t x = x1; //Start x off at the first pixel
     int32_t y = y1; //Start y off at the first pixel
-    int32_t incX1, incX2, incY1, incY2, den, num, numAdd, numPixels, currPixel;
+    int32_t incX1, incX2, incY1, incY2;
+    int32_t den, num, numAdd, numPixels, currPixel;
 
     if (x2 >= x1) //The x-values are increasing
     {
@@ -1594,16 +1601,19 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
         numPixels = deltaY; //There are more y-values than x-values
     }
 
-    for (currPixel = 0; currPixel != numPixels; currPixel++)
+    for (currPixel = 0; currPixel < numPixels; currPixel++)
     {
-        drawBuff[(y % cheight) * cwidth + (x % cwidth)] = color; //Draw the current pixel to initScreen buffer
+        //Draw the current pixel to initScreen buffer
+        drawBuff[(y % cheight) * cwidth + (x % cwidth)] = color;
         num += numAdd;  //Increase the numerator by the top of the fraction
+
         if (num >= den) //Check if numerator >= denominator
         {
             num -= den; //Calculate the new numerator value
             x += incX1; //Change the x as appropriate
             y += incY1; //Change the y as appropriate
         }
+
         x += incX2; //Change the x as appropriate
         y += incY2; //Change the y as appropriate
     }
@@ -1674,9 +1684,9 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
 void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
     uint32_t targetOffset = cwidth * y + x;
-    for (int32_t h = 0; h != height; h++)
+    for (int32_t h = 0; h < height; h++)
     {
-        for (int32_t w = 0; w != width; w++) drawBuff[targetOffset++] = color;
+        for (int32_t w = 0; w < width; w++) drawBuff[targetOffset++] = color;
         targetOffset += (cwidth - width);
     }
 }
@@ -1686,9 +1696,9 @@ void initData()
     int32_t i;
     double radian;
 
-    loadTextureRGB(&wallTexturePixels, &wallTextureWidth, &wallTextureHeight, "pics/wallr.png");
-    loadTextureRGB(&floorTexturePixels, &floorTextureWidth, &floorTextureHeight, "pics/floor.png");
-    loadTextureRGB(&ceilingTexturePixels, &ceilingTextureWidth, &ceilingTextureHeight, "pics/ceil.png");
+    loadTextureRGB(&wallTexturePixels, &wallTextureWidth, &wallTextureHeight, "assets/wallr.png");
+    loadTextureRGB(&floorTexturePixels, &floorTextureWidth, &floorTextureHeight, "assets/floor.png");
+    loadTextureRGB(&ceilingTexturePixels, &ceilingTextureWidth, &ceilingTextureHeight, "assets/ceil.png");
 
     for (i = 0; i <= ANGLE360; i++)
     {
@@ -1753,9 +1763,9 @@ void initData()
 
 void drawOverheadMap()
 {
-    for (int32_t row = 0; row != WORLD_MAP_HEIGHT; row++)
+    for (int32_t row = 0; row < WORLD_MAP_HEIGHT; row++)
     {
-        for (int32_t col = 0; col != WORLD_MAP_WIDTH; col++)
+        for (int32_t col = 0; col < WORLD_MAP_WIDTH; col++)
         {
             if (worldMap[row * WORLD_MAP_WIDTH + col]) drawFillRectangle(PROJECTION_PLANE_WIDTH + col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB2INT(0, 0, 0));
             else drawFillRectangle(PROJECTION_PLANE_WIDTH + col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB2INT(255, 255, 255));
@@ -1818,7 +1828,7 @@ void doRayCasting()
     //wrap around if necessary
     if (castArc < ANGLE0) castArc += ANGLE360;
 
-    for (castColumn = 0; castColumn != PROJECTION_PLANE_WIDTH; castColumn++)
+    for (castColumn = 0; castColumn < PROJECTION_PLANE_WIDTH; castColumn++)
     {
         //Ray is between 0 to 180 degree (1st and 2nd quadrant).
         int32_t mapIndex;
@@ -1993,7 +2003,7 @@ void doRayCasting()
             //find the first bit so we can just add the width to get the next row (of the same column)
             uint32_t targetOffset = bottomOfWall * cwidth + castColumn;
 
-            for (int32_t row = bottomOfWall; row != PROJECTION_PLANE_HEIGHT; row++)
+            for (int32_t row = bottomOfWall; row < PROJECTION_PLANE_HEIGHT; row++)
             {
                 double straightDistance = (double)playerHeight / ((double)row - projectionPlaneCenterY) * PLAYER_PROJECTION_PLAN;
                 double actualDistance = straightDistance * fishTable[castColumn];
@@ -2092,13 +2102,13 @@ void runRayCasting()
     double time = 0; //time of current frame
     double oldTime = 0; //time of previous frame
 
-    loadFont("pics/sysfont.xfn", 0);
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting-Demo");
+    loadFont("assets/sysfont.xfn", 0);
+    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting-Demo -- Keys control: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch");
     initData();
 
     drawBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
-    while (!finished(SDL_SCANCODE_RETURN))
+    do
     {
         drawOverheadMap();
         doRayCasting();
@@ -2112,9 +2122,11 @@ void runRayCasting()
         render();
         memset(drawBuff, RGB2INT(255, 255, 255), sizeof(uint32_t) * cwidth * cheight);
 
-        //Fetch user input
+        //fetch user input
         readKeys();
+        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
+        //rotate left
         if (keyDown(SDL_SCANCODE_LEFT))
         {
             playerArc -= ANGLE5;
@@ -2206,34 +2218,22 @@ void runRayCasting()
         }
 
         //vertical lookup
-        if (keyDown(SDL_SCANCODE_Q))
-        {
-            projectionPlaneCenterY += 15;
-        }
-        else if (keyDown(SDL_SCANCODE_Z))
-        {
-            projectionPlaneCenterY -= 15;
-        }
+        if (keyDown(SDL_SCANCODE_Q)) projectionPlaneCenterY += 15;
+        else if (keyDown(SDL_SCANCODE_Z)) projectionPlaneCenterY -= 15;
 
         if (projectionPlaneCenterY < -PROJECTION_PLANE_HEIGHT >> 1) projectionPlaneCenterY = -PROJECTION_PLANE_HEIGHT >> 1;
         else if (projectionPlaneCenterY >= int32_t(PROJECTION_PLANE_HEIGHT * 1.5)) projectionPlaneCenterY = int32_t(PROJECTION_PLANE_HEIGHT * 1.5);
 
         //fly and crouch
-        if (keyDown(SDL_SCANCODE_E))
-        {
-            playerHeight++;
-        }
-        else if (keyDown(SDL_SCANCODE_C))
-        {
-            playerHeight--;
-        }
+        if (keyDown(SDL_SCANCODE_E)) playerHeight++;
+        else if (keyDown(SDL_SCANCODE_C)) playerHeight--;
 
         if (playerHeight < 1) playerHeight = 1;
         else if (playerHeight >= WALL_HEIGHT - 5) playerHeight = WALL_HEIGHT - 5;
 
         //correct frames rate
         delay(FPS_30);
-    }
+    } while (!keyDown(SDL_SCANCODE_RETURN));
 
     free(wallTexturePixels);
     free(floorTexturePixels);

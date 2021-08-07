@@ -52,6 +52,6 @@ void showFontsDir(const char* path, const char* ext)
 void gfxFontView()
 {
     initScreen(800, 600, 32, 0, "GFXLIB Fonts");
-    showFontsDir("pics", "*.xfn");
+    showFontsDir("assets", "*.xfn");
     cleanup();
 }

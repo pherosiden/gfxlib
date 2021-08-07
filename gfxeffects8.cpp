@@ -42,8 +42,8 @@ namespace juliaSet {
         {
             for (x = 0; x < texWidth; x++)
             {
-                newre = 1.5 * ((double)x - texWidth / 2) / (0.5 * zoom * texWidth) + mx;
-                newim = 1.0 * ((double)y - texHeight / 2) / (0.5 * zoom * texHeight) + my;
+                newre = 1.5 * (x - texWidth / 2) / (0.5 * zoom * texWidth) + mx;
+                newim = 1.0 * (y - texHeight / 2) / (0.5 * zoom * texHeight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -121,7 +121,7 @@ namespace fadePalette {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO");
         vbuff = (uint8_t*)getDrawBuffer();
 
-        loadPNG(vbuff, src, "pics/arnold.png");
+        loadPNG(vbuff, src, "assets/arnold.png");
         setPalette(dst);
         fadeIn(src, FPS_60);
         fadeMax(FPS_60);
@@ -141,7 +141,7 @@ namespace bumpMap {
         int16_t i, j;
         double nx, ny, nz;
 
-        FILE* fp = fopen("pics/envmap.dat", "rb");
+        FILE* fp = fopen("assets/envmap.dat", "rb");
         if (fp)
         {
             fread(dbuff, 1, SIZE_256 * SIZE_256, fp);
@@ -161,7 +161,7 @@ namespace bumpMap {
                 }
             }
 
-            fp = fopen("pics/envmap.dat", "wb");
+            fp = fopen("assets/envmap.dat", "wb");
             if (fp)
             {
                 fwrite(dbuff, 1, SIZE_256 * SIZE_256, fp);
@@ -256,7 +256,7 @@ namespace bumpMap {
 
         createEnvironmentMap();
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Bump-Mapping -- Move your mouse!");
-        loadPNG(vbuff2[0], NULL, "pics/intro.png");
+        loadPNG(vbuff2[0], NULL, "assets/intro.png");
         setFadePalette();
         setMousePosition(IMAGE_WIDTH, IMAGE_HEIGHT);
         showMouseCursor(SDL_DISABLE);
@@ -308,7 +308,7 @@ namespace fireBump {
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Bump");
-        loadPNG(vbuff1[0], NULL, "pics/author.png");
+        loadPNG(vbuff1[0], NULL, "assets/author.png");
 
         for (i = 0; i < 8; i++) limit[i] = 127 * (i + 1);
                 
@@ -386,8 +386,8 @@ namespace circleEffect {
 
         preCalc();
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Circle -- Move your mouse!");
-        loadPNG(vbuff1[0], pal, "pics/image.png");
-        loadPNG(vbuff3[0], NULL, "pics/wall.png");
+        loadPNG(vbuff1[0], pal, "assets/image.png");
+        loadPNG(vbuff3[0], NULL, "assets/wall.png");
         setPalette(pal);
         setMousePosition(40 << 1, 70 << 1);
         showMouseCursor(SDL_DISABLE);
@@ -426,9 +426,9 @@ namespace crossFade {
         uint8_t r1, g1, b1;
 
         clearPalette();
-        loadPNG(vbuff1[0], pal2, "pics/to.png");
+        loadPNG(vbuff1[0], pal2, "assets/to.png");
         memcpy(vbuff3, vbuff1, IMAGE_SIZE);
-        loadPNG(vbuff1[0], pal1, "pics/from.png");
+        loadPNG(vbuff1[0], pal1, "assets/from.png");
     
         for (y = 0; y < IMAGE_HEIGHT; y++)
         {
@@ -546,10 +546,10 @@ namespace crossFade {
         FILE* fp = NULL;
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Cross-Fade");
 
-        fp = fopen("pics/fade.dat", "rb");
+        fp = fopen("assets/fade.dat", "rb");
         if (!fp)
         {
-            fp = fopen("pics/fade.dat", "wb");
+            fp = fopen("assets/fade.dat", "wb");
             if (!fp) return;
 
             setItUp();
@@ -1655,7 +1655,7 @@ namespace waterEffect {
         uint16_t page = 0, nx = 0, ny = 0;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water");
-        loadPNG(dbuff[0], pal, "pics/sea.png");
+        loadPNG(dbuff[0], pal, "assets/sea.png");
         setPalette(pal);
         memcpy(vbuff, dbuff, IMAGE_SIZE);
 
@@ -3845,8 +3845,8 @@ namespace textureMappingEffect {
     void loadTexture()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(vbuff2[0], rgb, "pics/tface.png");
-        loadPNG(texture[0], NULL, "pics/robot.png");
+        loadPNG(vbuff2[0], rgb, "assets/tface.png");
+        loadPNG(texture[0], NULL, "assets/robot.png");
         setPalette(rgb);
     }
 
@@ -4654,7 +4654,7 @@ namespace bitmapRotate {
     void loadTexture()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(texture[0], rgb, "pics/crew.png");
+        loadPNG(texture[0], rgb, "assets/crew.png");
         setPalette(rgb);
     }
 
@@ -5515,7 +5515,7 @@ namespace intro16k {
             }
         }
 
-        fp = fopen("pics/wirefont.fnt", "rb");
+        fp = fopen("assets/wirefont.fnt", "rb");
         if (!fp)
         {
             messageBox(GFX_WARNING, "Cannot load wired font!");
@@ -7009,7 +7009,7 @@ namespace textScrolling {
 
     void loadFont()
     {
-        FILE* fp = fopen("pics/font8x8.fnt", "rb");
+        FILE* fp = fopen("assets/font8x8.fnt", "rb");
         fread(fbuff, 1, FONT_SIZE, fp);
         fclose(fp);
     }
@@ -7065,7 +7065,7 @@ namespace textScrolling {
         uint16_t i;
         RGB pal[256] = { 0 };
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
-        loadPNG(vbuff[0], pal, "pics/friend.png");
+        loadPNG(vbuff[0], pal, "assets/friend.png");
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         for (i = 0; i < LEN; i++) sint[i] = uint16_t(sin(4 * M_PI * i / LEN) * AMP + OFS);
@@ -7123,7 +7123,7 @@ namespace fastShowBMP {
     void run()
     {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fast BMP Show");
-        loadBMP("pics/face.bmp");
+        loadBMP("assets/face.bmp");
         flipScreen();
         while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -7159,13 +7159,13 @@ namespace EMS {
         uint8_t pal[768] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "DOS-EMS Simulation");
-        fp = fopen("pics/mickey.dat", "rb");
+        fp = fopen("assets/mickey.dat", "rb");
         if (!fp) return;
 
         fread(pal, 768, 1, fp);
         for (i = 0; i < 15; i++)
         {
-            handle[i] = (uint8_t*)malloc(IMAGE_SIZE);
+            handle[i] = (uint8_t*)calloc(IMAGE_SIZE, 1);
             if (!handle[i])
             {
                 fprintf(stderr, "Not enough memory!\n");
@@ -7411,7 +7411,7 @@ namespace fillterEffect {
         RGB outPal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fillter -- Keys: A->M: switched; Spacer: restore");
-        loadPNG(vbuff1[0], pal, "pics/dracula.png");
+        loadPNG(vbuff1[0], pal, "assets/dracula.png");
 
         for (i = 0; i < 256; i++)
         {
@@ -7826,7 +7826,7 @@ namespace fireworkEffect {
 
         for (i = 0; i < NUM_ARROWS; i++)
         {
-            arrows[i] = (TArrow*)malloc(sizeof(TArrow));
+            arrows[i] = (TArrow*)calloc(1, sizeof(TArrow));
             if (!arrows[i]) messageBox(GFX_ERROR, "Not enough memory!");
             newArrow(arrows[i]);
         }
@@ -8098,7 +8098,7 @@ namespace fireEffect2 {
     void run()
     {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
-        loadPalette("pics/fire.pal");
+        loadPalette("assets/fire.pal");
         initSeed();
 
         do {
@@ -8535,7 +8535,7 @@ namespace fireEffect5 {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
         setFirePalette();
 
-        fp = fopen("pics/bline.dat", "rb");
+        fp = fopen("assets/bline.dat", "rb");
         if (!fp) exit(1);
 
         for (i = 0; i < 5; i++) fread(hline[i], 1, 24 * IMAGE_WIDTH, fp);
@@ -9955,7 +9955,7 @@ namespace flagsEffect {
     void initTexture()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(vbuff1[0], rgb, "pics/skull.png");
+        loadPNG(vbuff1[0], rgb, "assets/skull.png");
         setPalette(rgb);
     }
 
@@ -10110,7 +10110,7 @@ namespace lakeEffect {
         for (i = 0; i < 400; i++) sintab[i] = uint8_t(sin(5 * M_PI * i / 100) * 3 + 3);
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lake");
-        loadPNG(vbuff[0], pal, "pics/palio.png");
+        loadPNG(vbuff[0], pal, "assets/palio.png");
         setPalette(pal);
 
         memcpy(dbuff, vbuff, IMAGE_SIZE);
@@ -10302,7 +10302,7 @@ namespace landScapeEffect {
     void generateLandScape()
     {
         int16_t i, j;
-        FILE* fp = fopen("pics/land.map", "rb");
+        FILE* fp = fopen("assets/land.map", "rb");
 
         if (fp) fread(dbuff, IMAGE_SIZE, 1, fp);
         else
@@ -10312,7 +10312,7 @@ namespace landScapeEffect {
             vbuff[MAX_HEIGHT][0] = uint8_t(random(HMAX));
             vbuff[MAX_HEIGHT][MAX_WIDTH] = uint8_t(random(HMAX));
             subDivide(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-            fp = fopen("pics/land.map", "wb");
+            fp = fopen("assets/land.map", "wb");
             fwrite(dbuff, IMAGE_SIZE, 1, fp);
         }
         fclose(fp);
@@ -10443,7 +10443,7 @@ namespace lensEffect {
         int16_t x, y, xadd, yadd;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lens");
-        loadPNG(vbuff2[0], pal, "pics/sunflow.png");
+        loadPNG(vbuff2[0], pal, "assets/sunflow.png");
         setPalette(pal);
 
         x = IMAGE_MIDX;
@@ -10589,7 +10589,7 @@ namespace zoomInEffect {
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-In -- Move your mouse, left click to exit...");
-        loadPNG(vbuff1[0], pal, "pics/insect.png");
+        loadPNG(vbuff1[0], pal, "assets/insect.png");
         setPalette(pal);
 
         calcMask();
@@ -10671,7 +10671,7 @@ namespace zoomOutEffect {
         for (i = 0; i < 64; i++) ztab[i] = int16_t(sin(v + i * vadd) * 2500);
         calcMatrix();
 
-        loadPNG(vmem[0], pal, "pics/drunken.png");
+        loadPNG(vmem[0], pal, "assets/drunken.png");
         setPalette(pal);
         memcpy(vbuff, vmem, IMAGE_SIZE);
     }
@@ -11431,7 +11431,7 @@ namespace mazeGeneration {
         int16_t i;
         int32_t keyCode = 0;
 
-        loadFont("pics/sysfont.xfn", 0);
+        loadFont("assets/sysfont.xfn", 0);
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Maze-Generation");
 
         do {
@@ -11461,7 +11461,7 @@ namespace mazeGeneration {
                 dbuff[i][33] = 10;
             }
 
-            fp = fopen("pics/maze.dat", "wb");
+            fp = fopen("assets/maze.dat", "wb");
             if (fp)
             {
                 fwrite(dbuff, sizeof(dbuff), 1, fp);
@@ -11544,7 +11544,7 @@ namespace pixelMorphing {
         uint16_t k = 0;
         uint8_t dbuff[80][80] = { 0 };
         memset(nextrow, 0, sizeof(nextrow));
-        loadPNG(dbuff[0], NULL, "pics/boss.png");
+        loadPNG(dbuff[0], NULL, "assets/boss.png");
 
         for (j = 0; j < 80; j++)
         {
@@ -11573,7 +11573,7 @@ namespace pixelMorphing {
     {
         RGB pal[256] = { 0 };
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Pixel-Morphing");
-        loadPNG(vbuff[0], pal, "pics/duke.png");
+        loadPNG(vbuff[0], pal, "assets/duke.png");
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         doPicture();
@@ -12278,7 +12278,7 @@ namespace rippleEffect {
     void initTexture()
     {
         RGB pal[256] = { 0 };
-        loadPNG(vbuff[0], pal, "pics/pig.png");
+        loadPNG(vbuff[0], pal, "assets/pig.png");
         setPalette(pal);
     }
 
@@ -12813,7 +12813,7 @@ namespace scaleMap {
         }
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Scaler -- Keys: 1->3: change mode");
-        loadPNG(vbuff2[0], pal, "pics/face.png");
+        loadPNG(vbuff2[0], pal, "assets/face.png");
         setPalette(pal);
         runStretch1();
 
@@ -12900,7 +12900,7 @@ namespace shadeBob {
         int16_t xp = 0, xr = 0, yp = 0, yr = 0;
         
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
-        loadPNG(vbuff[0], NULL, "pics/killer.png");
+        loadPNG(vbuff[0], NULL, "assets/killer.png");
         makePalette();
 
         gh = random(60) + 40;
@@ -13009,7 +13009,7 @@ namespace shadePattern {
     {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
         initBrush();
-        loadPNG(vbuff[0], NULL, "pics/killer.png");
+        loadPNG(vbuff[0], NULL, "assets/killer.png");
         generatePalette();
         arrpos = 0;
     }
@@ -13043,7 +13043,7 @@ namespace shadePattern {
             }
         } while (!finished(SDL_SCANCODE_RETURN));
 
-        FILE* fp = fopen("pics/path.dat", "wb");
+        FILE* fp = fopen("assets/path.dat", "wb");
         fwrite(&arrpos, sizeof(arrpos), 1, fp);
         fwrite(points, sizeof(TPoint), arrpos, fp);
         fclose(fp);
@@ -13051,7 +13051,7 @@ namespace shadePattern {
 
     void playShadeBob()
     {
-        FILE* fp = fopen("pics/path.dat", "rb");
+        FILE* fp = fopen("assets/path.dat", "rb");
         if (!fp) return;
 
         fread(&arrmax, sizeof(arrmax), 1, fp);
@@ -13178,7 +13178,7 @@ namespace shadeBobSin {
 
         shiftPalette(pal);
         setPalette(pal);
-        loadPNG(vbuff[0], NULL, "pics/killer.png");
+        loadPNG(vbuff[0], NULL, "assets/killer.png");
 
         alpha = 0;
         rx = 150;
@@ -13287,7 +13287,7 @@ namespace snowFall {
     void initSnow()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(vmem[0], rgb, "pics/flake.png");
+        loadPNG(vmem[0], rgb, "assets/flake.png");
         rgb[255].r = 255;
         rgb[255].g = 255;
         rgb[255].b = 255;
@@ -14009,7 +14009,7 @@ namespace spriteEffect {
         RGB pal[256] = { 0 };
         RGB tmp[256] = { 0 };
         
-        FILE* fp = fopen("pics/bubmio.dat", "rb");
+        FILE* fp = fopen("assets/bubmio.dat", "rb");
         if (!fp) exit(1);
         for (i = 0; i < 7; i++) fread(frames[i], W * H, 1, fp);
         fclose(fp);
@@ -14023,7 +14023,7 @@ namespace spriteEffect {
             pal[i].b = palbubmio[i][2] << 2;
         }
 
-        loadPNG(vbuff1[0], tmp, "pics/fun.png");
+        loadPNG(vbuff1[0], tmp, "assets/fun.png");
 
         for (i = 16; i < 256; i++)
         {
@@ -14366,7 +14366,7 @@ namespace fontEffect1 {
             fread(&tx, 1, 1, fp);
             fread(&ty, 1, 1, fp);
 
-            chars[ch - 32] = (uint8_t*)malloc(tx * ty);
+            chars[ch - 32] = (uint8_t*)calloc(1, tx * ty);
             if (!chars[ch - 32]) exit(1);
 
             chrinfo[ch - 32][0] = tx;
@@ -14430,7 +14430,7 @@ namespace fontEffect1 {
     void run()
     {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fonts");
-        loadFont("pics/font001.fnt");
+        loadFont("assets/font001.fnt");
         writeXY(1, 2, "I LOVE ...");
         writeXY(1, 38, "DEMOS!");
         writeXY(1, 74, "GRAPHICS!");
@@ -14486,7 +14486,7 @@ namespace fontEffect2 {
             fread(&w, 1, 1, fp);
             fread(&h, 1, 1, fp);
 
-            chars[chr - 32] = (uint8_t*)malloc(w * h);
+            chars[chr - 32] = (uint8_t*)calloc(1, w * h);
             if (!chars[chr - 32]) exit(1);
 
             chrinfo[chr - 32][0] = w;
@@ -14565,7 +14565,7 @@ namespace fontEffect2 {
         memset(bitmap, 0, sizeof(bitmap));
         calcSin();
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text");
-        loadFont("pics/font003.fnt");
+        loadFont("assets/font003.fnt");
 
         row = 0;
         newrow = 0;
@@ -14621,7 +14621,7 @@ namespace fontEffect3 {
             fread(&width, 1, 1, fp);
             fread(&height, 1, 1, fp);
 
-            chars[chr - 32] = (uint8_t*)malloc(width * height);
+            chars[chr - 32] = (uint8_t*)calloc(1, width * height);
             if (!chars[chr - 32]) return;
 
             chrinfo[chr - 32][0] = width;
@@ -14683,7 +14683,7 @@ namespace fontEffect3 {
         memset(bitmap, 0, sizeof(bitmap));
         calcSin();
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
-        loadFont("pics/font002.fnt");
+        loadFont("assets/font002.fnt");
 
         row = 0;
         newrow = 0;
@@ -14727,6 +14727,10 @@ namespace thunderBoltEffect {
 
         while (ints > 0 && y < MAX_HEIGHT && x > 0 && x < MAX_WIDTH)
         {
+            readKeys();
+            if (keyDown(SDL_SCANCODE_RETURN)) break;
+            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+
             addItem(x + 1, y, (ints - 3) * 20 + 50);
             addItem(x, y, (ints * 20) + 50);
             addItem(x - 1, y, (ints - 2) * 20 + 50);
@@ -14775,7 +14779,7 @@ namespace thunderBoltEffect {
         flash[0].b = 255;
         setPalette(flash);
         render();
-        delay(10);
+        delay(15);
 
         for (j = 63; j >= 0; j--)
         {
@@ -14788,6 +14792,9 @@ namespace thunderBoltEffect {
             setPalette(pal);
             render();
             delay(15);
+            readKeys();
+            if (keyDown(SDL_SCANCODE_RETURN)) break;
+            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
     }
 
@@ -14855,7 +14862,7 @@ namespace scrollingEffect {
 
     void loadFont()
     {
-        FILE* fp = fopen("pics/font8x16.fnt", "rb");
+        FILE* fp = fopen("assets/font8x16.fnt", "rb");
         if (!fp) exit(1);
         fread(tbuff, 1, sizeof(tbuff), fp);
         fclose(fp);
@@ -14917,7 +14924,7 @@ namespace scrollingEffect {
     {
         RGB pal[256] = { 0 };
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
-        loadPNG(vbuff[0], pal, "pics/friend.png");
+        loadPNG(vbuff[0], pal, "assets/friend.png");
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         renderBuffer(vmem, IMAGE_SIZE);
@@ -15006,9 +15013,9 @@ namespace voxelEffect {
     void initMap()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(cmap[0], rgb, "pics/ground.png");
-        loadPNG(hmap[0], NULL, "pics/height.png");
-        loadPNG(sky[0], NULL, "pics/sky.png");
+        loadPNG(cmap[0], rgb, "assets/ground.png");
+        loadPNG(hmap[0], NULL, "assets/height.png");
+        loadPNG(sky[0], NULL, "assets/sky.png");
         setPalette(rgb);
     }
 
@@ -15272,7 +15279,7 @@ namespace winterEffect {
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Winter");
-        loadPNG(vbuff[0], pal, "pics/winter.png");
+        loadPNG(vbuff[0], pal, "assets/winter.png");
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         memset(flakes, 0, sizeof(flakes));
@@ -15325,7 +15332,7 @@ namespace wormEffect {
 
         shiftPalette(pal);
         setPalette(pal);
-        loadPNG((uint8_t*)getDrawBuffer(), NULL, "pics/worm.png");
+        loadPNG((uint8_t*)getDrawBuffer(), NULL, "assets/worm.png");
 
         do {
             memcpy(tmp, &pal[16], sizeof(tmp));
@@ -15743,10 +15750,10 @@ namespace rayCastingEffect {
     void run()
     {
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ray-Casting -- Keys: Arrows: move; TAB: show maze");
-        loadMaze("pics/maze.dat");
-        loadPNG(walls[0], pal, "pics/wallr.png");
-        loadPNG(floors[0], pal, "pics/floor.png");
-        loadPNG(ceils[0], pal, "pics/ceil.png");
+        loadMaze("assets/maze.dat");
+        loadPNG(walls[0], pal, "assets/wallr.png");
+        loadPNG(floors[0], pal, "assets/floor.png");
+        loadPNG(ceils[0], pal, "assets/ceil.png");
         setPalette(pal);
         setShade();
 

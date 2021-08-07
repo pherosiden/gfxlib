@@ -96,20 +96,20 @@ uint32_t        randSeed = 0;                       //global random seed
 uint32_t        factor   = 0x8088405;               //global factor
 
 //pattern filled styles
-uint8_t         ptrnLine[]          = { 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00 };
-uint8_t         ptrnLiteSlash[]     = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
-uint8_t         ptrnSlash[]         = { 0x07, 0x0E, 0x1C, 0x38, 0x70, 0xE0, 0xC1, 0x83 };
-uint8_t         ptrnBackSlash[]     = { 0x07, 0x83, 0xC1, 0xE0, 0x70, 0x38, 0x1C, 0x0E };
-uint8_t         ptrnLiteBackSlash[] = { 0x5A, 0x2D, 0x96, 0x4B, 0xA5, 0xD2, 0x69, 0xB4 };
-uint8_t         ptrnHatch[]         = { 0xFF, 0x88, 0x88, 0x88, 0xFF, 0x88, 0x88, 0x88 };
-uint8_t         ptrnHatchX[]        = { 0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x24, 0x18 };
-uint8_t         ptrnInterLeave[]    = { 0xCC, 0x33, 0xCC, 0x33, 0xCC, 0x33, 0xCC, 0x33 };
-uint8_t         ptrnWideDot[]       = { 0x80, 0x00, 0x08, 0x00, 0x80, 0x00, 0x08, 0x00 };
-uint8_t         ptrnCloseDot[]      = { 0x88, 0x00, 0x22, 0x00, 0x88, 0x00, 0x22, 0x00 };
+uint8_t         ptnLine[]          = { 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00 };
+uint8_t         ptnLiteSlash[]     = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
+uint8_t         ptnSlash[]         = { 0x07, 0x0E, 0x1C, 0x38, 0x70, 0xE0, 0xC1, 0x83 };
+uint8_t         ptnBackSlash[]     = { 0x07, 0x83, 0xC1, 0xE0, 0x70, 0x38, 0x1C, 0x0E };
+uint8_t         ptnLiteBackSlash[] = { 0x5A, 0x2D, 0x96, 0x4B, 0xA5, 0xD2, 0x69, 0xB4 };
+uint8_t         ptnHatch[]         = { 0xFF, 0x88, 0x88, 0x88, 0xFF, 0x88, 0x88, 0x88 };
+uint8_t         ptnHatchX[]        = { 0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x24, 0x18 };
+uint8_t         ptnInterLeave[]    = { 0xCC, 0x33, 0xCC, 0x33, 0xCC, 0x33, 0xCC, 0x33 };
+uint8_t         ptnWideDot[]       = { 0x80, 0x00, 0x08, 0x00, 0x80, 0x00, 0x08, 0x00 };
+uint8_t         ptnCloseDot[]      = { 0x88, 0x00, 0x22, 0x00, 0x88, 0x00, 0x22, 0x00 };
 
 //CPU and video card parameters
 uint32_t        cpuSpeed = 0;               //CPU speed in MHz
-char            cpuName[48] = { 0 };        //full CPU name
+char            cpuName[48] = { 0 };        //full CPU name string
 char            cpuType[13] = { 0 };        //CPU type (INTEL, AMD, ...)
 char            cpuFeatures[48] = { 0 };    //CPU features (MMX, 3DNow!, SSE, SSE2, SSE3, ...)
 char            videoName[128] = { 0 };     //full name of graphic card
@@ -119,9 +119,9 @@ char            imageVersion[32] = { 0 };   //SDL2_image version string
 char            modeInfo[32] = { 0 };       //current display mode info string
 
 //system memory profiles
-uint32_t        totalMemory = 0;           //total physical memory in MB
-uint32_t        availableMemory = 0;       //available physical memory in MB
-uint32_t        videoMemory = 0;           //total video memory in MB
+uint32_t        totalMemory = 0;            //total physical memory in MB
+uint32_t        availableMemory = 0;        //available physical memory in MB
+uint32_t        videoMemory = 0;            //total video memory in MB
 
 //pointer function handlers
 void            (*clearScreen)(uint32_t) = NULL;
@@ -246,6 +246,7 @@ int32_t waitKeyPressed()
     return pressedKey;
 }
 
+//sleep CPU execution
 void delay(uint32_t miliseconds)
 {
     SDL_Delay(miliseconds);
@@ -254,12 +255,13 @@ void delay(uint32_t miliseconds)
 //only return 1 when exitkey scancode (not escape) is givent, ESCAPE key to exit program
 int32_t finished(int32_t keyCode)
 {
-    SDL_Delay(1);
+    //flush pending event
     while (SDL_PollEvent(&sdlEvent))
     {
         if (sdlEvent.type == SDL_QUIT) return 1;
     }
 
+    //what the user input key?
     readKeys();
     if (keyStates[SDL_SCANCODE_ESCAPE]) quit();
     if (keyStates[keyCode])
@@ -268,6 +270,7 @@ int32_t finished(int32_t keyCode)
         keyStates[keyCode] = 0;
         return 1;
     }
+
     return 0;
 }
 
@@ -384,7 +387,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     }
 
     //set windows icon
-    SDL_Surface* icon = IMG_Load("pics/gfxicon-128x.png");
+    SDL_Surface* icon = IMG_Load("assets/gfxicon-128x.png");
     if (icon)
     {
         SDL_SetColorKey(icon, true, SDL_MapRGB(icon->format, 0, 0, 0));
@@ -587,7 +590,7 @@ void render()
     else if (bitsPerPixel == 8)
     {
         //256 colors palette, we must convert 8 bits surface to 32 bits surface
-        SDL_BlitSurface(sdlSurface, NULL, sdlScreen, NULL);
+        SDL_UpperBlit(sdlSurface, NULL, sdlScreen, NULL);
         SDL_UpdateTexture(sdlTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
         SDL_RenderClear(sdlRenderer);
         SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
@@ -6899,7 +6902,7 @@ void loadImage(const char* fname, GFX_IMAGE* im)
     }
 
     //convert to target pixel format
-    if (SDL_BlitSurface(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+    if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
 
     //build GFX texture
     newImage(texture->w, texture->h, im);
@@ -6927,7 +6930,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
         return 0;
     }
 
-    if (SDL_BlitSurface(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+    if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
 
     uint32_t size = texture->pitch * texture->h;
     uint32_t* pixels = (uint32_t*)calloc(size, 1);
@@ -6965,7 +6968,7 @@ int32_t loadTextureRGB(RGB** txout, int32_t* txw, int32_t* txh, const char* fnam
         return 0;
     }
 
-    if (SDL_BlitSurface(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+    if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
 
     uint32_t size = texture->pitch * texture->h;
     RGB* pixels = (RGB*)calloc(size, 1);
@@ -7431,7 +7434,7 @@ void handleMouse(const char* fname)
     int32_t lastx = 0, lasty = 0;
     uint32_t needDraw = 0xFFFF;
     double lastTime = 0;
-    const char* bkg[] = { "pics/1lan8.bmp", "pics/1lan16.bmp", "pics/1lan24.bmp", "pics/1lan32.bmp" };
+    const char* bkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
 
     //init and setup bitmap mouse and button
     if (!initMouseButton(&mi)) messageBox(GFX_ERROR, "Cannot init mouse button!");
