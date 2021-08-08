@@ -18,14 +18,19 @@
 //===============================================================//
 
 #include <map>
+#include "gfxlib.h"
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#include <sys/types.h>
+#include <mach/machine.h>
+#else
 #include <dxgi.h>
 #include <tchar.h>
-#include "gfxlib.h"
-
+#pragma comment (lib, "dxgi")
 #pragma comment (lib, "sdl2")
 #pragma comment (lib, "sdl2main")
 #pragma comment (lib, "sdl2_image")
-#pragma comment (lib, "dxgi")
+#endif
 
 //drawing buffer
 void*           drawBuff = NULL;            //current render buffer
@@ -2924,11 +2929,11 @@ void drawEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
 //Wu's ellipse with alpha blend
 void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb)
 {
-    int32_t f, a, b, b1;
+    int32_t f, b1;
     double dx, dy, ed, alpha, err;
 
-    a = abs(x1 - x0);
-    b = abs(y1 - y0);
+    int32_t a = abs(x1 - x0);
+    int32_t b = abs(y1 - y0);
 
     //only 32bit support alpha-blend mode
     if (bitsPerPixel != 32) return;
@@ -2969,8 +2974,9 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
         putPixelAlpha(x0, y1, rgb, uint8_t(alpha));
         putPixelAlpha(x1, y0, rgb, uint8_t(alpha));
         putPixelAlpha(x1, y1, rgb, uint8_t(alpha));
-
-        if (f = 2 * err + dy >= 0)
+        
+        f = int32_t(2 * err + dy);
+        if (f >= 0)
         {
             if (x0 >= x1) break;
             alpha = ed * (err + dx);
@@ -3021,7 +3027,7 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
     }
 }
 
-//Rectangle with corners (x1,y1) and (x2,y2) and color
+//rectangle with corners (x1,y1) and (x2,y2) and color
 void drawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 {
     horizLine(x1, y1, x2 - x1 + 1, color);
@@ -7231,7 +7237,6 @@ void drawButton(GFX_BUTTON* btn)
     if (!lbWidth || !lbHeight) return;
 
     const int32_t btnWidth = btn->btWidth;
-    const int32_t btnHeight = btn->btHeight;
     void* btnData = btn->btData[btn->btState % BUTTON_STATES];
 
 #ifdef _USE_ASM
@@ -8051,7 +8056,6 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
 void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 {
     uint32_t* psrc = (uint32_t*)src->mData;
-    uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t nsize = src->mSize >> 2;
 
     //only support 32bit color
@@ -8061,6 +8065,7 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
     if (bright == 0 || bright == 255) return;
 
 #ifdef _USE_ASM
+    uint32_t* pdst = (uint32_t*)dst->mData;
     _asm {
         mov     ecx, nsize
         mov     edi, pdst
@@ -8328,10 +8333,10 @@ void blurImage(GFX_IMAGE* img)
     if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
 
     const uint32_t width = img->mWidth;
-    const uint32_t height = img->mHeight;
     const uint32_t* data = (const uint32_t*)img->mData;
 
 #ifdef _USE_ASM
+    uint32_t height = img->mHeight;
     _asm {
         mov     edi, data
     step:
@@ -8836,13 +8841,22 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
 //get total system momory in MB
 void initMemoryInfo()
 {
+#ifdef __APPLE__
+    size_t len = 0;
+    uint64_t physMem = 0, memSize = 0;
+    len = sizeof(memSize);
+    if (!sysctlbyname("hw.memsize", &memSize, &len, NULL, 0)) totalMemory = uint32_t(memSize >> 20);
+    len = sizeof(physMem);
+    if (!sysctlbyname("hw.physmem", &physMem, &len, NULL, 0)) availableMemory = uint32_t(physMem >> 20);
+#else
     MEMORYSTATUSEX statex = { 0 };
     statex.dwLength = sizeof(statex);
     if (GlobalMemoryStatusEx(&statex))
-    { 
+    {
         totalMemory = uint32_t(statex.ullTotalPhys >> 20);
         availableMemory = uint32_t(statex.ullAvailPhys >> 20);
     }
+#endif
 }
 
 //get RDTSC count
@@ -8857,6 +8871,8 @@ uint64_t getCyclesCount()
         mov dword ptr[count + 4], edx
     }
     return count;
+#elif defined(__APPLE__)
+    return 0;
 #else
     return __rdtsc();
 #endif
@@ -8865,11 +8881,17 @@ uint64_t getCyclesCount()
 //get current CPU clock rate in MHz
 void calcCpuSpeed()
 {
+#ifdef __APPLE__
+    uint64_t cpuFreq = 0;
+    size_t len = sizeof(cpuFreq);
+    if (!sysctlbyname("hw.cpufrequency", &cpuFreq, &len, NULL, 0)) cpuSpeed = uint32_t(cpuFreq / 1000 / 1000);
+#else
     const uint64_t start = getCyclesCount();
     delay(50);
     const uint64_t stop = getCyclesCount();
     const uint64_t speed = (stop - start) / 50000;
     cpuSpeed = uint32_t(speed);
+#endif
 }
 
 //CPUID instruction wrapper
@@ -8885,7 +8907,7 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
         mov[edi + 8 ], ecx
         mov[edi + 12], edx
     }
-#else
+#elif !defined(__APPLE__)
     __cpuid(cpuinfo, funcid);
 #endif
 }
@@ -8893,6 +8915,10 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
 //return CPU type (INTEL, AMD, ...)
 void calcCpuType()
 {
+#ifdef __APPLE__
+    size_t len = sizeof(cpuType);
+    if (sysctlbyname("machdep.cpu.vendor", cpuType, &len, NULL, 0)) strcpy(cpuType, "Unknown");
+#else
     int32_t i = 0;
     int32_t cpuInfo[4] = { 0 };
 
@@ -8912,11 +8938,16 @@ void calcCpuType()
     cpuType[i++] = cpuInfo[2] & 0xff; cpuInfo[2] >>= 8;
     cpuType[i++] = cpuInfo[2] & 0xff;
     if (!cpuType[0]) strcpy(cpuType, "Unknown");
+#endif
 }
 
 //return full CPU description string (i.e: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz)
 void calcCpuName()
 {
+#ifdef __APPLE__
+    size_t len = sizeof(cpuName);
+    if (sysctlbyname("machdep.cpu.brand_string", cpuName, &len, NULL, 0)) strcpy(cpuName, "Unknown");
+#else
     int32_t i = 0;
     int32_t cpuInfo[4] = { 0 };
     
@@ -8978,6 +9009,7 @@ void calcCpuName()
         cpuName[i++] = cpuInfo[3] & 0xff; cpuInfo[3] >>= 8;
     }
     if (!cpuName[0]) strcpy(cpuName, "Unknown");
+#endif
 }
 
 //AMD 3DNow! detected
@@ -8997,18 +9029,26 @@ int32_t have3DNow()
 void calcCpuFeatures()
 {
     size_t len = 0;
+#ifdef __APPLE__
+    char cpuFuncs[1024] = { 0 };
+    len = sizeof(cpuFuncs);
+    if (sysctlbyname("machdep.cpu.features", cpuFuncs, &len, NULL, 0)) strcpy(cpuFeatures, "Unknown");
+    if (strstr(cpuFuncs, "FPU"))    strcat(cpuFeatures, "FPU,");
+    if (strstr(cpuFuncs, "MMX"))    strcat(cpuFeatures, "MMX,");
+    if (strstr(cpuFuncs, "SSE"))    strcat(cpuFeatures, "SSE,");
+    if (strstr(cpuFuncs, "SSE2"))   strcat(cpuFeatures, "SSE2,");
+    if (strstr(cpuFuncs, "SSE3"))   strcat(cpuFeatures, "SSE3,");
+#else
     int32_t cpuInfo[4] = { 0 };
-
     CPUID(cpuInfo, 0);
     if (cpuInfo[0] >= 1) CPUID(cpuInfo, 1);
-
     memset(cpuFeatures, 0, sizeof(cpuFeatures));
     if (have3DNow()) strcat(cpuFeatures, "3DNow!,");
     if (cpuInfo[3] & 0x00800000) strcat(cpuFeatures, "MMX,");
     if (cpuInfo[3] & 0x02000000) strcat(cpuFeatures, "SSE,");
     if (cpuInfo[3] & 0x04000000) strcat(cpuFeatures, "SSE2,");
     if (cpuInfo[2] & 0x00000001) strcat(cpuFeatures, "SSE3,");
-
+#endif
     len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
 }
@@ -9031,6 +9071,14 @@ void initVideoInfo()
     strcpy(renderVersion, "0.0.0.0");
     strcpy(imageVersion, "0.0.0.0");
 
+    //retrive SDL2 DLL version string
+    SDL_version linked;
+    SDL_GetVersion(&linked);
+    const SDL_version* img = IMG_Linked_Version();
+    sprintf(renderVersion, "SDL %u.%u.%u", linked.major, linked.minor, linked.patch);
+    sprintf(imageVersion, "SDL_image %u.%u.%u", img->major, img->minor, img->patch);
+
+#ifndef __APPLE__
     //retrive video memory of graphic card name
     LUID luid = { 0 };
     IDXGIFactory* factory = NULL;
@@ -9048,13 +9096,6 @@ void initVideoInfo()
         }
         factory->Release();
     }
-
-    //retrive SDL2 DLL version string
-    SDL_version linked;
-    SDL_GetVersion(&linked);
-    const SDL_version* img = IMG_Linked_Version();
-    sprintf(renderVersion, "SDL %u.%u.%u", linked.major, linked.minor, linked.patch);
-    sprintf(imageVersion, "SDL_image %u.%u.%u", img->major, img->minor, img->patch);
 
     //retrive graphic card driver version by fetch registry data
     HKEY dxKeyHandle = NULL;
@@ -9101,6 +9142,7 @@ void initVideoInfo()
     free(subKeyName);
     if (!foundVersion) return;
     sprintf(driverVersion, "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
+#endif
 }
 
 //initialize some system info

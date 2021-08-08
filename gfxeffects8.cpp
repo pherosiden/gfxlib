@@ -1652,7 +1652,7 @@ namespace waterEffect {
     {
         RGB pal[256] = { 0 };
         uint32_t frames = 0;
-        uint16_t page = 0, nx = 0, ny = 0;
+        uint16_t page = 0;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water");
         loadPNG(dbuff[0], pal, "assets/sea.png");
@@ -6083,7 +6083,7 @@ namespace intro16k {
                 pos[i] = (pos[i] + spd[i]) & 0x3FF;
             }
 
-            if ((0 <= frames && frames <= 120 || frames >= 484) && ddz > 0)
+            if (((0 <= frames && frames <= 120) || frames >= 484) && ddz > 0)
             {
                 deltaZ -= ddz;
                 ddz -= 32;
@@ -6294,7 +6294,9 @@ namespace intro16k {
 
         int32_t koef, pos;
         int16_t mask[IMAGE_HEIGHT] = { 0 };
-        int16_t i, j, x, y, u, v, vcnt, fcnt;
+        int16_t u = 0, v = 0;
+        int16_t vcnt = 0, fcnt = 0;
+        int16_t i, j, x, y;
 
         for (i = 0; i < 256; i++)
         {
@@ -10584,9 +10586,8 @@ namespace zoomInEffect {
 
     void run()
     {
-        int32_t x, y, n, m, lmb;
-        uint8_t tmp[768] = { 0 };
         RGB pal[256] = { 0 };
+        int32_t x, y, n, m, lmb;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-In -- Move your mouse, left click to exit...");
         loadPNG(vbuff1[0], pal, "assets/insect.png");
@@ -12128,7 +12129,7 @@ namespace plasmaEffect5 {
     void makeCoolPalette()
     {
         int16_t i;
-        int16_t r = 0, g = 0, b = 0, col = 0;
+        int16_t r = 0, g = 0, b = 0;
 
         for (i = 0; i < 64; i++)
         {

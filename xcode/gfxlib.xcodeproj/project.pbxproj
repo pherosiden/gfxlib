@@ -1,0 +1,373 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; };
+		77801DC626AB2DBB0045402B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC626A71C5600C4C722 /* SDL2.framework */; };
+		779FFE6A26C04A44007785CE /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 779FFE6926C04A44007785CE /* Credits.rtf */; };
+		77EECD4A26BFF10D00959767 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD4726BFF10D00959767 /* Assets.xcassets */; };
+		77EECD5426BFF14600959767 /* gfxdemo32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4B26BFF14600959767 /* gfxdemo32.cpp */; };
+		77EECD5526BFF14600959767 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4C26BFF14600959767 /* main.cpp */; };
+		77EECD5626BFF14600959767 /* gfxdemo8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4E26BFF14600959767 /* gfxdemo8.cpp */; };
+		77EECD5726BFF14600959767 /* gfxfontview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4F26BFF14600959767 /* gfxfontview.cpp */; };
+		77EECD5826BFF14600959767 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD5026BFF14600959767 /* assets */; };
+		77EECD5926BFF14600959767 /* gfxeffects8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD5126BFF14600959767 /* gfxeffects8.cpp */; };
+		77EECD5A26BFF14600959767 /* gfxlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD5226BFF14600959767 /* gfxlib.cpp */; };
+		77EECD5B26BFF14600959767 /* gfxeffects32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD5326BFF14600959767 /* gfxeffects32.cpp */; };
+		77EECD6326BFF33C00959767 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD6226BFF33C00959767 /* Info.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		779FFE6926C04A44007785CE /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
+		77B97EA726A71BF000C4C722 /* gfxlib.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gfxlib.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		77B97EC526A71C5600C4C722 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = ../../../Library/Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
+		77B97EC626A71C5600C4C722 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		77EECD4726BFF10D00959767 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		77EECD4B26BFF14600959767 /* gfxdemo32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxdemo32.cpp; path = ../gfxdemo32.cpp; sourceTree = "<group>"; };
+		77EECD4C26BFF14600959767 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../main.cpp; sourceTree = "<group>"; };
+		77EECD4D26BFF14600959767 /* gfxlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gfxlib.h; path = ../gfxlib.h; sourceTree = "<group>"; };
+		77EECD4E26BFF14600959767 /* gfxdemo8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxdemo8.cpp; path = ../gfxdemo8.cpp; sourceTree = "<group>"; };
+		77EECD4F26BFF14600959767 /* gfxfontview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxfontview.cpp; path = ../gfxfontview.cpp; sourceTree = "<group>"; };
+		77EECD5026BFF14600959767 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = "<group>"; };
+		77EECD5126BFF14600959767 /* gfxeffects8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxeffects8.cpp; path = ../gfxeffects8.cpp; sourceTree = "<group>"; };
+		77EECD5226BFF14600959767 /* gfxlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxlib.cpp; path = ../gfxlib.cpp; sourceTree = "<group>"; };
+		77EECD5326BFF14600959767 /* gfxeffects32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxeffects32.cpp; path = ../gfxeffects32.cpp; sourceTree = "<group>"; };
+		77EECD6226BFF33C00959767 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		77B97EA426A71BF000C4C722 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */,
+				77801DC626AB2DBB0045402B /* SDL2.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		77B97E9E26A71BF000C4C722 = {
+			isa = PBXGroup;
+			children = (
+				77EECD4426BFF0C200959767 /* gfxlib */,
+				77B97EA826A71BF000C4C722 /* Products */,
+				77B97EC426A71C5600C4C722 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+			usesTabs = 0;
+		};
+		77B97EA826A71BF000C4C722 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				77B97EA726A71BF000C4C722 /* gfxlib.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		77B97EC426A71C5600C4C722 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				77B97EC526A71C5600C4C722 /* SDL2_image.framework */,
+				77B97EC626A71C5600C4C722 /* SDL2.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		77EECD4426BFF0C200959767 /* gfxlib */ = {
+			isa = PBXGroup;
+			children = (
+				77EECD5026BFF14600959767 /* assets */,
+				77EECD4E26BFF14600959767 /* gfxdemo8.cpp */,
+				77EECD4B26BFF14600959767 /* gfxdemo32.cpp */,
+				77EECD5126BFF14600959767 /* gfxeffects8.cpp */,
+				77EECD5326BFF14600959767 /* gfxeffects32.cpp */,
+				77EECD4F26BFF14600959767 /* gfxfontview.cpp */,
+				77EECD5226BFF14600959767 /* gfxlib.cpp */,
+				77EECD4D26BFF14600959767 /* gfxlib.h */,
+				77EECD4C26BFF14600959767 /* main.cpp */,
+				779FFE6926C04A44007785CE /* Credits.rtf */,
+				77EECD6226BFF33C00959767 /* Info.plist */,
+				77EECD4726BFF10D00959767 /* Assets.xcassets */,
+			);
+			name = gfxlib;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		77B97EA626A71BF000C4C722 /* gfxlib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 77B97EC126A71BF400C4C722 /* Build configuration list for PBXNativeTarget "gfxlib" */;
+			buildPhases = (
+				77B97EA326A71BF000C4C722 /* Sources */,
+				77B97EA426A71BF000C4C722 /* Frameworks */,
+				77B97EA526A71BF000C4C722 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = gfxlib;
+			productName = gfxlib;
+			productReference = 77B97EA726A71BF000C4C722 /* gfxlib.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		77B97E9F26A71BF000C4C722 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+					77B97EA626A71BF000C4C722 = {
+						CreatedOnToolsVersion = 12.5.1;
+					};
+				};
+			};
+			buildConfigurationList = 77B97EA226A71BF000C4C722 /* Build configuration list for PBXProject "gfxlib" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 77B97E9E26A71BF000C4C722;
+			productRefGroup = 77B97EA826A71BF000C4C722 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				77B97EA626A71BF000C4C722 /* gfxlib */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		77B97EA526A71BF000C4C722 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				77EECD6326BFF33C00959767 /* Info.plist in Resources */,
+				77EECD5826BFF14600959767 /* assets in Resources */,
+				779FFE6A26C04A44007785CE /* Credits.rtf in Resources */,
+				77EECD4A26BFF10D00959767 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		77B97EA326A71BF000C4C722 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				77EECD5B26BFF14600959767 /* gfxeffects32.cpp in Sources */,
+				77EECD5926BFF14600959767 /* gfxeffects8.cpp in Sources */,
+				77EECD5A26BFF14600959767 /* gfxlib.cpp in Sources */,
+				77EECD5526BFF14600959767 /* main.cpp in Sources */,
+				77EECD5626BFF14600959767 /* gfxdemo8.cpp in Sources */,
+				77EECD5426BFF14600959767 /* gfxdemo32.cpp in Sources */,
+				77EECD5726BFF14600959767 /* gfxfontview.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		77B97EBF26A71BF400C4C722 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		77B97EC026A71BF400C4C722 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		77B97EC226A71BF400C4C722 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = gfxlib/gfxlib.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 20210807;
+				DEVELOPMENT_ASSET_PATHS = "";
+				EXCLUDED_ARCHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tool.gfxlib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		77B97EC326A71BF400C4C722 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = gfxlib/gfxlib.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 20210807;
+				DEVELOPMENT_ASSET_PATHS = "";
+				EXCLUDED_ARCHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.6;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tool.gfxlib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		77B97EA226A71BF000C4C722 /* Build configuration list for PBXProject "gfxlib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77B97EBF26A71BF400C4C722 /* Debug */,
+				77B97EC026A71BF400C4C722 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		77B97EC126A71BF400C4C722 /* Build configuration list for PBXNativeTarget "gfxlib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77B97EC226A71BF400C4C722 /* Debug */,
+				77B97EC326A71BF400C4C722 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 77B97E9F26A71BF000C4C722 /* Project object */;
+}

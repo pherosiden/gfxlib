@@ -25,16 +25,21 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#ifdef __APPLE__
+#include <SDL2/SDL.h>
+#include <SDL2_image/SDL_image.h>
+#else
 #include "SDL.h"
 #include "SDL_image.h"
+#endif
 
 //use this to optimize performance
 //(some effects will work smoothly)
 //just for x32 build only
-#ifndef _WIN64
+#if !defined(_WIN64) && !defined(__APPLE__)
 #define _USE_ASM
 #pragma message("Build with assembly code for maximum performance...")
-#endif //_WIN64
+#endif
 
 //GFX version string
 #define GFX_VERSION         "v21.08.04"
@@ -87,7 +92,6 @@
 #define GFX_WARNING         0x02    //raise warning message and program will be continued
 #define GFX_INFO            0x03    //raise info message
 
-
 //Bitmap mouse and button
 #define MOUSE_WIDTH         24      //mouse width
 #define MOUSE_HEIGHT        24      //mouse height
@@ -119,6 +123,13 @@
 #define max(a, b)	        ((a) > (b) ? (a) : (b))
 #define min(a, b)	        ((a) < (b) ? (a) : (b))
 #define swap(a, b)          {a ^= b; b ^= a; a ^= b;}
+
+#ifdef __APPLE__
+#define _rotr(v, n)          (((v) >> (n)) | ((v) << (32 - (n))))
+#define _rotl(v, n)          (((v) << (n)) | ((v) >> (32 - (n))))
+#define _rotr8(v, n)         (((v) >> (n)) | ((v) << (8 - (n))))
+#define _rotl8(v, n)         (((v) << (n)) | ((v) >> (8 - (n))))
+#endif
 
 //RGB common colors
 #define RGB_BLACK           0x000000

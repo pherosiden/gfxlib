@@ -1054,7 +1054,11 @@ void calculeEchelles()
 {
      echX = (double(c2) - c1) / (f2 - f1);
      echY = (double(c4) - c3) / (f4 - f3);
-     if (vue == 'r') if (echX < echY) echY = echX; else echX = echY;
+     if (vue == 'r')
+     {
+         if (echX < echY) echY = echX;
+         else echX = echY;
+     }
 }
 
 void horizontal(int32_t x1, int32_t y1, int32_t x2, int32_t y2)

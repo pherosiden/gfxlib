@@ -462,7 +462,7 @@ void rayCasting()
             int32_t stepY;
 
             int32_t hit = 0; //was there a wall hit?
-            int32_t side; //was a NS or a EW wall hit?
+            int32_t side = 0; //was a NS or a EW wall hit?
 
             //calculate step and initial sideDist
             if (rayDirX < 0)
