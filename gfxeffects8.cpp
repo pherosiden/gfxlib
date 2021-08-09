@@ -10055,7 +10055,7 @@ namespace flagsEffect2 {
                     //USA
                     if (i * FX < 120 && j * FY < 85)
                     {
-                        if ((j % 3) == 2 && (i % 7) == 2 && (j % 6) == 2 || ((3 + i) % 7) == 2 && ((j + 3) % 6) == 2) col = 15;
+                        if (((j % 3) == 2 && (i % 7) == 2 && (j % 6) == 2) || (((3 + i) % 7) == 2 && ((j + 3) % 6) == 2)) col = 15;
                         else col = 1;
                     }
                     else
@@ -12302,7 +12302,7 @@ namespace rippleEffect {
     void drawRipples()
     {
         int16_t xx, yy, alt;
-        uint16_t x, y, dist, offs = 0;
+        uint16_t x, y, dist;
 
         for (y = 0; y < IMAGE_HEIGHT; y++)
         {

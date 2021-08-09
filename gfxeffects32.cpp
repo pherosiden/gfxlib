@@ -985,6 +985,9 @@ void juliaExplorer()
         //key to change the text options
         if (keyPressed(SDL_SCANCODE_F1)) { showText++; showText %= 3; }
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+
+        //reduce CPU time
+        delay(1);
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     freeFont(0);
@@ -1149,6 +1152,9 @@ void mandelbrotExporer()
         //key to change the text options
         if (keyPressed(SDL_SCANCODE_F1)) { showText++; showText %= 3; }
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+
+        //reduce CPU time
+        delay(1);
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     freeFont(0);
@@ -1243,7 +1249,9 @@ void tunnelDemo()
     //load tunnel texture
     loadTexture(&texture, &w, &h, "assets/map03.png");
     
-    const double ratio = 128.0;
+    const double ratio = 100.0;
+    const double scale = 1.5;
+
     int32_t cwidth, cheight;
     uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
@@ -1253,7 +1261,7 @@ void tunnelDemo()
         for (int32_t x = 0; x < cwidth; x++)
         {
             int32_t distance = int32_t(ratio * h / sqrt((x - cwidth / 2.0) * (x - cwidth / 2.0) + (y - cheight / 2.0) * (y - cheight / 2.0))) % h;
-            int32_t angle = int32_t(0.5 * w * atan2(y - cheight / 2.0, x - cwidth / 2.0) / M_PI);
+            int32_t angle = int32_t(scale * w * atan2(y - cheight / 2.0, x - cwidth / 2.0) / M_PI);
             distBuff[y][x] = distance;
             angleBuff[y][x] = angle;
         }
@@ -1265,8 +1273,8 @@ void tunnelDemo()
         double animation = getTime() / 1000;
 
         //calculate the shift values out of the animation value
-        int32_t shiftX = int32_t(w * animation * 1.0);
-        int32_t shiftY = int32_t(h * animation * 0.25);
+        int32_t shiftX = int32_t(w * animation * 0.5);
+        int32_t shiftY = int32_t(h * animation * 0.5);
 
         for (int32_t y = 0; y < cheight; y++)
         {
@@ -1275,7 +1283,9 @@ void tunnelDemo()
                 //get the texel from the texture by using the tables, shifted with the animation values
                 int32_t oy = (distBuff[y][x] + shiftX) % h;
                 int32_t ox = (angleBuff[y][x] + shiftY) % w;
-                renderBuff[y * cwidth + x] = texture[oy * w + ox];
+                int32_t offset = oy * w + ox;
+                if (offset < 0) offset = 0;
+                renderBuff[y * cwidth + x] = texture[offset];
             }
         }
         delay(FPS_30);
@@ -1950,10 +1960,10 @@ void doRayCasting()
         }
 
         //DRAW THE WALL SLICE
-        double distance;
         double ratio;
         double scale;
-
+        double distance;
+        
         int32_t offsetX;
         int32_t topOfWall;		//used to compute the top and bottom of the sliver that
         int32_t bottomOfWall;	//will be the staring point of floor and ceiling

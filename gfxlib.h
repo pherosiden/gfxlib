@@ -26,8 +26,12 @@
 #include <stdarg.h>
 #include <time.h>
 #ifdef __APPLE__
+#include <libgen.h>
+#include <x86intrin.h>
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/graphics/IOGraphicsLib.h>
 #else
 #include "SDL.h"
 #include "SDL_image.h"
@@ -120,15 +124,16 @@
 
 //re-defined, some compiler does not define yet
 #define sqr(a)              ((a) * (a))
-#define max(a, b)	        ((a) > (b) ? (a) : (b))
-#define min(a, b)	        ((a) < (b) ? (a) : (b))
+#define max(a, b)           ((a) > (b) ? (a) : (b))
+#define min(a, b)           ((a) < (b) ? (a) : (b))
 #define swap(a, b)          {a ^= b; b ^= a; a ^= b;}
 
+//common routines
 #ifdef __APPLE__
-#define _rotr(v, n)          (((v) >> (n)) | ((v) << (32 - (n))))
-#define _rotl(v, n)          (((v) << (n)) | ((v) >> (32 - (n))))
-#define _rotr8(v, n)         (((v) >> (n)) | ((v) << (8 - (n))))
-#define _rotl8(v, n)         (((v) << (n)) | ((v) >> (8 - (n))))
+#define _rotr8(v, n)        __rorb(v, n)
+#define _rotl8(v, n)        __rolb(v, n)
+#define LOWORD(a)           (uint16_t(a))
+#define HIWORD(a)           (uint16_t((uint32_t(a) >> 16) & 0xFFFF))
 #endif
 
 //RGB common colors
@@ -263,12 +268,14 @@ typedef struct
     uint8_t*        btData[BUTTON_STATES];  //hold mouse bitmap data for each button state
 } GFX_BUTTON;
 
+//HSL color type
 typedef struct {
     int32_t         h;
     int32_t         s;
     int32_t         l;
 } HSL;
 
+//HSV color type
 typedef struct
 {
     int32_t         h;
@@ -288,7 +295,7 @@ extern int32_t  cminX, cminY, cmaxX, cmaxY; //view port clip points
 extern int32_t  cresX, cresY, currX, currY; //maxx, maxy, current x, current y
 
 //3D projection
-enum { PERSPECTIVE, PARALLELE };            //projection type values
+enum PROJ_TYPE { PERSPECTIVE, PARALLELE };  //projection type values
 extern double   DE, rho, theta, phi;        //projection angles
 extern double   aux1, aux2, aux3, aux4;     //temponary values
 extern double   aux5, aux6, aux7, aux8;     //temponary values

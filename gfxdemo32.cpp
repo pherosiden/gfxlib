@@ -696,7 +696,7 @@ void gfxDemo32()
     render();
 
     initSystemInfo();
-    loadImage("assets/gfxbg4.png", &bg);
+    loadImage("assets/gfxbg5.png", &bg);
     loadImage("assets/gfxbumpchn.png", &bumpch);
     loadImage("assets/gfxbumpimg.png", &bumpimg);
     loadImage("assets/gfxlogosm.png", &logo);
@@ -716,26 +716,26 @@ void gfxDemo32()
     yc = centerY + 40;
 
     fillRectPatternAdd(10, 10, xc - 10, yc - 10, RGB_GREY32, ptnHatchX);
-    fillRectSub(10, yc, xc - 10, cmaxY - 10, RGB_GREY64);
+    fillRectSub(10, yc, xc - 10, cmaxY - 10, RGB_GREY32);
     fillRect(20, 20, xc - 20 - 1, yc - 20 - 1, 0);
     getImage(10, yc, xc - 20, cmaxY - yc - 10, &tx);
 
-    writeText(xc + 10,  80, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
-    writeText(xc + 10, 100, RGB_GREY127, 2, "A short show of some abilities");
-    writeText(xc + 10, 110, RGB_GREY127, 2, "GFXLIB does provide. Note that");
-    writeText(xc + 10, 120, RGB_GREY127, 2, "this is only a small amount of");
-    writeText(xc + 10, 130, RGB_GREY127, 2, "all available features.");
-    writeText(xc + 10, 160, RGB_GREY127, 2, "%s", getVideoName());
-    writeText(xc + 10, 170, RGB_GREY127, 2, "Driver Version   : %s", getDriverVersion());
-    writeText(xc + 10, 180, RGB_GREY127, 2, "Video Memory     : %luMB", getVideoMemory());
-    writeText(xc + 10, 190, RGB_GREY127, 2, "Video Mode       : %s", getVideoModeInfo());
-    writeText(xc + 10, 200, RGB_GREY127, 2, "Render System    : %s", getRenderVersion());
-    writeText(xc + 10, 210, RGB_GREY127, 2, "Image Library    : %s", getImageVersion());
-    writeText(xc + 10, 230, RGB_GREY127, 2, "%s", getCpuName());
-    writeText(xc + 10, 240, RGB_GREY127, 2, "CPU Features     : %s", getCpuFeatures());
-    writeText(xc + 10, 250, RGB_GREY127, 2, "CPU Frequency    : %luMHz", getCpuSpeed());
-    writeText(xc + 10, 260, RGB_GREY127, 2, "Physical Memory  : %luMB", getTotalMemory());
-    writeText(xc + 10, 270, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
+    writeText(xc + 10,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
+    writeText(xc + 10, 90, RGB_GREY127, 2, "A short show of some abilities");
+    writeText(xc + 10, 100, RGB_GREY127, 2, "GFXLIB does provide. Note that");
+    writeText(xc + 10, 110, RGB_GREY127, 2, "this is only a small amount of");
+    writeText(xc + 10, 120, RGB_GREY127, 2, "all available features.");
+    writeText(xc + 10, 150, RGB_GREY127, 2, "%s", getVideoName());
+    writeText(xc + 10, 160, RGB_GREY127, 2, "Driver Version   : %s", getDriverVersion());
+    writeText(xc + 10, 170, RGB_GREY127, 2, "Video Memory     : %luMB", getVideoMemory());
+    writeText(xc + 10, 180, RGB_GREY127, 2, "Video Mode       : %s", getVideoModeInfo());
+    writeText(xc + 10, 190, RGB_GREY127, 2, "Render System    : %s", getRenderVersion());
+    writeText(xc + 10, 200, RGB_GREY127, 2, "Image Library    : %s", getImageVersion());
+    writeText(xc + 10, 220, RGB_GREY127, 2, "%s", getCpuName());
+    writeText(xc + 10, 230, RGB_GREY127, 2, "CPU Features     : %s", getCpuFeatures());
+    writeText(xc + 10, 240, RGB_GREY127, 2, "CPU Frequency    : %luMHz", getCpuSpeed());
+    writeText(xc + 10, 250, RGB_GREY127, 2, "Physical Memory  : %luMB", getTotalMemory());
+    writeText(xc + 10, 260, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
     render();
     fullSpeed = 1;
     showText(10, yc, &tx, "Please wait while loading images...");
@@ -781,7 +781,7 @@ void gfxDemo32()
     showText(10, yc, &tx, "you can decide which image covers more the other.");
     showText(10, yc, &tx, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
-    runRotateImage(20, 20);
+    runBilinearRotateImage(20, 20);
     fullSpeed = 0;
     showText(10, yc, &tx, "----");
     showText(10, yc, &tx, "This is an image rotation. The responsible routine");

@@ -1,8 +1,4 @@
 #include "gfxlib.h"
-#ifdef __APPLE__
-#include <unistd.h>
-#include <libgen.h>
-#endif
 
 int main(int argc, char* args[])
 {

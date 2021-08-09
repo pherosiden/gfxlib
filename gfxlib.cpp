@@ -20,9 +20,8 @@
 #include <map>
 #include "gfxlib.h"
 #ifdef __APPLE__
+#include <cpuid.h>
 #include <sys/sysctl.h>
-#include <sys/types.h>
-#include <mach/machine.h>
 #else
 #include <dxgi.h>
 #include <tchar.h>
@@ -279,6 +278,7 @@ int32_t finished(int32_t keyCode)
         return 1;
     }
 
+    SDL_Delay(1);
     return 0;
 }
 
@@ -2975,8 +2975,7 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
         putPixelAlpha(x1, y0, rgb, uint8_t(alpha));
         putPixelAlpha(x1, y1, rgb, uint8_t(alpha));
         
-        f = int32_t(2 * err + dy);
-        if (f >= 0)
+        if ((f = (2 * err + dy) >= 0))
         {
             if (x0 >= x1) break;
             alpha = ed * (err + dx);
@@ -6099,20 +6098,20 @@ void projette(double x, double y, double z)
 
     switch (projection)
     {
-        case PERSPECTIVE:
-            obsZ = -x * aux7 - y * aux8 - z * aux2 + rho;
-            projX = DE * obsX / obsZ;
-            projY = DE * obsY / obsZ;
-        break;
+    case PROJ_TYPE::PERSPECTIVE:
+        obsZ = -x * aux7 - y * aux8 - z * aux2 + rho;
+        projX = DE * obsX / obsZ;
+        projY = DE * obsY / obsZ;
+    break;
 
-        case PARALLELE:
-            projX = DE * obsX;
-            projY = DE * obsY;
-        break;
+    case PROJ_TYPE::PARALLELE:
+        projX = DE * obsX;
+        projY = DE * obsY;
+    break;
 
-        default:
-            messageBox(GFX_WARNING, "Unknown projection type!");
-        break;
+    default:
+        messageBox(GFX_WARNING, "Unknown projection type!");
+    break;
     }
 }
 
@@ -7731,10 +7730,9 @@ void initPlasma(uint8_t* sint, uint8_t* cost)
 }
 
 //round-up function
-int32_t roundf(double x)
+inline int32_t roundf(double x)
 {
-    if (x >= 0) return int32_t(x + 0.5);
-    return int32_t(x - 0.5);
+    return (x >= 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
 //FX-Effect: pre-calculate tunnel buffer
@@ -8232,8 +8230,8 @@ void fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col)
 {
     int32_t val, x, y;
 
-    const int32_t smax = int32_t(size * 1.4);
     const int32_t dsize = size << 1;
+    const int32_t smax = int32_t(size * 1.4);
 
     if (pc < 0.0) pc = 0.0;
     if (pc > 100.0) pc = 100.0;
@@ -8578,7 +8576,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
     tables[1] = src->mHeight;
 
     //calculate rotation data
-    th = (180 - angle) * M_PI / 180.0;
+    th = M_PI * (180 - angle) / 180.0;
     sint = sin(th) / scale;
     cost = cos(th) / scale;
 
@@ -8867,12 +8865,10 @@ uint64_t getCyclesCount()
     _asm {
         cpuid
         rdtsc
-        mov dword ptr[count], eax
+        mov dword ptr[count    ], eax
         mov dword ptr[count + 4], edx
     }
     return count;
-#elif defined(__APPLE__)
-    return 0;
 #else
     return __rdtsc();
 #endif
@@ -8881,17 +8877,11 @@ uint64_t getCyclesCount()
 //get current CPU clock rate in MHz
 void calcCpuSpeed()
 {
-#ifdef __APPLE__
-    uint64_t cpuFreq = 0;
-    size_t len = sizeof(cpuFreq);
-    if (!sysctlbyname("hw.cpufrequency", &cpuFreq, &len, NULL, 0)) cpuSpeed = uint32_t(cpuFreq / 1000 / 1000);
-#else
     const uint64_t start = getCyclesCount();
     delay(50);
     const uint64_t stop = getCyclesCount();
     const uint64_t speed = (stop - start) / 50000;
     cpuSpeed = uint32_t(speed);
-#endif
 }
 
 //CPUID instruction wrapper
@@ -8903,11 +8893,13 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
         mov    edi, cpuinfo
         cpuid
         mov[edi     ], eax
-        mov[edi + 4 ], ebx
-        mov[edi + 8 ], ecx
+        mov[edi +  4], ebx
+        mov[edi +  8], ecx
         mov[edi + 12], edx
     }
-#elif !defined(__APPLE__)
+#elif defined(__APPLE__)
+    __cpuid(funcid, cpuinfo[0], cpuinfo[1], cpuinfo[2], cpuinfo[3]);
+#else
     __cpuid(cpuinfo, funcid);
 #endif
 }
@@ -8915,10 +8907,6 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
 //return CPU type (INTEL, AMD, ...)
 void calcCpuType()
 {
-#ifdef __APPLE__
-    size_t len = sizeof(cpuType);
-    if (sysctlbyname("machdep.cpu.vendor", cpuType, &len, NULL, 0)) strcpy(cpuType, "Unknown");
-#else
     int32_t i = 0;
     int32_t cpuInfo[4] = { 0 };
 
@@ -8938,16 +8926,11 @@ void calcCpuType()
     cpuType[i++] = cpuInfo[2] & 0xff; cpuInfo[2] >>= 8;
     cpuType[i++] = cpuInfo[2] & 0xff;
     if (!cpuType[0]) strcpy(cpuType, "Unknown");
-#endif
 }
 
 //return full CPU description string (i.e: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz)
 void calcCpuName()
 {
-#ifdef __APPLE__
-    size_t len = sizeof(cpuName);
-    if (sysctlbyname("machdep.cpu.brand_string", cpuName, &len, NULL, 0)) strcpy(cpuName, "Unknown");
-#else
     int32_t i = 0;
     int32_t cpuInfo[4] = { 0 };
     
@@ -9009,7 +8992,6 @@ void calcCpuName()
         cpuName[i++] = cpuInfo[3] & 0xff; cpuInfo[3] >>= 8;
     }
     if (!cpuName[0]) strcpy(cpuName, "Unknown");
-#endif
 }
 
 //AMD 3DNow! detected
@@ -9028,28 +9010,17 @@ int32_t have3DNow()
 //calculate some CPU features...
 void calcCpuFeatures()
 {
-    size_t len = 0;
-#ifdef __APPLE__
-    char cpuFuncs[1024] = { 0 };
-    len = sizeof(cpuFuncs);
-    if (sysctlbyname("machdep.cpu.features", cpuFuncs, &len, NULL, 0)) strcpy(cpuFeatures, "Unknown");
-    if (strstr(cpuFuncs, "FPU"))    strcat(cpuFeatures, "FPU,");
-    if (strstr(cpuFuncs, "MMX"))    strcat(cpuFeatures, "MMX,");
-    if (strstr(cpuFuncs, "SSE"))    strcat(cpuFeatures, "SSE,");
-    if (strstr(cpuFuncs, "SSE2"))   strcat(cpuFeatures, "SSE2,");
-    if (strstr(cpuFuncs, "SSE3"))   strcat(cpuFeatures, "SSE3,");
-#else
     int32_t cpuInfo[4] = { 0 };
     CPUID(cpuInfo, 0);
     if (cpuInfo[0] >= 1) CPUID(cpuInfo, 1);
+    
     memset(cpuFeatures, 0, sizeof(cpuFeatures));
     if (have3DNow()) strcat(cpuFeatures, "3DNow!,");
     if (cpuInfo[3] & 0x00800000) strcat(cpuFeatures, "MMX,");
     if (cpuInfo[3] & 0x02000000) strcat(cpuFeatures, "SSE,");
     if (cpuInfo[3] & 0x04000000) strcat(cpuFeatures, "SSE2,");
     if (cpuInfo[2] & 0x00000001) strcat(cpuFeatures, "SSE3,");
-#endif
-    len = strlen(cpuFeatures);
+    size_t len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
 }
 
@@ -9071,14 +9042,105 @@ void initVideoInfo()
     strcpy(renderVersion, "0.0.0.0");
     strcpy(imageVersion, "0.0.0.0");
 
-    //retrive SDL2 DLL version string
-    SDL_version linked;
-    SDL_GetVersion(&linked);
+    //retrive SDL and SDL_image version string
+    SDL_version sdl;
+    SDL_GetVersion(&sdl);
     const SDL_version* img = IMG_Linked_Version();
-    sprintf(renderVersion, "SDL %u.%u.%u", linked.major, linked.minor, linked.patch);
+    sprintf(renderVersion, "SDL %u.%u.%u", sdl.major, sdl.minor, sdl.patch);
     sprintf(imageVersion, "SDL_image %u.%u.%u", img->major, img->minor, img->patch);
+    
+#ifdef __APPLE__
+    io_iterator_t iterator;
+    CFMutableDictionaryRef matchDict;
 
-#ifndef __APPLE__
+    //get dictionary of all the PCI Devices
+    matchDict = IOServiceMatching("IOPCIDevice");
+    
+    //get IOService descriptor
+    if (IOServiceGetMatchingServices(kIOMasterPortDefault, matchDict, &iterator) == kIOReturnSuccess)
+    {
+        //iterator for devices found
+        io_registry_entry_t regEntry;
+        
+        while ((regEntry = IOIteratorNext(iterator)))
+        {
+            //put this services object into a dictionary object.
+            CFMutableDictionaryRef serviceDictionary;
+            if (IORegistryEntryCreateCFProperties(regEntry, &serviceDictionary, kCFAllocatorDefault, kNilOptions) != kIOReturnSuccess)
+            {
+                //service dictionary creation failed.
+                IOObjectRelease(regEntry);
+                continue;
+            }
+            
+            //get graphic card model
+            CFDataRef GPUModel = (CFDataRef)CFDictionaryGetValue(serviceDictionary, CFSTR("model"));
+            if (GPUModel == NULL) continue;
+
+            //get graphic card name
+            CFIndex length = CFDataGetLength(GPUModel);
+            memcpy(videoName, CFDataGetBytePtr(GPUModel), length);
+            
+            //retrived driver version???
+            CFDataRef devNum = (CFDataRef)CFDictionaryGetValue(serviceDictionary, CFSTR("device-id"));
+            CFDataRef revNum = (CFDataRef)CFDictionaryGetValue(serviceDictionary, CFSTR("revision-id"));
+            if (revNum != NULL && devNum != NULL)
+            {
+                uint32_t deviceId = 0, revisionId = 0;
+                length = CFDataGetLength(devNum);
+                memcpy(&deviceId, CFDataGetBytePtr(devNum), length);
+                length = CFDataGetLength(revNum);
+                memcpy(&revisionId, CFDataGetBytePtr(revNum), length);
+                sprintf(driverVersion, "%u.%u.%u.%u", HIWORD(deviceId), LOWORD(deviceId), HIWORD(revisionId), LOWORD(revisionId));
+            }
+            
+            // Release the dictionary
+            CFRelease(serviceDictionary);
+            
+            // Release the serviceObject
+            IOObjectRelease(regEntry);
+        }
+        
+        // Release the iterator
+        IOObjectRelease(iterator);
+    }
+    
+    //get graphic card memory
+    matchDict = IOServiceMatching(kIOAcceleratorClassName);
+    if (IOServiceGetMatchingServices(kIOMasterPortDefault, matchDict, &iterator) == kIOReturnSuccess)
+    {
+        //iterator for devices found
+        io_registry_entry_t regEntry;
+        
+        while ((regEntry = IOIteratorNext(iterator)))
+        {
+            //put this services object into a dictionary object.
+            CFMutableDictionaryRef serviceDictionary;
+            if (IORegistryEntryCreateCFProperties(regEntry, &serviceDictionary, kCFAllocatorDefault, kNilOptions) != kIOReturnSuccess)
+            {
+                //service dictionary creation failed.
+                IOObjectRelease(regEntry);
+                continue;
+            }
+            
+            //catch video memory key
+            CFNumberRef vram = (CFNumberRef)CFDictionaryGetValue(serviceDictionary, CFSTR("VRAM,totalMB"));
+            if (vram == NULL) continue;
+            
+            //get total video memory
+            CFNumberGetValue(vram, kCFNumberSInt32Type, &videoMemory);
+            
+            //release the dictionary
+            CFRelease(serviceDictionary);
+            
+            //release the serviceObject
+            IOObjectRelease(regEntry);
+        }
+        
+        //release the iterator
+        IOObjectRelease(iterator);
+    }
+#else
     //retrive video memory of graphic card name
     LUID luid = { 0 };
     IDXGIFactory* factory = NULL;
