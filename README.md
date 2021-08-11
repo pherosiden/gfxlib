@@ -1,6 +1,6 @@
 # GFXLIB
-GFXLIB is a graphic library which is allow low level pixel accessing. It use SDL2 as render system and SDL_image to load textures from image files.
-Include my old-school demos and effects collection.
+GFXLIB is a graphic library which is allow low-level pixel manipulation. It use SDL2 as render system and SDL_image to load textures from image files.
+Include my old-school demos and effects collection and also provide some drawing functions.
 
 # How to build
 - **Windows**: direct build from Visual Studio 2019 solution file.
