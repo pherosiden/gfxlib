@@ -17,6 +17,7 @@ void showFontsDir(const char* path, const char* ext)
     //try to open dir first
     if ((dir = opendir(path)))
     {
+        //scan font dir
         while ((ent = readdir(dir)))
         {
             //skip if not regular files, not GFX font files

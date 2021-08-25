@@ -352,7 +352,6 @@ RGB         INT2RGB(uint32_t color);
 uint32_t    RGB2INT(uint8_t r, uint8_t g, uint8_t b);
 
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);
-int32_t     loadTextureRGB(RGB** rgb, int32_t* txw, int32_t* txh, const char* fname);
 void        loadPNG(uint8_t* raw, RGB* pal, const char* fname);
 void        loadImage(const char* fname, GFX_IMAGE* im);
 void        freeImage(GFX_IMAGE* im);

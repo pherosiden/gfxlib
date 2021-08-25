@@ -1,5 +1,7 @@
 #include "gfxlib.h"
 
+#pragma warning(disable: 6385 6386)
+
 namespace juliaSet {
 
     void makePalette()
@@ -31,26 +33,26 @@ namespace juliaSet {
     //call with juliaSet(256, -0.7, 0.27015, 1, 0, 0);
     void runJulia(int32_t iters, double cre, double cim, double zoom, double mx, double my)
     {
-        int32_t i, x, y;
-        double newre, newim;
-        double oldre, oldim;
-        const int32_t mwidth = texHeight >> 1;
-        const int32_t mheight = texHeight >> 1;
+        int32_t i = 0, x = 0, y = 0;
 
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Julia-Set Demo");
+
+        const int32_t mwidth = texWidth >> 1;
+        const int32_t mheight = texHeight >> 1;
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
+        if (!pixels) return;
 
         for (y = 0; y < texHeight; y++)
         {
             for (x = 0; x < texWidth; x++)
             {
-                newre = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
-                newim = 1.0 * (intmax_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
+                double newre = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
+                double newim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
-                    oldre = newre;
-                    oldim = newim;
+                    const double oldre = newre;
+                    const double oldim = newim;
 
                     newre = oldre * oldre - oldim * oldim + cre;
                     newim = 2 * oldre * oldim + cim;
@@ -71,27 +73,28 @@ namespace juliaSet {
     void runMandelbrot(int32_t iters, double zoom, double mx, double my)
     {
         int32_t i, x, y;
-        double pr, pi;
-        double newre, newim;
-        double oldre, oldim;
-        const int32_t mwidth = texWidth >> 1;
-        const int32_t mheight = texHeight >> 1;
 
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Mandelbrot-Set");
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
+        if (!pixels) return;
+
+        const int32_t mwidth = texWidth >> 1;
+        const int32_t mheight = texHeight >> 1;
 
         for (y = 0; y < texHeight; y++)
         {
             for (x = 0; x < texWidth; x++)
             {
-                pr = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
-                pi = 1.0 * (intmax_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
-                newre = newim = oldre = oldim = 0;
+                double newre = 0;
+                double newim = 0;
+
+                const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
+                const double pi = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
-                    oldre = newre;
-                    oldim = newim;
+                    const double oldre = newre;
+                    const double oldim = newim;
 
                     newre = oldre * oldre - oldim * oldim + pr;
                     newim = 2 * oldre * oldim + pi;
@@ -124,6 +127,7 @@ namespace fadePalette {
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO");
         vbuff = (uint8_t*)getDrawBuffer();
+        if (!vbuff) return;
 
         loadPNG(vbuff, src, "assets/arnold.png");
         setPalette(dst);
@@ -142,8 +146,8 @@ namespace bumpMap {
 
     void createEnvironmentMap()
     {
-        int16_t i, j;
-        double nx, ny, nz;
+        int16_t i = 0, j = 0;
+        double nx = 0, ny = 0, nz = 0;
 
         FILE* fp = fopen("assets/envmap.dat", "rb");
         if (fp)
@@ -779,6 +783,7 @@ namespace rainEffect {
 #else
         uint32_t eax, edx;
         uint16_t si, di, bx;
+        const uint16_t count = (IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT) >> 1;
 
         si = actualPage;
         di = otherPage;
@@ -787,7 +792,7 @@ namespace rainEffect {
         si += IMAGE_HEIGHT;
         di += IMAGE_HEIGHT;
 
-        for (bx = 0; bx < (IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT) / 2; bx++)
+        for (bx = 0; bx < count; bx++)
         {
             eax =  *(uint32_t*)&vbuff[si - IMAGE_HEIGHT];
             eax += *(uint32_t*)&vbuff[si + IMAGE_HEIGHT];
@@ -840,6 +845,7 @@ namespace rainEffect {
 #else
         int16_t ax;
         uint16_t si, di, bx;
+        const uint16_t count = IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT - IMAGE_MIDY;
 
         si = actualPage;
         di = otherPage;
@@ -848,7 +854,7 @@ namespace rainEffect {
         si += IMAGE_HEIGHT;
         di += IMAGE_HEIGHT;
 
-        for (bx = 0; bx < IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT - IMAGE_MIDY; bx++)
+        for (bx = 0; bx < count; bx++)
         {
             ax =  *(uint16_t*)&vbuff[si - IMAGE_HEIGHT];
             ax += *(uint16_t*)&vbuff[si + IMAGE_HEIGHT];
@@ -1072,11 +1078,12 @@ namespace rainEffect {
 #else
         uint16_t di, cx;
         uint32_t esi = idx;
+        const uint16_t count = (IMAGE_MIDY / 2 - ANCHO_OLAS - 2 * 8);
 
         esi = _rotl(esi, 16) + idx;
         di = (ANCHO_OLAS + 2 * 8) + (2 * IMAGE_MIDY * rnd1);
 
-        for (cx = 0; cx < (IMAGE_MIDY / 2 - ANCHO_OLAS - 2 * 8); cx++)
+        for (cx = 0; cx < count; cx++)
         {
             *(uint32_t*)&vbuff[di                  ] = esi;
             *(uint32_t*)&vbuff[di + IMAGE_MIDY * 2 ] = esi;
@@ -1755,20 +1762,20 @@ namespace skyEffect {
         subDivide(idx, 0, 0, SIZE_256, SIZE_256);
     }
 
-    void calcSky(uint16_t factor)
+    void calcSky(uint16_t zoom)
     {
         int16_t x, y;
 
-        for (y = 0; y < IMAGE_MIDY; y++) memset(dist[y], int32_t(log(100.0 - y) * (factor >> 1)), IMAGE_WIDTH);
+        for (y = 0; y < IMAGE_MIDY; y++) memset(dist[y], int32_t(log(100.0 - y) * (zoom >> 1)), IMAGE_WIDTH);
 
         for (y = 0; y < IMAGE_MIDY; y++)
         {
             for (x = 0; x < IMAGE_MIDX; x++)
             {
-                curcol = factor * x / (MAX_MIDX - y);
-                angle[y][x + IMAGE_MIDX] = curcol + factor;
-                curcol = factor * (MAX_MIDX - x) / (MAX_MIDX - y);
-                angle[y][x] = factor - curcol - 1;
+                curcol = zoom * x / (MAX_MIDX - y);
+                angle[y][x + IMAGE_MIDX] = curcol + zoom;
+                curcol = zoom * (MAX_MIDX - x) / (MAX_MIDX - y);
+                angle[y][x] = zoom - curcol - 1;
             }
         }
     }
@@ -6344,7 +6351,7 @@ namespace intro16k {
                         x = pos >> 12;
                         if (x > MAX_WIDTH) x = MAX_WIDTH;
                         if (x < mask[y]) break;
-                        memset(&vbuff[y][mask[y]], (i << 5) & 63, intmax_t(x) - mask[y] + 1);
+                        memset(&vbuff[y][mask[y]], (i << 5) & 63, intptr_t(x) - mask[y] + 1);
                         mask[y] = x;
                         pos += koef;
                         y--;
@@ -6354,7 +6361,7 @@ namespace intro16k {
 
             for (i = 0; i < IMAGE_HEIGHT; i++)
             {
-                if (mask[i] < MAX_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, intmax_t(IMAGE_WIDTH) - mask[i]);
+                if (mask[i] < MAX_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, intptr_t(IMAGE_WIDTH) - mask[i]);
             }
 
             for (i = 0; i < 5; i++)
@@ -9215,7 +9222,7 @@ namespace holeEffect3 {
         }
 #else
         if (xe < xb) swap(xe, xb);
-        memset(&vbuff[y][xb], col, intmax_t(xe) - xb + 1);
+        memset(&vbuff[y][xb], col, intptr_t(xe) - xb + 1);
 #endif
     }
 
@@ -9787,7 +9794,7 @@ namespace kaleidoScope2 {
         while (step--)
         {
             memcpy(&tmp, &pal[from], sizeof(tmp));
-            memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
             memcpy(&pal[to], &tmp, sizeof(tmp));
         }
 
@@ -10085,7 +10092,7 @@ namespace lakeEffect {
         for (i = 1; i <= STARTY; i++)
         {
             val = sintab[i];
-            memcpy(&water[STARTY - i][val], &bitmap[i - 1][0], intmax_t(IMAGE_WIDTH) - val);
+            memcpy(&water[STARTY - i][val], &bitmap[i - 1][0], intptr_t(IMAGE_WIDTH) - val);
         }
 
         val = sintab[0];
@@ -15775,7 +15782,7 @@ namespace rayCastingEffect {
 void gfxEffects8()
 {
     //mazeGeneration::run();
-    /*starEffect::run();
+    starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
     flagsEffect::run();
@@ -15801,7 +15808,7 @@ void gfxEffects8()
     textScrolling::run();
     fastShowBMP::run();
     EMS::run();
-    fillterEffect::run();*/
+    fillterEffect::run();
     fireworkEffect::run();
     candleEffect::run();
     fireEffect::run();

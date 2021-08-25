@@ -10,7 +10,7 @@ typedef char STRBUFF[80];
 int32_t     fullSpeed = 0;
 STRBUFF     texts[MAX_TEXT_LINE] = {0};
 GFX_IMAGE   fade1, fade2, flare;
-GFX_IMAGE   bumpch, bumpimg, logo, sky;
+GFX_IMAGE   bumpchn, bumpimg, logo, sky;
 GFX_IMAGE   flares[16] = { 0 };
 
 //check and exit program
@@ -37,7 +37,7 @@ void runExit()
     freeImage(&fade1);
     freeImage(&fade2);
     freeImage(&flare);
-    freeImage(&bumpch);
+    freeImage(&bumpchn);
     freeImage(&bumpimg);
     freeImage(&logo);
     freeImage(&sky);
@@ -366,7 +366,7 @@ void runRotateImage(int32_t sx, int32_t sy)
     newImage(fade2.mWidth, fade2.mHeight, &img);
 
     //pre-calculate lookup table
-    tables = (int32_t*)calloc(intmax_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
+    tables = (int32_t*)calloc(intptr_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
     if (!tables) messageBox(GFX_ERROR, "RotateImage: cannot alloc lookup tables.");
 
     do {
@@ -459,12 +459,12 @@ void runAntialias(int32_t sx, int32_t sy)
 
 void runLens(GFX_IMAGE* outImg)
 {
-    GFX_IMAGE scr;
-    int32_t flareput[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    int32_t flarepos[16] = { -1110, -666, 0, 1087, 1221, 1309, 1776, 2197, 2819, 3130, 3220, 3263, 3663, 3707, 4440, 5125 };
+    const int32_t flareput[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    const int32_t flarepos[16] = { -1110, -666, 0, 1087, 1221, 1309, 1776, 2197, 2819, 3130, 3220, 3263, 3663, 3707, 4440, 5125 };
     const char *str = "Drag your mouse to see details and left click to exit!";
 
     //load source image
+    GFX_IMAGE scr;
     newImage(cresX, cresY, &scr);
 
     //current mouse pos and left button
@@ -534,7 +534,7 @@ void runBumpImage()
         int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + centerY);
 
         //start bumping buffer
-        bumpImage(&dst, &bumpch, &bumpimg, lx, ly);
+        bumpImage(&dst, &bumpchn, &bumpimg, lx, ly);
         putImage(0, 0, &dst);
         render();
         delay(FPS_60);
@@ -698,7 +698,7 @@ void gfxDemo32()
 
     initSystemInfo();
     loadImage("assets/gfxbg5.png", &bg);
-    loadImage("assets/gfxbumpchn.png", &bumpch);
+    loadImage("assets/gfxbumpchn.png", &bumpchn);
     loadImage("assets/gfxbumpimg.png", &bumpimg);
     loadImage("assets/gfxlogosm.png", &logo);
     loadImage("assets/gfxsky.png", &sky);

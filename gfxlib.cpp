@@ -470,7 +470,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     else
     {
         //initialize drawing buffer for 32 bits RGBA
-        drawBuff = (uint32_t*)calloc(intmax_t(width) * height, sizeof(int32_t));
+        drawBuff = (uint32_t*)calloc(intptr_t(width) * height, sizeof(int32_t));
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
@@ -1020,7 +1020,7 @@ void putPixelAlpha(int32_t x, int32_t y, uint32_t col, uint8_t alpha)
     }
 #else
     uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     pixels[0] = (alpha * pixels[0] + rgb[0] * (255 - alpha)) >> 8;
     pixels[1] = (alpha * pixels[1] + rgb[1] * (255 - alpha)) >> 8;
     pixels[2] = (alpha * pixels[2] + rgb[2] * (255 - alpha)) >> 8;
@@ -1090,7 +1090,7 @@ void putPixelAdd32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     pixels[0] = min(pixels[0] + rgb[0], 255);
     pixels[1] = min(pixels[1] + rgb[1], 255);
     pixels[2] = min(pixels[2] + rgb[2], 255);
@@ -1132,7 +1132,7 @@ void putPixelSub32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     pixels[0] = max(pixels[0] - rgb[0], 0);
     pixels[1] = max(pixels[1] - rgb[1], 0);
     pixels[2] = max(pixels[2] - rgb[2], 0);
@@ -1174,7 +1174,7 @@ void putPixelAnd32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     pixels[0] = pixels[0] & rgb[0];
     pixels[1] = pixels[1] & rgb[1];
     pixels[2] = pixels[2] & rgb[2];
@@ -1216,7 +1216,7 @@ void putPixelXor32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     pixels[0] = pixels[0] ^ rgb[0];
     pixels[1] = pixels[1] ^ rgb[1];
     pixels[2] = pixels[2] ^ rgb[2];
@@ -1360,7 +1360,7 @@ void horizLine8(int32_t x, int32_t y, int32_t sx, uint32_t color)
         rep     stosb
     }
 #else
-    uint8_t* pixels = (uint8_t*)drawBuff + intmax_t(texWidth) * y + x;
+    uint8_t* pixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
     for (int32_t i = 0; i < sx; i++) *pixels++ = color;
 #endif
 }
@@ -1399,7 +1399,7 @@ void horizLine32(int32_t x, int32_t y, int32_t sx, uint32_t color)
         rep     stosd
     }
 #else
-    uint32_t* pixels = (uint32_t*)drawBuff + intmax_t(texWidth) * y + x;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
     for (int32_t i = 0; i < sx; i ++) *pixels++ = color;
 #endif
 }
@@ -1459,7 +1459,7 @@ void horizLineAdd32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     for (int32_t i = 0; i < sx; i++)
     {
         pixels[0] = min(pixels[0] + rgb[0], 255);
@@ -1525,7 +1525,7 @@ void horizLineSub32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     for (int32_t i = 0; i < sx; i++)
     {
         pixels[0] = max(pixels[0] - rgb[0], 0);
@@ -1574,7 +1574,7 @@ void vertLine8(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)drawBuff + intmax_t(texWidth) * y + x;
+    uint8_t* pixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1623,7 +1623,7 @@ void vertLine32(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint32_t* pixels = (uint32_t*)drawBuff + intmax_t(texWidth) * y + x;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1690,13 +1690,13 @@ void vertLineAdd32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     for (int32_t i = 0; i < sy; i++)
     {
         pixels[0] = min(pixels[0] + rgb[0], 255);
         pixels[1] = min(pixels[1] + rgb[1], 255);
         pixels[2] = min(pixels[2] + rgb[2], 255);
-        pixels += intmax_t(texWidth) << 2;
+        pixels += intptr_t(texWidth) << 2;
     }
 #endif
 }
@@ -1759,13 +1759,13 @@ void vertLineSub32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     for (int32_t i = 0; i < sy; i++)
     {
         pixels[0] = max(pixels[0] - rgb[0], 0);
         pixels[1] = max(pixels[1] - rgb[1], 0);
         pixels[2] = max(pixels[2] - rgb[2], 0);
-        pixels += intmax_t(texWidth) << 2;
+        pixels += intptr_t(texWidth) << 2;
     }
 #endif
 }
@@ -3424,7 +3424,7 @@ void fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
         memset(dstPixels, color, width);
@@ -3476,7 +3476,7 @@ void fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
         memset(dstPixels, color, size_t(width) << 2);
@@ -3548,7 +3548,7 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3627,7 +3627,7 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3699,7 +3699,7 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     const uint32_t addDstOffs = texWidth - width;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3773,7 +3773,7 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     const uint32_t addDstOffs = texWidth - width;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3867,7 +3867,7 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3966,7 +3966,7 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -4628,7 +4628,7 @@ void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE*
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     uint8_t* imgPixels = (uint8_t*)img->mData;
     if (!dstPixels || !imgPixels) return;
 
@@ -4693,7 +4693,7 @@ void getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE
     }
 #else    
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     uint32_t* imgPixels = (uint32_t*)img->mData;
     if (!dstPixels || !imgPixels) return;
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4771,8 +4771,8 @@ void putImage8(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
-    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4846,8 +4846,8 @@ void putImage32(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4943,8 +4943,8 @@ void putImageAdd(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
@@ -5050,8 +5050,8 @@ void putImageSub(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
@@ -5171,8 +5171,8 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
@@ -5258,8 +5258,8 @@ void putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
-    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = texWidth - lbWidth;
@@ -5348,8 +5348,8 @@ void putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = texWidth - lbWidth;
@@ -5457,8 +5457,8 @@ void putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
@@ -5574,8 +5574,8 @@ void putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
@@ -5720,7 +5720,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
         while (loop--)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
-            memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
             memcpy(&pal[to], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(ms);
@@ -5734,7 +5734,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
         while (1)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
-            memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
             memcpy(&pal[to], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(ms);
@@ -6032,7 +6032,7 @@ void scrollPalette(int32_t from, int32_t to, int32_t step)
     while (step--)
     {
         memcpy(&tmp, &pal[from], sizeof(tmp));
-        memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
+        memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
         memcpy(&pal[to], &tmp, sizeof(tmp));
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;;
@@ -6325,11 +6325,13 @@ void randomBuffer(void* buff, int32_t count, int32_t range)
     int32_t val = 0;
     uint8_t* ptrBuff = (uint8_t*)buff;
     if (!count || !randSeed || !range) return;
+
     for (int32_t i = 0; i < count; i++)
     {
         val = factor * randSeed + 1;
         *(uint16_t*)&ptrBuff[i] = ((val >> 16) * range) >> 16;
     }
+
     randSeed = val;
 #endif
 }
@@ -6351,7 +6353,7 @@ void setFontSize(uint32_t size)
         //correct sub-fonts number
         if (size > gfxFonts[fontType].header.subFonts) size = gfxFonts[fontType].header.subFonts;
         //copy sub-fonts header
-        memcpy(&gfxFonts[fontType].header.subData, &gfxFonts[fontType].dataPtr[(intmax_t(gfxFonts[fontType].header.subData.endChar) - gfxFonts[fontType].header.subData.startChar + 1) * 4 * (intmax_t(gfxFonts[fontType].header.subFonts) + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
+        memcpy(&gfxFonts[fontType].header.subData, &gfxFonts[fontType].dataPtr[(intptr_t(gfxFonts[fontType].header.subData.endChar) - gfxFonts[fontType].header.subData.startChar + 1) * 4 * (intptr_t(gfxFonts[fontType].header.subFonts) + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
     }
     subFonts = size;
 }
@@ -6509,18 +6511,18 @@ int32_t getFontWidth(const char* str)
 void loadFont(const char* fname, int32_t type)
 {
     //check for type range
-    if (type >= GFX_MAX_FONT) messageBox(GFX_WARNING, "Load font: %s! unknown font type!", fname);
+    if (type >= GFX_MAX_FONT) messageBox(GFX_WARNING, "Error load font: %s! unknown font type!", fname);
 
     //read font header
     FILE* fp = fopen(fname, "rb");
-    if (!fp) messageBox(GFX_WARNING, "Load font: %s! file not found!", fname);
+    if (!fp) messageBox(GFX_WARNING, "Error load font: %s! file not found!", fname);
     fread(&gfxFonts[type].header, sizeof(GFX_FONT_HEADER), 1, fp);
 
     //check font signature, version number and memory size
     if (memcmp(gfxFonts[type].header.sign, "Fnt2", 4) || gfxFonts[type].header.version != 0x0101 || !gfxFonts[type].header.memSize)
     {
         fclose(fp);
-        messageBox(GFX_WARNING, "Load font: %s! wrong GFX font!", fname);
+        messageBox(GFX_WARNING, "Error load font: %s! wrong GFX font!", fname);
     }
 
     //allocate raw data buffer
@@ -6534,7 +6536,7 @@ void loadFont(const char* fname, int32_t type)
     else
     {
         fclose(fp);
-        messageBox(GFX_WARNING, "Load font: %s! not enough memory!", fname);
+        messageBox(GFX_WARNING, "Error load font: %s! not enough memory!", fname);
     }
 
     //reset font header for old font
@@ -6552,7 +6554,7 @@ void loadFont(const char* fname, int32_t type)
         if (!fontPalette[type])
         {
             free(gfxFonts[type].dataPtr);
-            messageBox(GFX_WARNING, "Load font: %s! wrong palette format!", fname);
+            messageBox(GFX_WARNING, "Error load font: %s! wrong font palette!", fname);
         }
     }
 }
@@ -6887,7 +6889,7 @@ void loadPNG(uint8_t* raw, RGB* pal, const char* fname)
     }
 
     //copy raw data and palette
-    if (raw) memcpy(raw, image->pixels, intmax_t(image->pitch) * image->h);
+    if (raw) memcpy(raw, image->pixels, intptr_t(image->pitch) * image->h);
     if (pal) memcpy(pal, image->format->palette->colors, image->format->palette->ncolors * sizeof(RGB));
     SDL_FreeSurface(image);
 }
@@ -6946,44 +6948,6 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
 
     uint32_t size = texture->pitch * texture->h;
     uint32_t* pixels = (uint32_t*)calloc(size, 1);
-    if (!pixels)
-    {
-        messageBox(GFX_ERROR, "Cannot alloc memory for image data!!!");
-        return 0;
-    }
-
-    memcpy(pixels, texture->pixels, size);
-    *txout = pixels;
-    *txw = texture->w;
-    *txh = texture->h;
-    SDL_FreeSurface(image);
-    SDL_FreeSurface(texture);
-    return 1;
-}
-
-//load image as 32bits ARGB texture
-int32_t loadTextureRGB(RGB** txout, int32_t* txw, int32_t* txh, const char* fname)
-{
-    if (bitsPerPixel != 32) return 0;
-
-    SDL_Surface* image = IMG_Load(fname);
-    if (!image)
-    {
-        messageBox(GFX_ERROR, "Load texture error: %s", IMG_GetError());
-        return 0;
-    }
-
-    SDL_Surface* texture = SDL_CreateRGBSurface(0, image->w, image->h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
-    if (!texture)
-    {
-        messageBox(GFX_ERROR, "Cannot create surface: %s!", SDL_GetError());
-        return 0;
-    }
-
-    if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
-
-    uint32_t size = texture->pitch * texture->h;
-    RGB* pixels = (RGB*)calloc(size, 1);
     if (!pixels)
     {
         messageBox(GFX_ERROR, "Cannot alloc memory for image data!!!");
@@ -7101,7 +7065,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
 #else
     //calculate starting address
     const uint32_t addOffs = texWidth - msWidth;
-    uint32_t* srcPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * my + mx;
+    uint32_t* srcPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -7194,7 +7158,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
 #else
     //calculate starting address
     const uint32_t addOffs = texWidth - msWidth;
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * my + mx;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -7285,8 +7249,8 @@ void drawButton(GFX_BUTTON* btn)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
-    uint32_t* imgPixels = (uint32_t*)btnData + btnWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint32_t* imgPixels = (uint32_t*)btnData + btnWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = texWidth - lbWidth;
@@ -7347,7 +7311,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
         {
             dst = &mbm[i].mbData[y * MOUSE_WIDTH * bytesPerPixel];
             src = &bmp.mData[(i * MOUSE_WIDTH + y * bmp.mWidth) * bytesPerPixel];
-            memcpy(dst, src, intmax_t(bytesPerPixel) * MOUSE_WIDTH);
+            memcpy(dst, src, intptr_t(bytesPerPixel) * MOUSE_WIDTH);
         }
     }
 
@@ -7375,7 +7339,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
             {
                 dst = &btn[i].btData[j][y * BUTTON_WIDTH * bytesPerPixel];
                 src = &bmp.mData[(i * (bmp.mWidth >> 1) + j * BUTTON_WIDTH + (BUTTON_HEIGHT + y) * bmp.mWidth) * bytesPerPixel];
-                memcpy(dst, src, intmax_t(bytesPerPixel) * BUTTON_WIDTH);
+                memcpy(dst, src, intptr_t(bytesPerPixel) * BUTTON_WIDTH);
             }
         }
     }
@@ -7740,59 +7704,57 @@ inline int32_t roundf(double x)
 }
 
 //FX-effect: pre-calculate tunnel buffer
-void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2)
+void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
 {
-    const int32_t width = dimg->mWidth;
-    const int32_t height = dimg->mHeight;
     const int32_t maxAng = 2048;
+    const double angDec = 0.85;
+    const double dstInc = 0.02;
     const double preCalc = M_PI / (maxAng >> 2);
 
-    double z = 250, zDec = 0.85;
-    double ang = maxAng - 1.0, angDec = zDec;
-    double dst = 1.0, dstInc = 0.02;
-
-    int32_t x, y, ofs;
-
+    double z = 250.0;
+    double dst = 1.0;
+    double ang = maxAng - 1.0;
+    
     do {
-        x = roundf(z * sin(ang * preCalc)) + (width >> 1);
-        y = roundf(z * cos(ang * preCalc)) + (height >> 1);
+        int32_t x = roundf(z * sin(ang * preCalc)) + (dimg->mWidth >> 1);
+        int32_t y = roundf(z * cos(ang * preCalc)) + (dimg->mHeight >> 1);
 
         ang -= angDec;
         if (ang < 0)
         {
             ang += maxAng;
             dst += dst * dstInc;
-            z -= zDec;
+            z -= angDec;
         }
 
-        if (x >= 0 && x < width && y >= 0 && y < height)
+        if (x >= 0 && x < dimg->mWidth && y >= 0 && y < dimg->mHeight)
         {
-            ofs = y * dimg->mWidth + x;
-            buf1[ofs] = roundf(dst);
-            buf2[ofs] = roundf(dst - ang / 4);
+            int32_t ofs = y * dimg->mWidth + x;
+            buff1[ofs] = roundf(dst);
+            buff2[ofs] = roundf(dst - ang / 4);
         }
     } while (z >= 0);
 }
 
 //FX-effect: draw tunnel
-void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, uint8_t* mov, uint8_t step)
+void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2, uint8_t* ang, uint8_t step)
 {
-    uint8_t tmp;
     uint32_t nsize = dimg->mSize >> 2;
     uint32_t* dst = (uint32_t*)dimg->mData;
     uint32_t* src = (uint32_t*)simg->mData;
     
     if (bitsPerPixel != 32) return;
 
-    *mov += step;
-    tmp = *mov;
+    *ang += step;
 
 #ifdef _USE_ASM
+    uint8_t tmp = *ang;
     _asm {
+        mov     ecx, ang
         mov     edi, dst
         mov     esi, src
-        mov     ebx, buf1
-        mov     edx, buf2
+        mov     ebx, buff1
+        mov     edx, buff2
         xor     ecx, ecx
     again:
         mov     cl, [edx]
@@ -7809,8 +7771,11 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, 
     uint8_t val;
     while (nsize--)
     {
-        val = *buf1++ + tmp;
-        *dst++ = src[(val << 8) + *buf2++];
+        val = *buff1 + *ang;
+        *dst = src[(val << 8) + *buff2];
+        dst++;
+        buff1++;
+        buff2++;
     }
 #endif
 }
@@ -8131,25 +8096,25 @@ void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
     done:
     }
 #else
-    int32_t blk = val;
-    int32_t mid = val >> 17;
+    int32_t i = 0;
+    int32_t mid = val >> 16;
+    const int32_t blk = val & 0xFFFF;
 
-    src += intmax_t(mid) + 1;
-    mid = blk >> 16;
-    blk &= 0xFFFF;
+    src += intptr_t(val >> 17) + 1;
     
     do {
-        uint32_t eax = *src;
         count -= mid;
         if (count <= 0)
         {
             mid += count;
-            for (int32_t i = 0; i < mid; i++) *dst++ = eax;
-            break;
+            for (i = 0; i < mid; i++) *dst++ = *src;
         }
-        for (int32_t i = 0; i < mid; i++) *dst++ = eax;
-        mid = blk;
-        src += mid;
+        else
+        {
+            for (i = 0; i < mid; i++) *dst++ = *src;
+            src += mid;
+            mid = blk;
+        }
     } while (count > 0);
 #endif
 }
@@ -8562,10 +8527,7 @@ void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, in
 //FX-effect: rotate image buffer
 void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx, int32_t axisy, double angle, double scale)
 {
-    double th, sint, cost;
-    double sinx, cosx, siny, cosy;
-
-    int32_t x, y, primex, primey, lineWidth = 0;
+    int32_t x = 0, y = 0, lineWidth = 0;
     uint32_t* psrc = (uint32_t*)src->mData;
     uint32_t* pdst = (uint32_t*)dst->mData;
 
@@ -8580,13 +8542,14 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
     tables[1] = src->mHeight;
 
     //calculate rotation data
-    th = M_PI * (180 - angle) / 180.0;
-    sint = sin(th) / scale;
-    cost = cos(th) / scale;
+    const double th = M_PI * (180 - angle) / 180.0;
+    double sint = sin(th) / scale;
+    double cost = cos(th) / scale;
 
-    primex = (-axisx << 1) + 1;
-    sinx = primex * sint - 1;
-    cosx = primex * cost - 1 + src->mWidth;
+    double primex = (-axisx << 1) + 1;
+    double sinx = primex * sint - 1;
+    double cosx = primex * cost - 1 + src->mWidth;
+
     sint *= 2;
     cost *= 2;
 
@@ -8608,9 +8571,10 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
         lineWidth += src->mRowBytes;
     }
 
-    primey = ((dst->mHeight - 1 - axisy) << 1) + 1;
-    siny = primey * sint;
-    cosy = primey * cost + src->mHeight;
+    double primey = ((dst->mHeight - 1 - axisy) << 1) + 1;
+    double siny = primey * sint;
+    double cosy = primey * cost + src->mHeight;
+
     sint *= 2;
     cost *= 2;
 

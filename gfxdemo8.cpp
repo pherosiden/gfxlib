@@ -13,10 +13,10 @@
 #define SIGNED(x)   (((x) > 0) ? 1 : ((x) < 0) ? -1 : 0)
 
 //Font buffer
-typedef uint8_t FNT_TBL[CHR_WIDTH][CHR_HEIGHT];
+typedef uint8_t FNTBUFF[CHR_WIDTH][CHR_HEIGHT];
 
 //VNI font table
-FNT_TBL     chrPixels[CHR_MAX] = {0};
+FNTBUFF     chrPixels[CHR_MAX] = {0};
 
 //circle palette
 RGB         cpal[256] = { 0 };
