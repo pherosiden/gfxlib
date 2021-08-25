@@ -20,7 +20,7 @@ void showFontsDir(const char* path, const char* ext)
         while ((ent = readdir(dir)))
         {
             //skip if not regular files, not GFX font files
-            if ((ent->d_type != DT_REG) || !strstr(ent->d_name, ".xfn")) continue;
+            if ((ent->d_type != DT_REG) || !strstr(ent->d_name, ext)) continue;
 
             //format related path
             sprintf(buff, "%s/%s", path, ent->d_name);
@@ -62,7 +62,7 @@ void showFontsDir(const char* path, const char* ext)
     _finddata_t fileInfo;
 
     //open font directory
-    sprintf(buff, "%s/%s", path, ext);
+    sprintf(buff, "%s/*%s", path, ext);
     hfile = _findfirst(buff, &fileInfo);
     if (hfile == -1) return;
 
@@ -105,6 +105,6 @@ void showFontsDir(const char* path, const char* ext)
 void gfxFontView()
 {
     initScreen(800, 600, 32, 0, "GFXLIB Fonts");
-    showFontsDir("assets", "*.xfn");
+    showFontsDir("assets", ".xfn");
     cleanup();
 }

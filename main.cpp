@@ -6,10 +6,10 @@ int main(int argc, char* args[])
     chdir(dirname(args[0]));
     chdir("../Resources");
 #endif
-    gfxEffects32();
-    gfxDemo8();
+    //gfxEffects32();
+    //gfxDemo8();
     gfxEffects8();
-    gfxDemo32();
+    //gfxDemo32();
     gfxFontView();
     return 0;
 }

@@ -34,6 +34,8 @@ namespace juliaSet {
         int32_t i, x, y;
         double newre, newim;
         double oldre, oldim;
+        const int32_t mwidth = texHeight >> 1;
+        const int32_t mheight = texHeight >> 1;
 
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Julia-Set Demo");
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
@@ -42,8 +44,8 @@ namespace juliaSet {
         {
             for (x = 0; x < texWidth; x++)
             {
-                newre = 1.5 * (x - texWidth / 2) / (0.5 * zoom * texWidth) + mx;
-                newim = 1.0 * (y - texHeight / 2) / (0.5 * zoom * texHeight) + my;
+                newre = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
+                newim = 1.0 * (intmax_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -72,6 +74,8 @@ namespace juliaSet {
         double pr, pi;
         double newre, newim;
         double oldre, oldim;
+        const int32_t mwidth = texWidth >> 1;
+        const int32_t mheight = texHeight >> 1;
 
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Mandelbrot-Set");
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
@@ -80,8 +84,8 @@ namespace juliaSet {
         {
             for (x = 0; x < texWidth; x++)
             {
-                pr = 1.5 * ((double)x - texWidth / 2) / (0.5 * zoom * texWidth) + mx;
-                pi = 1.0 * ((double)y - texHeight / 2) / (0.5 * zoom * texHeight) + my;
+                pr = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
+                pi = 1.0 * (intmax_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
                 newre = newim = oldre = oldim = 0;
 
                 for (i = 1; i <= iters; i++)
@@ -357,8 +361,7 @@ namespace circleEffect {
 
     int16_t roundf(double x)
     {
-        if (x >= 0) return int16_t(x + 0.5);
-        return int16_t(x - 0.5);
+        return (x >= 0) ? int16_t(x + 0.5) : int16_t(x - 0.5);
     }
 
     void paintCircle(int16_t x, int16_t y, int16_t rad)
@@ -1694,8 +1697,7 @@ namespace skyEffect {
     
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void swapWord(uint8_t* a, uint8_t* b)
@@ -2645,8 +2647,7 @@ namespace fireDown {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void setPalette(uint8_t brightness)
@@ -3603,8 +3604,7 @@ namespace tunnelEffect {
 
     int32_t random(int32_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void setPalette()
@@ -4603,8 +4603,7 @@ namespace bitmapRotate {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void makeTables()
@@ -4832,8 +4831,7 @@ namespace intro16k {
     
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void flipBuffer()
@@ -6346,7 +6344,7 @@ namespace intro16k {
                         x = pos >> 12;
                         if (x > MAX_WIDTH) x = MAX_WIDTH;
                         if (x < mask[y]) break;
-                        memset(&vbuff[y][mask[y]], (i << 5) & 63, x - mask[y] + 1);
+                        memset(&vbuff[y][mask[y]], (i << 5) & 63, intmax_t(x) - mask[y] + 1);
                         mask[y] = x;
                         pos += koef;
                         y--;
@@ -6356,7 +6354,7 @@ namespace intro16k {
 
             for (i = 0; i < IMAGE_HEIGHT; i++)
             {
-                if (mask[i] < MAX_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, IMAGE_WIDTH - mask[i]);
+                if (mask[i] < MAX_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, intmax_t(IMAGE_WIDTH) - mask[i]);
             }
 
             for (i = 0; i < 5; i++)
@@ -7206,8 +7204,7 @@ namespace fillterEffect {
     
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void drawPicture()
@@ -7461,7 +7458,7 @@ namespace fireworkEffect {
     #define FADEDOWN_FRAMES     15
     #define	PIXEL_CIRCLE        10
     #define	NUM_CIRCLE          4
-    #define	BRIGHT_ARROW        40
+    #define	BRIGHT_ARROW        30
     #define PIXELS_EXPLODE      ((PIXEL_CIRCLE * (NUM_CIRCLE * NUM_CIRCLE) + PIXEL_CIRCLE * NUM_CIRCLE) >> 1)
 
     typedef struct {
@@ -7494,8 +7491,7 @@ namespace fireworkEffect {
 
     int32_t random(int32_t x)
     {
-        if (x == 0) return x;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     int32_t roundf(double x)
@@ -7514,7 +7510,7 @@ namespace fireworkEffect {
         if (arrow->angle < (ANGLE_SCALE >> 2)) arrow->angleAdd = -1;
         else arrow->angleAdd = 1;
 
-        arrow->shape[0].x = random(XMAX / 3) + 1.0 * (XMAX / 3);
+        arrow->shape[0].x = random(XMAX / 3) + double(XMAX / 3);
         arrow->shape[0].y = 220;
 
         for (i = 1; i < ARROWS_LENGTH; i++)
@@ -7854,8 +7850,7 @@ namespace candleEffect {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     int16_t roundf(double x)
@@ -8119,8 +8114,7 @@ namespace fireEffect3 {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void initFire()
@@ -8625,8 +8619,7 @@ namespace fireEffect6 {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     int16_t xrand(int16_t val)
@@ -8714,8 +8707,7 @@ namespace fireEffect7 {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void interpolation()
@@ -8783,8 +8775,7 @@ namespace fireEffect8 {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return x;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void blurBuff()
@@ -9224,7 +9215,7 @@ namespace holeEffect3 {
         }
 #else
         if (xe < xb) swap(xe, xb);
-        memset(&vbuff[y][xb], col, xe - xb + 1);
+        memset(&vbuff[y][xb], col, intmax_t(xe) - xb + 1);
 #endif
     }
 
@@ -9603,8 +9594,7 @@ namespace kaleidoScope {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void rainbowPalette(RGB* pal)
@@ -9797,7 +9787,7 @@ namespace kaleidoScope2 {
         while (step--)
         {
             memcpy(&tmp, &pal[from], sizeof(tmp));
-            memcpy(&pal[from], &pal[from + 1], (to - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
             memcpy(&pal[to], &tmp, sizeof(tmp));
         }
 
@@ -9806,8 +9796,7 @@ namespace kaleidoScope2 {
 
     int32_t random(int32_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void run(uint8_t mode)
@@ -10096,7 +10085,7 @@ namespace lakeEffect {
         for (i = 1; i <= STARTY; i++)
         {
             val = sintab[i];
-            memcpy(&water[STARTY - i][val], &bitmap[i - 1][0], IMAGE_WIDTH - val);
+            memcpy(&water[STARTY - i][val], &bitmap[i - 1][0], intmax_t(IMAGE_WIDTH) - val);
         }
 
         val = sintab[0];
@@ -10133,8 +10122,7 @@ namespace landScapeGeneration {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     uint8_t getColor(int16_t mc, int16_t n, int16_t dvd)
@@ -10215,8 +10203,7 @@ namespace landScapeEffect {
     
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void setPalette()
@@ -10536,7 +10523,7 @@ namespace zoomInEffect {
 
                 if (ux * ux + uy * uy < R * R)
                 {
-                    z = sqrt(1.0 * R * R - 1.0 * ux * ux - 1.0 * uy * uy);
+                    z = sqrt(double(R) * R - double(ux) * ux - double(uy) * uy);
                     sx = int16_t((H - z) * (ux / z));
                     sy = int16_t((H - z) * (uy / z));
                     lens[y][x] = sy * IMAGE_WIDTH + sx;
@@ -10791,8 +10778,7 @@ namespace zoomOutEffect {
 namespace lineBobEffect {
     int32_t random(int32_t x)
     {
-        if (x == 0) return x;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void checkBounds(int32_t a, int32_t* b, int32_t c)
@@ -11257,8 +11243,7 @@ namespace mazeGeneration {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void drawField(uint8_t x, uint8_t y)
@@ -11499,8 +11484,7 @@ namespace pixelMorphing {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void moveEmOut(int16_t num)
@@ -12836,8 +12820,7 @@ namespace shadeBob {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void makeShadeBob(int16_t x, int16_t y)
@@ -14083,8 +14066,7 @@ namespace starEffect {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void run()
@@ -14139,8 +14121,7 @@ namespace star2dEffect {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void createStar()
@@ -14202,8 +14183,7 @@ namespace star3dEffect {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void initStars()
@@ -14712,8 +14692,7 @@ namespace thunderBoltEffect {
 
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void addItem(int16_t x, int16_t y, uint8_t item)
@@ -15187,8 +15166,7 @@ namespace rippleEffect2 {
 namespace waterFall {
     int16_t random(int16_t x)
     {
-        if (x == 0) return 0;
-        return rand() % x;
+        return x ? rand() % x : 0;
     }
 
     void makeDrip()
@@ -15797,7 +15775,7 @@ namespace rayCastingEffect {
 void gfxEffects8()
 {
     //mazeGeneration::run();
-    starEffect::run();
+    /*starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
     flagsEffect::run();
@@ -15823,7 +15801,7 @@ void gfxEffects8()
     textScrolling::run();
     fastShowBMP::run();
     EMS::run();
-    fillterEffect::run();
+    fillterEffect::run();*/
     fireworkEffect::run();
     candleEffect::run();
     fireEffect::run();

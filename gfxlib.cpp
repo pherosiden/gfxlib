@@ -470,7 +470,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     else
     {
         //initialize drawing buffer for 32 bits RGBA
-        drawBuff = (uint32_t*)calloc(width * height, sizeof(int32_t));
+        drawBuff = (uint32_t*)calloc(intmax_t(width) * height, sizeof(int32_t));
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
@@ -1020,7 +1020,7 @@ void putPixelAlpha(int32_t x, int32_t y, uint32_t col, uint8_t alpha)
     }
 #else
     uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     pixels[0] = (alpha * pixels[0] + rgb[0] * (255 - alpha)) >> 8;
     pixels[1] = (alpha * pixels[1] + rgb[1] * (255 - alpha)) >> 8;
     pixels[2] = (alpha * pixels[2] + rgb[2] * (255 - alpha)) >> 8;
@@ -1090,7 +1090,7 @@ void putPixelAdd32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     pixels[0] = min(pixels[0] + rgb[0], 255);
     pixels[1] = min(pixels[1] + rgb[1], 255);
     pixels[2] = min(pixels[2] + rgb[2], 255);
@@ -1132,7 +1132,7 @@ void putPixelSub32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     pixels[0] = max(pixels[0] - rgb[0], 0);
     pixels[1] = max(pixels[1] - rgb[1], 0);
     pixels[2] = max(pixels[2] - rgb[2], 0);
@@ -1174,7 +1174,7 @@ void putPixelAnd32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     pixels[0] = pixels[0] & rgb[0];
     pixels[1] = pixels[1] & rgb[1];
     pixels[2] = pixels[2] & rgb[2];
@@ -1216,7 +1216,7 @@ void putPixelXor32(int32_t x, int32_t y, uint32_t color)
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     pixels[0] = pixels[0] ^ rgb[0];
     pixels[1] = pixels[1] ^ rgb[1];
     pixels[2] = pixels[2] ^ rgb[2];
@@ -1360,7 +1360,7 @@ void horizLine8(int32_t x, int32_t y, int32_t sx, uint32_t color)
         rep     stosb
     }
 #else
-    uint8_t* pixels = (uint8_t*)drawBuff + y * texWidth + x;
+    uint8_t* pixels = (uint8_t*)drawBuff + intmax_t(texWidth) * y + x;
     for (int32_t i = 0; i < sx; i++) *pixels++ = color;
 #endif
 }
@@ -1399,7 +1399,7 @@ void horizLine32(int32_t x, int32_t y, int32_t sx, uint32_t color)
         rep     stosd
     }
 #else
-    uint32_t* pixels = (uint32_t*)drawBuff + y * texWidth + x;
+    uint32_t* pixels = (uint32_t*)drawBuff + intmax_t(texWidth) * y + x;
     for (int32_t i = 0; i < sx; i ++) *pixels++ = color;
 #endif
 }
@@ -1459,7 +1459,7 @@ void horizLineAdd32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     for (int32_t i = 0; i < sx; i++)
     {
         pixels[0] = min(pixels[0] + rgb[0], 255);
@@ -1525,7 +1525,7 @@ void horizLineSub32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     for (int32_t i = 0; i < sx; i++)
     {
         pixels[0] = max(pixels[0] - rgb[0], 0);
@@ -1574,7 +1574,7 @@ void vertLine8(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)drawBuff + y * texWidth + x;
+    uint8_t* pixels = (uint8_t*)drawBuff + intmax_t(texWidth) * y + x;
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1623,7 +1623,7 @@ void vertLine32(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint32_t* pixels = (uint32_t*)drawBuff + y * texWidth + x;
+    uint32_t* pixels = (uint32_t*)drawBuff + intmax_t(texWidth) * y + x;
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1690,13 +1690,13 @@ void vertLineAdd32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     for (int32_t i = 0; i < sy; i++)
     {
         pixels[0] = min(pixels[0] + rgb[0], 255);
         pixels[1] = min(pixels[1] + rgb[1], 255);
         pixels[2] = min(pixels[2] + rgb[2], 255);
-        pixels += size_t(texWidth) << 2;
+        pixels += intmax_t(texWidth) << 2;
     }
 #endif
 }
@@ -1759,13 +1759,13 @@ void vertLineSub32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + y * texWidth + x);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * y + x);
     for (int32_t i = 0; i < sy; i++)
     {
         pixels[0] = max(pixels[0] - rgb[0], 0);
         pixels[1] = max(pixels[1] - rgb[1], 0);
         pixels[2] = max(pixels[2] - rgb[2], 0);
-        pixels += size_t(texWidth) << 2;
+        pixels += intmax_t(texWidth) << 2;
     }
 #endif
 }
@@ -2383,9 +2383,10 @@ void drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     const int32_t dx = x2 - x1;
     const int32_t dy = abs(y2 - y1);
     const int32_t ystep = (y1 < y2) ? 1 : -1;
-    int32_t error = dx >> 1;
-    int32_t y = y1;
 
+    int32_t y = y1;
+    int32_t error = dx >> 1;
+    
     for (int32_t x = x1; x <= x2; x++)
     {
         putPixel(step ? y : x, step ? x : y, color);
@@ -2421,8 +2422,10 @@ void drawLineAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     const int32_t dx = x2 - x1;
     const int32_t dy = abs(y2 - y1);
     const int32_t ystep = (y1 < y2) ? 1 : -1;
-    int32_t error = dx >> 1;
+
     int32_t y = y1;
+    int32_t error = dx >> 1;
+    
 
     for (int32_t x = x1; x <= x2; x++)
     {
@@ -2459,9 +2462,10 @@ void drawLineSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     const int32_t dx = x2 - x1;
     const int32_t dy = abs(y2 - y1);
     const int32_t ystep = (y1 < y2) ? 1 : -1;
-    int32_t error = dx >> 1;
+    
     int32_t y = y1;
-
+    int32_t error = dx >> 1;
+    
     for (int32_t x = x1; x <= x2; x++)
     {
         putPixelSub(step ? y : x, step ? x : y, color);
@@ -2942,7 +2946,7 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
     b1 = b & 1;
     dx = 4.0 * (a - 1.0) * b * b;
     dy = 4.0 * (b1 + 1.0) * a * a;
-    err = 1.0 * b1 * a * a - dx + dy;
+    err = double(b1) * a * a - dx + dy;
 
     //check for line
     if (a == 0 || b == 0) return;
@@ -3420,7 +3424,7 @@ void fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + ly1 * texWidth + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
         memset(dstPixels, color, width);
@@ -3472,7 +3476,7 @@ void fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + ly1 * texWidth + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
         memset(dstPixels, color, size_t(width) << 2);
@@ -3544,7 +3548,7 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3623,7 +3627,7 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3695,7 +3699,7 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + ly1 * texWidth + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
     const uint32_t addDstOffs = texWidth - width;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3769,7 +3773,7 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + ly1 * texWidth + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
     const uint32_t addDstOffs = texWidth - width;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3863,7 +3867,7 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -3962,7 +3966,7 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
     for (int32_t y = 0; y < height; y++)
     {
@@ -4371,7 +4375,7 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col)
     }
 }
 
-//FX-Effect: fade circle
+//FX-effect: fade circle
 void fadeCircle(int32_t dir, uint32_t col)
 {
     int32_t i, x, y;
@@ -4437,7 +4441,7 @@ void fadeCircle(int32_t dir, uint32_t col)
     }
 }
 
-//FX-Effect: fade rollo
+//FX-effect: fade rollo
 void fadeRollo(int32_t dir, uint32_t col)
 {
     int32_t i, j;
@@ -4624,7 +4628,7 @@ void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE*
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + ly1 * texWidth + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
     uint8_t* imgPixels = (uint8_t*)img->mData;
     if (!dstPixels || !imgPixels) return;
 
@@ -4689,7 +4693,7 @@ void getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE
     }
 #else    
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + ly1 * texWidth + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
     uint32_t* imgPixels = (uint32_t*)img->mData;
     if (!dstPixels || !imgPixels) return;
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4767,8 +4771,8 @@ void putImage8(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + ly1 * texWidth + lx1;
-    uint8_t* imgPixels = (uint8_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1);
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4842,8 +4846,8 @@ void putImage32(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + ly1 * texWidth + lx1;
-    uint32_t* imgPixels = (uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4939,8 +4943,8 @@ void putImageAdd(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
@@ -5046,8 +5050,8 @@ void putImageSub(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
@@ -5167,8 +5171,8 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
@@ -5253,9 +5257,9 @@ void putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
         jnz     next
     }
 #else
-    //check for loop
-    uint8_t* dstPixels = (uint8_t*)drawBuff + ly1 * texWidth + lx1;
-    uint8_t* imgPixels = (uint8_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1);
+    //calculate starting address
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = texWidth - lbWidth;
@@ -5344,8 +5348,8 @@ void putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + ly1 * texWidth + lx1;
-    uint32_t* imgPixels = (uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = texWidth - lbWidth;
@@ -5453,8 +5457,8 @@ void putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
@@ -5570,8 +5574,8 @@ void putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + ly1 * texWidth + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + (ly1 - y1) * img->mWidth + (lx1 - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
@@ -5703,7 +5707,7 @@ void getPalette(RGB* pal)
     memcpy(pal, sdlSurface->format->palette->colors, sdlSurface->format->palette->ncolors * sizeof(RGB));
 }
 
-//FX-Effect: palette rotation
+//FX-effect: palette rotation
 void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 {
     RGB tmp;
@@ -5716,7 +5720,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
         while (loop--)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
-            memcpy(&pal[from], &pal[from + 1], (to - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
             memcpy(&pal[to], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(ms);
@@ -5730,7 +5734,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
         while (1)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
-            memcpy(&pal[from], &pal[from + 1], (to - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
             memcpy(&pal[to], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(ms);
@@ -5741,7 +5745,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
     }
 }
 
-//FX-Effect: palette fade-in
+//FX-effect: palette fade-in
 void fadeIn(RGB* dest, uint32_t ms)
 {
     int32_t i, j, k;
@@ -5765,7 +5769,7 @@ void fadeIn(RGB* dest, uint32_t ms)
     }
 }
 
-//FX-Effect: palette fade-out
+//FX-effect: palette fade-out
 void fadeOut(RGB* dest, uint32_t ms)
 {
     int32_t i, j, k;
@@ -5789,7 +5793,7 @@ void fadeOut(RGB* dest, uint32_t ms)
     }
 }
 
-//FX-Effect: palette fade-max
+//FX-effect: palette fade-max
 void fadeMax(uint32_t ms)
 {
     int32_t i, j;
@@ -5812,7 +5816,7 @@ void fadeMax(uint32_t ms)
     }
 }
 
-//FX-Effect: palette fade-min
+//FX-effect: palette fade-min
 void fadeMin(uint32_t ms)
 {
     int32_t i, j;
@@ -5835,7 +5839,7 @@ void fadeMin(uint32_t ms)
     }
 }
 
-//FX-Effect: palette fade-down
+//FX-effect: palette fade-down
 void fadeDown(RGB* pal)
 {
     int32_t i;
@@ -6028,7 +6032,7 @@ void scrollPalette(int32_t from, int32_t to, int32_t step)
     while (step--)
     {
         memcpy(&tmp, &pal[from], sizeof(tmp));
-        memcpy(&pal[from], &pal[from + 1], (to - from) * sizeof(RGB));
+        memcpy(&pal[from], &pal[from + 1], (intmax_t(to) - from) * sizeof(RGB));
         memcpy(&pal[to], &tmp, sizeof(tmp));
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;;
@@ -6347,7 +6351,7 @@ void setFontSize(uint32_t size)
         //correct sub-fonts number
         if (size > gfxFonts[fontType].header.subFonts) size = gfxFonts[fontType].header.subFonts;
         //copy sub-fonts header
-        memcpy(&gfxFonts[fontType].header.subData, &gfxFonts[fontType].dataPtr[(gfxFonts[fontType].header.subData.endChar - gfxFonts[fontType].header.subData.startChar + 1) * 4 * (gfxFonts[fontType].header.subFonts + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
+        memcpy(&gfxFonts[fontType].header.subData, &gfxFonts[fontType].dataPtr[(intmax_t(gfxFonts[fontType].header.subData.endChar) - gfxFonts[fontType].header.subData.startChar + 1) * 4 * (intmax_t(gfxFonts[fontType].header.subFonts) + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
     }
     subFonts = size;
 }
@@ -6883,7 +6887,7 @@ void loadPNG(uint8_t* raw, RGB* pal, const char* fname)
     }
 
     //copy raw data and palette
-    if (raw) memcpy(raw, image->pixels, image->pitch * image->h);
+    if (raw) memcpy(raw, image->pixels, intmax_t(image->pitch) * image->h);
     if (pal) memcpy(pal, image->format->palette->colors, image->format->palette->ncolors * sizeof(RGB));
     SDL_FreeSurface(image);
 }
@@ -7097,7 +7101,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
 #else
     //calculate starting address
     const uint32_t addOffs = texWidth - msWidth;
-    uint32_t* srcPixels = (uint32_t*)drawBuff + my * texWidth + mx;
+    uint32_t* srcPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * my + mx;
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -7190,7 +7194,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
 #else
     //calculate starting address
     const uint32_t addOffs = texWidth - msWidth;
-    uint32_t* dstPixels = (uint32_t*)drawBuff + my * texWidth + mx;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * my + mx;
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -7281,8 +7285,8 @@ void drawButton(GFX_BUTTON* btn)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + ly1 * texWidth + lx1;
-    uint32_t* imgPixels = (uint32_t*)btnData + (ly1 - y1) * btnWidth + (lx1 - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intmax_t(texWidth) * ly1 + lx1;
+    uint32_t* imgPixels = (uint32_t*)btnData + btnWidth * (intmax_t(ly1) - y1) + (intmax_t(lx1) - x1);
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = texWidth - lbWidth;
@@ -7343,7 +7347,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
         {
             dst = &mbm[i].mbData[y * MOUSE_WIDTH * bytesPerPixel];
             src = &bmp.mData[(i * MOUSE_WIDTH + y * bmp.mWidth) * bytesPerPixel];
-            memcpy(dst, src, bytesPerPixel * MOUSE_WIDTH);
+            memcpy(dst, src, intmax_t(bytesPerPixel) * MOUSE_WIDTH);
         }
     }
 
@@ -7371,7 +7375,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
             {
                 dst = &btn[i].btData[j][y * BUTTON_WIDTH * bytesPerPixel];
                 src = &bmp.mData[(i * (bmp.mWidth >> 1) + j * BUTTON_WIDTH + (BUTTON_HEIGHT + y) * bmp.mWidth) * bytesPerPixel];
-                memcpy(dst, src, bytesPerPixel * BUTTON_WIDTH);
+                memcpy(dst, src, intmax_t(bytesPerPixel) * BUTTON_WIDTH);
             }
         }
     }
@@ -7735,7 +7739,7 @@ inline int32_t roundf(double x)
     return (x >= 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
-//FX-Effect: pre-calculate tunnel buffer
+//FX-effect: pre-calculate tunnel buffer
 void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2)
 {
     const int32_t width = dimg->mWidth;
@@ -7770,7 +7774,7 @@ void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2)
     } while (z >= 0);
 }
 
-//FX-Effect: draw tunnel
+//FX-effect: draw tunnel
 void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, uint8_t* mov, uint8_t step)
 {
     uint8_t tmp;
@@ -7811,7 +7815,7 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, 
 #endif
 }
 
-//FX-Effect: blur image buffer
+//FX-effect: blur image buffer
 void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
 {
     uint8_t* pdst = dst->mData;
@@ -8050,7 +8054,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
 #endif
 }
 
-//FX-Effect: brightness image buffer
+//FX-effect: brightness image buffer
 void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 {
     uint32_t* psrc = (uint32_t*)src->mData;
@@ -8095,7 +8099,7 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 #endif
 }
 
-//FX-Effect: block-out image buffer
+//FX-effect: block-out image buffer
 void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
 {
 #ifdef _USE_ASM
@@ -8130,7 +8134,7 @@ void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
     int32_t blk = val;
     int32_t mid = val >> 17;
 
-    src += mid + 1;
+    src += intmax_t(mid) + 1;
     mid = blk >> 16;
     blk &= 0xFFFF;
     
@@ -8150,7 +8154,7 @@ void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
 #endif
 }
 
-//FX-Effect: brightness alpha buffer
+//FX-effect: brightness alpha buffer
 void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
 {
     uint32_t* data = (uint32_t*)img->mData;
@@ -8186,7 +8190,7 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
 #endif
 }
 
-//FX-Effect: block-out and middle image buffer
+//FX-effect: block-out and middle image buffer
 void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
 {
     int32_t y, mid, cx, cy;
@@ -8225,7 +8229,7 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
     }
 }
 
-//FX-Effect: fade circle image buffer
+//FX-effect: fade circle image buffer
 void fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col)
 {
     int32_t val, x, y;
@@ -8281,7 +8285,7 @@ void fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col)
     }
 }
 
-//FX-Effect: scale-up image buffer
+//FX-effect: scale-up image buffer
 void scaleUpLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t count, int32_t yval)
 {
 #ifdef _USE_ASM
@@ -8303,7 +8307,7 @@ void scaleUpLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t count, i
 #endif
 }
 
-//FX-Effect: scale-up image buffer
+//FX-effect: scale-up image buffer
 void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact)
 {
     int32_t i, y;
@@ -8325,7 +8329,7 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     }
 }
 
-//FX-Effect: blur image buffer
+//FX-effect: blur image buffer
 void blurImage(GFX_IMAGE* img)
 {
     if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
@@ -8435,7 +8439,7 @@ void blurImage(GFX_IMAGE* img)
 #endif
 }
 
-//FX-Effect: blending image buffer
+//FX-effect: blending image buffer
 void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
 {
     uint8_t* psrc1 = src1->mData;
@@ -8492,7 +8496,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
 #endif
 }
 
-//FX-Effect: rotate image buffer, line by line
+//FX-effect: rotate image buffer, line by line
 void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, int32_t siny, int32_t cosy)
 {
 #ifdef _USE_ASM
@@ -8555,7 +8559,7 @@ void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, in
 #endif
 }
 
-//FX-Effect: rotate image buffer
+//FX-effect: rotate image buffer
 void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx, int32_t axisy, double angle, double scale)
 {
     double th, sint, cost;
@@ -8620,7 +8624,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
     }
 }
 
-//FX-Effect: 2d bumping
+//FX-effect: 2d bumping
 void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int32_t ly)
 {
     uint32_t* dstdata = (uint32_t*)dst->mData;
@@ -8820,7 +8824,7 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
 #endif
 }
 
-//fade image effects
+//FX-effect: fade-out image buffer
 void fadeOutImage(GFX_IMAGE* img, uint8_t step)
 {
     if (bitsPerPixel != 32) return;

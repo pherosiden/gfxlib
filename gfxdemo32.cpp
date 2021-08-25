@@ -4,11 +4,11 @@
 #define MAX_TEXT_LINE   23
 
 //String buffer
-typedef char TXTBUFF[80];
+typedef char STRBUFF[80];
 
 //Show text intro message
 int32_t     fullSpeed = 0;
-TXTBUFF     texts[MAX_TEXT_LINE] = {0};
+STRBUFF     texts[MAX_TEXT_LINE] = {0};
 GFX_IMAGE   fade1, fade2, flare;
 GFX_IMAGE   bumpch, bumpimg, logo, sky;
 GFX_IMAGE   flares[16] = { 0 };
@@ -223,7 +223,7 @@ void runBlocking(int32_t sx, int32_t sy)
     do {
         dec--;
         blockOutMidImage(&img2, &fade1, dec << 1, dec << 1);
-        brightnessImage(&img2, &img2, uint8_t(255.0 - 1.0 * dec / (fade1.mWidth >> 2) * 255.0));
+        brightnessImage(&img2, &img2, uint8_t(255.0 - double(dec) / (fade1.mWidth >> 2) * 255.0));
         putImage(sx, sy, &img2);
         render();
         delay(FPS_60);
@@ -232,6 +232,7 @@ void runBlocking(int32_t sx, int32_t sy)
     //save current background
     const int32_t width  = fade1.mWidth;
     const int32_t height = fade1.mHeight;
+
     putImage(sx, sy, &fade1);
     render();
     freeImage(&img2);
@@ -251,7 +252,7 @@ void runBlocking(int32_t sx, int32_t sy)
         //start effect
         dec--;
         blockOutMidImage(&img2, &img1, dec << 1, dec << 1);
-        brightnessAlpha(&img2, uint8_t(255.0 - 1.0 * dec / (img1.mWidth >> 3) * 255.0));
+        brightnessAlpha(&img2, uint8_t(255.0 - double(dec) / (img1.mWidth >> 3) * 255.0));
 
         //render to screen
         putImage(sx + posx, sy + posy, &img3);
@@ -311,7 +312,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 void runCrossFade(int32_t sx, int32_t sy)
 {
     GFX_IMAGE img;
-    uint8_t i = 0, up = 1, val = 1;
+    int32_t i = 0, up = 1, val = 1;
 
     //initialize render buffer
     newImage(fade1.mWidth, fade1.mHeight, &img);
@@ -365,7 +366,7 @@ void runRotateImage(int32_t sx, int32_t sy)
     newImage(fade2.mWidth, fade2.mHeight, &img);
 
     //pre-calculate lookup table
-    tables = (int32_t*)calloc(fade2.mWidth * 2 + fade2.mHeight + 2, sizeof(int32_t));
+    tables = (int32_t*)calloc(intmax_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
     if (!tables) messageBox(GFX_ERROR, "RotateImage: cannot alloc lookup tables.");
 
     do {
@@ -459,8 +460,8 @@ void runAntialias(int32_t sx, int32_t sy)
 void runLens(GFX_IMAGE* outImg)
 {
     GFX_IMAGE scr;
-    int32_t flareput[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    int32_t flarepos[16] = {-1110, -666, 0, 1087, 1221, 1309, 1776, 2197, 2819, 3130, 3220, 3263, 3663, 3707, 4440, 5125};
+    int32_t flareput[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    int32_t flarepos[16] = { -1110, -666, 0, 1087, 1221, 1309, 1776, 2197, 2819, 3130, 3220, 3263, 3663, 3707, 4440, 5125 };
     const char *str = "Drag your mouse to see details and left click to exit!";
 
     //load source image
@@ -485,7 +486,7 @@ void runLens(GFX_IMAGE* outImg)
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
         putImage(0, 0, &sky);
-        fillRectSub(0, 0, cmaxX, cmaxY, RGB2INT(0, uint8_t((1.0 * mdx / cmaxY) * 64.0), uint8_t((1.0 * mdx / cmaxY) * 64.0)));
+        fillRectSub(0, 0, cmaxX, cmaxY, RGB2INT(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)));
 
         //put all flare image to render buffer
         for (int32_t i = 0; i < 16; i++)

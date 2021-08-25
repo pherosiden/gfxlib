@@ -39,7 +39,7 @@
 
 //use this to optimize performance
 //(some effects will work smoothly)
-//just for x32 build only
+//just for x32 and old compiler only
 #if !defined(_WIN64) && !defined(__APPLE__)
 #define _USE_ASM
 #pragma message("Build with assembly code for maximum performance...")

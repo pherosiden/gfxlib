@@ -334,8 +334,8 @@ void sortSprites(int32_t* order, double* dist, int32_t amount)
     //restore in reverse order to go from farthest to nearest
     for (int32_t i = 0; i < amount; i++)
     {
-        dist[i] = sprites[amount - i - 1].first;
-        order[i] = sprites[amount - i - 1].second;
+        dist[i] = sprites[intmax_t(amount) - i - 1].first;
+        order[i] = sprites[intmax_t(amount) - i - 1].second;
     }
 }
 
@@ -727,7 +727,7 @@ void imageArithmetic()
     loadTextureRGB(&image2, &w, &h, "assets/photo2.png");
     loadTextureRGB(&image3, &w, &h, "assets/photo3.png");
 
-    result = (RGB*)calloc(w * h, sizeof(RGB));
+    result = (RGB*)calloc(intmax_t(w) * h, sizeof(RGB));
     if (!result) return;
 
     //set up the initScreen
@@ -827,7 +827,7 @@ void crossFading()
     loadTextureRGB(&image1, &w, &h, "assets/photo1.png");
     loadTextureRGB(&image2, &w, &h, "assets/photo2.png");
     
-    RGB* result = (RGB*)calloc(w * h, sizeof(RGB));
+    RGB* result = (RGB*)calloc(intmax_t(w) * h, sizeof(RGB));
     if (!result) return;
 
     //set up the initScreen
@@ -1390,7 +1390,7 @@ void imageFillter()
     int32_t w = 0, h = 0;
     loadTextureRGB(&image, &w, &h, "assets/photo3.png");
 
-    RGB* result = (RGB*)calloc(w * h, sizeof(RGB));
+    RGB* result = (RGB*)calloc(intmax_t(w) * h, sizeof(RGB));
     if (!result) return;
 
     //set up the initScreen
@@ -1565,67 +1565,67 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     //validate range
     if (x1 < 0 || x1 > cwidth - 1 || x2 < 0 || x2 > cwidth - 1 || y1 < 0 || y1 > cheight - 1 || y2 < 0 || y2 > cheight - 1) return;
 
-    int32_t deltaX = abs(x2 - x1); //The difference between the x's
-    int32_t deltaY = abs(y2 - y1); //The difference between the y's
-    int32_t x = x1; //Start x off at the first pixel
-    int32_t y = y1; //Start y off at the first pixel
+    int32_t deltaX = abs(x2 - x1); //the difference between the x's
+    int32_t deltaY = abs(y2 - y1); //the difference between the y's
+    int32_t x = x1; //start x off at the first pixel
+    int32_t y = y1; //start y off at the first pixel
     int32_t incX1, incX2, incY1, incY2;
     int32_t den, num, numAdd, numPixels, currPixel;
 
-    if (x2 >= x1) //The x-values are increasing
+    if (x2 >= x1) //the x-values are increasing
     {
         incX1 = 1;
         incX2 = 1;
     }
-    else //The x-values are decreasing
+    else //the x-values are decreasing
     {
         incX1 = -1;
         incX2 = -1;
     }
-    if (y2 >= y1) //The y-values are increasing
+    if (y2 >= y1) //the y-values are increasing
     {
         incY1 = 1;
         incY2 = 1;
     }
-    else //The y-values are decreasing
+    else //the y-values are decreasing
     {
         incY1 = -1;
         incY2 = -1;
     }
-    if (deltaX >= deltaY) //There is at least one x-value for every y-value
+    if (deltaX >= deltaY) //there is at least one x-value for every y-value
     {
-        incX1 = 0; //Don't change the x when numerator >= denominator
-        incY2 = 0; //Don't change the y for every iteration
+        incX1 = 0; //don't change the x when numerator >= denominator
+        incY2 = 0; //don't change the y for every iteration
         den = deltaX;
         num = deltaX / 2;
         numAdd = deltaY;
-        numPixels = deltaX; //There are more x-values than y-values
+        numPixels = deltaX; //there are more x-values than y-values
     }
-    else //There is at least one y-value for every x-value
+    else //there is at least one y-value for every x-value
     {
-        incX2 = 0; //Don't change the x for every iteration
-        incY1 = 0; //Don't change the y when numerator >= denominator
+        incX2 = 0; //don't change the x for every iteration
+        incY1 = 0; //don't change the y when numerator >= denominator
         den = deltaY;
         num = deltaY / 2;
         numAdd = deltaX;
-        numPixels = deltaY; //There are more y-values than x-values
+        numPixels = deltaY; //there are more y-values than x-values
     }
 
     for (currPixel = 0; currPixel < numPixels; currPixel++)
     {
-        //Draw the current pixel to initScreen buffer
+        //draw the current pixel to initScreen buffer
         drawBuff[(y % cheight) * cwidth + (x % cwidth)] = color;
-        num += numAdd;  //Increase the numerator by the top of the fraction
+        num += numAdd;  //increase the numerator by the top of the fraction
 
-        if (num >= den) //Check if numerator >= denominator
+        if (num >= den) //check if numerator >= denominator
         {
-            num -= den; //Calculate the new numerator value
-            x += incX1; //Change the x as appropriate
-            y += incY1; //Change the y as appropriate
+            num -= den; //calculate the new numerator value
+            x += incX1; //change the x as appropriate
+            y += incY1; //change the y as appropriate
         }
 
-        x += incX2; //Change the x as appropriate
-        y += incY2; //Change the y as appropriate
+        x += incX2; //change the x as appropriate
+        y += incY2; //change the y as appropriate
     }
 }
 
@@ -1712,8 +1712,8 @@ void initData()
 
     for (i = 0; i <= ANGLE360; i++)
     {
-        //Populate tables with their radian values.
-        //(The addition of 0.0001 is a kludge to avoid divisions by 0. Removing it will produce unwanted holes in the wall when a ray is at 0, 90, 180, or 270 degree angles)
+        //populate tables with their radian values.
+        //(the addition of 0.0001 is a kludge to avoid divisions by 0. Removing it will produce unwanted holes in the wall when a ray is at 0, 90, 180, or 270 degree angles)
         radian = arcToRad(i) + 0.0001;
         sinTable[i] = sin(radian);
         isinTable[i] = 1.0 / sinTable[i];
@@ -1722,7 +1722,7 @@ void initData()
         tanTable[i] = tan(radian);
         itanTable[i] = 1.0 / tanTable[i];
 
-        //Next we crate a table to speed up wall lookups.
+        //next we crate a table to speed up wall lookups.
         //
         // You can see that the distance between walls are the same
         // if we know the angle
@@ -1734,7 +1734,7 @@ void initData()
         //old xi|
         //                 distance between xi = x_step[view_angle];
 
-        //Facing LEFT
+        //facing LEFT
         if (i >= ANGLE90 && i < ANGLE270)
         {
             stepTableX[i] = TILE_SIZE / tanTable[i];
@@ -1761,7 +1761,7 @@ void initData()
         }
     }
 
-    //Create table for fixing FISHBOWL distortion
+    //create table for fixing FISHBOWL distortion
     for (i = -ANGLE30; i <= ANGLE30; i++)
     {
         //we don't have negative angle, so make it start at 0
@@ -1782,21 +1782,21 @@ void drawOverheadMap()
         }
     }
 
-    //Draw player position on the overhead map
+    //draw player position on the overhead map
     playerMapX = PROJECTION_PLANE_WIDTH + playerX / TILE_SIZE * MINI_MAP_WIDTH;
     playerMapY = playerY / TILE_SIZE * MINI_MAP_WIDTH;
 }
 
-//Draw ray on the overhead map (for illustartion purpose)
-//This is not part of the ray-casting process
+//draw ray on the overhead map (for illustartion purpose)
+//this is not part of the ray-casting process
 void drawRayOnOverheadMap(int32_t x, int32_t y)
 {
     //draw line from the player position to the position where the ray intersect with wall
     drawLineBuffer(playerMapX, playerMapY, PROJECTION_PLANE_WIDTH + x * MINI_MAP_WIDTH / TILE_SIZE, y * MINI_MAP_WIDTH / TILE_SIZE, RGB2INT(0, 255, 0));
 }
 
-//Draw player POV on the overhead map (for illustartion purpose)
-//This is not part of the ray-casting process
+//draw player POV on the overhead map (for illustartion purpose)
+//this is not part of the ray-casting process
 void drawPlayerPOVOnOverheadMap()
 {
     //draw a red line indication the player's direction
@@ -1840,11 +1840,11 @@ void doRayCasting()
 
     for (castColumn = 0; castColumn < PROJECTION_PLANE_WIDTH; castColumn++)
     {
-        //Ray is between 0 to 180 degree (1st and 2nd quadrant).
+        //ray is between 0 to 180 degree (1st and 2nd quadrant).
         int32_t mapIndex;
         double tmpX, tmpY;
 
-        //Ray is facing down
+        //ray is facing down
         if (castArc > ANGLE0 && castArc < ANGLE180)
         {
             //truncuate then add to get the coordinate of the FIRST grid (horizontal wall) that is in front of the player (this is in pixel unit)
@@ -1861,7 +1861,7 @@ void doRayCasting()
             //find the x interception to that wall
             intersectionX = tmpX + playerX;
         }
-        //Else, the ray is facing up
+        //else, the ray is facing up
         else
         {
             horizontalGrid = playerY / TILE_SIZE * TILE_SIZE;
@@ -1872,7 +1872,7 @@ void doRayCasting()
         }
 
         //LOOK FOR HORIZONTAL WALL
-        //If ray is directly facing right or left, then ignore it 
+        //if ray is directly facing right or left, then ignore it 
         if (castArc == ANGLE0 || castArc == ANGLE180)
         {
             distToHorizontalGridBeingHit = DBL_MAX;
@@ -1887,19 +1887,19 @@ void doRayCasting()
                 gridIndexY = horizontalGrid / TILE_SIZE;
                 mapIndex = gridIndexY * WORLD_MAP_WIDTH + gridIndexX;
 
-                //If we've looked as far as outside the map range, then bail out
+                //if we've looked as far as outside the map range, then bail out
                 if (gridIndexX >= WORLD_MAP_WIDTH || gridIndexY >= WORLD_MAP_HEIGHT || gridIndexX < 0 || gridIndexY < 0)
                 {
                     distToHorizontalGridBeingHit = DBL_MAX;
                     break;
                 }
-                //If the grid is not an Opening, then stop
+                //if the grid is not an Opening, then stop
                 else if (worldMap[mapIndex])
                 {
                     distToHorizontalGridBeingHit = (intersectionX - playerX) * icosTable[castArc];
                     break;
                 }
-                //Else, keep looking. At this point, the ray is not blocked, extend the ray to the next grid
+                //else, keep looking. At this point, the ray is not blocked, extend the ray to the next grid
                 else
                 {
                     intersectionX += distToNextIntersectionX;
@@ -1964,7 +1964,7 @@ void doRayCasting()
         double scale;
         double distance;
         
-        int32_t offsetX;
+        int32_t offsetX;        //x offset of drawing texture
         int32_t topOfWall;		//used to compute the top and bottom of the sliver that
         int32_t bottomOfWall;	//will be the staring point of floor and ceiling
 
@@ -1996,9 +1996,9 @@ void doRayCasting()
             offsetX = int32_t(intersectionY) % TILE_SIZE;
         }
 
-        //Add simple shading so that farther wall slices appear darker.
+        //add simple shading so that farther wall slices appear darker.
         //use arbitrary value of the farthest distance.  
-        //Trick to give different shades between vertical and horizontal (you could also use different textures for each if you wish to)
+        //trick to give different shades between vertical and horizontal (you could also use different textures for each if you wish to)
         drawWallSliceRectangleTinted(castColumn, topOfWall, bottomOfWall - topOfWall + 1, offsetX, BASE_LIGHT_VALUE / floor(distance));
     
         //validate range
@@ -2021,34 +2021,34 @@ void doRayCasting()
                 int32_t endY = int32_t(actualDistance * sinTable[castArc]);
                 int32_t endX = int32_t(actualDistance * cosTable[castArc]);
 
-                //Translate relative to viewer coordinates:
+                //translate relative to viewer coordinates:
                 endX += playerX;
                 endY += playerY;
 
-                //Get the tile intersected by ray:
+                //get the tile intersected by ray:
                 int32_t cellX = endX / TILE_SIZE;
                 int32_t cellY = endY / TILE_SIZE;
 
-                //Make sure the tile is within our map
+                //make sure the tile is within our map
                 if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX >= 0 && cellY >= 0 && endX >= 0 && endY >= 0)
                 {
-                    //Find offset of tile and column in texture
+                    //find offset of tile and column in texture
                     endY %= TILE_SIZE;
                     endX %= TILE_SIZE;
 
-                    //Pixel to draw
+                    //pixel to draw
                     uint32_t sourceOffset = endY * floorTextureWidth + endX;
 
-                    //Cheap shading trick
+                    //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / actualDistance;
                     if (brightnessLevel < 0) brightnessLevel = 0;
                     if (brightnessLevel > 1) brightnessLevel = 1;
                     RGB color = floorTexturePixels[sourceOffset];
 
-                    //Draw the pixel 
+                    //draw the pixel 
                     drawBuff[targetOffset] = RGB2INT(uint8_t(color.r * brightnessLevel), uint8_t(color.g * brightnessLevel), uint8_t(color.b * brightnessLevel));
 
-                    //Go to the next pixel (directly under the current pixel)
+                    //go to the next pixel (directly under the current pixel)
                     targetOffset += cwidth;
                 }
             }
@@ -2068,7 +2068,7 @@ void doRayCasting()
                 int32_t endY = int32_t(diagonalDistance * sinTable[castArc]);
                 int32_t endX = int32_t(diagonalDistance * cosTable[castArc]);
 
-                //Translate relative to viewer coordinates:
+                //translate relative to viewer coordinates:
                 endX += playerX;
                 endY += playerY;
 
@@ -2076,26 +2076,26 @@ void doRayCasting()
                 int32_t cellX = endX / TILE_SIZE;
                 int32_t cellY = endY / TILE_SIZE;
 
-                //Make sure the tile is within our map
+                //make sure the tile is within our map
                 if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX >= 0 && cellY >= 0 && endX >= 0 && endY >= 0)
                 {
-                    //Find offset of tile and column in texture
+                    //find offset of tile and column in texture
                     endY %= TILE_SIZE;
                     endX %= TILE_SIZE;
 
-                    //Pixel to draw
+                    //pixel to draw
                     uint32_t sourceOffset = endY * ceilingTextureWidth + endX;
                     
-                    //Cheap shading trick
+                    //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / diagonalDistance;
                     if (brightnessLevel < 0) brightnessLevel = 0;
                     if (brightnessLevel > 1) brightnessLevel = 1;
                     RGB color = ceilingTexturePixels[sourceOffset];
 
-                    //Draw the pixel 
+                    //draw the pixel 
                     drawBuff[targetOffset] = RGB2INT(uint8_t(color.r * brightnessLevel), uint8_t(color.g * brightnessLevel), uint8_t(color.b * brightnessLevel));
 
-                    //Go to the next pixel (directly above the current pixel)
+                    //go to the next pixel (directly above the current pixel)
                     targetOffset -= cwidth;
                 }
             }

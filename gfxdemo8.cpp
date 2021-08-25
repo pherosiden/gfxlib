@@ -473,7 +473,7 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
                 y = yy[i] * sc + py * uv - dd - k;
                 sq = x * x + y * y;
 
-                if (sq < 1.0 * r * r)
+                if (sq < double(r) * r)
                 {
                     s = (x < 0) ? -1 : 1;
                     angle = atan(y / (x + 0.1));

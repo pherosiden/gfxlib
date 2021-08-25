@@ -33,6 +33,7 @@
 
 # Visual Studio
 .vs
-Release
-Debug
-x64
+visualc/Release
+visualc/Debug
+visualc/x64
+visualc/assets
