@@ -353,7 +353,7 @@ void waitFor(double tmstart, double tmwait)
 void sleepFor(double tmwait)
 {
     int32_t done = 0;
-    double tmstart = getTime();
+    const double tmstart = getTime();
     while (getElapsedTime(tmstart) < tmwait && !done)
     {
         SDL_PollEvent(&sdlEvent);
@@ -650,12 +650,12 @@ HSL RGB2HSL(uint8_t ur, uint8_t ug, uint8_t ub)
 {
     double h = 0, s = 0, l = 0;
 
-    double r = ur / 256.0;
-    double g = ug / 256.0;
-    double b = ub / 256.0;
+    const double r = ur / 256.0;
+    const double g = ug / 256.0;
+    const double b = ub / 256.0;
 
-    double maxColor = max(r, max(g, b));
-    double minColor = min(r, min(g, b));
+    const double maxColor = max(r, max(g, b));
+    const double minColor = min(r, min(g, b));
 
     //R = G = B, so it's a shade of grey
     if (minColor == maxColor)
@@ -691,11 +691,12 @@ HSL RGB2HSL(uint8_t ur, uint8_t ug, uint8_t ub)
 RGB HSL2RGB(int32_t hi, int32_t si, int32_t li)
 {
     double r = 0, g = 0, b = 0;
-    double temp1 = 0, temp2 = 0, tempr = 0, tempg = 0, tempb = 0;
+    double temp1 = 0, temp2 = 0;
+    double tempr = 0, tempg = 0, tempb = 0;
 
-    double h = hi / 256.0;
-    double s = si / 256.0;
-    double l = li / 256.0;
+    const double h = hi / 256.0;
+    const double s = si / 256.0;
+    const double l = li / 256.0;
 
     //if saturation is 0, the color is a shade of grey
     if (s == 0) r = g = b = l;
@@ -746,17 +747,16 @@ RGB HSL2RGB(int32_t hi, int32_t si, int32_t li)
 //RGB to HSV convert
 HSV RGB2HSV(uint8_t ur, uint8_t ug, uint8_t ub)
 {
-    double r = ur / 256.0;
-    double g = ug / 256.0;
-    double b = ub / 256.0;
+    const double r = ur / 256.0;
+    const double g = ug / 256.0;
+    const double b = ub / 256.0;
 
-    double maxColor = max(r, max(g, b));
-    double minColor = min(r, min(g, b));
+    const double maxColor = max(r, max(g, b));
+    const double minColor = min(r, min(g, b));
+    const double v = maxColor;
+
+    double h = 0.0, s = 0.0;
     
-    double h = 0.0, s = 0.0, v = 0.0;
-
-    v = maxColor;
-
     //avoid division by zero when the color is black
     if (maxColor != 0.0)
     {
@@ -790,8 +790,8 @@ HSV RGB2HSV(uint8_t ur, uint8_t ug, uint8_t ub)
 RGB HSV2RGB(int32_t hi, int32_t si, int32_t vi)
 {
     double h = hi / 256.0;
-    double s = si / 256.0;
-    double v = vi / 256.0;
+    const double s = si / 256.0;
+    const double v = vi / 256.0;
     double r = 0, g = 0, b = 0;
 
     //if saturation is 0, the color is a shade of grey
@@ -800,20 +800,16 @@ RGB HSV2RGB(int32_t hi, int32_t si, int32_t vi)
     //if saturation > 0, more complex calculations are needed
     else
     {
-        int32_t i;
-        double f, p, q, t;
-
         //to bring hue to a number between 0 and 6, better for the calculations
         h *= 6.0;
 
-        i = int32_t(floor(h));
+        const int32_t i = int32_t(floor(h));
 
         //the fractional part of h
-        f = h - i;
-
-        p = v * (1.0 - s);
-        q = v * (1.0 - (s * f));
-        t = v * (1.0 - (s * (1.0 - f)));
+        const double f = h - i;
+        const double p = v * (1.0 - s);
+        const double q = v * (1.0 - (s * f));
+        const double t = v * (1.0 - (s * (1.0 - f)));
 
         switch (i)
         {
@@ -1951,10 +1947,6 @@ void scaleLine32(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32_t s
         int32_t numPixels = dw;
         const int32_t midPixel = dw >> 1;
         
-        uint8_t* pixel = NULL;
-        uint8_t* pixel0 = NULL;
-        uint8_t* pixel1 = NULL;
-
         if (dw > sw) numPixels--;
 
         while (numPixels-- > 0)
@@ -1964,9 +1956,9 @@ void scaleLine32(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32_t s
             else
             {
                 //calculate average pixel p = (s0 + s1) / 2
-                pixel = (uint8_t*)dst;
-                pixel0 = (uint8_t*)src;
-                pixel1 = (uint8_t*)(src + 1);
+                uint8_t* pixel  = (uint8_t*)dst;
+                uint8_t* pixel0 = (uint8_t*)src;
+                uint8_t* pixel1 = (uint8_t*)(src + 1);
                 pixel[0] = (pixel0[0] + pixel1[0]) >> 1;
                 pixel[1] = (pixel0[1] + pixel1[1]) >> 1;
                 pixel[2] = (pixel0[2] + pixel1[2]) >> 1;
@@ -2593,7 +2585,10 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     const int32_t deltaY = abs(y2 - y1);
     int32_t x = x1;
     int32_t y = y1;
-    int32_t xinc1, xinc2, yinc1, yinc2, den, num, numadd, numpixels, curpixel;
+    int32_t xinc1 = 0, xinc2 = 0;
+    int32_t yinc1 = 0, yinc2 = 0;
+    int32_t numpixels = 0, curpixel = 0;
+    int32_t den = 0, num = 0, numadd = 0;
 
     if (x2 >= x1)
     {
@@ -2728,22 +2723,21 @@ void drawCircleAlpha(int32_t xm, int32_t ym, int32_t rad, uint32_t rgb)
     if (bitsPerPixel != 32) return;
     if (rad <= 0) return;
 
-    int32_t x, y, alpha, x2, e2, err;
+    int32_t x = -rad;
+    int32_t y = 0;
+    int32_t err = (1 - rad) << 1;
 
-    x = -rad;
-    y = 0;
-    err = (1 - rad) << 1;
     rad = 1 - err;
 
     do {
-        alpha = 255 * abs(err - 2 * (x + y) - 2) / rad;
+        int32_t alpha = 255 * abs(err - 2 * (x + y) - 2) / rad;
         putPixelAlpha(xm - x, ym + y, rgb, alpha);
         putPixelAlpha(xm - y, ym - x, rgb, alpha);
         putPixelAlpha(xm + x, ym - y, rgb, alpha);
         putPixelAlpha(xm + y, ym + x, rgb, alpha);
 
-        e2 = err;
-        x2 = x;
+        const int32_t e2 = err;
+        const int32_t x2 = x;
 
         if (err + y > 0)
         {
@@ -2780,25 +2774,23 @@ void drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
     if (ra <= 0) return;
     if (rb <= 0) return;
 
-    int32_t ax, mx1, mx2, my1, my2;
-    int32_t aq, bq, dx, dy, rd, rx, ry;
-
-    mx1 = xc - ra;
-    mx2 = xc + ra;
-    my1 = my2 = yc;
+    int32_t mx1 = xc - ra;
+    int32_t mx2 = xc + ra;
+    int32_t my1 = yc;
+    int32_t my2 = yc;
 
     putPixel(mx2, yc, color);
     putPixel(mx1, yc, color);
 
-    aq = ra * ra;
-    bq = rb * rb;
-    dx = aq << 1;
-    dy = bq << 1;
+    const int32_t aq = ra * ra;
+    const int32_t bq = rb * rb;
+    const int32_t dx = aq << 1;
+    const int32_t dy = bq << 1;
 
-    rd = ra * bq;
-    rx = rd << 1;
-    ry = 0;
-    ax = ra;
+    int32_t rd = ra * bq;
+    int32_t rx = rd << 1;
+    int32_t ry = 0;
+    int32_t ax = ra;
 
     while (ax > 0)
     {
@@ -2832,25 +2824,23 @@ void drawEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
     if (ra <= 0) return;
     if (rb <= 0) return;
 
-    int32_t ax, mx1, mx2, my1, my2;
-    int32_t aq, bq, dx, dy, rd, rx, ry;
+    int32_t mx1 = xc - ra;
+    int32_t mx2 = xc + ra;
+    int32_t my1 = yc;
+    int32_t my2 = yc;
 
-    mx1 = xc - ra;
-    mx2 = xc + ra;
-    my1 = my2 = yc;
+    putPixel(mx2, yc, color);
+    putPixel(mx1, yc, color);
 
-    putPixelAdd(mx2, yc, color);
-    putPixelAdd(mx1, yc, color);
+    const int32_t aq = ra * ra;
+    const int32_t bq = rb * rb;
+    const int32_t dx = aq << 1;
+    const int32_t dy = bq << 1;
 
-    aq = ra * ra;
-    bq = rb * rb;
-    dx = aq << 1;
-    dy = bq << 1;
-
-    rd = ra * bq;
-    rx = rd << 1;
-    ry = 0;
-    ax = ra;
+    int32_t rd = ra * bq;
+    int32_t rx = rd << 1;
+    int32_t ry = 0;
+    int32_t ax = ra;
 
     while (ax > 0)
     {
@@ -2884,25 +2874,23 @@ void drawEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
     if (ra <= 0) return;
     if (rb <= 0) return;
 
-    int32_t ax, mx1, mx2, my1, my2;
-    int32_t aq, bq, dx, dy, rd, rx, ry;
+    int32_t mx1 = xc - ra;
+    int32_t mx2 = xc + ra;
+    int32_t my1 = yc;
+    int32_t my2 = yc;
 
-    mx1 = xc - ra;
-    mx2 = xc + ra;
-    my1 = my2 = yc;
+    putPixel(mx2, yc, color);
+    putPixel(mx1, yc, color);
 
-    putPixelSub(mx2, yc, color);
-    putPixelSub(mx1, yc, color);
+    const int32_t aq = ra * ra;
+    const int32_t bq = rb * rb;
+    const int32_t dx = aq << 1;
+    const int32_t dy = bq << 1;
 
-    aq = ra * ra;
-    bq = rb * rb;
-    dx = aq << 1;
-    dy = bq << 1;
-
-    rd = ra * bq;
-    rx = rd << 1;
-    ry = 0;
-    ax = ra;
+    int32_t rd = ra * bq;
+    int32_t rx = rd << 1;
+    int32_t ry = 0;
+    int32_t ax = ra;
 
     while (ax > 0)
     {
@@ -2933,20 +2921,20 @@ void drawEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
 //Wu's ellipse with alpha blend
 void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb)
 {
-    int32_t f, b1;
-    double dx, dy, ed, alpha, err;
-
+    int32_t f = 0;
+    double alpha = 0;
+    
     int32_t a = abs(x1 - x0);
-    int32_t b = abs(y1 - y0);
+    const int32_t b = abs(y1 - y0);
 
     //only 32bit support alpha-blend mode
     if (bitsPerPixel != 32) return;
     if (a <= 0 || b <= 0) return;
 
-    b1 = b & 1;
-    dx = 4.0 * (a - 1.0) * b * b;
-    dy = 4.0 * (b1 + 1.0) * a * a;
-    err = double(b1) * a * a - dx + dy;
+    int32_t b1 = b & 1;
+    double dx = 4.0 * (a - 1.0) * b * b;
+    double dy = 4.0 * (b1 + 1.0) * a * a;
+    double err = double(b1) * a * a - dx + dy;
 
     //check for line
     if (a == 0 || b == 0) return;
@@ -2966,7 +2954,7 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
 
     while (1)
     {
-        ed = max(dx, dy);
+        double ed = max(dx, dy);
         alpha = min(dx, dy);
 
         if (y0 == y1 + 1 && err > dy && a > b1) ed = 255.0 * 4 / a;
@@ -3060,13 +3048,13 @@ void drawRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col)
 //draw rectangle with rounded border and color
 void drawRectEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
 {
-    int32_t width, mid, x, y;
+    int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    mid = (y2 - y1) >> 1;
+    const int32_t mid = (y2 - y1) >> 1;
     if (r >= mid - 1) r = mid - 1;
 
-    width = abs(x2 - x1);
+    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
     horizLine(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
@@ -3096,13 +3084,13 @@ void drawRectEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint3
 //draw rectangle with rounded border and add color
 void drawRectExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
 {
-    int32_t width, mid, x, y;
+    int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    mid = (y2 - y1) >> 1;
+    const int32_t mid = (y2 - y1) >> 1;
     if (r >= mid - 1) r = mid - 1;
 
-    width = abs(x2 - x1);
+    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
     horizLineAdd(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
@@ -3132,13 +3120,13 @@ void drawRectExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, ui
 //draw rectangle with rounded border
 void drawRectExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
 {
-    int32_t width, mid, x, y;
+    int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    mid = (y2 - y1) >> 1;
+    const int32_t mid = (y2 - y1) >> 1;
     if (r >= mid - 1) r = mid - 1;
 
-    width = abs(x2 - x1);
+    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
     horizLineSub(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
@@ -3216,13 +3204,13 @@ void drawBoxSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int3
 //draw boxed with rounded border
 void drawBoxEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
 {
-    int32_t width, mid, x, y;
+    int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    mid = (y2 - y1) >> 1;
+    const int32_t mid = (y2 - y1) >> 1;
     if (r >= mid - 1) r = mid - 1;
 
-    width = abs(x2 - x1);
+    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
     horizLine(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
@@ -3256,13 +3244,13 @@ void drawBoxEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32
 //draw boxed with rounded border
 void drawBoxExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
 {
-    int32_t width, mid, x, y;
+    int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    mid = (y2 - y1) >> 1;
+    const int32_t mid = (y2 - y1) >> 1;
     if (r >= mid - 1) r = mid - 1;
 
-    width = abs(x2 - x1);
+    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
     horizLineAdd(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
@@ -3296,13 +3284,13 @@ void drawBoxExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uin
 //draw boxed with rounded border
 void drawBoxExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
 {
-    int32_t width, mid, x, y;
+    int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    mid = (y2 - y1) >> 1;
+    const int32_t mid = (y2 - y1) >> 1;
     if (r >= mid - 1) r = mid - 1;
 
-    width = abs(x2 - x1);
+    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
     horizLineSub(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
@@ -3336,10 +3324,8 @@ void drawBoxExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uin
 //draw polygon
 void drawPoly(POINT2D* point, int32_t num, uint32_t col)
 {
-    int32_t i;
-
     if (num < 3) return;
-    for (i = 0; i < num; i++)
+    for (int32_t i = 0; i < num; i++)
     {
         drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[(i + 1) % num].x), int32_t(point[(i + 1) % num].y), col);
     }
@@ -3348,10 +3334,8 @@ void drawPoly(POINT2D* point, int32_t num, uint32_t col)
 //draw polygon with add color
 void drawPolyAdd(POINT2D* point, int32_t num, uint32_t col)
 {
-    int32_t i;
-
     if (num < 3) return;
-    for (i = 0; i < num; i++)
+    for (int32_t i = 0; i < num; i++)
     {
         drawLineAdd(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[(i + 1) % num].x), int32_t(point[(i + 1) % num].y), col);
     }
@@ -3360,10 +3344,8 @@ void drawPolyAdd(POINT2D* point, int32_t num, uint32_t col)
 //draw polygon with sub color
 void drawPolySub(POINT2D* point, int32_t num, uint32_t col)
 {
-    int32_t i;
-
     if (num < 3) return;
-    for (i = 0; i < num; i++)
+    for (int32_t i = 0; i < num; i++)
     {
         drawLineSub(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[(i + 1) % num].x), int32_t(point[(i + 1) % num].y), col);
     }
@@ -3479,7 +3461,7 @@ void fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
-        memset(dstPixels, color, size_t(width) << 2);
+        memset(dstPixels, color, intptr_t(width) << 2);
         dstPixels += texWidth;
     }
 #endif
@@ -3550,6 +3532,7 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     uint8_t* rgb = (uint8_t*)&color;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
+
     for (int32_t y = 0; y < height; y++)
     {
         for (int32_t x = 0; x < width; x++)
@@ -3629,6 +3612,7 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     uint8_t* rgb = (uint8_t*)&color;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
+
     for (int32_t y = 0; y < height; y++)
     {
         for (int32_t x = 0; x < width; x++)
@@ -3699,8 +3683,8 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     const uint32_t addDstOffs = texWidth - width;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
@@ -3773,8 +3757,8 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     const uint32_t addDstOffs = texWidth - width;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
@@ -3869,6 +3853,7 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
     uint8_t* rgb = (uint8_t*)&col;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
+
     for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
@@ -3968,6 +3953,7 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
     uint8_t* rgb = (uint8_t*)&col;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
     const uint32_t addOfs = (texWidth - width) << 2;
+
     for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
@@ -4153,13 +4139,13 @@ void calcEllipse(int32_t rx, int32_t ry, int32_t* point)
 //fast filled Bresenham circle at (xc,yc) with radius and color
 void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 {
-    int32_t i, mc;
+    int32_t i = 0;
     int32_t point[500] = { 0 };
 
     //range limited
     if (radius > 499) messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
 
-    mc = yc - radius;
+    int32_t mc = yc - radius;
     calcCircle(radius, point);
 
     for (i = 0; i <= radius - 1; i++)
@@ -4178,13 +4164,13 @@ void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 //fast filled Bresenham circle at (xc,yc) with radius and color
 void fillCircleAdd(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 {
-    int32_t i, mc;
+    int32_t i = 0;
     int32_t point[500] = { 0 };
 
     //range limited
     if (radius > 499) messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
 
-    mc = yc - radius;
+    int32_t mc = yc - radius;
     calcCircle(radius, point);
 
     for (i = 0; i <= radius - 1; i++)
@@ -4203,13 +4189,13 @@ void fillCircleAdd(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 //fast filled Bresenham circle at (xc,yc) with radius and color
 void fillCircleSub(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 {
-    int32_t i, mc;
+    int32_t i = 0;
     int32_t point[500] = { 0 };
 
     //range limited
     if (radius > 499) messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
 
-    mc = yc - radius;
+    int32_t mc = yc - radius;
     calcCircle(radius, point);
 
     for (i = 0; i <= radius - 1; i++)
@@ -4228,13 +4214,13 @@ void fillCircleSub(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 //filled ellipse with color
 void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
 {
-    int32_t i, mc;
+    int32_t i = 0;
     int32_t point[500] = { 0 };
 
     //range limited
     if (ra > 499 || rb > 499) messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
 
-    mc = yc - rb;
+    int32_t mc = yc - rb;
 
     if (ra != rb) calcEllipse(ra, rb, point);
     else calcCircle(ra, point);
@@ -4255,13 +4241,13 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
 //filled ellipse with add color
 void fillEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
 {
-    int32_t i, mc;
+    int32_t i = 0;
     int32_t point[500] = { 0 };
 
     //range limited
     if (ra > 499 || rb > 499) messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
 
-    mc = yc - rb;
+    int32_t mc = yc - rb;
 
     if (ra != rb) calcEllipse(ra, rb, point);
     else calcCircle(ra, point);
@@ -4282,13 +4268,13 @@ void fillEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
 //filled ellipse with sub color
 void fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
 {
-    int32_t i, mc;
+    int32_t i = 0;
     int32_t point[500] = { 0 };
 
     //range limited
     if (ra > 499 || rb > 499) messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
 
-    mc = yc - rb;
+    int32_t mc = yc - rb;
 
     if (ra != rb) calcEllipse(ra, rb, point);
     else calcCircle(ra, point);
@@ -4306,7 +4292,8 @@ void fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
     }
 }
 
-//fill polygon using Darel Rex Finley algorithm
+//fill polygon using Darel Rex Finley algorithm https://alienryderflex.com/polygon_fill/
+//optimize version here https://gist.github.com/ideasman42/983738130f754ef58ffa66bcdbbab892
 //test vectors (screen resolution: 800x600)
 //pt1[] = {{300, 100}, {192, 209}, {407, 323}, {320, 380}, {214, 350}, {375, 209}};
 //pt2[] = {{169, 164}, {169, 264}, {223, 300}, {296, 209}, {214, 255}, {223, 200}, {386, 192}, {341, 273}, {404, 300}, {431, 146}};
@@ -4378,7 +4365,7 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col)
 //FX-effect: fade circle
 void fadeCircle(int32_t dir, uint32_t col)
 {
-    int32_t i, x, y;
+    int32_t i = 0, x = 0, y = 0;
 
     switch (dir)
     {
@@ -4444,7 +4431,7 @@ void fadeCircle(int32_t dir, uint32_t col)
 //FX-effect: fade rollo
 void fadeRollo(int32_t dir, uint32_t col)
 {
-    int32_t i, j;
+    int32_t i = 0, j = 0;
 
     switch (dir)
     {
@@ -4501,6 +4488,7 @@ void newImage(int32_t width, int32_t height, GFX_IMAGE* img)
     //calcule buffer size, add to width and height
     const int32_t bytesPerPixel = bitsPerPixel >> 3;
     const uint32_t size = height * width * bytesPerPixel;
+
     if (!size)
     {
         messageBox(GFX_ERROR, "Cannot create image! image size = 0!");
@@ -4530,6 +4518,7 @@ void updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
     //calcule buffer size, add to width and height
     const int32_t bytesPerPixel = bitsPerPixel >> 3;
     const uint32_t size = height * width * bytesPerPixel;
+
     if (!size)
     {
         messageBox(GFX_ERROR, "Create image size = 0!");
@@ -4628,8 +4617,8 @@ void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE*
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     uint8_t* imgPixels = (uint8_t*)img->mData;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     if (!dstPixels || !imgPixels) return;
 
     for (int32_t i = 0; i < lbHeight; i++)
@@ -4693,12 +4682,13 @@ void getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE
     }
 #else    
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     uint32_t* imgPixels = (uint32_t*)img->mData;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     if (!dstPixels || !imgPixels) return;
+
     for (int32_t i = 0; i < lbHeight; i++)
     {
-        memcpy(imgPixels, dstPixels, size_t(img->mWidth) << 2);
+        memcpy(imgPixels, dstPixels, intptr_t(img->mWidth) << 2);
         dstPixels += texWidth;
         imgPixels += img->mWidth;
     }
@@ -4852,7 +4842,7 @@ void putImage32(int32_t x1, int32_t y1, GFX_IMAGE* img)
 
     for (int32_t i = 0; i < lbHeight; i++)
     {
-        memcpy(dstPixels, imgPixels, size_t(lbWidth) << 2);
+        memcpy(dstPixels, imgPixels, intptr_t(lbWidth) << 2);
         dstPixels += texWidth;
         imgPixels += img->mWidth;
     }
@@ -5177,6 +5167,7 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
     const uint32_t addImgOffs = (img->mWidth - width) << 2;
+
     for (int32_t i = 0; i < height; i++)
     {
         for (int32_t j = 0; j < width; j++)
@@ -5264,6 +5255,7 @@ void putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 
     const uint32_t addDstOffs = texWidth - lbWidth;
     const uint32_t addImgOffs = img->mWidth - lbWidth;
+
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
@@ -5354,6 +5346,7 @@ void putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 
     const uint32_t addDstOffs = texWidth - lbWidth;
     const uint32_t addImgOffs = img->mWidth - lbWidth;
+
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
@@ -5463,6 +5456,7 @@ void putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
     const uint32_t addImgOffs = (img->mWidth - lbWidth) << 2;
+
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
@@ -5580,6 +5574,7 @@ void putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 
     const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
     const uint32_t addImgOffs = (img->mWidth - lbWidth) << 2;
+
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
@@ -5633,7 +5628,7 @@ void clipLine(int32_t *xs, int32_t *ys, int32_t *xe, int32_t *ye)
         //if no trivial reject or accept, continue the loop
         else
         {
-            int32_t x, y;
+            int32_t x = 0, y = 0;
             int32_t codeout = code1 ? code1 : code2;
 
             if (codeout & 1)
@@ -5710,7 +5705,7 @@ void getPalette(RGB* pal)
 //FX-effect: palette rotation
 void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 {
-    RGB tmp;
+    RGB tmp = { 0 };
     RGB pal[256] = { 0 };
     
     getPalette(pal);
@@ -5748,9 +5743,9 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 //FX-effect: palette fade-in
 void fadeIn(RGB* dest, uint32_t ms)
 {
-    int32_t i, j, k;
     RGB src[256] = { 0 };
-
+    int32_t i = 0, j = 0, k = 0;
+    
     getPalette(src);
     for (i = 63; i >= 0; i--)
     {
@@ -5772,9 +5767,9 @@ void fadeIn(RGB* dest, uint32_t ms)
 //FX-effect: palette fade-out
 void fadeOut(RGB* dest, uint32_t ms)
 {
-    int32_t i, j, k;
     RGB src[256] = { 0 };
-
+    int32_t i = 0, j = 0, k = 0;
+    
     getPalette(src);
     for (i = 63; i >= 0; i--)
     {
@@ -5796,9 +5791,9 @@ void fadeOut(RGB* dest, uint32_t ms)
 //FX-effect: palette fade-max
 void fadeMax(uint32_t ms)
 {
-    int32_t i, j;
     RGB src[256] = { 0 };
-
+    int32_t i = 0, j = 0;
+    
     getPalette(src);
     for (i = 0; i < 64; i++)
     {
@@ -5819,9 +5814,9 @@ void fadeMax(uint32_t ms)
 //FX-effect: palette fade-min
 void fadeMin(uint32_t ms)
 {
-    int32_t i, j;
     RGB src[256] = { 0 };
-
+    int32_t i = 0, j = 0;
+    
     getPalette(src);
     for (i = 0; i < 64; i++)
     {
@@ -5842,8 +5837,7 @@ void fadeMin(uint32_t ms)
 //FX-effect: palette fade-down
 void fadeDown(RGB* pal)
 {
-    int32_t i;
-    for (i = 0; i < 256; i++)
+    for (int32_t i = 0; i < 256; i++)
     {
         if (pal[i].r > 4) pal[i].r -= 2; else pal[i].r = 0;
         if (pal[i].g > 4) pal[i].g -= 2; else pal[i].g = 0;
@@ -5903,7 +5897,7 @@ void getBasePalette(RGB* pal)
 //make linear palette (7 circle colors)
 void makeLinearPalette()
 {
-    int16_t i, j;
+    int16_t i = 0, j = 0;
     RGB pal[256] = { 0 };
 
     for (i = 0; i < 32; i++)
@@ -5947,22 +5941,20 @@ void makeLinearPalette()
 void makeFunkyPalette()
 {
     RGB pal[256] = { 0 };
-    uint8_t ry, gy, by;
-    int32_t i, r, g, b, rx, gx, bx;
 
-    r = 0;
-    g = 0;
-    b = 0;
+    int32_t r = 0;
+    int32_t g = 0;
+    int32_t b = 0;
 
-    ry = 1;
-    gy = 1;
-    by = 1;
+    uint8_t ry = 1;
+    uint8_t gy = 1;
+    uint8_t by = 1;
 
-    rx = (rand() % 5) + 1;
-    gx = (rand() % 5) + 1;
-    bx = (rand() % 5) + 1;
+    int32_t rx = (rand() % 5) + 1;
+    int32_t gx = (rand() % 5) + 1;
+    int32_t bx = (rand() % 5) + 1;
 
-    for (i = 0; i < 256; i++)
+    for (int32_t i = 0; i < 256; i++)
     {
         pal[i].r = r;
         pal[i].g = g;
@@ -5998,10 +5990,9 @@ void makeFunkyPalette()
 //make rainbow palette
 void makeRainbowPalette()
 {
-    int16_t i;
     RGB pal[256] = { 0 };
 
-    for (i = 0; i < 32; i++)
+    for (int32_t i = 0; i < 32; i++)
     {
         pal[i      ].r = i << 1;
         pal[63 - i ].r = i << 1;
@@ -6081,9 +6072,9 @@ void lineToAlpha(int32_t x, int32_t y, uint32_t col)
 //initialize 3D projection params
 void initProjection()
 {
-    double th, ph;
-    ph = M_PI * phi / 180;
-    th = M_PI * theta / 180;
+    const double ph = M_PI * phi / 180;
+    const double th = M_PI * theta / 180;
+
     aux1 = sin(th);
     aux2 = sin(ph);
     aux3 = cos(th);
@@ -6158,7 +6149,7 @@ void traceVersSub(double x, double y, double z, uint32_t col)
 //string position
 int32_t strPos(char* str, const char* sub)
 {
-    char* ptr = strstr(str, sub);
+    const char* ptr = strstr(str, sub);
     return ptr ? int32_t(ptr - str) : -1;
 }
 
@@ -6431,7 +6422,7 @@ int32_t getFontHeight(const char* str)
 //get width of string with current font in pixel
 int32_t getFontWidth(const char* str)
 {
-    GFX_STROKE_DATA* data;
+    GFX_STROKE_DATA* data = NULL;
     uint32_t i = 0;
     uint32_t mempos = 0;
     uint32_t width = 0;
@@ -6586,12 +6577,6 @@ void freeFont(int32_t type)
 //draw a stroke of BGI font (YES we also support BGI font)
 int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
 {
-    GFX_STROKE_DATA* data;
-    GFX_STROKE_INFO* stroke;
-
-    uint32_t mx, my;
-    uint32_t i, mempos;
-
     //check for font is loaded
     if (!gfxFonts[fontType].dataPtr) return 0;
 
@@ -6599,15 +6584,15 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
     if (gfxFonts[fontType].header.subData.startChar > chr || gfxFonts[fontType].header.subData.endChar < chr) return gfxFonts[fontType].header.subData.spacer;
 
     //memory position of character
-    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((chr - gfxFonts[fontType].header.subData.startChar) << 2)];
-    data = (GFX_STROKE_DATA*)&gfxFonts[fontType].dataPtr[mempos];
-    stroke = (GFX_STROKE_INFO*)&gfxFonts[fontType].dataPtr[mempos + sizeof(GFX_STROKE_DATA)];
+    uint32_t mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((chr - gfxFonts[fontType].header.subData.startChar) << 2)];
+    GFX_STROKE_DATA* data = (GFX_STROKE_DATA*)&gfxFonts[fontType].dataPtr[mempos];
+    GFX_STROKE_INFO* stroke = (GFX_STROKE_INFO*)&gfxFonts[fontType].dataPtr[mempos + sizeof(GFX_STROKE_DATA)];
 
     //scan for all lines
-    for (i = 0; i < data->numOfLines; i++)
+    for (int32_t i = 0; i < data->numOfLines; i++)
     {
-        mx = x + stroke->x * subFonts;
-        my = y + stroke->y * subFonts;
+        const uint32_t mx = x + stroke->x * subFonts;
+        const uint32_t my = y + stroke->y * subFonts;
 
         //check for drawable
         if (stroke->code == 1) moveTo(mx, my);
@@ -6628,16 +6613,15 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
 //draw string with current loaded font
 void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* str)
 {
-    RGB rgb;
-    uint32_t cx, cy;
-    uint32_t i, len;
-    uint32_t width, height, addx, addy;
-    uint32_t data, datapos, mempos;
+    RGB rgb = { 0 };
+    uint32_t i = 0, cx = 0, cy = 0;
+    uint32_t width = 0, height = 0, addx = 0, addy = 0;
+    uint32_t data = 0, datapos = 0, mempos = 0;
 
     //check for font is loaded
     if (!gfxFonts[fontType].dataPtr) return;
 
-    len = uint32_t(strlen(str));
+    uint32_t len = uint32_t(strlen(str));
 
     //check for vector font
     if (gfxFonts[fontType].header.flags & GFX_FONT_VECTOR)
@@ -6698,7 +6682,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
     else if (gfxFonts[fontType].header.subData.bitsPerPixel >= 2 && gfxFonts[fontType].header.subData.bitsPerPixel <= 7)
     {
         //calculate font palette, use for hi-color and true-color
-        if (bitsPerPixel != 8)
+        if (bitsPerPixel > 8)
         {
             rgb = INT2RGB(col);
             for (i = 1; i <= gfxFonts[fontType].header.subData.usedColors; i++) *(uint32_t*)&fontPalette[fontType][i << 2] = RGB2INT(rgb.r * i / (gfxFonts[fontType].header.subData.usedColors - 1), rgb.g * i / (gfxFonts[fontType].header.subData.usedColors - 1), rgb.b * i / (gfxFonts[fontType].header.subData.usedColors - 1));
@@ -6832,12 +6816,10 @@ void writeText(int32_t x, int32_t y, uint32_t txtCol, uint32_t mode, const char*
 //draw muti-line string font
 int32_t drawText(int32_t ypos, int32_t size, const char** str)
 {
-    int32_t i;
-
     //check for font loaded
     if (!gfxFonts[fontType].dataPtr) return 0;
 
-    for (i = 0; i < size; i++)
+    for (int32_t i = 0; i < size; i++)
     {
         if (ypos > -30) writeString(centerX - (getFontWidth(str[i]) >> 1), ypos, 62, 0, str[i]);
         ypos += getFontHeight(str[i]);
@@ -6862,6 +6844,8 @@ void showPNG(const char* fname)
 {
     GFX_IMAGE png;
     loadImage(fname, &png);
+
+    //make caro background
     for (int32_t y = 0; y < texHeight; y++)
     {
         for (int32_t x = 0; x < texWidth; x++)
@@ -6870,6 +6854,8 @@ void showPNG(const char* fname)
             else putPixel(x, y, RGB_WHITE);
         }
     }
+
+    //render image
     putImageAlpha(0, 0, &png);
     render();
     freeImage(&png);
@@ -6878,7 +6864,7 @@ void showPNG(const char* fname)
 //load 8bits PNG
 void loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 {
-    if (bitsPerPixel != 8) messageBox(GFX_ERROR, "Only 8 bits support this function!");
+    if (bitsPerPixel != 8) messageBox(GFX_ERROR, "Only 8 bits screen support this function!");
 
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
@@ -6897,7 +6883,7 @@ void loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 //load image as GFXLIB texture
 void loadImage(const char* fname, GFX_IMAGE* im)
 {
-    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Only 32 bits support this function!");
+    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Only 32 bits screen support this function!");
 
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
@@ -6928,7 +6914,11 @@ void loadImage(const char* fname, GFX_IMAGE* im)
 //load image as 32bits texture buffer
 int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fname)
 {
-    if (bitsPerPixel != 32) return 0;
+    if (bitsPerPixel != 32)
+    {
+        messageBox(GFX_ERROR, "Only 32 bits screen support this function!");
+        return 0;
+    }
 
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
@@ -6946,8 +6936,9 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
 
     if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
 
-    uint32_t size = texture->pitch * texture->h;
+    const uint32_t size = texture->pitch * texture->h;
     uint32_t* pixels = (uint32_t*)calloc(size, 1);
+
     if (!pixels)
     {
         messageBox(GFX_ERROR, "Cannot alloc memory for image data!!!");
@@ -7066,6 +7057,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
     //calculate starting address
     const uint32_t addOffs = texWidth - msWidth;
     uint32_t* srcPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
+
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -7159,6 +7151,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
     //calculate starting address
     const uint32_t addOffs = texWidth - msWidth;
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
+
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -7168,6 +7161,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
             dstPixels++;
             msUnder++;
         }
+
         if (addOffs > 0) dstPixels += addOffs;
     }
 #endif
@@ -7255,6 +7249,7 @@ void drawButton(GFX_BUTTON* btn)
 
     const uint32_t addDstOffs = texWidth - lbWidth;
     const uint32_t addImgOffs = btnWidth - lbWidth;
+
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
@@ -7273,9 +7268,9 @@ void drawButton(GFX_BUTTON* btn)
 //load the bitmap mouse button
 void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTTON* btn)
 {
-    GFX_IMAGE bmp;
-    int32_t i, j, y;
-    uint8_t *src, *dst;
+    GFX_IMAGE bmp = { 0 };
+    int32_t i = 0, j = 0, y = 0;
+    uint8_t *src = NULL, *dst = NULL;
     const int32_t bytesPerPixel = bitsPerPixel >> 3;
 
     //load mouse bitmap and animation
@@ -7358,7 +7353,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
 //release mouse button
 void closeMouseButton(GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTTON* btn)
 {
-    int32_t i, j;
+    int32_t i = 0, j = 0;
 
     //cleanup mouse bitmap
     for (i = 0; i < NUM_MOUSE_BITMAPS; i++)
@@ -7395,20 +7390,14 @@ void closeMouseButton(GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTTON* btn)
 //automatic mouse event handler
 void handleMouse(const char* fname)
 {
-    GFX_MOUSE mi;
-
-    GFX_BITMAP* msNormal = NULL;
-    GFX_BITMAP* msWait = NULL;
+    GFX_MOUSE mi = { 0 };
     GFX_BITMAP* msNew = NULL;
-
     GFX_BUTTON btn[NUM_BUTTONS] = { 0 };
     GFX_BITMAP mbm[NUM_MOUSE_BITMAPS] = { 0 };
 
-    int32_t mcx, mdx, mbx;
-    int32_t i, done = 0;
-    int32_t lastx = 0, lasty = 0;
+    int32_t i = 0, done = 0;
+    int32_t mcx = 0, mdx = 0, mbx = 0;
     uint32_t needDraw = 0xFFFF;
-    double lastTime = 0;
     const char* bkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
 
     //init and setup bitmap mouse and button
@@ -7422,8 +7411,9 @@ void handleMouse(const char* fname)
     setMousePosition(centerX, centerY);
 
     //init mouse normal and wait cursor bitmap
-    msNormal = &mbm[0];
-    msWait = &mbm[1];
+    GFX_BITMAP* msNormal = &mbm[0];
+    GFX_BITMAP* msWait = &mbm[1];
+
     mi.msBitmap = msNormal;
 
     //setup screen background
@@ -7431,9 +7421,9 @@ void handleMouse(const char* fname)
     drawMouseCursor(&mi);
 
     //update last mouse pos
-    lastx = centerX;
-    lasty = centerY;
-    lastTime = getTime();
+    int32_t lastx = centerX;
+    int32_t lasty = centerY;
+    double lastTime = getTime();
 
     do
     {
@@ -7633,18 +7623,18 @@ void createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IM
     const uint16_t width = img->mWidth >> 1;
     const uint16_t height = img->mHeight >> 1;
 
-    uint8_t ch, cl;
     uint16_t ofs = 0;
-    uint16_t sx, sy, val;
     uint16_t* data = (uint16_t*)img->mData;
 
-    for (sy = 0; sy < height; sy++)
+    for (uint16_t sy = 0; sy < height; sy++)
     {
-        val = sy + ly;
+        uint16_t val = sy + ly;
         if (val > 255) val -= 255;
-        cl = sint[val];
-        ch = sint[lx];
-        for (sx = 0; sx < width; sx++)
+
+        const uint8_t cl = sint[val];
+        const uint8_t ch = sint[lx];
+
+        for (uint16_t sx = 0; sx < width; sx++)
         {
             val = cl + sx;
             if (val > 255) val -= 255;
@@ -7662,7 +7652,7 @@ void createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IM
 //initialize texture plasma
 void initPlasma(uint8_t* sint, uint8_t* cost)
 {
-    int32_t i;
+    int32_t i = 0;
     RGB pal[256] = { 0 };
 
     for (i = 0; i < 256; i++)
@@ -7729,7 +7719,7 @@ void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
 
         if (x >= 0 && x < dimg->mWidth && y >= 0 && y < dimg->mHeight)
         {
-            int32_t ofs = y * dimg->mWidth + x;
+            const int32_t ofs = y * dimg->mWidth + x;
             buff1[ofs] = roundf(dst);
             buff2[ofs] = roundf(dst - ang / 4);
         }
@@ -7768,10 +7758,9 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2
         jnz     again
     }
 #else
-    uint8_t val;
     while (nsize--)
     {
-        val = *buff1 + *ang;
+        const uint8_t val = *buff1 + *ang;
         *dst = src[(val << 8) + *buff2];
         dst++;
         buff1++;
@@ -7944,7 +7933,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
         jnz     nr2xb
     }
 #else
-    int32_t i, j, k;
+    int32_t i = 0, j = 0, k = 0;
     int32_t ofs = 0, idx = 0;
     int32_t col1 = 0, col2 = 0;
     int32_t tsize = nsize - (blur << 1);
@@ -8148,7 +8137,7 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
     for (uint32_t i = 0; i < nsize; i++)
     {
         uint8_t* pval = (uint8_t*)data;
-        uint16_t val = pval[3] * bright;
+        const uint16_t val = pval[3] * bright;
         pval[3] = val & 0xFF00;
         data++;
     }
@@ -8158,7 +8147,6 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
 //FX-effect: block-out and middle image buffer
 void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
 {
-    int32_t y, mid, cx, cy;
     uint32_t* pdst = (uint32_t*)dst->mData;
     uint32_t* psrc = (uint32_t*)src->mData;
 
@@ -8174,16 +8162,16 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
     else
     {
         //calculate deltax, deltay
-        cx = (((src->mWidth >> 1) % xb) << 16) | xb;
-        cy = (yb - (src->mHeight >> 1) % yb);
+        const int32_t cx = (((src->mWidth >> 1) % xb) << 16) | xb;
+        const int32_t cy = (yb - (src->mHeight >> 1) % yb);
 
         //process line by line
-        for (y = 0; y < src->mHeight; y++)
+        for (int32_t y = 0; y < src->mHeight; y++)
         {
             //blocking line by line
             if ((y + cy) % yb == 0 || y == 0)
             {
-                mid = y + (cy >> 1);
+                int32_t mid = y + (cy >> 1);
                 if (mid >= src->mHeight) mid = (src->mHeight + y) >> 1;
                 blockOutMid(pdst, &psrc[mid * src->mWidth], src->mWidth, cx);
             }
@@ -8197,7 +8185,7 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
 //FX-effect: fade circle image buffer
 void fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col)
 {
-    int32_t val, x, y;
+    int32_t val = 0, x = 0, y = 0;
 
     const int32_t dsize = size << 1;
     const int32_t smax = int32_t(size * 1.4);
@@ -8275,7 +8263,7 @@ void scaleUpLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t count, i
 //FX-effect: scale-up image buffer
 void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact)
 {
-    int32_t i, y;
+    int32_t i = 0, y = 0;
     uint32_t* pdst = (uint32_t*)dst->mData;
     uint32_t* psrc = (uint32_t*)src->mData;
 
@@ -8283,12 +8271,12 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
 
     //init lookup table
-    for (i = 0; i < src->mWidth; i++) tables[i] = roundf(double(i) / (src->mWidth - 1.0) * ((src->mWidth - 1.0) - (uint64_t(xfact) << 1))) + xfact;
+    for (i = 0; i < src->mWidth; i++) tables[i] = roundf(double(i) / (src->mWidth - 1.0) * ((src->mWidth - 1.0) - (intptr_t(xfact) << 1))) + xfact;
 
     //scaleup line by line
     for (i = 0; i < src->mHeight; i++)
     {
-        y = roundf(double(i) / (src->mHeight - 1.0) * ((src->mHeight - 1.0) - (uint64_t(yfact) << 1))) + yfact;
+        y = roundf(double(i) / (src->mHeight - 1.0) * ((src->mHeight - 1.0) - (intptr_t(yfact) << 1))) + yfact;
         scaleUpLine(pdst, psrc, tables, src->mWidth, y * src->mWidth);
         pdst += dst->mWidth;
     }
@@ -8503,21 +8491,20 @@ void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, in
         jns     next
     }
 #else
-    int32_t x, y, i;
-    int32_t idx = 0, ofs = 0;
+    int32_t idx = 0;
     const int32_t mx = tables[0];
     const int32_t my = tables[1];
     const int32_t pos = (width + 1) << 1;
 
-    for (i = width - 1; i > 0; i--)
+    for (int32_t i = width - 1; i > 0; i--)
     {
-        ofs = (i + 1) << 1;
-        y = (tables[ofs    ] + cosy) >> 1;
-        x = (tables[ofs + 1] - siny) >> 1;
+        const int32_t ofs = (i + 1) << 1;
+        const int32_t y = (tables[ofs    ] + cosy) >> 1;
+        const int32_t x = (tables[ofs + 1] - siny) >> 1;
         if (y > 0 && x > 0 && y < my && x < mx)
         {
-            y = tables[y + pos];
-            dst[idx] = src[x + (y >> 2)];
+            const int32_t t = tables[y + pos];
+            dst[idx] = src[x + (t >> 2)];
         }
         idx++;
     }
@@ -8739,10 +8726,6 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
         jna     starty
     }
 #else
-    uint8_t col;
-    int32_t difx, dify;
-    uint8_t *pdst, *psrc;
-
     //scan for image height
     for (y = 100; y <= 500; y++)
     {
@@ -8763,16 +8746,16 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
             {
                 nx = uint8_t(src1data[osrc1 + 1]) - uint8_t(src1data[osrc1 - 1]);
                 ny = uint8_t(src1data[osrc1 + src1len]) - uint8_t(src1data[osrc1 - src1len]);
-                difx = 127 - min(abs(vlx - nx) >> 1, 127);
+                int32_t difx = 127 - min(abs(vlx - nx) >> 1, 127);
                 if (difx <= 0) difx = 1;
-                dify = 127 - min(abs(vly - ny) >> 1, 127);
+                int32_t dify = 127 - min(abs(vly - ny) >> 1, 127);
                 if (dify <= 0) dify = 1;
-                col = difx + dify;
+                uint8_t col = difx + dify;
                 if (col > 128)
                 {
                     col -= 128;
-                    pdst = (uint8_t*)&dstdata[odst];
-                    psrc = (uint8_t*)&src2data[osrc2];
+                    uint8_t* pdst = (uint8_t*)&dstdata[odst];
+                    uint8_t* psrc = (uint8_t*)&src2data[osrc2];
                     pdst[0] = min((col * psrc[0]) >> 5, 255);
                     pdst[1] = min((col * psrc[1]) >> 5, 255);
                     pdst[2] = min((col * psrc[2]) >> 5, 255);
@@ -8795,6 +8778,7 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
 
     uint8_t* pixels = img->mData;
     const uint32_t size = img->mSize >> 2;
+
     for (uint32_t i = 0; i < size; i++)
     {
         pixels[0] = max(pixels[0] - step, 0);

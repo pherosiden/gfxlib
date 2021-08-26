@@ -9,12 +9,12 @@
 void juliaSet()
 {
     initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Julia-Set");
-    
-    //default zoom and position
-    const double zoom = 1, moveX = 0, moveY = 0;
 
     //after how much iterations the function should stop
     const int32_t maxIterations = 300;
+
+    //default zoom and position
+    const double zoom = 1, moveX = 0, moveY = 0;
 
     //pick some values for the constant c, this determines the shape of the Julia Set
     const double cRe = -0.7;
@@ -277,12 +277,12 @@ int32_t miniMap[MAP_WIDTH][MAP_HEIGHT] =
     {2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5}
 };
 
-struct SPRITE
+typedef struct
 {
     double x;
     double y;
     int32_t texture;
-};
+} SPRITE;
 
 SPRITE sprite[NUM_SPRITES] =
 {
@@ -444,7 +444,7 @@ void rayCasting()
         for (int32_t x = 0; x < cwidth; x++)
         {
             //calculate ray position and direction
-            const double cameraX = 2.0 * x / double(cwidth) - 1; //x-coordinate in camera space
+            const double cameraX = 2.0 * x / int64_t(cwidth) - 1; //x-coordinate in camera space
             const double rayDirX = dirX + planeX * cameraX;
             const double rayDirY = dirY + planeY * cameraX;
 
@@ -535,7 +535,7 @@ void rayCasting()
             wallX -= floor((wallX));
 
             //x coordinate on the texture
-            int32_t texX = int32_t(wallX * double(TEXTURE_WIDTH));
+            int32_t texX = int32_t(wallX * TEXTURE_WIDTH);
             if (side == 0 && rayDirX > 0) texX = TEXTURE_WIDTH - texX - 1;
             if (side == 1 && rayDirY < 0) texX = TEXTURE_WIDTH - texX - 1;
 
@@ -584,29 +584,28 @@ void rayCasting()
             //[ planeY   dirY ]                                          [ -planeY  planeX ]
 
             const double invDet = 1.0 / (planeX * dirY - dirX * planeY); //required for correct matrix multiplication
-
             const double transformX = invDet * (dirY * spriteX - dirX * spriteY);
             const double transformY = invDet * (-planeY * spriteX + planeX * spriteY); //this is actually the depth inside the initScreen, that what Z is in 3D
 
-            const int32_t spriteScreenX = int32_t((cwidth / 2) * (1 + transformX / transformY));
+            const int32_t spriteScreenX = int32_t((cwidth >> 1) * (1 + transformX / transformY));
 
             //calculate height of the sprite on initScreen
             const int32_t spriteHeight = abs(int32_t(cheight / transformY)); //using 'transformY' instead of the real distance prevents fisheye
 
             //calculate lowest and highest pixel to fill in current stripe
-            int32_t drawStartY = -spriteHeight / 2 + cheight / 2;
+            int32_t drawStartY = -(spriteHeight >> 1) + (cheight >> 1);
             if (drawStartY < 0) drawStartY = 0;
 
-            int32_t drawEndY = spriteHeight / 2 + cheight / 2;
+            int32_t drawEndY = (spriteHeight >> 1) + (cheight >> 1);
             if (drawEndY >= cheight) drawEndY = cheight - 1;
 
             //calculate width of the sprite
             const int32_t spriteWidth = abs(int32_t(cheight / transformY));
             
-            int32_t drawStartX = -spriteWidth / 2 + spriteScreenX;
+            int32_t drawStartX = -(spriteWidth >> 1) + spriteScreenX;
             if (drawStartX < 0) drawStartX = 0;
             
-            int32_t drawEndX = spriteWidth / 2 + spriteScreenX;
+            int32_t drawEndX = (spriteWidth >> 1) + spriteScreenX;
             if (drawEndX >= cwidth) drawEndX = cwidth - 1;
 
             //loop through every vertical stripe of the sprite on initScreen
@@ -743,8 +742,8 @@ void imageArithmetic()
     for (int32_t i = 0; i < size; i++)
     {
         uint8_t* pdst = (uint8_t*)itdst++;
-        uint8_t* pimg1 = (uint8_t*)itimg1++;
-        uint8_t* pimg2 = (uint8_t*)itimg2++;
+        const uint8_t* pimg1 = (const uint8_t*)itimg1++;
+        const uint8_t* pimg2 = (const uint8_t*)itimg2++;
 
         //average
         pdst[2] = (pimg2[2] + pimg1[2]) >> 1;
@@ -840,8 +839,8 @@ void crossFading()
         for (int32_t i = 0; i < size; i++)
         {
             uint8_t* pdst = (uint8_t*)itdst++;
-            uint8_t* pimg1 = (uint8_t*)itimg1++;
-            uint8_t* pimg2 = (uint8_t*)itimg2++;
+            const uint8_t* pimg1 = (const uint8_t*)itimg1++;
+            const uint8_t* pimg2 = (const uint8_t*)itimg2++;
             
             pdst[2] = uint8_t(pimg1[2] * weight + pimg2[2] * (1 - weight));
             pdst[1] = uint8_t(pimg1[1] * weight + pimg2[1] * (1 - weight));
@@ -1383,9 +1382,9 @@ double bias = 0.0;
 #define FILTER_HEIGHT   3
 
 static const double filter[FILTER_HEIGHT][FILTER_WIDTH] = {
-  -1, -1,  0,
-  -1,  0,  1,
-   0,  1,  1
+    -1, -1,  0,
+    -1,  0,  1,
+    0,  1,  1
 };
 
 static const double fact = 1.0;
@@ -1394,7 +1393,7 @@ static const double bias = 128.0;
 void imageFillter()
 {
     //load the image into the buffer
-    uint32_t* image;
+    uint32_t* image = NULL;
     int32_t w = 0, h = 0;
     loadTexture(&image, &w, &h, "assets/photo3.png");
 
@@ -1417,7 +1416,7 @@ void imageFillter()
                 {
                     const int32_t dx = (x - FILTER_WIDTH / 2 + fx + w) % w;
                     const int32_t dy = (y - FILTER_HEIGHT / 2 + fy + h) % h;
-                    uint8_t* pixel = (uint8_t*)&image[dy * w + dx];
+                    const uint8_t* pixel = (const uint8_t*)&image[dy * w + dx];
                     red   += pixel[2] * filter[fy][fx];
                     green += pixel[1] * filter[fy][fx];
                     blue  += pixel[0] * filter[fy][fx];
@@ -1568,10 +1567,12 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
 
     const int32_t deltaX = abs(x2 - x1); //the difference between the x's
     const int32_t deltaY = abs(y2 - y1); //the difference between the y's
+
     int32_t x = x1; //start x off at the first pixel
     int32_t y = y1; //start y off at the first pixel
-    int32_t incX1, incX2, incY1, incY2;
-    int32_t den, num, numAdd, numPixels, currPixel;
+
+    int32_t incX1 = 0, incX2 = 0, incY1 = 0, incY2 = 0;
+    int32_t den = 0, num = 0, numAdd = 0, numPixels = 0, currPixel = 0;
 
     if (x2 >= x1) //the x-values are increasing
     {
@@ -1673,7 +1674,7 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
 
         //cheap shading trick by using brightnessLevel (which doesn't really have to correspond to "brightness") 
         //to alter colors.  You can use logarithmic falloff or linear falloff to produce some interesting effect
-        uint8_t* color = (uint8_t*)&wallTexturePixels[offsetX];
+        const uint8_t* color = (const uint8_t*)&wallTexturePixels[offsetX];
 
         //while there's a row to draw & not end of drawing area
         while (error >= wallTextureWidth)
@@ -1713,7 +1714,7 @@ void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint
 
 void initData()
 {
-    int32_t i;
+    int32_t i = 0;
     double radian = 0;
 
     loadTexture(&wallTexturePixels, &wallTextureWidth, &wallTextureHeight, "assets/wallr.png");
@@ -1862,7 +1863,7 @@ void doRayCasting()
             //compute distance to the next horizontal wall
             distToNextHorizontalGrid = TILE_SIZE;
 
-            tmpX = itanTable[castArc] * (double(horizontalGrid) - playerY);
+            tmpX = itanTable[castArc] * (int64_t(horizontalGrid) - playerY);
             //we can get the vertical distance to that wall by
             //(horizontalGrid-playerY)
             //we can get the horizontal distance to that wall by
@@ -1875,7 +1876,7 @@ void doRayCasting()
         {
             horizontalGrid = playerY / TILE_SIZE * TILE_SIZE;
             distToNextHorizontalGrid = -TILE_SIZE;
-            tmpX = itanTable[castArc] * (double(horizontalGrid) - playerY);
+            tmpX = itanTable[castArc] * (int64_t(horizontalGrid) - playerY);
             intersectionX = tmpX + playerX;
             horizontalGrid--;
         }
@@ -1922,7 +1923,7 @@ void doRayCasting()
         {
             verticalGrid = TILE_SIZE + playerX / TILE_SIZE * TILE_SIZE;
             distToNextVerticalGrid = TILE_SIZE;
-            tmpY = tanTable[castArc] * (double(verticalGrid) - playerX);
+            tmpY = tanTable[castArc] * (int64_t(verticalGrid) - playerX);
             intersectionY = tmpY + playerY;
         }
         //RAY FACING LEFT
@@ -1930,7 +1931,7 @@ void doRayCasting()
         {
             verticalGrid = playerX / TILE_SIZE * TILE_SIZE;
             distToNextVerticalGrid = -TILE_SIZE;
-            tmpY = tanTable[castArc] * (double(verticalGrid) - playerX);
+            tmpY = tanTable[castArc] * (int64_t(verticalGrid) - playerX);
             intersectionY = tmpY + playerY;
             verticalGrid--;
         }
@@ -1987,7 +1988,7 @@ void doRayCasting()
             distance = distToHorizontalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
             bottomOfWall = int32_t(ratio * playerHeight + projectionPlaneCenterY);
-            scale = double(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
+            scale = int64_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
             topOfWall = bottomOfWall - int32_t(scale);
             offsetX = int32_t(intersectionX) % TILE_SIZE;
         }
@@ -2000,7 +2001,7 @@ void doRayCasting()
             distance = distToVerticalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
             bottomOfWall = int32_t(ratio * playerHeight + projectionPlaneCenterY);
-            scale = double(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
+            scale = int64_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
             topOfWall = bottomOfWall - int32_t(scale);
             offsetX = int32_t(intersectionY) % TILE_SIZE;
         }
@@ -2035,8 +2036,8 @@ void doRayCasting()
                 endY += playerY;
 
                 //get the tile intersected by ray:
-                int32_t cellX = endX / TILE_SIZE;
-                int32_t cellY = endY / TILE_SIZE;
+                const int32_t cellX = endX / TILE_SIZE;
+                const int32_t cellY = endY / TILE_SIZE;
 
                 //make sure the tile is within our map
                 if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX >= 0 && cellY >= 0 && endX >= 0 && endY >= 0)
@@ -2046,7 +2047,7 @@ void doRayCasting()
                     endX %= TILE_SIZE;
 
                     //pixel to draw
-                    uint32_t sourceOffset = endY * floorTextureWidth + endX;
+                    const uint32_t sourceOffset = endY * floorTextureWidth + endX;
 
                     //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / actualDistance;
@@ -2055,7 +2056,7 @@ void doRayCasting()
 
                     //make target pixel and color
                     uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-                    uint8_t* color = (uint8_t*)&floorTexturePixels[sourceOffset];
+                    const uint8_t* color = (uint8_t*)&floorTexturePixels[sourceOffset];
 
                     //draw the pixel
                     pixel[2] = uint8_t(color[2] * brightnessLevel);
@@ -2107,7 +2108,7 @@ void doRayCasting()
 
                     //make target pixel and color
                     uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-                    uint8_t* color = (uint8_t*)&ceilingTexturePixels[sourceOffset];
+                    const uint8_t* color = (uint8_t*)&ceilingTexturePixels[sourceOffset];
                     
                     //draw the pixel
                     pixel[2] = uint8_t(color[2] * brightnessLevel);

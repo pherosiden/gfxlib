@@ -6,16 +6,15 @@ namespace juliaSet {
 
     void makePalette()
     {
-        uint8_t a, b;
         RGB pal[256] = { 0 };
 
         pal[0].r = 0;
         pal[0].g = 0;
         pal[0].b = 0;
 
-        for (a = 1; a <= 85; a++)
+        for (uint8_t a = 1; a <= 85; a++)
         {
-            b = a * 255 / 85;
+            const uint8_t b = a * 255 / 85;
             pal[a      ].r = b;
             pal[85  + a].g = b;
             pal[170 + a].b = b;
@@ -33,8 +32,6 @@ namespace juliaSet {
     //call with juliaSet(256, -0.7, 0.27015, 1, 0, 0);
     void runJulia(int32_t iters, double cre, double cim, double zoom, double mx, double my)
     {
-        int32_t i = 0, x = 0, y = 0;
-
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Julia-Set Demo");
 
         const int32_t mwidth = texWidth >> 1;
@@ -42,10 +39,11 @@ namespace juliaSet {
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
         if (!pixels) return;
 
-        for (y = 0; y < texHeight; y++)
+        for (int32_t y = 0; y < texHeight; y++)
         {
-            for (x = 0; x < texWidth; x++)
+            for (int32_t x = 0; x < texWidth; x++)
             {
+                int32_t i = 0;
                 double newre = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
                 double newim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
 
@@ -72,8 +70,6 @@ namespace juliaSet {
     //call with mandelbrotSet(512, 1179.8039, -0.743153, -0.139405);
     void runMandelbrot(int32_t iters, double zoom, double mx, double my)
     {
-        int32_t i, x, y;
-
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Mandelbrot-Set");
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
         if (!pixels) return;
@@ -81,10 +77,11 @@ namespace juliaSet {
         const int32_t mwidth = texWidth >> 1;
         const int32_t mheight = texHeight >> 1;
 
-        for (y = 0; y < texHeight; y++)
+        for (int32_t y = 0; y < texHeight; y++)
         {
-            for (x = 0; x < texWidth; x++)
+            for (int32_t x = 0; x < texWidth; x++)
             {
+                int32_t i = 0;
                 double newre = 0;
                 double newim = 0;
 
@@ -121,12 +118,11 @@ namespace juliaSet {
 namespace fadePalette {
     void run()
     {
-        uint8_t* vbuff = NULL;
         RGB dst[256] = { 0 };
         RGB src[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO");
-        vbuff = (uint8_t*)getDrawBuffer();
+        uint8_t* vbuff = (uint8_t*)getDrawBuffer();
         if (!vbuff) return;
 
         loadPNG(vbuff, src, "assets/arnold.png");
@@ -146,9 +142,6 @@ namespace bumpMap {
 
     void createEnvironmentMap()
     {
-        int16_t i = 0, j = 0;
-        double nx = 0, ny = 0, nz = 0;
-
         FILE* fp = fopen("assets/envmap.dat", "rb");
         if (fp)
         {
@@ -157,13 +150,13 @@ namespace bumpMap {
         }
         else
         {
-            for (i = 0; i < SIZE_256; i++)
+            for (int16_t i = 0; i < SIZE_256; i++)
             {
-                for (j = 0; j < SIZE_256; j++)
+                for (int16_t j = 0; j < SIZE_256; j++)
                 {
-                    nx = (i - 128.0) / 128;
-                    ny = (j - 128.0) / 128;
-                    nz = 1 - sqrt(nx * nx + ny * ny);
+                    const double nx = (i - 128.0) / 128;
+                    const double ny = (j - 128.0) / 128;
+                    double nz = 1 - sqrt(nx * nx + ny * ny);
                     if (nz < 0) nz = 0;
                     dbuff[i][j] = uint8_t(nz * 128);
                 }
@@ -180,24 +173,21 @@ namespace bumpMap {
 
     void setFadePalette()
     {
+        int16_t i = 0;
         RGB rgb[256] = { 0 };
-        int16_t i, start, end;
-        int16_t r1, r2, g1, g2, b1, b2;
-        int16_t rval, gval, bval;
-        int16_t rstep, gstep, bstep;
 
-        r1 = 0; r2 = 0;
-        g1 = 0; g2 = 0;
-        b1 = 0; b2 = 20;
-        start = 0; end = 127;
+        int16_t r1 = 0, r2 = 0;
+        int16_t g1 = 0, g2 = 0;
+        int16_t b1 = 0, b2 = 20;
+        int16_t start = 0, end = 127;
 
-        rval = r1 << 8;
-        gval = g1 << 8;
-        bval = b1 << 8;
+        int16_t rval = r1 << 8;
+        int16_t gval = g1 << 8;
+        int16_t bval = b1 << 8;
 
-        rstep = ((r2 - r1 + 1) << 8) / (end - start + 1);
-        gstep = ((g2 - g1 + 1) << 8) / (end - start + 1);
-        bstep = ((b2 - b1 + 1) << 8) / (end - start + 1);
+        int16_t rstep = ((r2 - r1 + 1) << 8) / (end - start + 1);
+        int16_t gstep = ((g2 - g1 + 1) << 8) / (end - start + 1);
+        int16_t bstep = ((b2 - b1 + 1) << 8) / (end - start + 1);
 
         for (i = start; i <= end; i++)
         {
@@ -240,15 +230,12 @@ namespace bumpMap {
 
     void bumpScreen(int16_t x, int16_t y)
     {
-        int16_t i, j;
-        int16_t nx, ny;
-                
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 1; j < MAX_WIDTH; j++)
+            for (int16_t j = 1; j < MAX_WIDTH; j++)
             {
-                nx = vbuff2[i][j - 1] - vbuff2[i][j + 1];
-                ny = vbuff2[i - 1][j] - vbuff2[i + 1][j];
+                int16_t nx = vbuff2[i][j - 1] - vbuff2[i][j + 1];
+                int16_t ny = vbuff2[i - 1][j] - vbuff2[i + 1][j];
                 nx = nx - j + x + 128;
                 ny = ny - i + y + 128;
                 if (nx < 0 || nx > 255) nx = 0;
@@ -260,7 +247,7 @@ namespace bumpMap {
 
     void run()
     {
-        int32_t x, y, lmb;
+        int32_t x = 0, y = 0, lmb = 0;
 
         createEnvironmentMap();
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Bump-Mapping -- Move your mouse!");
@@ -288,22 +275,19 @@ namespace fireBump {
 
     void autoBump()
     {
-        int16_t lx, ly, x, y;
-        int16_t nx, ny, col, vx, vy;
-
         num++;
-        lx = int16_t(80 * cos(num / 20.0) + IMAGE_MIDX);
-        ly = int16_t(80 * sin(num / 20.0) + IMAGE_MIDY);
+        int16_t lx = int16_t(80 * cos(num / 20.0) + IMAGE_MIDX);
+        int16_t ly = int16_t(80 * sin(num / 20.0) + IMAGE_MIDY);
 
-        for (y = 1; y < MAX_HEIGHT; y++)
+        for (int16_t y = 1; y < MAX_HEIGHT; y++)
         {
-            vy = y - ly;
-            for (x = 1; x < MAX_WIDTH; x++)
+            int16_t vy = y - ly;
+            for (int16_t x = 1; x < MAX_WIDTH; x++)
             {
-                vx = x - lx;
-                nx = vbuff1[y][x + 1] - vbuff1[y][x - 1];
-                ny = vbuff1[y + 1][x] - vbuff1[y - 1][x];
-                col = (abs(vx - nx) + abs(vy - ny) + vbuff1[y][x]) >> 1;
+                int16_t vx = x - lx;
+                int16_t nx = vbuff1[y][x + 1] - vbuff1[y][x - 1];
+                int16_t ny = vbuff1[y + 1][x] - vbuff1[y - 1][x];
+                int16_t col = (abs(vx - nx) + abs(vy - ny) + vbuff1[y][x]) >> 1;
                 if (col > 127) vbuff2[y][x] = 0;
                 else vbuff2[y][x] = limit[uint16_t(vbuff1[y][x]) >> 8] - col;
             }
@@ -312,7 +296,7 @@ namespace fireBump {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Bump");
@@ -352,10 +336,8 @@ namespace circleEffect {
 
     void preCalc()
     {
-        int16_t i;
         double deg = 0.0;
-
-        for (i = 0; i < 400; i++)
+        for (int16_t i = 0; i < 400; i++)
         {
             costab[i] = cos(deg);
             sinTab[i] = sin(deg);
@@ -370,27 +352,24 @@ namespace circleEffect {
 
     void paintCircle(int16_t x, int16_t y, int16_t rad)
     {
-        int16_t i;
-        int16_t ox, oy;
-        
         if (x < 37) x = 37;
         if (y < 37) y = 37;
         if (x > IMAGE_WIDTH - 38) x = IMAGE_WIDTH - 38;
         if (y > IMAGE_HEIGHT - 38) y = IMAGE_HEIGHT - 38;
 
-        for (i = 0; i < 400; i++)
+        for (int16_t i = 0; i < 400; i++)
         {
-            ox = roundf(rad * costab[i]);
-            oy = roundf(rad * sinTab[i]);
+            const int16_t ox = roundf(rad * costab[i]);
+            const int16_t oy = roundf(rad * sinTab[i]);
             vbuff2[y + oy][x + ox] = vbuff1[y + oy][x + ox];
         }
     }
 
     void run()
     {
-        int32_t i, x, y, lmb;
         RGB pal[256] = { 0 };
-
+        int32_t x = 0, y = 0, lmb = 0;
+        
         preCalc();
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Circle -- Move your mouse!");
         loadPNG(vbuff1[0], pal, "assets/image.png");
@@ -402,7 +381,7 @@ namespace circleEffect {
         do {
             getMouseState(&x, &y, &lmb, NULL);
             memcpy(vbuff2, vbuff3, IMAGE_SIZE);
-            for (i = 0; i < 38; i++) paintCircle(x >> 1, y >> 1, i);
+            for (int16_t i = 0; i < 38; i++) paintCircle(x >> 1, y >> 1, i);
             renderBuffer(vbuff2, IMAGE_SIZE);
             delay(FPS_60);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
@@ -425,38 +404,32 @@ namespace crossFade {
         RGB pal1[256] = { 0 };
         RGB pal2[256] = { 0 };
 
-        int16_t y, x;
-        uint8_t k, w = 0;
-        uint8_t change;
-        uint8_t pix1, pix2;
-        uint8_t r, g, b;
-        uint8_t r1, g1, b1;
-
         clearPalette();
         loadPNG(vbuff1[0], pal2, "assets/to.png");
         memcpy(vbuff3, vbuff1, IMAGE_SIZE);
         loadPNG(vbuff1[0], pal1, "assets/from.png");
     
-        for (y = 0; y < IMAGE_HEIGHT; y++)
+        for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
         {
-            for (x = 0; x < IMAGE_WIDTH; x++)
+            for (int16_t x = 0; x < IMAGE_WIDTH; x++)
             {
-                pix1 = vbuff1[y][x];
-                pix2 = vbuff3[y][x];
+                const uint8_t pix1 = vbuff1[y][x];
+                const uint8_t pix2 = vbuff3[y][x];
 
                 if (pix1 || pix2)
                 {
-                    change = 0;
+                    uint8_t w = 0;
+                    uint8_t change = 0;
 
-                    r = pal1[pix1].r;
-                    g = pal1[pix1].g;
-                    b = pal1[pix1].b;
+                    const uint8_t r = pal1[pix1].r;
+                    const uint8_t g = pal1[pix1].g;
+                    const uint8_t b = pal1[pix1].b;
 
-                    r1 = pal2[pix2].r;
-                    g1 = pal2[pix2].g;
-                    b1 = pal2[pix2].b;
+                    const uint8_t r1 = pal2[pix2].r;
+                    const uint8_t g1 = pal2[pix2].g;
+                    const uint8_t b1 = pal2[pix2].b;
 
-                    for (k = 0; k <= w; k++)
+                    for (uint8_t k = 0; k <= w; k++)
                     {
                         if (src[k].r == r && src[k].g == g && src[k].b == b && dst[k].r == r1 && dst[k].g == g1 && dst[k].b == b1)
                         {
@@ -491,7 +464,7 @@ namespace crossFade {
 
     void fadeColor(int16_t dirt, int16_t depth)
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
         if (dirt)
@@ -550,10 +523,9 @@ namespace crossFade {
 
     void run()
     {
-        FILE* fp = NULL;
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Cross-Fade");
 
-        fp = fopen("assets/fade.dat", "rb");
+        FILE *fp = fopen("assets/fade.dat", "rb");
         if (!fp)
         {
             fp = fopen("assets/fade.dat", "wb");
@@ -701,20 +673,18 @@ namespace rainEffect {
             loop    lp4
         }
 #else
-        int16_t val;
-        uint16_t cx, ax, dx, bx, ofs;
         uint16_t si = actualPage;
         uint16_t di = MAX_SIZE - MAX_WIDTH;
 
-        for (cx = 0; cx < IMAGE_MIDX; cx++)
+        for (uint16_t cx = 0; cx < IMAGE_MIDX; cx++)
         {
-            bx = 0;
-            dx = 0;
-            ofs = di;
+            uint16_t bx = 0;
+            uint16_t dx = 0;
+            uint16_t ofs = di;
 
-            for (ax = 0; ax < IMAGE_MIDY; ax++)
+            for (uint16_t ax = 0; ax < IMAGE_MIDY; ax++)
             {
-                val = *(uint16_t*)&vbuff[si];
+                int16_t val = *(uint16_t*)&vbuff[si];
                 val >>= 7;
                 val += ax;
                 val -= dx;
@@ -781,20 +751,17 @@ namespace rainEffect {
             jnz     again
         }
 #else
-        uint32_t eax, edx;
-        uint16_t si, di, bx;
-        const uint16_t count = (IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT) >> 1;
-
-        si = actualPage;
-        di = otherPage;
+        uint16_t si = actualPage;
+        uint16_t di = otherPage;
         actualPage = di;
         otherPage = si;
         si += IMAGE_HEIGHT;
         di += IMAGE_HEIGHT;
+        const uint16_t count = (IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT) >> 1;
 
-        for (bx = 0; bx < count; bx++)
+        for (uint16_t bx = 0; bx < count; bx++)
         {
-            eax =  *(uint32_t*)&vbuff[si - IMAGE_HEIGHT];
+            uint32_t eax = *(uint32_t*)&vbuff[si - IMAGE_HEIGHT];
             eax += *(uint32_t*)&vbuff[si + IMAGE_HEIGHT];
             eax += *(uint32_t*)&vbuff[si + 2];
             eax += *(uint32_t*)&vbuff[si - 2];
@@ -803,7 +770,8 @@ namespace rainEffect {
             eax = _rotr(eax, 16);
             eax = (eax & 0xFFFF0000) + (int16_t(eax) >> 1);
             eax -= *(uint32_t*)&vbuff[di];
-            edx = eax;
+
+            uint32_t edx = eax;
             edx = (edx & 0xFFFF0000) + (int16_t(edx) >> densityAdd);
             edx = _rotr(edx, 16);
             edx = (edx & 0xFFFF0000) + (int16_t(edx) >> densityAdd);
@@ -843,20 +811,17 @@ namespace rainEffect {
             loop    again
         }
 #else
-        int16_t ax;
-        uint16_t si, di, bx;
-        const uint16_t count = IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT - IMAGE_MIDY;
-
-        si = actualPage;
-        di = otherPage;
+        uint16_t si = actualPage;
+        uint16_t di = otherPage;
         actualPage = di;
         otherPage = si;
         si += IMAGE_HEIGHT;
         di += IMAGE_HEIGHT;
+        const uint16_t count = IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT - IMAGE_MIDY;
 
-        for (bx = 0; bx < count; bx++)
+        for (uint16_t bx = 0; bx < count; bx++)
         {
-            ax =  *(uint16_t*)&vbuff[si - IMAGE_HEIGHT];
+            int16_t ax = *(uint16_t*)&vbuff[si - IMAGE_HEIGHT];
             ax += *(uint16_t*)&vbuff[si + IMAGE_HEIGHT];
             ax += *(uint16_t*)&vbuff[si + 2];
             ax += *(uint16_t*)&vbuff[si - 2];
@@ -897,11 +862,8 @@ namespace rainEffect {
             mov     [edi + IMAGE_MIDY * 6 + 4], esi
         }
 #else
-        uint16_t di;
-        uint32_t esi = idx;
-
-        esi = _rotl(esi, 16) + idx;
-        di = ((rnd2 + IMAGE_MIDY * rnd1) << 1) + actualPage;
+        const uint32_t esi = _rotl(idx, 16) + idx;
+        const uint16_t di = ((rnd2 + IMAGE_MIDY * rnd1) << 1) + actualPage;
 
         *(uint32_t*)&vbuff[di                     ] = esi;
         *(uint32_t*)&vbuff[di + 4                 ] = esi;
@@ -955,11 +917,8 @@ namespace rainEffect {
             mov     [edi + IMAGE_MIDY * 10 + 10], esi
         }
 #else
-        uint16_t di;
-        uint32_t esi = idx;
-
-        esi = _rotl(esi, 16) + idx;
-        di = ((rnd2 + IMAGE_MIDY * rnd1) << 1) + actualPage;
+        const uint32_t esi = _rotl(idx, 16) + idx;
+        const uint16_t di = ((rnd2 + IMAGE_MIDY * rnd1) << 1) + actualPage;
 
         *(uint32_t*)&vbuff[di                       ] = esi;
         *(uint32_t*)&vbuff[di + 4                   ] = esi;
@@ -1012,14 +971,13 @@ namespace rainEffect {
     void readPoint(uint16_t* rnd1, uint16_t* rnd2)
     {
 #ifdef _USE_ASM
-        void* funcRand = calcRandValue;
-
+        void* randFunc = calcRandValue;
         _asm {
-            call    funcRand
+            call    randFunc
             and     dx, 0FFh
             add     dx, 32
             push    dx
-            call    funcRand
+            call    randFunc
             mov     bx, dx
             pop     dx
             and     bx, 0FFh
@@ -1076,14 +1034,11 @@ namespace rainEffect {
             loop    again
         }
 #else
-        uint16_t di, cx;
-        uint32_t esi = idx;
+        const uint32_t esi = _rotl(idx, 16) + idx;
         const uint16_t count = (IMAGE_MIDY / 2 - ANCHO_OLAS - 2 * 8);
+        uint16_t di = (ANCHO_OLAS + 2 * 8) + (2 * IMAGE_MIDY * rnd1);
 
-        esi = _rotl(esi, 16) + idx;
-        di = (ANCHO_OLAS + 2 * 8) + (2 * IMAGE_MIDY * rnd1);
-
-        for (cx = 0; cx < count; cx++)
+        for (uint16_t cx = 0; cx < count; cx++)
         {
             *(uint32_t*)&vbuff[di                  ] = esi;
             *(uint32_t*)&vbuff[di + IMAGE_MIDY * 2 ] = esi;
@@ -1127,7 +1082,7 @@ namespace rainEffect {
             mov     [esi], cx
         }
 #else
-        uint16_t si, cx, dx;
+        uint16_t si = 0, cx = 0, dx = 0;
 
         while (1)
         {
@@ -1176,8 +1131,7 @@ namespace rainEffect {
 
     void printFrame(int16_t num)
     {
-        int16_t i;
-        for (i = 0; i < num; i++)
+        for (int16_t i = 0; i < num; i++)
         {
             putFrame();
             stabylize();
@@ -1186,9 +1140,9 @@ namespace rainEffect {
 
     void P001()
     {
-        int16_t i, j;
         int16_t idx = 0;
-
+        int16_t i = 0, j = 0;
+        
         for (i = 0; i < 40; i++)
         {
             for (j = 0; j < 3; j++)
@@ -1232,7 +1186,7 @@ namespace rainEffect {
 
     void P002()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
 
         for (i = 0; i < 5; i++)
         {
@@ -1262,7 +1216,7 @@ namespace rainEffect {
 
     void P003()
     {
-        int16_t i;
+        int16_t i = 0;
 
         for (i = 0; i < 30; i++)
         {
@@ -1292,7 +1246,7 @@ namespace rainEffect {
 
     void P004()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
 
         for (i = 0; i < 7; i++)
         {
@@ -1329,9 +1283,7 @@ namespace rainEffect {
 
     void P005(int16_t A, int16_t B)
     {
-        int16_t i;
-
-        for (i = 0; i < 150; i++)
+        for (int16_t i = 0; i < 150; i++)
         {
             if (A == 0)
             {
@@ -1373,12 +1325,10 @@ namespace rainEffect {
 
     void P006(int16_t A, int16_t B)
     {
-        int16_t i, j;
-
-        for (i = 0; i < 4; i++)
+        for (int16_t i = 0; i < 4; i++)
         {
             if (A != 0) putLine(-1500, 1);
-            for (j = 0; j < 50; j++)
+            for (int16_t j = 0; j < 50; j++)
             {
                 if (B != 0) touch(250);
                 stabylize();
@@ -1397,10 +1347,9 @@ namespace rainEffect {
 
     void setupPalette()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 150; i++)
+        for (int16_t i = 0; i < 150; i++)
         {
             pal[i].r = rgbPal[i * 3 + 0] << 2;
             pal[i].g = rgbPal[i * 3 + 1] << 2;
@@ -1493,9 +1442,7 @@ namespace waterEffect {
 
     void initSinCos()
     {
-        int16_t i;
-
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             sintab[i] = uint16_t(sin(i / 20.0) * 80 + IMAGE_MIDY);
             costab[i] = uint16_t(cos(i / 40.0) * 100 + IMAGE_MIDX);
@@ -1504,7 +1451,7 @@ namespace waterEffect {
 
     void showWater(uint16_t page)
     {
-        uint32_t cpage, spage;
+        uint32_t cpage = 0, spage = 0;
 
 #ifdef _USE_ASM
         int32_t tmp = IMAGE_WIDTH;
@@ -1574,17 +1521,14 @@ namespace waterEffect {
             jbe     next
         }
 #else
-        int16_t x, y, nw;
-        int16_t dx, dy, sx, sy;
-
         cpage = page;
         spage = page ^ 1;
 
-        for (y = 1; y < MAX_HEIGHT; y++)
+        for (int16_t y = 1; y < MAX_HEIGHT; y++)
         {
-            for (x = 1; x < MAX_WIDTH; x++)
+            for (int16_t x = 1; x < MAX_WIDTH; x++)
             {
-                nw = ((
+                const int16_t nw = ((
                     water[cpage][y    ][x - 1] +
                     water[cpage][y    ][x + 1] +
                     water[cpage][y - 1][x    ] +
@@ -1594,10 +1538,10 @@ namespace waterEffect {
                     water[cpage][y + 1][x - 1] +
                     water[cpage][y + 1][x + 1] ) >> 2) - water[spage][y][x];
                 water[spage][y][x] = nw - (nw >> DENSITY);
-                dx = water[spage][y][x] - water[spage][y + 1][x];
-                dy = water[spage][y][x] - water[spage][y][x + 1];
-                sx = x + (dx >> 3);
-                sy = y + (dy >> 3);
+                const int16_t dx = water[spage][y][x] - water[spage][y + 1][x];
+                const int16_t dy = water[spage][y][x] - water[spage][y][x + 1];
+                const int16_t sx = x + (dx >> 3);
+                const int16_t sy = y + (dy >> 3);
                 vbuff[y][x] = dbuff[sy][sx];
             }
         }
@@ -1650,10 +1594,9 @@ namespace waterEffect {
             mov     [water + edi], ax
         }
 #else
-        uint16_t i, nx, ny;
-        i = idx & 0xFF;
-        nx = costab[i];
-        ny = sintab[i];
+        const uint16_t i = idx & 0xFF;
+        const uint16_t nx = costab[i];
+        const uint16_t ny = sintab[i];
         water[0][ny][nx] = 500;
 #endif
     }
@@ -1730,12 +1673,10 @@ namespace skyEffect {
 
     void subDivide(uint16_t idx, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
     {
-        uint16_t x, y;
-
         if ((x1 - x0) < 2 && (y1 - y0) < 2) return;
 
-        x = (x0 + x1 + 1) >> 1;
-        y = (y0 + y1 + 1) >> 1;
+        const uint16_t x = (x0 + x1 + 1) >> 1;
+        const uint16_t y = (y0 + y1 + 1) >> 1;
 
         newColor(idx, x0, y0, x, y0, x1, y0);
         newColor(idx, x1, y0, x1, y, x1, y1);
@@ -1753,18 +1694,16 @@ namespace skyEffect {
 
     void calcPlasma(uint16_t idx)
     {
-        uint8_t range;
-
         memset(layer[idx].sbuff, 0, SIZE_256 * SIZE_256);
         if (fromcol > tocol) swapWord(&fromcol, &tocol);
-        range = tocol - fromcol + 1;
+        const uint8_t range = tocol - fromcol + 1;
         layer[idx].sbuff[0][0] = fromcol + random(range);
         subDivide(idx, 0, 0, SIZE_256, SIZE_256);
     }
 
     void calcSky(uint16_t zoom)
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
 
         for (y = 0; y < IMAGE_MIDY; y++) memset(dist[y], int32_t(log(100.0 - y) * (zoom >> 1)), IMAGE_WIDTH);
 
@@ -1782,15 +1721,15 @@ namespace skyEffect {
 
     void showSkyPixel(uint16_t i, uint16_t x, uint16_t y)
     {
-        uint8_t xm = angle[y][x] + layer[i].posx;
-        uint8_t ym = dist[y][x] + layer[i].posy;
+        const uint8_t xm = angle[y][x] + layer[i].posx;
+        const uint8_t ym = dist[y][x] + layer[i].posy;
         if (i > 0 && layer[i].sbuff[ym][xm] < 150) showSkyPixel(i - 1, x, y);
         else vbuff[y][x] = layer[i].sbuff[ym][xm];
     }
 
     void run()
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
         RGB pal[256] = { 0 };
 
         memset(layer, 0, sizeof(layer));
@@ -1886,17 +1825,14 @@ namespace phongShader {
 
     void calcVertexNormals()
     {
-        int16_t i, j, nf;
-        double relx1, rely1, relz1, val;
-
-        for (i = 0; i < nverts; i++)
+        for (int16_t i = 0; i < nverts; i++)
         {
-            relx1 = 0;
-            rely1 = 0;
-            relz1 = 0;
-            nf = 0;
+            double nf = 0;
+            double relx1 = 0;
+            double rely1 = 0;
+            double relz1 = 0;
 
-            for (j = 0; j < nfaces; j++)
+            for (int16_t j = 0; j < nfaces; j++)
             {
                 if (faces[j][0] == i || faces[j][1] == i || faces[j][2] == i)
                 {
@@ -1913,7 +1849,7 @@ namespace phongShader {
                 rely1 /= nf;
                 relz1 /= nf;
 
-                val = sqrt(relx1 * relx1 + rely1 * rely1 + relz1 * relz1);
+                const double val = sqrt(relx1 * relx1 + rely1 * rely1 + relz1 * relz1);
 
                 nx[i] = roundf(relx1 / val * 120);
                 ny[i] = roundf(rely1 / val * 120);
@@ -1924,19 +1860,15 @@ namespace phongShader {
 
     void createTorusData()
     {
-        double cx, cy;
-        int16_t i, j, n;
-        int16_t rx1, ry1, rz1;
-        int16_t rx2, ry2, rz2;
+        int16_t i = 0, j = 0, n = 0;
 
-        n = 0;
         nverts = IMAGE_MIDX;
         nfaces = IMAGE_WIDTH;
 
         for (i = 0; i < 16; i++)
         {
-            cx = cos(i / 2.54647909) * 180;
-            cy = sin(i / 2.54647909) * 180;
+            const double cx = cos(i / 2.54647909) * 180;
+            const double cy = sin(i / 2.54647909) * 180;
 
             for (j = 0; j < 10; j++)
             {
@@ -1967,13 +1899,13 @@ namespace phongShader {
 
         for (n = 0; n < IMAGE_WIDTH; n++)
         {
-            rx1 = px[faces[n][1]] - px[faces[n][0]];
-            ry1 = py[faces[n][1]] - py[faces[n][0]];
-            rz1 = pz[faces[n][1]] - pz[faces[n][0]];
+            const int16_t rx1 = px[faces[n][1]] - px[faces[n][0]];
+            const int16_t ry1 = py[faces[n][1]] - py[faces[n][0]];
+            const int16_t rz1 = pz[faces[n][1]] - pz[faces[n][0]];
 
-            rx2 = px[faces[n][2]] - px[faces[n][0]];
-            ry2 = py[faces[n][2]] - py[faces[n][0]];
-            rz2 = pz[faces[n][2]] - pz[faces[n][0]];
+            const int16_t rx2 = px[faces[n][2]] - px[faces[n][0]];
+            const int16_t ry2 = py[faces[n][2]] - py[faces[n][0]];
+            const int16_t rz2 = pz[faces[n][2]] - pz[faces[n][0]];
 
             fx[n] = ry1 * rz2 - ry2 * rz1;
             fy[n] = rz1 * rx2 - rz2 * rx1;
@@ -1983,7 +1915,7 @@ namespace phongShader {
 
     void initialize()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
         createTorusData();
@@ -2013,10 +1945,10 @@ namespace phongShader {
 
     void quickSort(int16_t left, int16_t right)
     {
-        int16_t tmp;
+        int16_t tmp = 0;
         int16_t lo = left;
         int16_t hi = right;
-        int16_t mid = polyz[(lo + hi) >> 1];
+        const int16_t mid = polyz[(lo + hi) >> 1];
 
         do {
             while (polyz[lo] > mid) lo++;
@@ -2043,16 +1975,16 @@ namespace phongShader {
 
     void newTexture(int16_t x1, int16_t y1, int16_t u1, int16_t v1, int16_t x2, int16_t y2, int16_t u2, int16_t v2, int16_t x3, int16_t y3, int16_t u3, int16_t v3)
     {
-        int16_t osx, osy;
+        int16_t osx = 0, osy = 0;
         int16_t xofs[IMAGE_WIDTH] = { 0 };
         int16_t yofs[IMAGE_WIDTH] = { 0 };
 
-        uint16_t u, v, i, j, k;
+        uint16_t u = 0, v = 0, i = 0, j = 0, k = 0;
 
-        int16_t du21, du31, du32;
-        int16_t dx21, dx31, dx32;
-        int16_t dv21, dv31, dv32;
-        int16_t dy21, dy31, dy32;
+        int16_t du21 = 0, du31 = 0, du32 = 0;
+        int16_t dx21 = 0, dx31 = 0, dx32 = 0;
+        int16_t dv21 = 0, dv31 = 0, dv32 = 0;
+        int16_t dy21 = 0, dy31 = 0, dy32 = 0;
 
         for (i = 0; i < 2; i++)
         {
@@ -2195,11 +2127,9 @@ namespace phongShader {
 
     void rotate(int16_t* px, int16_t* py, int16_t* pz)
     {
-        int16_t x, y, z;
-
-        y = (cost[alpha] * (*py) - sint[alpha] * (*pz)) >> 7;
-        z = (sint[alpha] * (*py) + cost[alpha] * (*pz)) >> 7;
-        x = (cost[beta ] * (*px) + sint[beta ] *    z ) >> 7;
+        const int16_t y = (cost[alpha] * (*py) - sint[alpha] * (*pz)) >> 7;
+        const int16_t z = (sint[alpha] * (*py) + cost[alpha] * (*pz)) >> 7;
+        const int16_t x = (cost[beta ] * (*px) + sint[beta ] *    z ) >> 7;
 
         *pz = (cost[beta ] * z - sint[beta ] * (*px)) >> 7;
         *px = (cost[gamma] * x - sint[gamma] *    y ) >> 7;
@@ -2208,7 +2138,7 @@ namespace phongShader {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Phong-Shader");
         initialize();
@@ -2309,7 +2239,7 @@ namespace plasmaTexture {
 
     void initData()
     {
-        int16_t i;
+        int16_t i = 0;
 
         xofs = IMAGE_MIDX;
         yofs = IMAGE_MIDY;
@@ -2344,7 +2274,7 @@ namespace plasmaTexture {
         int16_t tmp[5] = { 0 };
         int16_t lo = left;
         int16_t hi = right;
-        int16_t mid = faces[(lo + hi) >> 1][4];
+        const int16_t mid = faces[(lo + hi) >> 1][4];
 
         do {
             while (faces[lo][4] > mid) lo++;
@@ -2366,7 +2296,7 @@ namespace plasmaTexture {
 
     void rotate()
     {
-        int16_t i;
+        int16_t i = 0;
         TVertex tmp = { 0 };
 
         for (i = 0; i < 8; i++)
@@ -2395,7 +2325,7 @@ namespace plasmaTexture {
 
     void updatePlasma()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
 
         u = us;
         for (i = 0; i < 128; i++)
@@ -2412,30 +2342,30 @@ namespace plasmaTexture {
 
     void doSide(int16_t x1, int16_t y1, int16_t u1, int16_t v1, int16_t x2, int16_t y2, int16_t u2, int16_t v2)
     {
-        int16_t x, y, xinc;
-        int16_t u, uinc;
-        int16_t v, vinc;
-        int16_t tmp, xdec;
-
         if (y1 == y2) return;
 
         if (y2 < y1)
         {
+            int16_t tmp = 0;
             tmp = y2; y2 = y1; y1 = tmp;
             tmp = x2; x2 = x1; x1 = tmp;
             tmp = u2; u2 = u1; u1 = tmp;
             tmp = v2; v2 = v1; v1 = tmp;
         }
 
-        xinc = ((x2 - x1) << 7) / (y2 - y1); x = x1 << 7;
-        uinc = ((u2 - u1) << 7) / (y2 - y1); u = u1 << 7;
-        vinc = ((v2 - v1) << 7) / (y2 - y1); v = v1 << 7;
+        int16_t x = x1 << 7;
+        int16_t u = u1 << 7;
+        int16_t v = v1 << 7;
 
-        for (y = y1; y <= y2; y++)
+        const int16_t xinc = ((x2 - x1) << 7) / (y2 - y1);
+        const int16_t uinc = ((u2 - u1) << 7) / (y2 - y1);
+        const int16_t vinc = ((v2 - v1) << 7) / (y2 - y1);
+
+        for (int16_t y = y1; y <= y2; y++)
         {
             if (y >= 0 && y <= MAX_HEIGHT)
             {
-                xdec = x >> 7;
+                const int16_t xdec = x >> 7;
                 if (xdec < polya[y][0])
                 {
                     polya[y][0] = xdec;
@@ -2459,8 +2389,7 @@ namespace plasmaTexture {
 
     void plasmaMapPoly(int16_t x1, int16_t y1, int16_t u1, int16_t v1, int16_t x2, int16_t y2, int16_t u2, int16_t v2, int16_t x3, int16_t y3, int16_t u3, int16_t v3, int16_t x4, int16_t y4, int16_t u4, int16_t v4)
     {
-        int16_t uval, ui, vval, vi;
-        int16_t x, y, miny, maxy;
+        int16_t x = 0, y = 0;
 
         for (y = 0; y < IMAGE_HEIGHT; y++)
         {
@@ -2472,8 +2401,8 @@ namespace plasmaTexture {
             polyc[y][1] = -21474;
         }
 
-        miny = y1;
-        maxy = y1;
+        int16_t miny = y1;
+        int16_t maxy = y1;
 
         if (y2 < miny) miny = y2;
         if (y3 < miny) miny = y3;
@@ -2493,11 +2422,11 @@ namespace plasmaTexture {
 
         for (y = miny; y <= maxy; y++)
         {
-            uval = polyb[y][0];
-            ui = (polya[y][0] != polya[y][1]) ? (polyb[y][1] - polyb[y][0]) / (polya[y][1] - polya[y][0]) : 0;
+            int16_t uval = polyb[y][0];
+            const int16_t ui = (polya[y][0] != polya[y][1]) ? (polyb[y][1] - polyb[y][0]) / (polya[y][1] - polya[y][0]) : 0;
 
-            vval = polyc[y][0];
-            vi = (polya[y][0] != polya[y][1]) ? (polyc[y][1] - polyc[y][0]) / (polya[y][1] - polya[y][0]) : 0;
+            int16_t vval = polyc[y][0];
+            const int16_t vi = (polya[y][0] != polya[y][1]) ? (polyc[y][1] - polyc[y][0]) / (polya[y][1] - polya[y][0]) : 0;
 
             if (polya[y][0] < 0) polya[y][0] = 0;
             if (polya[y][1] > MAX_WIDTH) polya[y][1] = MAX_WIDTH;
@@ -2513,9 +2442,7 @@ namespace plasmaTexture {
 
     void drawCube()
     {
-        int16_t i;
-
-        for (i = 0; i < 6; i++)
+        for (int16_t i = 0; i < 6; i++)
         {
             if ((points[faces[i][1]].x - points[faces[i][0]].x) *
                 (points[faces[i][0]].y - points[faces[i][2]].y) -
@@ -2532,12 +2459,11 @@ namespace plasmaTexture {
 
     void run()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
         initData();
 
-        for (i = 0; i < 64; i++)
+        for (int16_t i = 0; i < 64; i++)
         {
             pal[i + 128].r = 0;
             pal[i + 128].g = uint8_t(i);
@@ -2624,14 +2550,11 @@ namespace fireDown {
             loop   again
         }
 #else
-        uint8_t col;
-        int16_t i, j;
-
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++)
+            for (int16_t j = 0; j <= MAX_WIDTH; j++)
             {
-                col = (vbuff[i - 1][j] + vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1]) >> 2;
+                uint8_t col = (vbuff[i - 1][j] + vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -2659,13 +2582,11 @@ namespace fireDown {
 
     void setPalette(uint8_t brightness)
     {
-        int16_t i, val, col;
-
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
-            val = 127 - pal[i].r;
+            int16_t val = 127 - pal[i].r;
             val = ((val << 8) * val) << 2;
-            col = (val & 0xFF00) | pal[i].r;
+            int16_t col = (val & 0xFF00) | pal[i].r;
             val = ((val & 0xFF00) + col) * brightness;
             pal[i].r = val >> 8;
 
@@ -2688,8 +2609,7 @@ namespace fireDown {
 
     void showFire()
     {
-        int16_t x, y;
-        int16_t i, cnt;
+        int16_t i = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -2697,16 +2617,16 @@ namespace fireDown {
             pal[i].g = uint8_t(range(i - 48, 0, 120));
             pal[i].b = pike(i, 32, 0, 32, 0) + pike(i, 128, 0, 0, 200);
         }
-
-        cnt = 0;
+        
         frames = 0;
         setPalette(120);
+        int16_t cnt = 0;
 
         do {
             if (frames > 800) frames = 0;
 
-            x = IMAGE_MIDX + sinTab[(frames / 3) & 0xFF];
-            y = 80 - (sinTab[(frames + 60) & 0xFF] >> 1);
+            const int16_t x = IMAGE_MIDX + sinTab[(frames / 3) & 0xFF];
+            const int16_t y = 80 - (sinTab[(frames + 60) & 0xFF] >> 1);
 
             for (i = 0; i < 4; i++)
             {
@@ -2754,9 +2674,8 @@ namespace fireDown {
 
     void run()
     {
-        int16_t i;
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Blur");
-        for (i = 0; i < 256; i++) sinTab[i] = roundf(sin(i * M_PI / 128) * 64);
+        for (int16_t i = 0; i < 256; i++) sinTab[i] = roundf(sin(i * M_PI / 128) * 64);
         showFire();
         cleanup();
     }
@@ -2797,13 +2716,10 @@ namespace fireTexture {
 
     void HSI2RGB(double H, double S, double I, RGB* rgb)
     {
-        double t, rv, gv, bv;
-
-        rv = 1 + S * sin(H - 2 * M_PI / 3);
-        gv = 1 + S * sin(H);
-        bv = 1 + S * sin(H + 2 * M_PI / 3);
-
-        t = 63.999 * I / 2;
+        const double rv = 1 + S * sin(H - 2 * M_PI / 3);
+        const double gv = 1 + S * sin(H);
+        const double bv = 1 + S * sin(H + 2 * M_PI / 3);
+        const double t = 63.999 * I / 2;
 
         rgb->r = uint8_t(rv * t);
         rgb->g = uint8_t(gv * t);
@@ -2812,7 +2728,7 @@ namespace fireTexture {
 
     void makePalette()
     {
-        int16_t i;
+        int16_t i = 0;
 
         for (i = 1; i <= 80; i++) HSI2RGB(4.6 - 1.5 * i / 80.0, i / 80.0, i / 80.0, &pal[i]);
 
@@ -2833,7 +2749,7 @@ namespace fireTexture {
 
     void initialize()
     {
-        int16_t k;
+        int16_t k = 0;
 
         xofs = 160;
         yofs = 120;
@@ -2860,7 +2776,7 @@ namespace fireTexture {
         int16_t tmp[5] = { 0 };
         int16_t lo = left;
         int16_t hi = right;
-        int16_t mid = face[(lo + hi) >> 1][4];
+        const int16_t mid = face[(lo + hi) >> 1][4];
 
         do {
             while (face[lo][4] > mid) lo++;
@@ -2883,7 +2799,7 @@ namespace fireTexture {
 
     void rotate()
     {
-        int16_t k;
+        int16_t k = 0;
         TVertex temp = { 0 };
 
         for (k = 0; k < 8; k++)
@@ -2915,25 +2831,27 @@ namespace fireTexture {
 
     void doSide(int16_t x1, int16_t y1, int16_t z1, int16_t x2, int16_t y2, int16_t z2)
     {
-        int16_t y, xdec, temp, x, xinc, z, zinc;
-
         if (y1 == y2) return;
 
         if (y2 < y1)
         {
-            temp = y2; y2 = y1; y1 = temp;
-            temp = x2; x2 = x1; x1 = temp;
-            temp = z2; z2 = z1; z1 = temp;
+            int16_t tmp = 0;
+            tmp = y2; y2 = y1; y1 = tmp;
+            tmp = x2; x2 = x1; x1 = tmp;
+            tmp = z2; z2 = z1; z1 = tmp;
         }
 
-        xinc = ((x2 - x1) << 7) / (y2 - y1);  x = x1 << 7;
-        zinc = ((z2 - z1) << 7) / (y2 - y1);  z = z1 << 7;
+        int16_t x = x1 << 7;
+        int16_t z = z1 << 7;
 
-        for (y = y1; y <= y2; y++)
+        const int16_t xinc = ((x2 - x1) << 7) / (y2 - y1);
+        const int16_t zinc = ((z2 - z1) << 7) / (y2 - y1);
+
+        for (int16_t y = y1; y <= y2; y++)
         {
             if (y >= 0 && y <= MAX_HEIGHT)
             {
-                xdec = x >> 7;
+                const int16_t xdec = x >> 7;
                 if (xdec < poly1[y][0]) { poly1[y][0] = xdec; poly2[y][0] = z; }
                 if (xdec > poly1[y][1]) { poly1[y][1] = xdec; poly2[y][1] = z; }
             }
@@ -2945,17 +2863,14 @@ namespace fireTexture {
 
     void gouraudPoly(int16_t x1, int16_t y1, int16_t z1, int16_t x2, int16_t y2, int16_t z2, int16_t x3, int16_t y3, int16_t z3, int16_t x4, int16_t y4, int16_t z4)
     {
-        int16_t x, y;
-        uint16_t miny, maxy, col, cinc;
-
-        for (y = 0; y < IMAGE_HEIGHT; y++)
+        for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
         {
             poly1[y][0] = 500; poly1[y][1] = -500;
             poly2[y][0] = 500; poly2[y][1] = -500;
         }
 
-        miny = y1;
-        maxy = y1;
+        uint16_t miny = y1;
+        uint16_t maxy = y1;
 
         if (y2 < miny) miny = y2; if (y3 < miny) miny = y3;
         if (y4 < miny) miny = y4; if (y2 > maxy) maxy = y2;
@@ -2968,17 +2883,18 @@ namespace fireTexture {
         doSide(x1, y1, z1, x2, y2, z2); doSide(x2, y2, z2, x3, y3, z3);
         doSide(x3, y3, z3, x4, y4, z4); doSide(x4, y4, z4, x1, y1, z1);
 
-        for (y = miny; y <= maxy; y++)
+        for (int16_t y = miny; y <= maxy; y++)
         {
             if (poly1[y][0] < 0) poly1[y][0] = 0;
             if (poly1[y][1] > MAX_WIDTH) poly1[y][1] = MAX_WIDTH;
 
-            col = poly2[y][0];
+            uint16_t cinc = 0;
+            uint16_t col = poly2[y][0];
 
             if (poly1[y][0] != poly1[y][1]) cinc = (poly2[y][1] - poly2[y][0]) / (poly1[y][1] - poly1[y][0]);
             else cinc = 0;
 
-            for (x = poly1[y][0]; x != poly1[y][1]; x++)
+            for (int16_t x = poly1[y][0]; x != poly1[y][1]; x++)
             {
                 vbuff[y][x] = col >> 7;
                 col += cinc;
@@ -2988,9 +2904,7 @@ namespace fireTexture {
 
     void drawCube()
     {
-        int16_t k;
-
-        for (k = 0; k < 6; k++)
+        for (int16_t k = 0; k < 6; k++)
         {
             if (((points[face[k][1]].x - points[face[k][0]].x) *
                 (points[face[k][0]].y - points[face[k][2]].y) -
@@ -3034,14 +2948,11 @@ namespace fireTexture {
             jnz     again
         }
 #else
-        uint8_t col;
-        int16_t i, j;
-
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++)
+            for (int16_t j = 0; j <= MAX_WIDTH; j++)
             {
-                col = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
+                uint8_t col = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -3094,36 +3005,33 @@ namespace fireTexture2 {
 
     void horzLine(int16_t x1, int16_t x2, int16_t y, uint8_t col)
     {
-        int16_t x;
         if (x2 < x1) { x1 += x2; x2 = x1 - x2; x1 -= x2; }
         if (x2 < 0 || x1 > MAX_WIDTH || y < 0 || y > MAX_HEIGHT) return;
         if (x1 < 0) x1 = 0;
         if (x2 > MAX_WIDTH) x2 = MAX_WIDTH;
-        for (x = x1; x <= x2; x++) vbuff[y][x] = col;
+        for (int16_t x = x1; x <= x2; x++) vbuff[y][x] = col;
     }
 
     void linePolygon(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, int16_t x4, int16_t y4, uint8_t col)
     {
-        int16_t mny, mxy, y;
-        int16_t s1, s2, s3, s4;
         int16_t xpos[MPOS][2] = { 0 };
 
-        mny = y1;
+        int16_t mny = y1;
         if (y2 < mny) mny = y2;
         if (y3 < mny) mny = y3;
         if (y4 < mny) mny = y4;
 
-        mxy = y1;
+        int16_t mxy = y1;
         if (y2 > mxy) mxy = y2;
         if (y3 > mxy) mxy = y3;
         if (y4 > mxy) mxy = y4;
 
-        s1 = ((y1 < y2) << 1) - 1;
-        s2 = ((y2 < y3) << 1) - 1;
-        s3 = ((y3 < y4) << 1) - 1;
-        s4 = ((y4 < y1) << 1) - 1;
+        const int16_t s1 = ((y1 < y2) << 1) - 1;
+        const int16_t s2 = ((y2 < y3) << 1) - 1;
+        const int16_t s3 = ((y3 < y4) << 1) - 1;
+        const int16_t s4 = ((y4 < y1) << 1) - 1;
 
-        y = y1;
+        int16_t y = y1;
         if (y1 != y2)
         {
             do
@@ -3199,14 +3107,11 @@ namespace fireTexture2 {
             jnz     again
         }
 #else
-        uint8_t col;
-        int16_t i, j;
-
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++)
+            for (int16_t j = 0; j <= MAX_WIDTH; j++)
             {
-                col = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
+                uint8_t col = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -3216,11 +3121,9 @@ namespace fireTexture2 {
 
     void quickSort(int16_t left, int16_t right)
     {
-        int16_t ta;
-        uint8_t tb;
         int16_t lo = left;
         int16_t hi = right;
-        int16_t mid = polyz[(lo + hi) >> 1];
+        const int16_t mid = polyz[(lo + hi) >> 1];
 
         do {
             while (polyz[lo] < mid) lo++;
@@ -3228,11 +3131,11 @@ namespace fireTexture2 {
 
             if (lo <= hi)
             {
-                ta = polyz[lo];
+                const int16_t ta = polyz[lo];
                 polyz[lo] = polyz[hi];
                 polyz[hi] = ta;
 
-                tb = pind[lo];
+                const uint8_t tb = pind[lo];
                 pind[lo] = pind[hi];
                 pind[hi] = tb;
 
@@ -3248,9 +3151,6 @@ namespace fireTexture2 {
 
     void rotateCube()
     {
-        int16_t x, y, z;
-        int16_t i, j, k;
-
         int16_t px[8] = { 0 };
         int16_t py[8] = { 0 };
         int16_t pz[8] = { 0 };
@@ -3263,13 +3163,13 @@ namespace fireTexture2 {
         do {
             for (n = 0; n < 8; n++)
             {
-                i = (COS(ay) * points[n][0] - SIN(ay) * points[n][2]) / DIVD;
-                j = (COS(az) * points[n][1] - SIN(az) * i) / DIVD;
-                k = (COS(ay) * points[n][2] + SIN(ay) * points[n][0]) / DIVD;
+                const int16_t i = (COS(ay) * points[n][0] - SIN(ay) * points[n][2]) / DIVD;
+                const int16_t j = (COS(az) * points[n][1] - SIN(az) * i) / DIVD;
+                const int16_t k = (COS(ay) * points[n][2] + SIN(ay) * points[n][0]) / DIVD;
 
-                x = (COS(az) * i + SIN(az) * points[n][1]) / DIVD;
-                y = (COS(ax) * j + SIN(ax) * k) / DIVD;
-                z = (COS(ax) * k - SIN(ax) * j) / DIVD;
+                const int16_t x = (COS(az) * i + SIN(az) * points[n][1]) / DIVD;
+                const int16_t y = (COS(ax) * j + SIN(ax) * k) / DIVD;
+                const int16_t z = (COS(ax) * k - SIN(ax) * j) / DIVD;
 
                 px[n] = 160 + (-x * DIST) / (z - DIST);
                 py[n] = 100 + (-y * DIST) / (z - DIST);
@@ -3302,15 +3202,13 @@ namespace fireTexture2 {
 
     void run()
     {
-        uint8_t i;
-        int16_t j;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping");
 
-        for (j = 0; j < 256; j++) stab[j] = int16_t(sin(j * M_PI / 128) * DIVD);
+        for (int16_t j = 0; j < 256; j++) stab[j] = int16_t(sin(j * M_PI / 128) * DIVD);
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             pal[i].r = i;
             pal[i].g = 0;
@@ -3361,36 +3259,33 @@ namespace fireTexture3 {
 
     void horzLine(int16_t x1, int16_t x2, int16_t y, uint8_t col)
     {
-        int16_t x;
         if (x2 < x1) { x1 += x2; x2 = x1 - x2; x1 -= x2; }
         if (x2 < 0 || x1 > MAX_WIDTH || y < 0 || y > MAX_HEIGHT) return;
         if (x1 < 0) x1 = 0;
         if (x2 > MAX_WIDTH) x2 = MAX_WIDTH;
-        for (x = x1; x <= x2; x++) vbuff[y][x] = col;
+        for (int16_t x = x1; x <= x2; x++) vbuff[y][x] = col;
     }
 
     void linePolygon(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, int16_t x4, int16_t y4, uint8_t col)
     {
-        int16_t mx, my, y;
-        int16_t s1, s2, s3, s4;
         int16_t xpos[MPOS][2] = { 0 };
 
-        mx = y1;
+        int16_t mx = y1;
         if (y2 < mx) mx = y2;
         if (y3 < mx) mx = y3;
         if (y4 < mx) mx = y4;
 
-        my = y1;
+        int16_t my = y1;
         if (y2 > my) my = y2;
         if (y3 > my) my = y3;
         if (y4 > my) my = y4;
 
-        s1 = ((y1 < y2) << 1) - 1;
-        s2 = ((y2 < y3) << 1) - 1;
-        s3 = ((y3 < y4) << 1) - 1;
-        s4 = ((y4 < y1) << 1) - 1;
+        const int16_t s1 = ((y1 < y2) << 1) - 1;
+        const int16_t s2 = ((y2 < y3) << 1) - 1;
+        const int16_t s3 = ((y3 < y4) << 1) - 1;
+        const int16_t s4 = ((y4 < y1) << 1) - 1;
 
-        y = y1;
+        int16_t y = y1;
         if (y1 != y2)
         {
             do
@@ -3466,14 +3361,11 @@ namespace fireTexture3 {
             jnz     again
         }
 #else
-        uint8_t col;
-        int16_t i, j;
-
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++)
+            for (int16_t j = 0; j <= MAX_WIDTH; j++)
             {
-                col = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
+                uint8_t col = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -3483,11 +3375,9 @@ namespace fireTexture3 {
 
     void quickSort(int16_t left, int16_t right)
     {
-        int16_t ta;
-        uint8_t tb;
         int16_t lo = left;
         int16_t hi = right;
-        int16_t mid = polyz[(lo + hi) >> 1];
+        const int16_t mid = polyz[(lo + hi) >> 1];
 
         do {
             while (polyz[lo] < mid) lo++;
@@ -3495,11 +3385,11 @@ namespace fireTexture3 {
 
             if (lo <= hi)
             {
-                ta = polyz[lo];
+                const int16_t ta = polyz[lo];
                 polyz[lo] = polyz[hi];
                 polyz[hi] = ta;
 
-                tb = pind[lo];
+                const uint8_t tb = pind[lo];
                 pind[lo] = pind[hi];
                 pind[hi] = tb;
 
@@ -3515,9 +3405,6 @@ namespace fireTexture3 {
 
     void rotateCube()
     {
-        int16_t x, y;
-        int16_t i, j, k;
-
         int16_t px[8] = { 0 };
         int16_t py[8] = { 0 };
         int16_t pz[8] = { 0 };
@@ -3530,12 +3417,12 @@ namespace fireTexture3 {
         do {
             for (n = 0; n < 8; n++)
             {
-                i = (COS(ay) * points[n][0] - SIN(ay) * points[n][2]) / DIVD;
-                j = (COS(az) * points[n][1] - SIN(az) * i) / DIVD;
-                k = (COS(ay) * points[n][2] + SIN(ay) * points[n][0]) / DIVD;
+                const int16_t i = (COS(ay) * points[n][0] - SIN(ay) * points[n][2]) / DIVD;
+                const int16_t j = (COS(az) * points[n][1] - SIN(az) * i) / DIVD;
+                const int16_t k = (COS(ay) * points[n][2] + SIN(ay) * points[n][0]) / DIVD;
 
-                x = (COS(az) * i + SIN(az) * points[n][1]) / DIVD;
-                y = (COS(ax) * j + SIN(ax) * k) / DIVD;
+                const int16_t x = (COS(az) * i + SIN(az) * points[n][1]) / DIVD;
+                const int16_t y = (COS(ax) * j + SIN(ax) * k) / DIVD;
 
                 pz[n] = (COS(ax) * k - SIN(ax) * j) / DIVD + COS(ax) / 3;
                 px[n] = 160 + (SIN(ax) >> 1) + (-x * DIST) / (pz[n] - DIST);
@@ -3568,15 +3455,13 @@ namespace fireTexture3 {
 
     void run()
     {
-        uint8_t i;
-        int16_t j;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping");
 
-        for (j = 0; j < 256; j++) stab[j] = int16_t(sin(j * M_PI / 128) * DIVD);
+        for (int16_t j = 0; j < 256; j++) stab[j] = int16_t(sin(j * M_PI / 128) * DIVD);
 
-        for (i = 0; i < 32; i++)
+        for (uint8_t i = 0; i < 32; i++)
         {
             pal[i].r = 0;
             pal[i].g = 0;
@@ -3616,13 +3501,11 @@ namespace tunnelEffect {
 
     void setPalette()
     {
-        int16_t val, col, i;
-
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
-            val = 127 - pal[i].r;
+            int16_t val = 127 - pal[i].r;
             val = ((val << 8) * val) << 2;
-            col = (val & 0xFF00) | pal[i].r;
+            int16_t col = (val & 0xFF00) | pal[i].r;
             val = ((val & 0xFF00) + col) * brightness;
             pal[i].r = val >> 8;
 
@@ -3666,10 +3549,9 @@ namespace tunnelEffect {
             loop    again
         }
 #else
-        int16_t i, j;
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++) vbuff[i][j] = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
+            for (int16_t j = 0; j <= MAX_WIDTH; j++) vbuff[i][j] = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
         }
 #endif
     }
@@ -3717,10 +3599,9 @@ namespace tunnelEffect {
             loop    next
         }
 #else
-        int16_t i, j;
-        for (i = 0; i < IMAGE_MIDY; i++)
+        for (int16_t i = 0; i < IMAGE_MIDY; i++)
         {
-            for (j = 0; j < IMAGE_WIDTH; j++)
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
                 vbuff[i][j] = (vbuff[i][j] + vbuff[i + yofs[i][j]][j + xofs[i][j]]) >> 1;
                 vbuff[MAX_HEIGHT - i][MAX_WIDTH - j] = (vbuff[MAX_HEIGHT - i][MAX_WIDTH - j] + vbuff[MAX_HEIGHT - i - yofs[i][j]][MAX_WIDTH - j - xofs[i][j]]) >> 1;
@@ -3731,7 +3612,8 @@ namespace tunnelEffect {
 
     void showTunnel()
     {
-        int16_t x, y, i, j;
+        int16_t x = 0, y = 0;
+        int16_t i = 0, j = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -3833,7 +3715,7 @@ namespace textureMappingEffect {
 
     void setUpPoints()
     {
-        int16_t i;
+        int16_t i = 0;
 
         for (i = 0; i < 360; i++)
         {
@@ -3859,8 +3741,8 @@ namespace textureMappingEffect {
 
     void rotatePoints(int16_t x, int16_t y, int16_t z)
     {
-        int16_t i, j;
-        int16_t a, b, c;
+        int16_t i = 0, j = 0;
+        int16_t a = 0, b = 0, c = 0;
 
         for (i = 0; i < MAXP; i++)
         {
@@ -4270,7 +4152,7 @@ namespace textureMappingEffect {
 
     void scanLeftSide(int16_t x1, int16_t x2, int16_t ytop, int16_t height, uint8_t side)
     {
-        int16_t x, y, xadd, ofs;
+        int16_t x = 0, y = 0, xadd = 0, ofs = 0;
         int16_t px = 0, py = 0, pxadd = 0, pyadd = 0;
 
         if (height == 0) return;
@@ -4327,7 +4209,7 @@ namespace textureMappingEffect {
 
     void scanRightSide(int16_t x1, int16_t x2, int16_t ytop, int16_t height, uint8_t side)
     {
-        int16_t x, y, xadd, ofs;
+        int16_t x = 0, y = 0, xadd = 0, ofs = 0;
         int16_t px = 0, py = 0, pxadd = 0, pyadd = 0;
 
         if (height == 0) return;
@@ -4384,10 +4266,6 @@ namespace textureMappingEffect {
 
     void textureMapping()
     {
-        int16_t px1, py1, px2, py2;
-        int16_t lx1, lx2, width;
-        int16_t pxadd, pyadd, x, y;
-
         if (miny < 0) miny = 0;
         if (maxy > MAX_HEIGHT) maxy = MAX_HEIGHT;
 
@@ -4398,19 +4276,19 @@ namespace textureMappingEffect {
         if (miny > MAX_HEIGHT) return;
         if (maxy < 0) return;
 
-        for (y = miny; y <= maxy; y++)
+        for (int16_t y = miny; y <= maxy; y++)
         {
-            lx1 = left[y + IMAGE_HEIGHT][0];
-            px1 = left[y + IMAGE_HEIGHT][1] << 7;
-            py1 = left[y + IMAGE_HEIGHT][2] << 7;
+            int16_t px1 = left[y + IMAGE_HEIGHT][1] << 7;
+            int16_t py1 = left[y + IMAGE_HEIGHT][2] << 7;
+            const int16_t lx1 = left[y + IMAGE_HEIGHT][0];
 
-            lx2 = right[y + IMAGE_HEIGHT][0];
-            px2 = right[y + IMAGE_HEIGHT][1] << 7;
-            py2 = right[y + IMAGE_HEIGHT][2] << 7;
+            const int16_t lx2 = right[y + IMAGE_HEIGHT][0];
+            const int16_t px2 = right[y + IMAGE_HEIGHT][1] << 7;
+            const int16_t py2 = right[y + IMAGE_HEIGHT][2] << 7;
 
-            width = abs(lx2 - lx1) + 1;
-            pxadd = (px2 - px1) / width;
-            pyadd = (py2 - py1) / width;
+            const int16_t width = abs(lx2 - lx1) + 1;
+            const int16_t pxadd = (px2 - px1) / width;
+            const int16_t pyadd = (py2 - py1) / width;
 
 #ifdef _USE_ASM
             _asm {
@@ -4443,7 +4321,7 @@ namespace textureMappingEffect {
                 loop    again
             }
 #else
-            for (x = 0; x < width; x++)
+            for (int16_t x = 0; x < width; x++)
             {
                 vbuff1[y][x + lx1] = texture[px1 >> 7][py1 >> 7];
                 px1 += pxadd;
@@ -4486,42 +4364,37 @@ namespace textureMappingEffect {
 
     void drawPoints()
     {
-        int16_t i, j, nx;
-        int16_t temp, normal;
-        int16_t x1, y1, x2, y2;
-        int16_t x3, y3, x4, y4;
-
-        for (j = 0; j < MAXP; j++)
+        for (int16_t j = 0; j < MAXP; j++)
         {
-            i = order[j];
+            const int16_t i = order[j];
 
             if (trans[i][0].z + ZOFS < 0 && trans[i][1].z + ZOFS < 0 && trans[i][2].z + ZOFS < 0 && trans[i][3].z + ZOFS < 0)
             {
-                temp = trans[i][0].z + ZOFS;
-                nx = trans[i][0].x;
-                x1 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
+                int16_t temp = trans[i][0].z + ZOFS;
+                int16_t nx = trans[i][0].x;
+                const int16_t x1 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
                 nx = trans[i][0].y;
-                y1 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
+                const int16_t y1 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
 
                 temp = trans[i][1].z + ZOFS;
                 nx = trans[i][1].x;
-                x2 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
+                const int16_t x2 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
                 nx = trans[i][1].y;
-                y2 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
+                const int16_t y2 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
 
                 temp = trans[i][2].z + ZOFS;
                 nx = trans[i][2].x;
-                x3 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
+                const int16_t x3 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
                 nx = trans[i][2].y;
-                y3 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
+                const int16_t y3 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
 
                 temp = trans[i][3].z + ZOFS;
                 nx = trans[i][3].x;
-                x4 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
+                const int16_t x4 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
                 nx = trans[i][3].y;
-                y4 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
+                const int16_t y4 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
 
-                normal = (y1 - y3) * (x2 - x1) - (x1 - x3) * (y2 - y1);
+                const int16_t normal = (y1 - y3) * (x2 - x1) - (x1 - x3) * (y2 - y1);
                 if (normal < 0) textureMapPoly(x1, y1, x2, y2, x3, y3, x4, y4);
             }
         }
@@ -4529,7 +4402,7 @@ namespace textureMappingEffect {
 
     void sortPoints()
     {
-        int16_t i, temp;
+        int16_t i = 0;
 
         for (i = 0; i < MAXP; i++) order[i] = i;
 
@@ -4539,7 +4412,7 @@ namespace textureMappingEffect {
         {
             if (center2[i].z > center2[i + 1].z)
             {
-                temp = center2[i + 1].x;
+                int16_t temp = center2[i + 1].x;
                 center2[i + 1].x = center2[i].x;
                 center2[i].x = temp;
 
@@ -4859,15 +4732,15 @@ namespace intro16k {
 
     void multMatrix(int32_t m1[][3], int32_t m2[][3])
     {
-        int16_t i, j, k;
         int32_t m3[3][3] = { 0 };
+        memset(m3, 0, sizeof(m3));
 
-        for (i = 0; i < 3; i++)
+        for (int16_t i = 0; i < 3; i++)
         {
-            for (j = 0; j < 3; j++)
+            for (int16_t j = 0; j < 3; j++)
             {
                 m3[i][j] = 0;
-                for (k = 0; k < 3; k++) m3[i][j] += m1[i][k] * m2[k][j];
+                for (int16_t k = 0; k < 3; k++) m3[i][j] += m1[i][k] * m2[k][j];
             }
         }
 
@@ -4877,23 +4750,22 @@ namespace intro16k {
 
     void genMatrix(int16_t a, int16_t b, int16_t c)
     {
-        int16_t i, j;
-        int16_t asin, acos;
         int32_t m1[3][3], m2[3][3];
 
         memset(m1, 0, sizeof(m1));
         memset(m2, 0, sizeof(m2));
 
-        acos = sinTab[(a + 64) & 0xFF];
-        asin = sinTab[a & 0xFF];
+        int16_t asin = sinTab[a & 0xFF];
+        int16_t acos = sinTab[(a + 64) & 0xFF];
+        
         m1[0][0] = acos;
         m1[0][1] = -asin;
         m1[1][0] = asin;
         m1[1][1] = acos;
         m1[2][2] = 64;
 
-        acos = sinTab[(b + 64) & 0xFF];
         asin = sinTab[b & 0xFF];
+        acos = sinTab[(b + 64) & 0xFF];
         m2[0][0] = acos;
         m2[0][2] = -asin;
         m2[2][0] = asin;
@@ -4901,8 +4773,8 @@ namespace intro16k {
         m2[1][1] = 64;
         multMatrix(m1, m2);
 
-        acos = sinTab[(c + 64) & 0xFF];
         asin = sinTab[c & 0xFF];
+        acos = sinTab[(c + 64) & 0xFF];
         m2[1][1] = acos;
         m2[1][2] = -asin;
         m2[2][1] = asin;
@@ -4910,20 +4782,19 @@ namespace intro16k {
         m2[0][0] = 64;
         multMatrix(m1, m2);
 
-        for (i = 0; i < 3; i++)
+        for (int16_t i = 0; i < 3; i++)
         {
-            for (j = 0; j < 3; j++) matrix[i][j] = m1[i][j] >> 7;
+            for (int16_t j = 0; j < 3; j++) matrix[i][j] = m1[i][j] >> 7;
         }
     }
 
     void project(int16_t cnt)
     {
-        int16_t i, j;
         int32_t val[3] = { 0 };
 
-        for (i = 0; i < cnt; i++)
+        for (int16_t i = 0; i < cnt; i++)
         {
-            for (j = 0; j < 3; j++) val[j] = vertices[i].x * matrix[j][0] + vertices[i].y * matrix[j][1] + vertices[i].z * matrix[j][2];
+            for (int16_t j = 0; j < 3; j++) val[j] = vertices[i].x * matrix[j][0] + vertices[i].y * matrix[j][1] + vertices[i].z * matrix[j][2];
             scenes[i].z = val[2] >> 11;
             val[2] = (val[2] >> 6) + deltaZ;
             scenes[i].x = (val[0] << 3) / (val[2] * 7);
@@ -4934,11 +4805,10 @@ namespace intro16k {
 
     void triangle(int16_t p1, int16_t p2, int16_t p3)
     {
-        int16_t v1 = 0, v2 = 0, v3 = 0, y1 = 0, y = 0;
+        int16_t v1 = 0, v2 = 0, v3 = 0, y = 0, i = 0;
         int16_t x1 = 0, x2 = 0, dx1 = 0, dx2 = 0;
         int16_t c1 = 0, c2 = 0, dc1 = 0, dc2 = 0;
         int16_t xl = 0, xr = 0, cl = 0, cr = 0, dc = 0;
-        int16_t vc1 = 0, vc2 = 0, vc3 = 0, i = 0;
 
         if (scenes[p1].y < scenes[p2].y) v1 = p1; else v1 = p2;
         if (scenes[p3].y < scenes[v1].y) v1 = p3;
@@ -4949,10 +4819,10 @@ namespace intro16k {
         if (v1 != p2 && v2 != p2) v3 = p2;
         if (v1 != p3 && v2 != p3) v3 = p3;
 
-        y1  = scenes[v1].y;
-        vc1 = scenes[v1].color;
-        vc2 = scenes[v2].color;
-        vc3 = scenes[v3].color;
+        int16_t y1  = scenes[v1].y;
+        const int16_t vc1 = scenes[v1].color;
+        const int16_t vc2 = scenes[v2].color;
+        const int16_t vc3 = scenes[v3].color;
 
         if (scenes[v1].y == scenes[v3].y)
         {
@@ -5046,8 +4916,7 @@ namespace intro16k {
 
     void drawScene(int16_t vert, int16_t fac, int16_t x, int16_t y)
     {
-        int16_t i, j, m, c, n1, n2;
-        int16_t cnt, v1x, v1y, v2x, v2y;
+        int16_t i = 0, j = 0;
 
         xorg = x;
         yorg = y;
@@ -5056,30 +4925,30 @@ namespace intro16k {
         clipy1 = -y + 2;
         clipy2 = MAX_HEIGHT - y - 2;
 
-        cnt = 0;
+        int16_t cnt = 0;
         project(vert);
         
         for (i = 0; i < fac; i++)
         {
             faces[i].z = (scenes[faces[i].v1].z + scenes[faces[i].v2].z + scenes[faces[i].v3].z) / 3;
-            v1x = scenes[faces[i].v1].x - scenes[faces[i].v2].x;
-            v1y = scenes[faces[i].v1].y - scenes[faces[i].v2].y;
-            v2x = scenes[faces[i].v1].x - scenes[faces[i].v3].x;
-            v2y = scenes[faces[i].v1].y - scenes[faces[i].v3].y;
+            const int16_t v1x = scenes[faces[i].v1].x - scenes[faces[i].v2].x;
+            const int16_t v1y = scenes[faces[i].v1].y - scenes[faces[i].v2].y;
+            const int16_t v2x = scenes[faces[i].v1].x - scenes[faces[i].v3].x;
+            const int16_t v2y = scenes[faces[i].v1].y - scenes[faces[i].v3].y;
             if (v1x * v2y - v2x * v1y > 0) order1[cnt++] = i;
         }
 
-        m = 1;
+        int16_t m = 1;
         for (i = 0; i < 8; i++)
         {
-            c = 0;
+            int16_t c = 0;
             for (j = 0; j < cnt; j++)
             {
                 if (!((faces[order1[j]].z ^ 0x80) & m)) c++;
             }
 
-            n1 = 0;
-            n2 = c;
+            int16_t n1 = 0;
+            int16_t n2 = c;
 
             for (j = 0; j < cnt; j++)
             {
@@ -5164,8 +5033,9 @@ namespace intro16k {
             loop    again
         }
 #else
-        uint8_t col;
-        uint16_t i, val;
+        uint8_t col = 0;
+        uint16_t i = 0, val = 0;
+
         for (i = 0; i < firstIndex; i++)
         {
             val = 127 - rgbpal[i].r;
@@ -5248,10 +5118,9 @@ namespace intro16k {
             loop    again
         }
 #else
-        int16_t i, j;
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++) vbuff[i][j] = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
+            for (int16_t j = 0; j <= MAX_WIDTH; j++) vbuff[i][j] = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
         }
 #endif
     }
@@ -5282,14 +5151,11 @@ namespace intro16k {
             loop    again
         }
 #else
-        uint8_t col;
-        int16_t i, j;
-
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++)
+            for (int16_t j = 0; j <= MAX_WIDTH; j++)
             {
-                col = (vbuff[i - 1][j] + vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1]) >> 2;
+                uint8_t col = (vbuff[i - 1][j] + vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -5340,15 +5206,13 @@ namespace intro16k {
             jnz     lp1
         }
 #else
-        int16_t i, j;
-        uint16_t ax, dx;
         uint16_t* si = (uint16_t*)&wiredFont[chr << 7];
 
-        for (i = 0; i < FONT_HEIGHT; i++)
+        for (int16_t i = 0; i < FONT_HEIGHT; i++)
         {
-            dx = *si++;
-            ax = *si++;
-            for (j = 0; j < FONT_WIDTH; j++)
+            uint16_t dx = *si++;
+            uint16_t ax = *si++;
+            for (int16_t j = 0; j < FONT_WIDTH; j++)
             {
                 if (dx & 1) vmem[y + i][x + j] = col;
                 if (ax & 1) vmem[y + i][x + j] = col2;
@@ -5402,15 +5266,13 @@ namespace intro16k {
             jnz     lp1
         }
 #else
-        int16_t i, j;
-        uint16_t ax, dx;
         uint16_t* si = (uint16_t*)&wiredFont[chr << 7];
 
-        for (i = 0; i < FONT_HEIGHT; i++)
+        for (int16_t i = 0; i < FONT_HEIGHT; i++)
         {
-            dx = *si++;
-            ax = *si++;
-            for (j = 0; j < FONT_WIDTH; j++)
+            uint16_t dx = *si++;
+            uint16_t ax = *si++;
+            for (int16_t j = 0; j < FONT_WIDTH; j++)
             {
                 if (dx & 1) vbuff[y + i][x + j] = col;
                 if (ax & 1) vbuff[y + i][x + j] = col2;
@@ -5425,7 +5287,7 @@ namespace intro16k {
     {
         int16_t xadd = 0, yadd = 0;
 
-        while (*str)
+        while (*str != '\0')
         {
             if (fl)
             {
@@ -5477,21 +5339,19 @@ namespace intro16k {
             loop    again
         }
 #else
-        int16_t i = 0;
-        for (i = 0; i < 256; i++) sinTab[i] = int8_t(sin(i * M_PI / 128) * 64);
+        for (int16_t i = 0; i < 256; i++) sinTab[i] = int8_t(sin(i * M_PI / 128) * 64);
 #endif
     }
 
     void initialize()
     {
-        FILE* fp;
-        int16_t i, j, x, y, c, row, col;
+        int16_t i = 0;
         const int16_t dirTab[][2] = { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1} };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "16K-Intro");
         initSintab();
 
-        j = 0;
+        int16_t j = 0;
         for (i = 0; i < 4096; i++)
         {
             if (j * j < i) j++;
@@ -5505,14 +5365,14 @@ namespace intro16k {
 
         for (i = 1; i <= 25; i++)
         {
-            c = random(8);
-            x = random(256);
-            y = random(256);
+            int16_t x = random(256);
+            int16_t y = random(256);
+            int16_t c = random(8);
 
             for (j = 1; j <= 2000; j++)
             {
-                col = (x >> 1) & 127;
-                row = (y >> 1) & 127;
+                const int16_t col = (x >> 1) & 127;
+                const int16_t row = (y >> 1) & 127;
                 texture[row][col] += 4;
                 x += dirTab[c][0];
                 y += dirTab[c][1];
@@ -5520,7 +5380,7 @@ namespace intro16k {
             }
         }
 
-        fp = fopen("assets/wirefont.fnt", "rb");
+        FILE* fp = fopen("assets/wirefont.fnt", "rb");
         if (!fp)
         {
             messageBox(GFX_WARNING, "Cannot load wired font!");
@@ -5568,10 +5428,9 @@ namespace intro16k {
             loop    next
         }
 #else
-        int16_t i, j;
-        for (i = 0; i < IMAGE_MIDY; i++)
+        for (int16_t i = 0; i < IMAGE_MIDY; i++)
         {
-            for (j = 0; j < IMAGE_WIDTH; j++)
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
                 vbuff[i][j] = (vbuff[i][j] + vbuff[i + yofs[i][j]][j + xofs[i][j]]) >> 1;
                 vbuff[MAX_HEIGHT - i][MAX_WIDTH - j] = (vbuff[MAX_HEIGHT - i][MAX_WIDTH - j] + vbuff[MAX_HEIGHT - i - yofs[i][j]][MAX_WIDTH - j - xofs[i][j]]) >> 1;
@@ -5582,7 +5441,7 @@ namespace intro16k {
 
     void part1()
     {
-        int16_t i, j, x, y;
+        int16_t i = 0, j = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -5595,8 +5454,8 @@ namespace intro16k {
         {
             for (j = 0; j < IMAGE_WIDTH; j++)
             {
-                x = IMAGE_MIDX - j;
-                y = IMAGE_MIDY - i;
+                const int16_t x = IMAGE_MIDX - j;
+                const int16_t y = IMAGE_MIDY - i;
                 xofs[i][j] = (x >> 4) + random(3) + (y >> 5) - 1;
                 yofs[i][j] = (y >> 4) + random(3) - (x >> 5) - 1;
             }
@@ -5625,8 +5484,8 @@ namespace intro16k {
 
             for (i = 0; i < IMAGE_MIDY; i++)
             {
-                x = rand() % MAX_WIDTH;
-                y = rand() % MAX_HEIGHT;
+                const int16_t x = rand() % MAX_WIDTH;
+                const int16_t y = rand() % MAX_HEIGHT;
                 vbuff[y][x] = 240;
                 vbuff[y][x + 1] = 240;
                 vbuff[y + 1][x] = 240;
@@ -5687,18 +5546,16 @@ namespace intro16k {
             jne     lp1
         }
 #else
-        int16_t i, j;
-        for (i = 0; i < IMAGE_HEIGHT; i++)
+        for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
         {
-            for (j = 0; j < IMAGE_WIDTH; j++) vbuff[i][j] = texture[i & 0x7F][j & 0x7F] << 1;
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++) vbuff[i][j] = texture[i & 0x7F][j & 0x7F] << 1;
         }
 #endif
     }
 
     void partTitle()
     {
-        uint8_t c;
-        int16_t col, row, i, j, dz;
+        int16_t i = 0, j = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -5710,7 +5567,7 @@ namespace intro16k {
         memcpy(faces, logoData, sizeof(logoData));
         memcpy(vertices, logoVertices, sizeof(logoVertices));
 
-        dz = 155;
+        int16_t dz = 155;
         deltaZ = 13500;
         frames = 0;
 
@@ -5750,9 +5607,10 @@ namespace intro16k {
         {
             for (j = 0; j < IMAGE_WIDTH; j++)
             {
-                col = j & 0x7F;
-                row = i & 0x7F;
-                c = vbuff[i][j];
+                const int16_t col = j & 0x7F;
+                const int16_t row = i & 0x7F;
+                const uint8_t c = vbuff[i][j];
+
                 if (c < 12) vbuff[i][j] = texture[row][col];
                 else if (c < 24) vbuff[i][j] = 60 - (c - 16) * (c - 16);
                 else if (c > 64) vbuff[i][j] = 180 - (sinTab[(j * 3 + i * 2) & 0xFF] - sinTab[(i * 5) & 0xFF] - sinTab[(i * 4 - j * 7) & 0xFF]) / 3;
@@ -5805,12 +5663,11 @@ namespace intro16k {
             jnz     lp1
         }
 #else
-        int16_t i, j, col;
-        for (i = 0; i < 128; i++)
+        for (int16_t i = 0; i < SIZE_128; i++)
         {
-            for (j = 0; j < 128; j++)
+            for (int16_t j = 0; j < SIZE_128; j++)
             {
-                col = (blobs[i & 0x7F][j & 0x7F] << 1) + vbuff[y + i][x + j];
+                int16_t col = (blobs[i & 0x7F][j & 0x7F] << 1) + vbuff[y + i][x + j];
                 if (col > 255) col = 255;
                 vbuff[y + i][x + j] = uint8_t(col);
             }
@@ -5855,12 +5712,9 @@ namespace intro16k {
         lp4:
         }
 #else
-        int16_t i;
-        int32_t val;
-        
-        for (i = 0; i < IMAGE_WIDTH; i++)
+        for (int16_t i = 0; i < IMAGE_WIDTH; i++)
         {
-            val = y;
+            int32_t val = y;
             val ^= x;
             val >>= 2;
             val = (val & 0x0000FF00) >> 10;
@@ -5876,9 +5730,7 @@ namespace intro16k {
 
     void part6()
     {
-        uint8_t v;
-        int16_t i, cx, cy;
-        int32_t x1, y1, x2, y2, px, py, x, y;
+        int16_t i = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -5902,14 +5754,15 @@ namespace intro16k {
 
             for (i = 0; i < IMAGE_MIDY; i++)
             {
-                x1 = (exSin(frames + 256) << 16) / (i + 2);
-                y1 = (exSin(frames) << 16) / (i + 2);
-                x2 = y1;
-                y2 = -x1;
-                px = (x2 - x1) / IMAGE_WIDTH;
-                py = (y2 - y1) / IMAGE_WIDTH;
-                x = x1;
-                y = y1;
+                uint8_t v = 0;
+                const int32_t x1 = (exSin(frames + 256) << 16) / (i + 2);
+                const int32_t y1 = (exSin(frames) << 16) / (i + 2);
+                const int32_t x2 = y1;
+                const int32_t y2 = -x1;
+                const int32_t px = (x2 - x1) / IMAGE_WIDTH;
+                const int32_t py = (y2 - y1) / IMAGE_WIDTH;
+                const int32_t x = x1;
+                const int32_t y = y1;
 
                 if (i < 48) v = ((48 - i) * (48 - i)) >> 4;
                 else v = 0;
@@ -5919,8 +5772,8 @@ namespace intro16k {
 
             for (i = 1; i <= 9; i++)
             {
-                cx = 96 + (sinTab[(frames + i * 24) & 0xFF] >> 1) + (sinTab[((i << 4) + frames / 3) & 0xFF] >> 1);
-                cy = 32 + (sinTab[((frames << 1) + 100 + i * 20) & 0xFF] >> 2);
+                const int16_t cx = 96 + (sinTab[(frames + i * 24) & 0xFF] >> 1) + (sinTab[((i << 4) + frames / 3) & 0xFF] >> 1);
+                const int16_t cy = 32 + (sinTab[((frames << 1) + 100 + i * 20) & 0xFF] >> 2);
                 makeBlob(cx, cy);
             }
 
@@ -5950,9 +5803,8 @@ namespace intro16k {
             loop    next
         }
 #else
-        int16_t i;
-        uint8_t col = (x >> 3) + 20;
-        for (i = 0; i < IMAGE_WIDTH; i++) vbuff[y][(x + i) % IMAGE_WIDTH] += col;
+        const uint8_t col = (x >> 3) + 20;
+        for (int16_t i = 0; i < IMAGE_WIDTH; i++) vbuff[y][(x + i) % IMAGE_WIDTH] += col;
 #endif
     }
 
@@ -6030,8 +5882,7 @@ namespace intro16k {
             loop    next
         }
 #else
-        uint16_t i;
-        for (i = 0; i < mx; i++)
+        for (uint16_t i = 0; i < mx; i++)
         {
             vbuff[my][i] = (vbuff[my][i] >> 1) + 96;
             vbuff[MAX_HEIGHT - my][MAX_WIDTH - i] = (vbuff[MAX_HEIGHT - my][MAX_WIDTH - i] >> 1) + 96;
@@ -6041,8 +5892,8 @@ namespace intro16k {
 
     void part5()
     {
-        int16_t i, j;
-        int16_t k, dpos, tpos, ddz;
+        int16_t i = 0, j = 0;
+        int16_t k = 0, dpos = 0, tpos = 0, ddz = 0;
         int16_t pos[16] = { 0 }, wid[16] = { 0 }, spd[16] = { 0 };
 
         for (i = 0; i < 256; i++)
@@ -6142,7 +5993,7 @@ namespace intro16k {
 
     void genWheels(int16_t r, int16_t n)
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
 
         vertices[0].x = 0;
         vertices[0].y = 0;
@@ -6185,7 +6036,7 @@ namespace intro16k {
 
     void part4()
     {
-        int16_t i;
+        int16_t i = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -6277,11 +6128,10 @@ namespace intro16k {
             jnz     lp1
         }
 #else
-        int16_t s, i, k;
-        for (k = 0; k < IMAGE_HEIGHT; k++)
+        for (int16_t k = 0; k < IMAGE_HEIGHT; k++)
         {
-            s = j;
-            for (i = 0; i < IMAGE_WIDTH; i++)
+            int16_t s = j;
+            for (int16_t i = 0; i < IMAGE_WIDTH; i++)
             {
                 vbuff[k][i] += (sinTab[s & 0xFF] + 80) >> 3;
                 s += v;
@@ -6297,11 +6147,11 @@ namespace intro16k {
         const int8_t b[6] = { -1, 3, 2, 7, 13, -8 };
         const int8_t c[6] = { 3, 0, -1, 2, 3, 0 };
 
-        int32_t koef, pos;
+        int32_t koef = 0, pos = 0;
         int16_t mask[IMAGE_HEIGHT] = { 0 };
         int16_t u = 0, v = 0;
         int16_t vcnt = 0, fcnt = 0;
-        int16_t i, j, x, y;
+        int16_t i = 0, j = 0, x = 0, y = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -6515,18 +6365,15 @@ namespace intro16k {
             jnz     lp1
         }
 #else
-        uint8_t col;
-        int16_t ax, bx, cx, dx, i, j;
+        int16_t ax = 0, bx = 0;
 
-        ax = bx = 0;
-
-        for (j = 0; j < IMAGE_HEIGHT; j += 2)
+        for (int16_t j = 0; j < IMAGE_HEIGHT; j += 2)
         {
-            cx = ax;
-            dx = bx;
-            for (i = 0; i < IMAGE_WIDTH; i += 2)
+            int16_t cx = ax;
+            int16_t dx = bx;
+            for (int16_t i = 0; i < IMAGE_WIDTH; i += 2)
             {
-                col = (cx >> 8) ^ (dx >> 8);
+                uint8_t col = (cx >> 8) ^ (dx >> 8);
                 col >>= 2;
                 vbuff[j][i] = col;
                 vbuff[j][MAX_WIDTH - i] = col;
@@ -6544,9 +6391,7 @@ namespace intro16k {
 
     void part10()
     {
-        int16_t i, asin, acos;
-
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             rgbpal[i].r = (i >> 1) & 0x7F;
             rgbpal[i].g = i & 0x7F;
@@ -6560,8 +6405,8 @@ namespace intro16k {
             if (frames <= 80 && br1 < 120) br1 += 5;
             if (frames > 120 && br1 > 0) br1 -= 5;
 
-            asin = exSin(frames);
-            acos = exSin(frames + 256);
+            const int16_t asin = exSin(frames);
+            const int16_t acos = exSin(frames + 256);
 
             setPalette();
             makeGreets(acos, asin);
@@ -6616,18 +6461,15 @@ namespace intro16k {
             loop    lp1
         }
 #else
-        uint8_t col;
-        int16_t ax, bx, cx, dx, i, j;
+        int16_t ax = 0, bx = 0;
 
-        ax = bx = 0;
-
-        for (j = 0; j < IMAGE_HEIGHT; j++)
+        for (int16_t j = 0; j < IMAGE_HEIGHT; j++)
         {
-            cx = ax;
-            dx = bx;
-            for (i = 0; i < IMAGE_WIDTH; i++)
+            int16_t cx = ax;
+            int16_t dx = bx;
+            for (int16_t i = 0; i < IMAGE_WIDTH; i++)
             {
-                col = (cx >> 8) ^ (dx >> 8);
+                uint8_t col = (cx >> 8) ^ (dx >> 8);
                 vbuff[j][i] &= col;
                 vbuff[j][MAX_WIDTH - i] &= col;
                 vbuff[MAX_HEIGHT - j][i] &= col;
@@ -6685,18 +6527,15 @@ namespace intro16k {
             loop    lp1
         }
 #else
-        uint8_t col;
-        int16_t ax, bx, cx, dx, i, j;
+        int16_t ax = 0, bx = 0;
 
-        ax = bx = 0;
-
-        for (j = 0; j < IMAGE_HEIGHT; j++)
+        for (int16_t j = 0; j < IMAGE_HEIGHT; j++)
         {
-            cx = ax;
-            dx = bx;
-            for (i = 0; i < IMAGE_WIDTH; i++)
+            int16_t cx = ax;
+            int16_t dx = bx;
+            for (int16_t i = 0; i < IMAGE_WIDTH; i++)
             {
-                col = (cx >> 8) ^ (dx >> 8);
+                uint8_t col = (cx >> 8) ^ (dx >> 8);
                 col >>= 1;
                 vbuff[j][i] ^= col;
                 vbuff[j][MAX_WIDTH - i] ^= col;
@@ -6755,18 +6594,15 @@ namespace intro16k {
             loop    lp1
         }
 #else
-        uint8_t col;
-        int16_t i, j, ax, bx, cx, dx;
+        int16_t ax = 0, bx = 0;
 
-        ax = bx = 0;
-
-        for (j = 0; j < IMAGE_HEIGHT; j++)
+        for (int16_t j = 0; j < IMAGE_HEIGHT; j++)
         {
-            cx = ax;
-            dx = bx;
-            for (i = 0; i < IMAGE_WIDTH; i++)
+            int16_t cx = ax;
+            int16_t dx = bx;
+            for (int16_t i = 0; i < IMAGE_WIDTH; i++)
             {
-                col = (cx >> 8) ^ (dx >> 8);
+                uint8_t col = (cx >> 8) ^ (dx >> 8);
                 col >>= 3;
                 vbuff[j][i] += col;
                 vbuff[j][MAX_WIDTH - i] += col;
@@ -6783,7 +6619,8 @@ namespace intro16k {
 
     void part11()
     {
-        int16_t i, j, k, m, asin, acos;
+        int16_t i = 0, j = 0, k = 0;
+        int16_t m = 0, asin = 0, acos = 0;
 
         const char* greets[] = {
             "Accept Corp.",
@@ -6867,8 +6704,8 @@ namespace intro16k {
 
     void part2()
     {
-        int16_t x, y;
-        int16_t i, cnt;
+        int16_t x = 0, y = 0;
+        int16_t i = 0, cnt = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -6949,8 +6786,7 @@ namespace intro16k {
 
     void finalPart()
     {
-        int16_t i;
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             rgbpal[i].r = uint8_t(range(i - 160, 0, 127));
             rgbpal[i].g = uint8_t(range(i, 0, 127));
@@ -7023,17 +6859,17 @@ namespace textScrolling {
 
     void scrollText()
     {
-        uint16_t x, y, i, j, c, pos;
+        uint16_t x = 0, y = 0;
 
-        j = 0;
-        pos = 0;
+        uint16_t j = 0;
+        uint16_t pos = 0;
         
         do {
-            c = text[pos++];
+            uint16_t c = text[pos++];
 
             if (pos >= uint16_t(strlen(text))) pos = 0;
 
-            for (i = 0; i < YMAX; i++)
+            for (uint16_t i = 0; i < YMAX; i++)
             {
                 memcpy(&bitmap[0], &bitmap[1], YMAX * XMAX);
 
@@ -7069,13 +6905,12 @@ namespace textScrolling {
 
     void run()
     {
-        uint16_t i;
         RGB pal[256] = { 0 };
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
         loadPNG(vbuff[0], pal, "assets/friend.png");
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
-        for (i = 0; i < LEN; i++) sint[i] = uint16_t(sin(4 * M_PI * i / LEN) * AMP + OFS);
+        for (uint16_t i = 0; i < LEN; i++) sint[i] = uint16_t(sin(4 * M_PI * i / LEN) * AMP + OFS);
         loadFont();
         scrollText();
     }
@@ -7086,7 +6921,7 @@ namespace fastShowBMP {
 
     void setRGB(uint8_t* pal)
     {
-        int16_t i, k;
+        int16_t i = 0, k = 0;
         RGB rgb[256] = { 0 };
         
         for (i = 0; i < 256; i++)
@@ -7115,10 +6950,9 @@ namespace fastShowBMP {
 
     void flipScreen()
     {
-        int16_t i;
         uint8_t* vmem = (uint8_t*)getDrawBuffer();
         uint8_t* pbuff = (uint8_t*)&vbuff[IMAGE_SIZE - IMAGE_WIDTH];
-        for (i = 0; i < IMAGE_HEIGHT; i++)
+        for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
         {
             memcpy(vmem, pbuff, IMAGE_WIDTH);
             pbuff -= IMAGE_WIDTH;
@@ -7160,13 +6994,12 @@ namespace EMS {
 
     void run()
     {
-        int16_t i;
-        FILE* fp;
+        int16_t i = 0;
         RGB rgb[256] = { 0 };
         uint8_t pal[768] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "DOS-EMS Simulation");
-        fp = fopen("assets/mickey.dat", "rb");
+        FILE *fp = fopen("assets/mickey.dat", "rb");
         if (!fp) return;
 
         fread(pal, 768, 1, fp);
@@ -7229,21 +7062,18 @@ namespace fillterEffect {
             jnz     again
         }
 #else
-        int16_t i;
-        for (i = 0; i < IMAGE_HEIGHT; i++) memcpy(dbuff[i], vbuff2[i], IMAGE_HEIGHT);
+        for (int16_t i = 0; i < IMAGE_HEIGHT; i++) memcpy(dbuff[i], vbuff2[i], IMAGE_HEIGHT);
 #endif
     }
 
     void calcGray()
     {
-        int16_t i;
-        for (i = 0; i < 256; i++) gray[i] = uint8_t(pal[i].r * 0.299 + pal[i].g * 0.587 + pal[i].b * 0.114);
+        for (int16_t i = 0; i < 256; i++) gray[i] = uint8_t(pal[i].r * 0.299 + pal[i].g * 0.587 + pal[i].b * 0.114);
     }
 
     void shear()
     {
-        int16_t x, y;
-        int16_t dx, dy, r = 0;
+        int16_t x = 0, y = 0, r = 0;
         int16_t yt[IMAGE_HEIGHT] = { 0 };
 
         for (x = 0; x < IMAGE_HEIGHT; x++)
@@ -7258,8 +7088,8 @@ namespace fillterEffect {
             if (random(256) < 128) r--; else r++;
             for (x = 0; x < IMAGE_HEIGHT; x++)
             {
-                dx = x + r;
-                dy = y + yt[x];
+                const int16_t dx = x + r;
+                const int16_t dy = y + yt[x];
                 if (dx >= 0 && dx <= MAX_HEIGHT && dy >= 0 && dy <= MAX_HEIGHT) vbuff2[x][y] = vbuff1[dx][dy];
                 else vbuff2[x][y] = 0;
             }
@@ -7268,17 +7098,15 @@ namespace fillterEffect {
 
     void melting()
     {
-        uint16_t x, y, i, val;
-
-        for (i = 0; i < 40000; i++)
+        for (uint16_t i = 0; i < 40000; i++)
         {
-            x = random(IMAGE_HEIGHT);
-            y = random(IMAGE_HEIGHT);
+            uint16_t y = random(IMAGE_HEIGHT);
+            const uint16_t x = random(IMAGE_HEIGHT);
             while (y < MAX_HEIGHT && vbuff2[y][x] <= vbuff2[y + 1][x])
             {
-                val = vbuff2[y][x];
+                const uint8_t val = vbuff2[y][x];
                 vbuff2[y][x] = vbuff2[y + 1][x];
-                vbuff2[y + 1][x] = uint8_t(val);
+                vbuff2[y + 1][x] = val;
                 y++;
             }
         }
@@ -7287,12 +7115,12 @@ namespace fillterEffect {
     void oilTransfer()
     {
         const int16_t n = 3;
-        int16_t x, y, dx, dy, mfp = 0;
+        int16_t dx = 0, dy = 0, mfp = 0;
         int16_t histo[256] = { 0 };
 
-        for (y = 0; y < IMAGE_HEIGHT; y++)
+        for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
         {
-            for (x = 0; x < IMAGE_HEIGHT; x++)
+            for (int16_t x = 0; x < IMAGE_HEIGHT; x++)
             {
                 memset(histo, 0, sizeof(histo));
 
@@ -7318,9 +7146,9 @@ namespace fillterEffect {
 
     void translate(uint8_t type)
     {
-        int16_t x, y;
-        int16_t a11, a12, a13, a21, a22, a23;
-        int16_t a31, a32, a33, fdiv, bias = -1;
+        int16_t x = 0, y = 0;
+        int16_t a11 = 0, a12 = 0, a13 = 0, a21 = 0, a22 = 0, a23 = 0;
+        int16_t a31 = 0, a32 = 0, a33 = 0, fdiv = 0, bias = -1;
 
         //Soften (Medium)
         //a11 = 1; a12 = 3; a13 = 1;
@@ -7399,8 +7227,7 @@ namespace fillterEffect {
                     vbuff2[y][x] = (
                         a11 * vbuff1[y - 1][x - 1] + a12 * vbuff1[y - 1][x] + a13 * vbuff1[y - 1][x + 1] +
                         a21 * vbuff1[y][x - 1] + a22 * vbuff1[y][x] + a23 * vbuff1[y][x + 1] +
-                        a31 * vbuff1[y + 1][x - 1] + a32 * vbuff1[y + 1][x] + a33 * vbuff1[y + 1][x + 1]
-                        ) / fdiv + bias;
+                        a31 * vbuff1[y + 1][x - 1] + a32 * vbuff1[y + 1][x] + a33 * vbuff1[y + 1][x + 1]) / fdiv + bias;
                 }
             }
             break;
@@ -7413,13 +7240,12 @@ namespace fillterEffect {
 
     void run()
     {
-        int16_t i;
         RGB outPal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fillter -- Keys: A->M: switched; Spacer: restore");
         loadPNG(vbuff1[0], pal, "assets/dracula.png");
 
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             outPal[i].r = uint8_t(i);
             outPal[i].g = uint8_t(i);
@@ -7508,8 +7334,6 @@ namespace fireworkEffect {
 
     void newArrow(TArrow* arrow)
     {
-        int16_t i;
-
         arrow->exploded = 0;
         arrow->step = random(30) + 64;
         arrow->angle = random(roundf(ANGLE_SCALE / 9.0)) + roundf(ANGLE_SCALE / 5.1428);
@@ -7520,7 +7344,7 @@ namespace fireworkEffect {
         arrow->shape[0].x = random(XMAX / 3) + double(XMAX / 3);
         arrow->shape[0].y = 220;
 
-        for (i = 1; i < ARROWS_LENGTH; i++)
+        for (int16_t i = 1; i < ARROWS_LENGTH; i++)
         {
             arrow->angle += arrow->angleAdd;
             arrow->shape[i] = arrow->shape[i - 1];
@@ -7566,7 +7390,7 @@ namespace fireworkEffect {
 
     void showArrow(TArrow* arrow, uint8_t from, uint8_t to, uint8_t hide)
     {
-        int16_t i;
+        int16_t i = 0;
 
         if (hide == 0)
         {
@@ -7586,7 +7410,7 @@ namespace fireworkEffect {
 
     void showExplode(TArrow* arrow, uint8_t hide)
     {
-        int16_t i;
+        int16_t i = 0;
 
         if (hide == 0)
         {
@@ -7622,7 +7446,7 @@ namespace fireworkEffect {
 
     void handleArrow(TArrow* arrow)
     {
-        int16_t i;
+        int16_t i = 0;
 
         if (arrow->exploded == 0)
         {
@@ -7671,8 +7495,7 @@ namespace fireworkEffect {
 
     void initCosSinTable()
     {
-        int16_t i;
-        for (i = 0; i < ANGLE_SCALE; i++)
+        for (int16_t i = 0; i < ANGLE_SCALE; i++)
         {
             sincos[i].x = cos((double(i) / ANGLE_SCALE) * 2 * M_PI);
             sincos[i].y = sin((double(i) / ANGLE_SCALE) * 2 * M_PI);
@@ -7681,8 +7504,8 @@ namespace fireworkEffect {
 
     void initExplodeTable()
     {
-        double tmp1, tmp2;
-        int16_t i, j, k, l, idx;
+        double tmp1 = 0, tmp2 = 0;
+        int16_t i = 0, j = 0, k = 0, l = 0, idx = 0;
 
         for (i = 0; i < EXPLODE_FRAMES; i++)
         {
@@ -7740,7 +7563,7 @@ namespace fireworkEffect {
 
     void initPalette()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
         const double multiple = double(BRIGHT_ARROW) / (ARROWS_LENGTH - 2);
 
@@ -7821,7 +7644,7 @@ namespace fireworkEffect {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
         const int32_t arrowsPerFrame = roundf((double(NUM_ARROWS) / (80.0 + EXPLODE_FRAMES + FADEDOWN_FRAMES)) * 1000);
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Firework"); 
@@ -7868,7 +7691,7 @@ namespace candleEffect {
 
     void run()
     {
-        int16_t x, y, i, j = 0;
+        int16_t x = 0, y = 0, i = 0, j = 0;
         
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Candle");
 
@@ -7943,7 +7766,7 @@ namespace fireEffect {
 
     void doFire()
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
 
         for (x = XSTART; x < XEND; x++)
         {
@@ -7965,11 +7788,9 @@ namespace fireEffect {
 
     void doQuit()
     {
-        int16_t x, y;
-
-        for (y = MAX_HEIGHT; y > YSTART; y--)
+        for (int16_t y = MAX_HEIGHT; y > YSTART; y--)
         {
-            for (x = XSTART; x < XEND; x++)
+            for (int16_t x = XSTART; x < XEND; x++)
             {
                 vbuff[y - 1][x] = (vbuff[y][x - 1] + vbuff[y][x + 1] + vbuff[y + 1][x] + vbuff[y - 1][x] + vbuff[y - 1][x - 1] + vbuff[y - 1][x + 1] + vbuff[y + 1][x - 1] + vbuff[y + 1][x + 1]) >> 3;
                 if (vbuff[y][x] > 200) vbuff[y][x] -= 2;
@@ -7980,7 +7801,7 @@ namespace fireEffect {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
@@ -8049,7 +7870,7 @@ namespace fireEffect2 {
     
     void initSeed()
     {
-        uint16_t i, j;
+        uint16_t i = 0, j = 0;
 
         for (i = 0; i < SIZE_32K; i++)
         {
@@ -8063,9 +7884,7 @@ namespace fireEffect2 {
 
     void updateSeed()
     {
-        int16_t x;
-
-        for (x = 0; x < IMAGE_WIDTH; x++)
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
             vbuff[MAX_HEIGHT][x] = seed[index++];
             if (index >= SIZE_32K) index = 0;
@@ -8074,13 +7893,11 @@ namespace fireEffect2 {
 
     void extendFlames()
     {
-        int16_t i, j, col;
-
-        for (i = MAX_HEIGHT; i > 1; i--)
+        for (int16_t i = MAX_HEIGHT; i > 1; i--)
         {
-            for (j = 0; j <= MAX_WIDTH; j++)
+            for (int16_t j = 0; j <= MAX_WIDTH; j++)
             {
-                col = ((2 * vbuff[i][j] + vbuff[i][j - 1] + vbuff[i - 1][j]) >> 2) - 2;
+                int16_t col = ((2 * vbuff[i][j] + vbuff[i][j - 1] + vbuff[i - 1][j]) >> 2) - 2;
                 if (col > 240) col = 255;
                 if (col < 0) col = 0;
                 vbuff[i - 1][j] = uint8_t(col);
@@ -8126,7 +7943,7 @@ namespace fireEffect3 {
 
     void initFire()
     {
-        int16_t j;
+        int16_t j = 0;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
@@ -8158,8 +7975,8 @@ namespace fireEffect3 {
 
     void doFire()
     {
-        uint8_t col;
-        int16_t i, j;
+        uint8_t col = 0;
+        int16_t i = 0, j = 0;
         
         if (ned)
         {
@@ -8252,20 +8069,19 @@ namespace fireEffect4 {
 
     void setFirePal()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i != 64; i++)
         {
-            pal[i].r = uint8_t(i);
+            pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
             pal[i + 64].r = 63;
-            pal[i + 64].g = uint8_t(i);
+            pal[i + 64].g = i;
             pal[i + 64].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
-            pal[i + 128].b = uint8_t(i);
+            pal[i + 128].b = i;
             pal[i + 192].r = 63;
             pal[i + 192].g = 63;
             pal[i + 192].b = 0;
@@ -8296,14 +8112,11 @@ namespace fireEffect4 {
             loop    lp1
         }
 #else
-        uint16_t col;
-        int16_t i, j;
-
-        for (i = 1; i < IMAGE_MIDY + 1; i++)
+        for (int16_t i = 1; i < IMAGE_MIDY + 1; i++)
         {
-            for (j = 0; j < IMAGE_MIDX; j++)
+            for (int16_t j = 0; j < IMAGE_MIDX; j++)
             {
-                col = (vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1] + vbuff[i + 1][j]) >> 2;
+                uint16_t col = (vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1] + vbuff[i + 1][j]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -8337,16 +8150,13 @@ namespace fireEffect4 {
             jnz     l3
         }
 #else
-        uint16_t col;
-        int16_t i, j, k;
-
-        for (i = 0; i < IMAGE_MIDY; i++)
+        for (int16_t i = 0; i < IMAGE_MIDY; i++)
         {
-            for (k = 0; k < 2; k++)
+            for (int16_t k = 0; k < 2; k++)
             {
-                for (j = 0; j < IMAGE_MIDX; j++)
+                for (int16_t j = 0; j < IMAGE_MIDX; j++)
                 {
-                    col = vbuff[i][j];
+                    const uint16_t col = vbuff[i][j];
                     vmem[i][j + k * IMAGE_MIDX] = (col << 8) + (col & 0xFF);
                 }
             }
@@ -8356,12 +8166,11 @@ namespace fireEffect4 {
 
     void run()
     {
-        int16_t i;
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
         setFirePal();
 
         do {
-            for (i = 0; i < IMAGE_MIDX; i++)
+            for (int16_t i = 0; i < IMAGE_MIDX; i++)
             {
                 if ((rand() % 10) < 5) delta = (rand() % 2) * 255;
                 vbuff[100][i] = delta;
@@ -8387,10 +8196,9 @@ namespace fireEffect5 {
 
     void setFirePalette()
     {
-        uint8_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i != 64; i++)
         {
             pal[i].r = i;
             pal[i].g = 0;
@@ -8456,14 +8264,11 @@ namespace fireEffect5 {
             loop    lp1
         }
 #else
-        uint16_t col;
-        int16_t i, j;
-
-        for (i = 1; i < IMAGE_MIDY + 1; i++)
+        for (int16_t i = 1; i < IMAGE_MIDY + 1; i++)
         {
-            for (j = 0; j < IMAGE_MIDX; j++)
+            for (int16_t j = 0; j < IMAGE_MIDX; j++)
             {
-                col = (vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1] + vbuff[i + 1][j]) >> 2;
+                uint16_t col = (vbuff[i][j - 1] + vbuff[i][j] + vbuff[i][j + 1] + vbuff[i + 1][j]) >> 2;
                 if (col > 0) col--;
                 vbuff[i - 1][j] = col;
             }
@@ -8497,16 +8302,13 @@ namespace fireEffect5 {
             jnz     l3
         }
 #else
-        uint16_t col;
-        int16_t i, j, k;
-
-        for (i = 0; i < IMAGE_MIDY; i++)
+        for (int16_t i = 0; i < IMAGE_MIDY; i++)
         {
-            for (k = 0; k < 2; k++)
+            for (int16_t k = 0; k < 2; k++)
             {
-                for (j = 0; j < IMAGE_MIDX; j++)
+                for (int16_t j = 0; j < IMAGE_MIDX; j++)
                 {
-                    col = vbuff[i][j];
+                    const uint16_t col = vbuff[i][j];
                     vmem[i][j + k * IMAGE_MIDX] = (col << 8) + (col & 0xFF);
                 }
             }
@@ -8516,14 +8318,11 @@ namespace fireEffect5 {
 
     void makeBlood(uint8_t num)
     {
-        int16_t i, j;
-        uint8_t col;
-
-        for (i = 0; i < 24; i++)
+        for (int16_t i = 0; i < 24; i++)
         {
-            for (j = 0; j < IMAGE_WIDTH; j++)
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
-                col = hline[num][i][j];
+                const uint8_t col = hline[num][i][j];
                 if (col != 255) dbuff[BLINE + i][j] = col;
             }
         }
@@ -8531,14 +8330,13 @@ namespace fireEffect5 {
 
     void run()
     {
-        FILE* fp;
-        int16_t i, delta;
+        int16_t i = 0, delta = 0;
         uint8_t k = 0, kk = 0;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
         setFirePalette();
 
-        fp = fopen("assets/bline.dat", "rb");
+        FILE *fp = fopen("assets/bline.dat", "rb");
         if (!fp) exit(1);
 
         for (i = 0; i < 5; i++) fread(hline[i], 1, 24 * IMAGE_WIDTH, fp);
@@ -8589,13 +8387,10 @@ namespace fireEffect6 {
 
     void HSI2RGB(double H, double S, double I, RGB* pal)
     {
-        double t, r, g, b;
-
-        r = 1 + S * sin(H - 2 * M_PI / 3);
-        g = 1 + S * sin(H);
-        b = 1 + S * sin(H + 2 * M_PI / 3);
-
-        t = 63.999 * I / 2;
+        const double r = 1 + S * sin(H - 2 * M_PI / 3);
+        const double g = 1 + S * sin(H);
+        const double b = 1 + S * sin(H + 2 * M_PI / 3);
+        const double t = 63.999 * I / 2;
 
         pal->r = uint8_t(r * t);
         pal->g = uint8_t(g * t);
@@ -8604,7 +8399,7 @@ namespace fireEffect6 {
 
     void makePalette()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB rgb[256] = { 0 };
 
         for (i = 0; i < MAXCOL; i++) HSI2RGB(4.6 - 1.5 * i / MAXCOL, double(i) / MAXCOL, double(i) / MAXCOL, &rgb[i]);
@@ -8636,9 +8431,10 @@ namespace fireEffect6 {
 
     void run()
     {
-        int16_t i, j, fires, col, x;
-        
-        fires = 0;
+        int16_t fires = 0;
+        int16_t col = 0, x = 0;
+        int16_t i = 0, j = 0;
+
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire -- Spacer: throw a match; W: water; A/S: +/- intensity");
         makePalette();
 
@@ -8719,28 +8515,25 @@ namespace fireEffect7 {
 
     void interpolation()
     {
-        int16_t x, y;
-        for (x = 1; x < MAX_WIDTH; x++)
+        for (int16_t x = 1; x < MAX_WIDTH; x++)
         {
-            for (y = 1; y < 79; y++) dbuff[x][y] = (2 * dbuff[x][y + 1] + dbuff[x + 1][y + 1] + dbuff[x - 1][y - 1]) >> 2;
+            for (int16_t y = 1; y < 79; y++) dbuff[x][y] = (2 * dbuff[x][y + 1] + dbuff[x + 1][y + 1] + dbuff[x - 1][y - 1]) >> 2;
         }
     }
 
     void putFire()
     {
-        int16_t x, y;
-        for (x = 0; x < IMAGE_WIDTH; x++)
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
-            for (y = 0; y < 80; y++) vbuff[y + 120][x] = dbuff[x][y];
+            for (int16_t y = 0; y < 80; y++) vbuff[y + 120][x] = dbuff[x][y];
         }
     }
 
     void makePalette()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 64; i++)
+        for (int16_t i = 0; i < 64; i++)
         {
             pal[i +   0].r =  i << 2; pal[i +   0].g =      0; pal[i +   0].b = 0;
             pal[i +  64].r = 63 << 2; pal[i +  64].g = i << 2; pal[i +  64].b = 0;
@@ -8752,12 +8545,11 @@ namespace fireEffect7 {
 
     void run()
     {
-        int16_t x;
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
         makePalette();
 
         do {
-            for (x = 0; x < IMAGE_WIDTH; x++) dbuff[x][79] = random(100) + 40;
+            for (int16_t x = 0; x < IMAGE_WIDTH; x++) dbuff[x][79] = random(100) + 40;
             interpolation();
             putFire();
             renderBuffer(vbuff, IMAGE_SIZE);
@@ -8807,22 +8599,20 @@ namespace fireEffect8 {
             loop    again
         }
 #else
-        int16_t i, j;
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++) vbuff[i][j] = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
+            for (int16_t j = 0; j <= MAX_WIDTH; j++) vbuff[i][j] = (vbuff[i][j - 1] + vbuff[i][j + 1] + vbuff[i - 1][j] + vbuff[i + 1][j]) >> 2;
         }
 #endif
     }
 
     void pierra()
     {
-        int16_t i, j;
-        double x, y;
+        int16_t i = 0, j = 0;
 
         idx += 0.1;
-        x = sinus[roundf(idx * 159) % 1000] * sinus[roundf(idx * 83 + 130) % 1000] * 140;
-        y = sinus[roundf(idx * 97 + 153) % 1000] * sinus[roundf(idx * 107) % 1000] * 80;
+        const double x = sinus[roundf(idx * 159) % 1000] * sinus[roundf(idx * 83 + 130) % 1000] * 140;
+        const double y = sinus[roundf(idx * 97 + 153) % 1000] * sinus[roundf(idx * 107) % 1000] * 80;
 
         for (i = 1; i < MAX_HEIGHT; i++)
         {
@@ -8854,7 +8644,7 @@ namespace fireEffect8 {
 
     void run()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
@@ -8924,8 +8714,8 @@ namespace holeEffect1 {
 
     void run()
     {
-        double rad;
-        int16_t xx, yy, i, x, y;
+        double rad = 0;
+        int16_t xx = 0, yy = 0, i = 0, x = 0, y = 0;
         RGB pal[256] = { 0 };
 
         for (i = 0; i < 30; i++)
@@ -9010,9 +8800,8 @@ namespace holeEffect2 {
 
     void makeDegradated(uint8_t r, uint8_t g, uint8_t b)
     {
-        int16_t i;
         RGB pal[256] = { 0 };
-        for (i = 32; i >= 16; i--)
+        for (int16_t i = 32; i >= 16; i--)
         {
             pal[i].r = r;
             pal[i].g = g;
@@ -9027,7 +8816,7 @@ namespace holeEffect2 {
 
     void calcTables()
     {
-        int16_t i;
+        int16_t i = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -9040,7 +8829,7 @@ namespace holeEffect2 {
 
     void drawPoint(int16_t xc, int16_t yc, int16_t rad, int16_t i, uint8_t col)
     {
-        uint16_t x, y;
+        uint16_t x = 0, y = 0;
 
         x = (rad * sintab[90 + i]) >> 7;
         x += IMAGE_MIDX + xc;
@@ -9051,9 +8840,9 @@ namespace holeEffect2 {
 
     void drawHole()
     {
+        uint8_t col = 0;
         int16_t x = 0, y = 0;
         int16_t i = 0, j = 0;
-        uint8_t col;
 
         do {
             col = 19;
@@ -9114,8 +8903,8 @@ namespace holeEffect3 {
 
     void plotLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t col)
     {
-        int16_t d, sign;
-        int16_t x, y, dx, dy, dt, ds;
+        int16_t d = 0, sign = 0;
+        int16_t x = 0, y = 0, dx = 0, dy = 0, dt = 0, ds = 0;
 
         if (x1 < 1 || y1 < 1 || x1 > MAX_WIDTH - 1 || y1 > MAX_HEIGHT - 1) return;
         if (x2 < 1 || y2 < 1 || x2 > MAX_WIDTH - 1 || y2 > MAX_HEIGHT - 1) return;
@@ -9409,10 +9198,8 @@ namespace holeEffect3 {
 
     void calcPoint(uint8_t art, int16_t xo, int16_t yo, int16_t r, int16_t a)
     {
-        uint16_t x, y;
-
-        x = IMAGE_MIDX + xo + (r * sintab[a + 90]) / (DIVD - 20);
-        y = IMAGE_MIDY + yo + (r * sintab[a]) / DIVD;
+        const uint16_t x = IMAGE_MIDX + xo + (r * sintab[a + 90]) / (DIVD - 20);
+        const uint16_t y = IMAGE_MIDY + yo + (r * sintab[a]) / DIVD;
 
         switch (art)
         {
@@ -9441,7 +9228,7 @@ namespace holeEffect3 {
 
     void drawHole(uint8_t art)
     {
-        int16_t ri, po;
+        int16_t ri = 0, po = 0;
 
         switch (art)
         {
@@ -9606,8 +9393,7 @@ namespace kaleidoScope {
 
     void rainbowPalette(RGB* pal)
     {
-        int16_t i;
-        for (i = 0; i != 32; i++)
+        for (int16_t i = 0; i < 32; i++)
         {
             pal[i      ].r = i << 1;
             pal[63 - i ].r = i << 1;
@@ -9634,17 +9420,13 @@ namespace kaleidoScope {
 
     void run()
     {
-        int16_t x1, y1, x2, y2;
-        int16_t xv1, yv1, xv2, yv2;
-        int16_t xa, ya, xb, yb;
-        int16_t hc, cx, cy, md;
-
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope");
 
-        cx = texWidth >> 1;
-        cy = texHeight >> 1;
-        md = cy;
-        hc = random(END_COLOR - START_COLOR);
+        const int16_t cx = texWidth >> 1;
+        const int16_t cy = texHeight >> 1;
+        const int16_t md = cy;
+
+        int16_t hc = random(END_COLOR - START_COLOR);
 
         makePalette();
 
@@ -9654,10 +9436,10 @@ namespace kaleidoScope {
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
-            x1 = random(md) + 1;
-            x2 = random(md) + 1;
-            y1 = random(x1);
-            y2 = random(x2);
+            int16_t x1 = random(md) + 1;
+            int16_t x2 = random(md) + 1;
+            int16_t y1 = random(x1);
+            int16_t y2 = random(x2);
 
             while (random(130) > 5)
             {
@@ -9665,10 +9447,10 @@ namespace kaleidoScope {
                 if (keyDown(SDL_SCANCODE_RETURN)) break;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
-                xv1 = random(10) - 5;
-                xv2 = random(10) - 5;
-                yv1 = random(10) - 5;
-                yv2 = random(10) - 5;
+                const int16_t xv1 = random(10) - 5;
+                const int16_t xv2 = random(10) - 5;
+                const int16_t yv1 = random(10) - 5;
+                const int16_t yv2 = random(10) - 5;
 
                 while (random(100) > 20)
                 {
@@ -9676,10 +9458,10 @@ namespace kaleidoScope {
                     if (keyDown(SDL_SCANCODE_RETURN)) break;
                     if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
-                    xa = (x1 << 2) / 3;
-                    xb = (x2 << 2) / 3;
-                    ya = (y1 << 2) / 3;
-                    yb = (y2 << 2) / 3;
+                    const int16_t xa = (x1 << 2) / 3;
+                    const int16_t xb = (x2 << 2) / 3;
+                    const int16_t ya = (y1 << 2) / 3;
+                    const int16_t yb = (y2 << 2) / 3;
 
                     drawLine(cx + xa, cy - y1, cx + xb, cy - y2, hc);
                     drawLine(cx - ya, cy + x1, cx - yb, cy + x2, hc);
@@ -9715,10 +9497,9 @@ namespace kaleidoScope2 {
 
     void makeRainbowPalette()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 32; i++)
+        for (int16_t i = 0; i < 32; i++)
         {
             pal[i].r = i << 1;
             pal[63 - i].r = i << 1;
@@ -9741,17 +9522,15 @@ namespace kaleidoScope2 {
     void makeFunkyPalette()
     {
         RGB pal[256] = { 0 };
-        uint8_t ry, gy, by;
-        int16_t i, r, g, b, rx, gx, bx;
 
-        r = g = b = 0;
-        ry = gy = by = 1;
+        int16_t r = 0, g = 0, b = 0;
+        int16_t ry = 1, gy = 1, by = 1;
 
-        rx = (rand() % 5) + 1;
-        gx = (rand() % 5) + 1;
-        bx = (rand() % 5) + 1;
+        int16_t rx = (rand() % 5) + 1;
+        int16_t gx = (rand() % 5) + 1;
+        int16_t bx = (rand() % 5) + 1;
 
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             pal[i].r = uint8_t(r);
             pal[i].g = uint8_t(g);
@@ -9808,45 +9587,38 @@ namespace kaleidoScope2 {
 
     void run(uint8_t mode)
     {
-        int32_t x1, y1, x2, y2;
-        int32_t xv1, yv1, xv2, yv2;
-        int32_t xa, ya, xb, yb;
-        int32_t cx, cy, md;
-
-        uint32_t step1, step2;
-
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope");
 
         if (mode) makeRainbowPalette();
 
-        cx = centerX;
-        cy = centerY;
-        md = cy;
+        const int32_t cx = centerX;
+        const int32_t cy = centerY;
+        const int32_t md = cy;
 
         do
         {
             if (!mode) makeFunkyPalette();
 
-            step1 = 0;
-            x1 = random(md) + 1;
-            x2 = random(md) + 1;
-            y1 = random(x1);
-            y2 = random(x2);
+            uint32_t step1 = 0;
+            int32_t x1 = random(md) + 1;
+            int32_t x2 = random(md) + 1;
+            int32_t y1 = random(x1);
+            int32_t y2 = random(x2);
 
             while (step1 < MAX_STEP1)
             {
-                step2 = 0;
-                xv1 = random(5) - 2;
-                xv2 = random(5) - 2;
-                yv1 = random(5) - 2;
-                yv2 = random(5) - 2;
+                uint32_t step2 = 0;
+                const int32_t xv1 = random(5) - 2;
+                const int32_t xv2 = random(5) - 2;
+                const int32_t yv1 = random(5) - 2;
+                const int32_t yv2 = random(5) - 2;
 
                 while (step2 < MAX_STEP2)
                 {
-                    xa = (x1 << 2) / 3;
-                    xb = (x2 << 2) / 3;
-                    ya = (y1 << 2) / 3;
-                    yb = (y2 << 2) / 3;
+                    const int32_t xa = (x1 << 2) / 3;
+                    const int32_t xb = (x2 << 2) / 3;
+                    const int32_t ya = (y1 << 2) / 3;
+                    const int32_t yb = (y2 << 2) / 3;
 
                     drawLineBob(cx + xa, cy - y1, cx + xb, cy - y2);
                     drawLineBob(cx - ya, cy + x1, cx - yb, cy + x2);
@@ -9894,7 +9666,7 @@ namespace fastCircleFill {
 
     void makePalette(uint8_t n, uint8_t r, uint8_t g, uint8_t b)
     {
-        int16_t i;
+        int16_t i = 0;
         int16_t white = 10;
 
         for (i = 0; i <= 63 - white; i++)
@@ -9914,8 +9686,6 @@ namespace fastCircleFill {
 
     void run()
     {
-        uint32_t x, y, i, col;
-
         initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Fast Filled-Circle");
         makePalette(0, 63, 32, 16);
         makePalette(64, 32, 63, 16);
@@ -9924,10 +9694,10 @@ namespace fastCircleFill {
         setPalette(pal);
 
         do {
-            x = rand() % cmaxX;
-            y = rand() % cmaxY;
-            col = (rand() % 4) * MAX_RAD;
-            for (i = 0; i < MAX_RAD; i++) fillCircle(x + ((MAX_RAD - i) >> 1), y + ((MAX_RAD - i) >> 1), (MAX_RAD - i) << 1, i + col);
+            const uint32_t x = rand() % cmaxX;
+            const uint32_t y = rand() % cmaxY;
+            const uint32_t col = (rand() % 4) * MAX_RAD;
+            for (uint32_t i = 0; i < MAX_RAD; i++) fillCircle(x + ((MAX_RAD - i) >> 1), y + ((MAX_RAD - i) >> 1), (MAX_RAD - i) << 1, i + col);
             render();
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -9946,8 +9716,7 @@ namespace flagsEffect {
 
     void createCosTable()
     {
-        int16_t i;
-        for (i = 0; i < 256; i++) costab[i] = uint16_t(cos(i * M_PI / 64) * AMPLI);
+        for (int16_t i = 0; i < 256; i++) costab[i] = uint16_t(cos(i * M_PI / 64) * AMPLI);
     }
 
     void initTexture()
@@ -9959,11 +9728,9 @@ namespace flagsEffect {
 
     void putImage()
     {
-        int16_t x, y;
-
-        for (y = 0; y < IMAGE_MIDY; y++)
+        for (int16_t y = 0; y < IMAGE_MIDY; y++)
         {
-            for (x = 0; x < IMAGE_MIDX; x++)
+            for (int16_t x = 0; x < IMAGE_MIDX; x++)
             {
                 if (vbuff1[y][x] != 1) vbuff2[y][x] = vbuff1[y][x];
             }
@@ -9972,15 +9739,12 @@ namespace flagsEffect {
 
     void displayMap()
     {
-        int16_t x, y;
-        int16_t xpos, ypos;
-
-        for (y = 0; y < IMAGE_MIDY; y++)
+        for (int16_t y = 0; y < IMAGE_MIDY; y++)
         {
-            for (x = 0; x < IMAGE_MIDX; x++)
+            for (int16_t x = 0; x < IMAGE_MIDX; x++)
             {
-                xpos = (x << 1) + costab[(index + 125 * (x + y)) & 0xFF];
-                ypos = (y << 1) + costab[(index + 3 * x + 125 * y) & 0xFF];
+                const int16_t xpos = (x << 1) + costab[(index + 125 * (x + y)) & 0xFF];
+                const int16_t ypos = (y << 1) + costab[(index + 3 * x + 125 * y) & 0xFF];
                 if (xpos >= 0 && xpos <= MAX_WIDTH && ypos >= 0 && ypos <= MAX_HEIGHT) vbuff2[ypos][xpos] = vbuff1[y][x];
             }
         }
@@ -10014,7 +9778,7 @@ namespace flagsEffect2 {
 
     void run()
     {
-        int16_t i, j, x, y;
+        int16_t i = 0, j = 0;
         uint16_t wave = 0;
         uint8_t col = 0;
 
@@ -10060,8 +9824,8 @@ namespace flagsEffect2 {
                         else col = 15;
                     }
 
-                    x = 20 + sintab[(wave + (j + i) * CE) & 0xFF] + i * FX;
-                    y = 20 + sintab[(wave + j + i * CE) & 0xFF] + j * FY;
+                    const int16_t x = 20 + sintab[(wave + (j + i) * CE) & 0xFF] + i * FX;
+                    const int16_t y = 20 + sintab[(wave + j + i * CE) & 0xFF] + j * FY;
                     if (x >=0 && x <= MAX_WIDTH && y >= 0 && y <= MAX_HEIGHT) vmem[y][x] = col;
                     
                 }
@@ -10087,7 +9851,7 @@ namespace lakeEffect {
     
     void calcWater()
     {
-        int16_t i, val;
+        int16_t i = 0, val = 0;
 
         for (i = 1; i <= STARTY; i++)
         {
@@ -10102,10 +9866,9 @@ namespace lakeEffect {
 
     void run()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 400; i++) sintab[i] = uint8_t(sin(5 * M_PI * i / 100) * 3 + 3);
+        for (int16_t i = 0; i < 400; i++) sintab[i] = uint8_t(sin(5 * M_PI * i / 100) * 3 + 3);
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lake");
         loadPNG(vbuff[0], pal, "assets/palio.png");
@@ -10140,18 +9903,16 @@ namespace landScapeGeneration {
 
     void calcPlasma(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
     {
-        int16_t xn, yn, dxy, p1, p2, p3, p4;
-
         if (x2 - x1 < 2 && y2 - y1 < 2) return;
 
-        p1 = vbuff[y1][x1];
-        p2 = vbuff[y2][x1];
-        p3 = vbuff[y1][x2];
-        p4 = vbuff[y2][x2];
+        const int16_t p1 = vbuff[y1][x1];
+        const int16_t p2 = vbuff[y2][x1];
+        const int16_t p3 = vbuff[y1][x2];
+        const int16_t p4 = vbuff[y2][x2];
 
-        xn = (x2 + x1) >> 1;
-        yn = (y2 + y1) >> 1;
-        dxy = (x2 - x1 + y2 - y1) * 5 / 3;
+        const int16_t xn = (x2 + x1) >> 1;
+        const int16_t yn = (y2 + y1) >> 1;
+        const int16_t dxy = (x2 - x1 + y2 - y1) * 5 / 3;
 
         if (!vbuff[y1][xn]) vbuff[y1][xn] = getColor(p1 + p3, dxy, 2);
         if (!vbuff[yn][x1]) vbuff[yn][x1] = getColor(p1 + p2, dxy, 2);
@@ -10168,12 +9929,11 @@ namespace landScapeGeneration {
 
     void run()
     {
-        uint8_t i;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape-Generation");
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i != 64; i++)
         {
             pal[i].r = 0;
             pal[i].g = 0;
@@ -10215,7 +9975,7 @@ namespace landScapeEffect {
 
     void setPalette()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
 
         for (i = 0; i <= 15; i++)
@@ -10256,26 +10016,20 @@ namespace landScapeEffect {
 
     void adjust(int16_t xa, int16_t ya, int16_t x, int16_t y, int16_t xb, int16_t yb)
     {
-        uint8_t col;
-        int16_t dist;
-
         if (dbuff[y][x]) return;
 
-        dist = abs(xa - xb) + abs(ya - yb);
-        col = (50 * (dbuff[ya][xa] + dbuff[yb][xb]) + (10 * (1 + random(10)) / 11 - 5) * dist * ROUGH) / 100;
+        const int16_t dist = abs(xa - xb) + abs(ya - yb);
+        uint8_t col = (50 * (dbuff[ya][xa] + dbuff[yb][xb]) + (10 * (1 + random(10)) / 11 - 5) * dist * ROUGH) / 100;
         if (col > HMAX) col = HMAX;
         dbuff[y][x] = col;
     }
 
     void subDivide(int16_t l, int16_t t, int16_t r, int16_t b)
     {
-        uint8_t col;
-        int16_t x, y;
-
         if (r - l < 2 && b - t < 2) return;
 
-        x = (l + r) >> 1;
-        y = (t + b) >> 1;
+        const int16_t x = (l + r) >> 1;
+        const int16_t y = (t + b) >> 1;
 
         adjust(l, t, x, t, r, t);
         adjust(r, t, r, y, r, b);
@@ -10284,7 +10038,7 @@ namespace landScapeEffect {
 
         if (!dbuff[y][x])
         {
-            col = (dbuff[t][l] + dbuff[t][r] + dbuff[b][l] + dbuff[b][r]) >> 2;
+            uint8_t col = (dbuff[t][l] + dbuff[t][r] + dbuff[b][l] + dbuff[b][r]) >> 2;
             if (col > HMAX) col = HMAX;
             dbuff[y][x] = col;
         }
@@ -10297,7 +10051,6 @@ namespace landScapeEffect {
 
     void generateLandScape()
     {
-        int16_t i, j;
         FILE* fp = fopen("assets/land.map", "rb");
 
         if (fp) fread(dbuff, IMAGE_SIZE, 1, fp);
@@ -10314,9 +10067,9 @@ namespace landScapeEffect {
         fclose(fp);
         memcpy(vbuff, dbuff, IMAGE_SIZE);
 
-        for (i = 0; i < IMAGE_HEIGHT; i++)
+        for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
         {
-            for (j = 0; j < IMAGE_WIDTH; j++)
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
                 vbuff[i][j] = 110 + (vbuff[i][j] >> 1);
                 if (vbuff[i][j] < 115) vbuff[i][j] = 115;
@@ -10328,7 +10081,6 @@ namespace landScapeEffect {
 
     void showLandscape()
     {
-        int16_t x, n;
         int32_t i = 0, j = 0, lmb = 0;
         
         showMouseCursor(SDL_DISABLE);
@@ -10344,9 +10096,9 @@ namespace landScapeEffect {
             if (i > 214) i = 214;
             if (j > 160) j = 160;
             
-            for (n = 0; n < XMAX * YMAX; n++)
+            for (int16_t n = 0; n < XMAX * YMAX; n++)
             {
-                x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45) - 153;
+                const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45) - 153;
                 if (x > -313 && x < -3)
                 {
                     dbuff[DENT * (n / XMAX) - vbuff[n / XMAX + j][n % XMAX + i] + 202][x] = vbuff[n / XMAX + j][n % XMAX + i] - 100;
@@ -10379,43 +10131,38 @@ namespace lensEffect {
 
     void stretch2Lines(int16_t x1, int16_t x2, int16_t y1, int16_t y2, int16_t yr1, int16_t yw1, int16_t yr2, int16_t yw2)
     {
-        int16_t dx, dy, e, d;
-        int16_t dx2, sx, sy;
+        const int16_t dx = abs(x2 - x1);
+        const int16_t dy = abs(y2 - y1);
 
-        dx = abs(x2 - x1);
-        dy = abs(y2 - y1);
+        const int16_t sx = SIGN(x2 - x1);
+        const int16_t sy = SIGN(y2 - y1);
 
-        sx = SIGN(x2 - x1);
-        sy = SIGN(y2 - y1);
+        int16_t err = (dy << 1) - dx;
 
-        e = (dy << 1) - dx;
+        const int16_t dx2 = dx << 1;
+        const int16_t dy2 = dy << 1;
 
-        dx2 = dx << 1;
-        dy = dy << 1;
-
-        for (d = 0; d <= dx; d++)
+        for (int16_t d = 0; d <= dx; d++)
         {
             vbuff1[yw1][x1] = vbuff2[yr1][y1];
             vbuff1[yw2][x1] = vbuff2[yr2][y1];
 
-            while (e >= 0)
+            while (err >= 0)
             {
                 y1 += sy;
-                e -= dx2;
+                err -= dx2;
             }
 
             x1 += sx;
-            e += dy;
+            err += dy2;
         }
     }
 
     void circleStretch(int16_t x0, int16_t y0, int16_t xc, int16_t yc, int16_t r)
     {
-        int16_t p, x, y;
-
-        p = 3 - (r << 1);
-        x = 0;
-        y = r;
+        int16_t p = 3 - (r << 1);
+        int16_t x = 0;
+        int16_t y = r;
 
         while (x < y)
         {
@@ -10436,17 +10183,16 @@ namespace lensEffect {
     void run()
     {
         RGB pal[256] = { 0 };
-        int16_t x, y, xadd, yadd;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lens");
         loadPNG(vbuff2[0], pal, "assets/sunflow.png");
         setPalette(pal);
 
-        x = IMAGE_MIDX;
-        y = IMAGE_MIDY;
+        int16_t x = IMAGE_MIDX;
+        int16_t y = IMAGE_MIDY;
 
-        xadd = 1;
-        yadd = 1;
+        int16_t xadd = 1;
+        int16_t yadd = 1;
 
         do {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
@@ -10517,22 +10263,18 @@ namespace zoomInEffect {
 
     void calcMask()
     {
-        double z;
-        int16_t ux, uy;
-        int16_t x, y, sx, sy;
-
-        for (y = 0; y < D; y++)
+        for (int16_t y = 0; y < D; y++)
         {
-            for (x = 0; x < D; x++)
+            for (int16_t x = 0; x < D; x++)
             {
-                ux = x - (D >> 1);
-                uy = y - (D >> 1);
+                const int16_t ux = x - (D >> 1);
+                const int16_t uy = y - (D >> 1);
 
                 if (ux * ux + uy * uy < R * R)
                 {
-                    z = sqrt(double(R) * R - double(ux) * ux - double(uy) * uy);
-                    sx = int16_t((H - z) * (ux / z));
-                    sy = int16_t((H - z) * (uy / z));
+                    const double z = sqrt(double(R) * R - double(ux) * ux - double(uy) * uy);
+                    const int16_t sx = int16_t((H - z) * (ux / z));
+                    const int16_t sy = int16_t((H - z) * (uy / z));
                     lens[y][x] = sy * IMAGE_WIDTH + sx;
                 }
                 else lens[y][x] = 0;
@@ -10542,10 +10284,9 @@ namespace zoomInEffect {
 
     void putHand(uint8_t n, uint16_t x, uint16_t y)
     {
-        int16_t i, j;
-        for (i = 0; i < 17; i++)
+        for (int16_t i = 0; i < 17; i++)
         {
-            for (j = 0; j < 16; j++)
+            for (int16_t j = 0; j < 16; j++)
             {
                 switch (n)
                 {
@@ -10558,19 +10299,16 @@ namespace zoomInEffect {
 
     void construct(uint8_t n, uint16_t xp, uint16_t yp)
     {
-        int16_t ux, uy;
-        int16_t x, y, vp, hp;
-
         memcpy(vbuff2, vbuff1, IMAGE_SIZE);
 
-        for (y = 0; y < D; y++)
+        for (int16_t y = 0; y < D; y++)
         {
-            for (x = 0; x < D; x++)
+            for (int16_t x = 0; x < D; x++)
             {
-                ux = x - (D >> 1);
-                uy = y - (D >> 1);
-                vp = y + yp + lens[y][x] / IMAGE_WIDTH;
-                hp = x + xp + lens[y][x] % IMAGE_WIDTH;
+                const int16_t ux = x - (D >> 1);
+                const int16_t uy = y - (D >> 1);
+                const int16_t vp = y + yp + lens[y][x] / IMAGE_WIDTH;
+                const int16_t hp = x + xp + lens[y][x] % IMAGE_WIDTH;
                 if (vp < IMAGE_HEIGHT && vp > 0 && xp < IMAGE_WIDTH && xp > 0 && (R - 1) * (R - 1) > ux * ux + uy * uy) vbuff2[y + yp][x + xp] = vbuff1[vp][hp];
             }
         }
@@ -10581,7 +10319,6 @@ namespace zoomInEffect {
     void run()
     {
         RGB pal[256] = { 0 };
-        int32_t x, y, n, m, lmb;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-In -- Move your mouse, left click to exit...");
         loadPNG(vbuff1[0], pal, "assets/insect.png");
@@ -10591,7 +10328,8 @@ namespace zoomInEffect {
         setMousePosition(56 << 1, 32 << 1);
         showMouseCursor(SDL_DISABLE);
         
-        n = m = 0;
+        int32_t n = 0, m = 0;
+        int32_t x = 0, y = 0, lmb = 0;
 
         do {
             n++;
@@ -10630,16 +10368,14 @@ namespace zoomOutEffect {
 
     void calcMatrix()
     {
-        int16_t x, y, tx, ty, tz;
-
-        for (y = -32; y < 32; y++)
+        for (int16_t y = -32; y < 32; y++)
         {
-            for (x = -32; x < 32; x++)
+            for (int16_t x = -32; x < 32; x++)
             {
-                tz = int16_t(sqrt(4.0 * x * x + 4.0 * y * y));
+                int16_t tz = int16_t(sqrt(4.0 * x * x + 4.0 * y * y));
                 tz = ztab[tz >> 1];
-                tx = x * tz / 2300;
-                ty = y * tz / 2300;
+                const int16_t tx = x * tz / 2300;
+                const int16_t ty = y * tz / 2300;
                 xtab[y + 32][x + 32] = tx;
                 ytab[y + 32][x + 32] = ty;
             }
@@ -10648,12 +10384,11 @@ namespace zoomOutEffect {
 
     void preCalculate()
     {
-        int16_t i;
-        double v, vadd;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
 
-        v = 0.0;
-        vadd = M_PI / 128;
+        double v = 0.0;
+        const double vadd = M_PI / 128;
 
         for (i = 0; i < 256; i++)
         {
@@ -10698,8 +10433,8 @@ namespace zoomOutEffect {
             jnz     again
         }
 #else
-        int16_t i, u = y - 32, v = x - 32;
-        for (i = 0; i < 64; i++) memcpy(&vmem[u + i][v], &vbuff[u + i][v], 64);
+        int16_t u = y - 32, v = x - 32;
+        for (int16_t i = 0; i < 64; i++) memcpy(&vmem[u + i][v], &vbuff[u + i][v], 64);
 #endif
     }
 
@@ -10737,12 +10472,12 @@ namespace zoomOutEffect {
             jnz     again
         }
 #else
-        int16_t i, j, u = 0, v = 0;
+        int16_t u = 0, v = 0;
         int16_t m = y - 64, n = x - 64;
 
-        for (i = 0; i < 64; i++, v += 2, u = 0)
+        for (int16_t i = 0; i < 64; i++, v += 2, u = 0)
         {
-            for (j = 0; j < 64; j++)
+            for (int16_t j = 0; j < 64; j++)
             {
                 vmem[y + ytab[i][j]][x + xtab[i][j]] = vbuff[m + v][n + u];
                 u += 2;
@@ -10753,23 +10488,20 @@ namespace zoomOutEffect {
 
     void run()
     {
-        int16_t x, y, oldx, oldy;
-        uint16_t xpos, ypos, xadd, yadd;
-
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-Out");
         preCalculate();
 
-        oldx = 0;
-        oldy = 0;
-        xpos = 40;
-        ypos = 60;
-        xadd = 2;
-        yadd = 1;
+        int16_t oldx = 0;
+        int16_t oldy = 0;
+        uint16_t xpos = 40;
+        uint16_t ypos = 60;
+        const uint16_t xadd = 2;
+        const uint16_t yadd = 1;
 
         do {
             copyFromBuffer(oldx, oldy);
-            x = xpostab[xpos & 0xFF];
-            y = ypostab[ypos & 0xFF];
+            const int16_t x = xpostab[xpos & 0xFF];
+            const int16_t y = ypostab[ypos & 0xFF];
             printGlass(x, y);
             renderBuffer(vmem, IMAGE_SIZE);
             delay(FPS_60);
@@ -10796,18 +10528,15 @@ namespace lineBobEffect {
 
     void lineBob(uint32_t cnt)
     {
-        int32_t x1, y1, x2, y2;
-        int32_t dx1, dx2, dy1, dy2;
+        int32_t x1 = rand() % texWidth;
+        int32_t x2 = rand() % texWidth;
+        int32_t y1 = rand() % texHeight;
+        int32_t y2 = rand() % texHeight;
 
-        x1 = rand() % texWidth;
-        x2 = rand() % texWidth;
-        y1 = rand() % texHeight;
-        y2 = rand() % texHeight;
-
-        dx1 = 1;
-        dx2 = -1;
-        dy1 = 1;
-        dy2 = -1;
+        int32_t dx1 = 1;
+        int32_t dx2 = -1;
+        int32_t dy1 = 1;
+        int32_t dy2 = -1;
 
         while (!keyDown(SDL_SCANCODE_RETURN) && cnt < 2000U + random(4000))
         {
@@ -10833,17 +10562,15 @@ namespace lineBobEffect {
     void makeFunkyPalette()
     {
         RGB pal[256] = { 0 };
-        uint8_t ry, gy, by;
-        int16_t i, r, g, b, rx, gx, bx;
 
-        r = g = b = 0;
-        ry = gy = by = 1;
+        int16_t r = 0, g = 0, b = 0;
+        int16_t ry = 1, gy = 1, by = 1;
 
-        rx = (rand() % 5) + 1;
-        gx = (rand() % 5) + 1;
-        bx = (rand() % 5) + 1;
+        uint8_t rx = (rand() % 5) + 1;
+        uint8_t gx = (rand() % 5) + 1;
+        uint8_t bx = (rand() % 5) + 1;
 
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             pal[i].r = uint8_t(r);
             pal[i].g = uint8_t(g);
@@ -10912,7 +10639,7 @@ namespace lineBlurEffect {
 
     void setColors()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
 
         for (i = 0, j = 1; j < 256; i += 4, j++)
         {
@@ -11043,10 +10770,9 @@ namespace lineBlurEffect {
 
     void changeColor(int16_t k)
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             if (curpal[i].r < oldpal[k][i].r) curpal[i].r++;
             if (curpal[i].r > oldpal[k][i].r) curpal[i].r--;
@@ -11064,12 +10790,12 @@ namespace lineBlurEffect {
 
     void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t col)
     {
-        int16_t deltax = abs(x2 - x1);
-        int16_t deltay = abs(y2 - y1);
+        int16_t dx = abs(x2 - x1);
+        int16_t dy = abs(y2 - y1);
         int16_t x = x1;
         int16_t y = y1;
-        int16_t xinc1, xinc2, yinc1, yinc2;
-        int16_t den, num, numadd, numpixels, curpixel;
+        int16_t xinc1 = 0, xinc2 = 0, yinc1 = 0, yinc2 = 0;
+        int16_t den = 0, num = 0, numadd = 0, numpixels = 0, curpixel = 0;
 
         if (x2 >= x1)
         {
@@ -11093,23 +10819,23 @@ namespace lineBlurEffect {
             yinc2 = -1;
         }
 
-        if (deltax >= deltay)
+        if (dx >= dy)
         {
             xinc1 = 0;
             yinc2 = 0;
-            den = deltax;
-            num = deltax >> 1;
-            numadd = deltay;
-            numpixels = deltax;
+            den = dx;
+            num = dx >> 1;
+            numadd = dy;
+            numpixels = dx;
         }
         else
         {
             xinc2 = 0;
             yinc1 = 0;
-            den = deltay;
-            num = deltay >> 1;
-            numadd = deltax;
-            numpixels = deltay;
+            den = dy;
+            num = dy >> 1;
+            numadd = dx;
+            numpixels = dy;
         }
 
         for (curpixel = 0; curpixel < numpixels; curpixel++)
@@ -11129,10 +10855,6 @@ namespace lineBlurEffect {
 
     void run()
     {
-        int16_t y = 0, x = 0, var = 0;
-        int16_t rd1 = 0, rd2 = 0, rd3 = 0, rd4 = 0;
-        int16_t rd5 = 0, rd6 = 0, rd7 = 0, rd8 = 0;
-
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Line-Blur");
         setColors();
 
@@ -11144,14 +10866,15 @@ namespace lineBlurEffect {
         points.x1 = (rand() % (IMAGE_MIDX - 2)) + 1;
         points.y1 = (rand() % (IMAGE_MIDY - 2)) + 1;
 
-        rd1 = (rand() % 4) + 1;
-        rd2 = (rand() % 1) + 1;
-        rd3 = (rand() % 2) + 1;
-        rd4 = (rand() % 3) + 1;
-        rd5 = (rand() % 3) + 1;
-        rd6 = (rand() % 4) + 1;
-        rd7 = (rand() % 2) + 1;
-        rd8 = (rand() % 3) + 1;
+        int16_t var = 0;
+        int16_t rd1 = (rand() % 4) + 1;
+        int16_t rd2 = (rand() % 1) + 1;
+        int16_t rd3 = (rand() % 2) + 1;
+        int16_t rd4 = (rand() % 3) + 1;
+        int16_t rd5 = (rand() % 3) + 1;
+        int16_t rd6 = (rand() % 4) + 1;
+        int16_t rd7 = (rand() % 2) + 1;
+        int16_t rd8 = (rand() % 3) + 1;
 
         do {
             if (!flag) var = rand() % 6;
@@ -11219,9 +10942,9 @@ namespace lineBlurEffect {
                 drawLine(points.x0, points.y0, points.x1, points.y1, 245);
             }
 
-            for (y = 1; y < MAX_HEIGHT; y++)
+            for (int16_t y = 1; y < MAX_HEIGHT; y++)
             {
-                for (x = 0; x <= MAX_WIDTH; x++) vbuff[y][x] = (vbuff[y][x - 1] + vbuff[y][x + 1] + vbuff[y - 1][x] + vbuff[y + 1][x]) >> 2;
+                for (int16_t x = 0; x <= MAX_WIDTH; x++) vbuff[y][x] = (vbuff[y][x - 1] + vbuff[y][x + 1] + vbuff[y - 1][x] + vbuff[y + 1][x]) >> 2;
             }
 
             renderBuffer(vbuff, IMAGE_SIZE);
@@ -11261,19 +10984,17 @@ namespace mazeGeneration {
 
     void putMaze()
     {
-        uint8_t x, y;
-        for (y = Y1; y <= Y2; y++) for (x = X1; x <= X2; x++) drawField(x, y);
+        for (uint8_t y = Y1; y != Y2; y++) for (uint8_t x = X1; x != X2; x++) drawField(x, y);
     }
 
     void clearMaze()
     {
-        int16_t x, y;
-        for (y = Y1; y <= Y2; y++) for (x = X1; x <= X2; x++) maze[x][y] = 0;
+        for (int16_t y = Y1; y <= Y2; y++) for (int16_t x = X1; x <= X2; x++) maze[x][y] = 0;
     }
 
     void writeMaze()
     {
-        int16_t z;
+        int16_t z = 0;
 
         for (z = X1; z <= X2; z++)
         {
@@ -11290,12 +11011,11 @@ namespace mazeGeneration {
 
     uint8_t getPixel(uint8_t xc, uint8_t yc, int16_t xn, int16_t yn, int16_t xp, int16_t yp)
     {
-        int16_t x, y;
         uint8_t a = 0;
 
-        for (y = yc + yn; y <= yc + yp; y++)
+        for (int16_t y = yc + yn; y <= yc + yp; y++)
         {
-            for (x = xc + xn; x <= xc + xp; x++)
+            for (int16_t x = xc + xn; x <= xc + xp; x++)
             {
                 if (x >= X1 && x <= X2 && y >= Y1 && y <= Y2)
                 {
@@ -11396,11 +11116,9 @@ namespace mazeGeneration {
 
     void drawMaze()
     {
-        int16_t i, j;
-
-        for (i = 0; i < 32; i++)
+        for (int16_t i = 0; i < 32; i++)
         {
-            for (j = 0; j < 32; j++)
+            for (int16_t j = 0; j < 32; j++)
             {
                 if (maze[i][j] > 0)
                 {
@@ -11420,8 +11138,7 @@ namespace mazeGeneration {
 
     void run()
     {
-        FILE* fp;
-        int16_t i;
+        int16_t i = 0;
         int32_t keyCode = 0;
 
         loadFont("assets/sysfont.xfn", 0);
@@ -11454,7 +11171,7 @@ namespace mazeGeneration {
                 dbuff[i][33] = 10;
             }
 
-            fp = fopen("assets/maze.dat", "wb");
+            FILE *fp = fopen("assets/maze.dat", "wb");
             if (fp)
             {
                 fwrite(dbuff, sizeof(dbuff), 1, fp);
@@ -11496,14 +11213,12 @@ namespace pixelMorphing {
 
     void moveEmOut(int16_t num)
     {
-        int16_t i, x, y;
-
-        for (i = 0; i < num; i++)
+        for (int16_t i = 0; i < num; i++)
         {
             if (nextrow[i].active)
             {
-                x = nextrow[i].herex >> SJUMP;
-                y = nextrow[i].herey >> SJUMP;
+                int16_t x = nextrow[i].herex >> SJUMP;
+                int16_t y = nextrow[i].herey >> SJUMP;
                 vmem[y][x] = vbuff[y][x];
 
                 nextrow[i].herex -= nextrow[i].dy;
@@ -11532,15 +11247,14 @@ namespace pixelMorphing {
 
     void doPicture()
     {
-        int16_t i, j;
         uint16_t k = 0;
         uint8_t dbuff[80][80] = { 0 };
         memset(nextrow, 0, sizeof(nextrow));
         loadPNG(dbuff[0], NULL, "assets/boss.png");
 
-        for (j = 0; j < 80; j++)
+        for (int16_t j = 0; j < 80; j++)
         {
-            for (i = 0; i < 80; i++)
+            for (int16_t i = 0; i < 80; i++)
             {
                 if (dbuff[j][i])
                 {
@@ -11558,7 +11272,7 @@ namespace pixelMorphing {
             }
         }
 
-        for (i = 0; i < JUMP; i++) moveEmOut(k);
+        for (int16_t i = 0; i < JUMP; i++) moveEmOut(k);
     }
 
     void run()
@@ -11607,22 +11321,21 @@ namespace pierraEffect {
             loop    again
         }
 #else
-        int16_t i, j;
-        for (i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 0; j <= MAX_WIDTH; j++) vmem[i][j] = (vmem[i][j - 1] + vmem[i][j + 1] + vmem[i - 1][j] + vmem[i + 1][j]) >> 2;
+            for (int16_t j = 0; j <= MAX_WIDTH; j++) vmem[i][j] = (vmem[i][j - 1] + vmem[i][j + 1] + vmem[i - 1][j] + vmem[i + 1][j]) >> 2;
         }
 #endif
     }
 
     void plotLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t col)
     {
-        int16_t deltax = abs(x2 - x1);
-        int16_t deltay = abs(y2 - y1);
+        int16_t dx = abs(x2 - x1);
+        int16_t dy = abs(y2 - y1);
         int16_t x = x1;
         int16_t y = y1;
-        int16_t xinc1, xinc2, yinc1, yinc2;
-        int16_t den, num, numadd, numpixels, curpixel;
+        int16_t xinc1 = 0, xinc2 = 0, yinc1 = 0, yinc2 = 0;
+        int16_t den = 0, num = 0, numadd = 0, numpixels = 0, curpixel = 0;
 
         if (x2 >= x1)
         {
@@ -11646,23 +11359,23 @@ namespace pierraEffect {
             yinc2 = -1;
         }
 
-        if (deltax >= deltay)
+        if (dx >= dy)
         {
             xinc1 = 0;
             yinc2 = 0;
-            den = deltax;
-            num = deltax >> 1;
-            numadd = deltay;
-            numpixels = deltax;
+            den = dx;
+            num = dx >> 1;
+            numadd = dy;
+            numpixels = dx;
         }
         else
         {
             xinc2 = 0;
             yinc1 = 0;
-            den = deltay;
-            num = deltay >> 1;
-            numadd = deltax;
-            numpixels = deltay;
+            den = dy;
+            num = dy >> 1;
+            numadd = dx;
+            numpixels = dy;
         }
 
         for (curpixel = 0; curpixel < numpixels; curpixel++)
@@ -11682,14 +11395,13 @@ namespace pierraEffect {
 
     void pierra(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t num, int16_t ko)
     {
-        int16_t i, j, h, k, m;
-        double x, y, xx, yy, dx, dy;
+        int16_t i = 0, j = 0, h = 0, k = 0, m = 0;
 
-        x = (double)x1;
-        y = (double)y1;
+        double x = (double)x1;
+        double y = (double)y1;
 
-        dx = (double(x2) - x1) / num;
-        dy = (double(y2) - y1) / num;
+        const double dx = (double(x2) - x1) / num;
+        const double dy = (double(y2) - y1) / num;
 
         for (m = 1; m <= num; m++)
         {
@@ -11708,8 +11420,8 @@ namespace pierraEffect {
             y += dy;
             idx += 0.02;
 
-            xx = sinus[roundf(idx * 159) % 1000] * sinus[roundf(idx * 83 + 130) % 1000] * 140;
-            yy = sinus[roundf(idx * 97 + 153) % 1000] * sinus[roundf(idx * 107) % 1000] * 80;
+            const double xx = sinus[roundf(idx * 159) % 1000] * sinus[roundf(idx * 83 + 130) % 1000] * 140;
+            const double yy = sinus[roundf(idx * 97 + 153) % 1000] * sinus[roundf(idx * 107) % 1000] * 80;
 
             for (i = 158 + roundf(-xx); i <= 162 + roundf(-xx); i++)
             {
@@ -11749,7 +11461,7 @@ namespace pierraEffect {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
 
         idx = 0.0;
@@ -11823,7 +11535,7 @@ namespace plasmaEffect1 {
 
     void initPlasma()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
 
         for (i = 0; i <= 63; i++)
@@ -11850,7 +11562,7 @@ namespace plasmaEffect1 {
 
     void drawPlasma()
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
 
         for (x = 0; x < 256; x++)
         {
@@ -11888,9 +11600,7 @@ namespace plasmaEffect2 {
     
     void setColors()
     {
-        int16_t x;
-
-        for (x = 0; x < 64; x++)
+        for (int16_t x = 0; x < 64; x++)
         {
             pal[x      ].r = 63 << 2;
             pal[x      ].g = (63 - x) << 2;
@@ -11910,10 +11620,8 @@ namespace plasmaEffect2 {
 
     void pixelBob(int16_t* bobx, int16_t* boby)
     {
-        int16_t x, y, i;
-
-        x = rand() % 2;
-        y = rand() % 2;
+        int16_t x = rand() % 2;
+        int16_t y = rand() % 2;
 
         if (!x) (*bobx)++; else (*bobx)--;
         if (!y) (*boby)++; else (*boby)--;
@@ -11921,7 +11629,7 @@ namespace plasmaEffect2 {
         for (x = *bobx; x <= *bobx + 10; x++)
         {
             y = *boby;
-            for (i = 0; i < 10; i++)
+            for (int16_t i = 0; i < 10; i++)
             {
                 y++;
                 vmem[y][x]++;
@@ -11940,14 +11648,11 @@ namespace plasmaEffect2 {
 
     void run()
     {
-        int16_t x, y;
-        int16_t bob1x, bob1y;
-        int16_t bob2x, bob2y;
-
-        bob1x = 200;
-        bob1y = 70;
-        bob2x = 230;
-        bob2y = 130;
+        int16_t x = 0, y = 0;
+        int16_t bob1x = 200;
+        int16_t bob1y = 70;
+        int16_t bob2x = 230;
+        int16_t bob2y = 130;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Effect");
 
@@ -11977,8 +11682,7 @@ namespace plasmaEffect3 {
 
     void plasmaPalette()
     {
-        int16_t i;
-        for (i = 0; i <= 255; i++)
+        for (int16_t i = 0; i <= 255; i++)
         {
             pal[i].r = uint8_t(32 + 30 * sin(i * M_PI * 2 / 255));
             pal[i].g = uint8_t(32 + 30 * cos(i * M_PI * 2 / 255));
@@ -12010,14 +11714,12 @@ namespace plasmaEffect3 {
 
     void run()
     {
-        int16_t i, j;
-
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma");
         plasmaPalette();
 
-        for (i = 0; i < IMAGE_WIDTH; i++)
+        for (int16_t i = 0; i < IMAGE_WIDTH; i++)
         {
-            for (j = 0; j < IMAGE_HEIGHT; j++) putPixel(i, j, uint32_t(FN(i, j)));
+            for (int16_t j = 0; j < IMAGE_HEIGHT; j++) putPixel(i, j, uint32_t(FN(i, j)));
         }
 
         cyclePallete();
@@ -12031,32 +11733,29 @@ namespace plasmaEffect4 {
 
     void setupSinus()
     {
-        int16_t i;
-        double v = 0.0, vadd;
-
-        vadd = 2 * M_PI / 256;
-        for (i = 0; i < 256; i++) sintab[i] = uint8_t(sin(v + i * vadd) * 63 + 64);
+        const double v = 0.0;
+        const double vadd = 2 * M_PI / 256;
+        for (int16_t i = 0; i < 256; i++) sintab[i] = uint8_t(sin(v + i * vadd) * 63 + 64);
     }
 
     void setColors()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i != 64; i++)
         {
-            pal[i].r = uint8_t(i);
+            pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
-            pal[i + 64].r = uint8_t(63 - i);
+            pal[i + 64].r = 63 - i;
             pal[i + 64].g = 0;
             pal[i + 64].b = 0;
-            pal[i + 128].r = uint8_t(i);
+            pal[i + 128].r = i;
             pal[i + 128].g = 0;
-            pal[i + 128].b = uint8_t(i);
-            pal[i + 192].r = uint8_t(63 - i);
+            pal[i + 128].b = i;
+            pal[i + 192].r = 63 - i;
             pal[i + 192].g = 0;
-            pal[i + 192].b = uint8_t(63 - i);
+            pal[i + 192].b = 63 - i;
         }
 
         shiftPalette(pal);
@@ -12065,17 +11764,14 @@ namespace plasmaEffect4 {
 
     void showPlasma()
     {
-        int16_t i, j;
-        uint8_t dl, dh, v1, v2;
+        uint8_t v1 = p1;
+        uint8_t v2 = p2;
 
-        v1 = p1;
-        v2 = p2;
-
-        for (i = 0; i < IMAGE_HEIGHT; i++)
+        for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
         {
-            dl = sintab[v1];
-            dh = sintab[v2];
-            for (j = 0; j < IMAGE_WIDTH; j++)
+            uint8_t dl = sintab[v1];
+            uint8_t dh = sintab[v2];
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
                 vmem[i][j] = sintab[dl] + sintab[dh];
                 dl += 2;
@@ -12119,7 +11815,7 @@ namespace plasmaEffect5 {
 
     void makeCoolPalette()
     {
-        int16_t i;
+        int16_t i = 0;
         int16_t r = 0, g = 0, b = 0;
 
         for (i = 0; i < 64; i++)
@@ -12214,14 +11910,11 @@ namespace plasmaEffect5 {
 
     void drawSinCos()
     {
-        int16_t x, y;
-        uint8_t col;
-
-        for (x = 0; x < IMAGE_WIDTH; x++)
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
-            for (y = 0; y < IMAGE_HEIGHT; y++)
+            for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
             {
-                col = uint8_t((sin(x * KX * 0.5) * sin(y * KY * 0.5)) * (127.0 - 20.0) + 128);
+                const uint8_t col = uint8_t((sin(x * KX * 0.5) * sin(y * KY * 0.5)) * (127.0 - 20.0) + 128);
                 putPixel(x, y, col);
             }
         }
@@ -12230,14 +11923,11 @@ namespace plasmaEffect5 {
 
     void filterSinCos()
     {
-        int16_t x, y;
-        uint8_t col;
-
-        for (x = 0; x < IMAGE_WIDTH; x++)
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
-            for (y = 0; y < IMAGE_HEIGHT; y++)
+            for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
             {
-                col = getPixel(x, y);
+                uint8_t col = getPixel(x, y);
                 col += uint8_t((sin(x * KX * 10) * sin(y * KY * 10)) * 20);
                 putPixel(x, y, col);
             }
@@ -12276,34 +11966,28 @@ namespace rippleEffect {
 
     void preCalculate()
     {
-        int16_t x, y;
-        for (x = 0; x < IMAGE_MIDX; x++)
+        for (int16_t x = 0; x < IMAGE_MIDX; x++)
         {
-            for (y = 0; y < IMAGE_MIDY; y++) sqrtab[(y * 161 + x) << 1] = uint8_t(sqrt(double(x) * x + double(y) * y));
+            for (int16_t y = 0; y < IMAGE_MIDY; y++) sqrtab[(y * 161 + x) << 1] = uint8_t(sqrt(double(x) * x + double(y) * y));
         }
     }
 
     void updateWave()
     {
-        int16_t k;
         angle++;
-        for (k = 0; k < IMAGE_HEIGHT; k++) wave[k] = int16_t(AMPL * sin(M_PI * FREQ * (double(k) - angle) / 180));
+        for (int16_t k = 0; k < IMAGE_HEIGHT; k++) wave[k] = int16_t(AMPL * sin(M_PI * FREQ * (double(k) - angle) / 180));
     }
 
     void drawRipples()
     {
-        int16_t xx, yy, alt;
-        uint16_t x, y, dist;
-
-        for (y = 0; y < IMAGE_HEIGHT; y++)
+        for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
         {
-            for (x = 0; x < IMAGE_WIDTH; x++)
+            for (int16_t x = 0; x < IMAGE_WIDTH; x++)
             {
-                xx = abs(x - IMAGE_MIDX);
-                yy = abs(y - IMAGE_MIDY);
-
-                dist = sqrtab[(yy * 161 + xx) << 1];
-                alt = wave[dist];
+                int16_t xx = abs(x - IMAGE_MIDX);
+                int16_t yy = abs(y - IMAGE_MIDY);
+                const int16_t dist = sqrtab[(yy * 161 + xx) << 1];
+                const int16_t alt = wave[dist];
 
                 xx = x + alt;
                 yy = y + alt;
@@ -12372,10 +12056,10 @@ namespace rotateMap {
 
     void gouraudShader(TPoint2D* vertices, uint8_t* colors)
     {
-        uint8_t startCol, endCol;
-        int16_t miny = 0, maxy = 0, i, incSignCol, incCountCol, diffCol;
-        int16_t y, lineWidth, endVertex1, endVertex2, startVertex1, startVertex2;
-        int16_t xdiff1, xdiff2, ydiff1, ydiff2, x1, x2, diff1, diff2;
+        uint8_t startCol = 0, endCol = 0;
+        int16_t miny = 0, maxy = 0, i = 0, incSignCol = 0, incCountCol = 0, diffCol = 0;
+        int16_t y = 0, lineWidth = 0, endVertex1 = 0, endVertex2 = 0, startVertex1 = 0, startVertex2 = 0;
+        int16_t xdiff1 = 0, xdiff2 = 0, ydiff1 = 0, ydiff2 = 0, x1 = 0, x2 = 0, diff1 = 0, diff2 = 0;
         int16_t xcal1 = 0, xcal2 = 0, cal1 = 0, cal2 = 0;
 
         for (i = 0; i < 3; i++)
@@ -12478,17 +12162,17 @@ namespace rotateMap {
 
     int32_t compare(const void* a, const void* b)
     {
-        int16_t va = *(int16_t*)a;
-        int16_t vb = *(int16_t*)b;
+        const int16_t va = *(int16_t*)a;
+        const int16_t vb = *(int16_t*)b;
         return rotatedShape[va].z - rotatedShape[vb].z;
     }
 
     void rotateShape()
     {
-        double sinPhi = sin(phi);
-        double cosPhi = cos(phi);
-        double sinTheta = sin(theta);
-        double cosTheta = cos(theta);
+        const double sinPhi = sin(phi);
+        const double cosPhi = cos(phi);
+        const double sinTheta = sin(theta);
+        const double cosTheta = cos(theta);
 
         for (vertexCount = 0; vertexCount < vertices; vertexCount++)
         {
@@ -12548,25 +12232,23 @@ namespace rotateMap {
 
     void setupData()
     {
-        double dist, minDist;
-        double dx, dy, dz, alpha, beta, modulus, value, x, y, z;
-        int16_t i, j, idx1, idx2, rotation;
+        int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
-        for (alpha = 0, j = 0; j < SCALING_FACTOR2; j++, alpha += 2 * M_PI / SCALING_FACTOR2)
+        for (double alpha = 0, j = 0; j < SCALING_FACTOR2; j++, alpha += 2 * M_PI / SCALING_FACTOR2)
         {
-            x = RADIUS2 * cos(2 * alpha) + RADIUS1 * sin(alpha);
-            y = RADIUS2 * sin(2 * alpha) + RADIUS1 * cos(alpha);
-            z = RADIUS2 * cos(3 * alpha);
+            const double x = RADIUS2 * cos(2 * alpha) + RADIUS1 * sin(alpha);
+            const double y = RADIUS2 * sin(2 * alpha) + RADIUS1 * cos(alpha);
+            const double z = RADIUS2 * cos(3 * alpha);
 
-            dx = -2.0 * RADIUS2 * sin(2 * alpha) + RADIUS1 * cos(alpha);
-            dy = 2.0 * RADIUS2 * cos(2 * alpha) - RADIUS1 * sin(alpha);
-            dz = -3.0 * RADIUS2 * sin(3 * alpha);
+            const double dx = -2.0 * RADIUS2 * sin(2 * alpha) + RADIUS1 * cos(alpha);
+            const double dy = 2.0 * RADIUS2 * cos(2 * alpha) - RADIUS1 * sin(alpha);
+            const double dz = -3.0 * RADIUS2 * sin(3 * alpha);
 
-            value = sqrt(dx * dx + dz * dz);
-            modulus = sqrt(dx * dx + dy * dy + dz * dz);
+            const double value = sqrt(dx * dx + dz * dz);
+            const double modulus = sqrt(dx * dx + dy * dy + dz * dz);
 
-            for (beta = 0, i = 0; i < SCALING_FACTOR1; i++, beta += 2 * M_PI / SCALING_FACTOR1)
+            for (double beta = 0, i = 0; i < SCALING_FACTOR1; i++, beta += 2 * M_PI / SCALING_FACTOR1)
             {
                 shape[vertices].x = int16_t(x - RADIUS3 * (cos(beta) * dz - sin(beta) * dx * dy / modulus) / value);
                 shape[vertices].y = int16_t(y - RADIUS3 * sin(beta) * value / modulus);
@@ -12577,19 +12259,20 @@ namespace rotateMap {
 
         for (i = 0; i < SCALING_FACTOR2; i++)
         {
-            idx1 = i * SCALING_FACTOR1;
-            idx2 = idx1 + SCALING_FACTOR1;
+            int16_t idx1 = i * SCALING_FACTOR1;
+            int16_t idx2 = idx1 + SCALING_FACTOR1;
+
             idx2 %= vertices;
 
-            rotation = 0;
-            minDist = (double(shape[idx1].x) - shape[idx2].x) * (double(shape[idx1].x) - shape[idx2].x) + (double(shape[idx1].y) - shape[idx2].y) * (double(shape[idx1].y) - shape[idx2].y) + (double(shape[idx1].z) - shape[idx2].z) * (double(shape[idx1].z) - shape[idx2].z);
+            int16_t rotation = 0;
+            double minDist = (double(shape[idx1].x) - shape[idx2].x) * (double(shape[idx1].x) - shape[idx2].x) + (double(shape[idx1].y) - shape[idx2].y) * (double(shape[idx1].y) - shape[idx2].y) + (double(shape[idx1].z) - shape[idx2].z) * (double(shape[idx1].z) - shape[idx2].z);
 
             for (j = 1; j < SCALING_FACTOR1; j++)
             {
                 idx2 = j + idx1 + SCALING_FACTOR1;
                 if (i == SCALING_FACTOR2 - 1) idx2 = j;
 
-                dist = (double(shape[idx1].x) - shape[idx2].x) * (double(shape[idx1].x) - shape[idx2].x) + (double(shape[idx1].y) - shape[idx2].y) * (double(shape[idx1].y) - shape[idx2].y) + (double(shape[idx1].z) - shape[idx2].z) * (double(shape[idx1].z) - shape[idx2].z);
+                const double dist = (double(shape[idx1].x) - shape[idx2].x) * (double(shape[idx1].x) - shape[idx2].x) + (double(shape[idx1].y) - shape[idx2].y) * (double(shape[idx1].y) - shape[idx2].y) + (double(shape[idx1].z) - shape[idx2].z) * (double(shape[idx1].z) - shape[idx2].z);
 
                 if (dist < minDist)
                 {
@@ -12657,75 +12340,66 @@ namespace scaleMap {
 
     void stretch(int16_t x1, int16_t x2, int16_t y1, int16_t y2, int16_t yr, int16_t yw)
     {
-        int16_t dx, dy;
-        int16_t e, d, dx2;
-        int16_t sx, sy;
+        const int16_t dx = abs(x2 - x1);
+        const int16_t dy = abs(y2 - y1);
 
-        dx = abs(x2 - x1);
-        dy = abs(y2 - y1);
+        const int16_t sx = SIGN(x2 - x1);
+        const int16_t sy = SIGN(y2 - y1);
 
-        sx = SIGN(x2 - x1);
-        sy = SIGN(y2 - y1);
+        int16_t err = (dy << 1) - dx;
+        const int16_t dx2 = dx << 1;
+        const int16_t dy2 = dy << 1;
 
-        e = (dy << 1) - dx;
-        dx2 = dx << 1;
-        dy = dy << 1;
-
-        for (d = 0; d < dx; d++)
+        for (int16_t d = 0; d < dx; d++)
         {
             vbuff1[yw][x1] = vbuff2[yr][y1];
-            while (e >= 0)
+            while (err >= 0)
             {
                 y1 += sy;
-                e -= dx2;
+                err -= dx2;
             }
 
             x1 += sx;
-            e += dy;
+            err += dy2;
         }
     }
 
     void rectStretch(int16_t xs1, int16_t ys1, int16_t xs2, int16_t ys2, int16_t xd1, int16_t yd1, int16_t xd2, int16_t yd2)
     {
-        int16_t dx, dy;
-        int16_t e, d, dx2;
-        int16_t sx, sy;
+        const int16_t dx = abs(yd2 - yd1);
+        const int16_t dy = abs(ys2 - ys1);
 
-        dx = abs(yd2 - yd1);
-        dy = abs(ys2 - ys1);
+        const int16_t sx = SIGN(yd2 - yd1);
+        const int16_t sy = SIGN(ys2 - ys1);
 
-        sx = SIGN(yd2 - yd1);
-        sy = SIGN(ys2 - ys1);
+        int16_t err = (dy << 1) - dx;
+        const int16_t dx2 = dx << 1;
+        const int16_t dy2 = dy << 1;
 
-        e = (dy << 1) - dx;
-        dx2 = dx << 1;
-        dy = dy << 1;
-
-        for (d = 0; d < dx; d++)
+        for (int16_t d = 0; d < dx; d++)
         {
             stretch(xd1, xd2, xs1, xs2, ys1, yd1);
 
-            while (e >= 0)
+            while (err >= 0)
             {
                 ys1 += sy;
-                e -= dx2;
+                err -= dx2;
             }
 
             yd1 += sx;
-            e += dy;
+            err += dy2;
         }
     }
 
     void runStretch1()
     {
-        int16_t x, y;
         int16_t z = 114;
         int16_t zadd = -2;
 
         do {
             z += zadd;
-            x = (16 << 8) / z;
-            y = (10 << 8) / z;
+            const int16_t x = (16 << 8) / z;
+            const int16_t y = (10 << 8) / z;
 
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, IMAGE_MIDX - (x >> 1), IMAGE_MIDY - (y >> 1), IMAGE_MIDX - (x >> 1) + x, IMAGE_MIDY - (y >> 1) + y);
@@ -12743,30 +12417,27 @@ namespace scaleMap {
         int16_t dir = 3;
         int16_t vx1 = 10;
 
-        int16_t vy1, vx2, vy2;
-        int16_t x1, y1, x2, y2;
-
         do {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             if (vx1 < -50 || vx1 > 260) dir = -dir;
 
-            vy1 = 25 + sintab[i & 0xFF];
-            vy2 = vy1 + IMAGE_MIDY;
+            const int16_t vy1 = 25 + sintab[i & 0xFF];
+            const int16_t vy2 = vy1 + IMAGE_MIDY;
             i += 4;
 
             if (vy2 < IMAGE_HEIGHT) vx1 += dir;
 
-            vx2 = vx1 + IMAGE_MIDY;
-            x1 = vx1;
+            const int16_t vx2 = vx1 + IMAGE_MIDY;
+            int16_t x1 = vx1;
             if (x1 < 0) x1 = 0;
 
-            y1 = vy1;
+            int16_t y1 = vy1;
             if (y1 < 0) y1 = 0;
 
-            x2 = vx2;
+            int16_t x2 = vx2;
             if (x2 > MAX_WIDTH) x2 = MAX_WIDTH;
 
-            y2 = vy2;
+            int16_t y2 = vy2;
             if (y2 > MAX_HEIGHT) y2 = MAX_HEIGHT;
 
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, x1, y1, x2, y2);
@@ -12795,10 +12466,9 @@ namespace scaleMap {
 
     void run()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 256; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             costab[i] = int16_t(cos(2 * M_PI * i / 255) * 50);
             sintab[i] = int16_t(sin(2 * M_PI * i / 255) * 60 + 80);
@@ -12858,20 +12528,18 @@ namespace shadeBob {
             jnz     again
         }
 #else
-        int16_t a, b;
-        for (a = 0; a < gh; a++)
+        for (int16_t a = 0; a < gh; a++)
         {
-            for (b = 0; b < gw; b++) vmem[y + a][x + b] += col;
+            for (int16_t b = 0; b < gw; b++) vmem[y + a][x + b] += col;
         }
 #endif
     }
 
     void makePalette()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 64; i++)
+        for (int16_t i = 0; i < 64; i++)
         {
             pal[i      ].r = i << 2;
             pal[32 + i ].g = i << 2;
@@ -12887,22 +12555,22 @@ namespace shadeBob {
 
     void run()
     {
-        int16_t i = 0, w = 0, h = 0, an = 400;
-        int16_t xp = 0, xr = 0, yp = 0, yr = 0;
-        
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
         loadPNG(vbuff[0], NULL, "assets/killer.png");
         makePalette();
 
+        const int16_t an = 400;
         gh = random(60) + 40;
         gw = random(120) + 40;
-        w = IMAGE_WIDTH - gw;
-        h = IMAGE_HEIGHT - gh;
+        const int16_t w = IMAGE_WIDTH - gw;
+        const int16_t h = IMAGE_HEIGHT - gh;
 
         do {
             memcpy(vmem, vbuff, IMAGE_SIZE);
-            xp = random(w - 4) + 2;
-            yp = random(h - 4) + 2;
+
+            int16_t xr = 0, yr = 0;
+            int16_t xp = random(w - 4) + 2;
+            int16_t yp = random(h - 4) + 2;
 
             do
             {
@@ -12911,7 +12579,7 @@ namespace shadeBob {
                 col = random(5) - 2;
             } while (!xr && !yr && !col);
 
-            for (i = 0; i < an; i++)
+            for (int16_t i = 0; i < an; i++)
             {
                 xp += xr;
                 yp += yr;
@@ -12949,32 +12617,29 @@ namespace shadePattern {
 
     void initBrush()
     {
-        int16_t a, b, c;
-
-        for (c = 0; c < 30; c++)
-            for (b = c; b < 30 - c; b++)
-                for (a = c; a < 30 - c; a++) brush[a][b] = c << 2;
+        for (int16_t c = 0; c < 30; c++)
+            for (int16_t b = c; b < 30 - c; b++)
+                for (int16_t a = c; a < 30 - c; a++) brush[a][b] = c << 2;
     }
 
     void generatePalette()
     {
-        int16_t i;
         RGB pal[256] = { 0 };
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i != 64; i++)
         {
-            pal[i].r = uint8_t(i);
+            pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
             pal[i + 64].r = 63;
-            pal[i + 64].g = uint8_t(i);
+            pal[i + 64].g = i;
             pal[i + 64].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
             pal[i + 128].b = 0;
             pal[i + 192].r = 63;
             pal[i + 192].g = 63;
-            pal[i + 192].b = uint8_t(i);
+            pal[i + 192].b = i;
         }
 
         shiftPalette(pal);
@@ -12983,13 +12648,11 @@ namespace shadePattern {
 
     void drawShadeBob(uint16_t xp, uint16_t yp)
     {
-        int16_t a, b, c;
-
-        for (b = 0; b < 30; b++)
+        for (int16_t b = 0; b < 30; b++)
         {
-            for (a = 0; a < 30; a++)
+            for (int16_t a = 0; a < 30; a++)
             {
-                c = vbuff[yp + b - 10][xp + a - 10] + brush[a][b] + (vmem[yp + b - 10][xp + a - 10] >> 2);
+                int16_t c = vbuff[yp + b - 10][xp + a - 10] + brush[a][b] + (vmem[yp + b - 10][xp + a - 10] >> 2);
                 if (c > 255) c = 255;
                 vmem[yp + b - 10][xp + a - 10] = uint8_t(c);
             }
@@ -13089,26 +12752,22 @@ namespace shadeBobSin {
 
     void outDraw()
     {
-        uint8_t p;
-        int16_t x, y, i, j;
-        double sinx, cosx;
+        const double sinx = sin(alpha);
+        const double cosx = cos(alpha);
 
-        sinx = sin(alpha);
-        cosx = cos(alpha);
-
-        x = int16_t(orgx + rx * cosx * cosx * sinx * sinx * cosx);
-        y = int16_t(orgy + ry * sinx * sinx * sinx * cosx * cosx);
+        const int16_t x = int16_t(orgx + rx * cosx * cosx * sinx * sinx * cosx);
+        const int16_t y = int16_t(orgy + ry * sinx * sinx * sinx * cosx * cosx);
 
         ux[reg] = x;
         uy[reg] = y;
 
-        for (i = y - 5; i <= y + 5; i++)
+        for (int16_t i = y - 5; i <= y + 5; i++)
         {
-            for (j = x - 5; j <= x + 5; j++)
+            for (int16_t j = x - 5; j <= x + 5; j++)
             {
                 if (range(j, i))
                 {
-                    p = vbuff[i][j];
+                    const uint8_t p = vbuff[i][j];
                     if (p < 250) vbuff[i][j] = p + 4;
                 }
             }
@@ -13117,8 +12776,7 @@ namespace shadeBobSin {
 
     void inDraw()
     {
-        uint8_t p;
-        int16_t i, j, x, y;
+        int16_t x = 0, y = 0;
 
         if (reg >= 999)
         {
@@ -13131,13 +12789,13 @@ namespace shadeBobSin {
             y = uy[reg + 1];
         }
 
-        for (i = y - 2; i <= y + 2; i++)
+        for (int16_t i = y - 2; i <= y + 2; i++)
         {
-            for (j = x - 2; j <= x + 2; j++)
+            for (int16_t j = x - 2; j <= x + 2; j++)
             {
                 if (range(j, i))
                 {
-                    p = vbuff[i][j];
+                    const uint8_t p = vbuff[i][j];
                     if (p > 10 && p < 254) vbuff[i][j] = p - 10;
                 }
             }
@@ -13146,7 +12804,7 @@ namespace shadeBobSin {
 
     void run()
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
@@ -13216,12 +12874,10 @@ namespace snowFall {
 
     void updateFlakes()
     {
-        int16_t i, x, y;
-
-        for (i = 0; i < actflk; i++)
+        for (int16_t i = 0; i < actflk; i++)
         {
-            x = xflake[i];
-            y = yflake[i];
+            int16_t x = xflake[i];
+            int16_t y = yflake[i];
 
             if (!vmem[y][x - 1] || !vmem[y][x] || !vmem[y][x + 1])
             {
@@ -13697,8 +13353,8 @@ namespace softFire {
 
     void run()
     {
-        uint8_t i, j, k;
         RGB pal[256] = { 0 };
+        uint8_t i = 0, j = 0, k = 0;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Soft-Fire -- Keys: A/S: +/- fires");
 
@@ -13874,14 +13530,11 @@ namespace spriteEffect {
         done:
         }
 #else
-        uint8_t col;
-        int16_t i, j;
-
-        for (i = 0; i < H; i++)
+        for (int16_t i = 0; i < H; i++)
         {
-            for (j = 0; j < W; j++)
+            for (int16_t j = 0; j < W; j++)
             {
-                col = frames[k][i][j];
+                const uint8_t col = frames[k][i][j];
                 if (col != B) vbuff1[y + i][x + j] = frames[k][i][j];
             }
         }
@@ -13912,8 +13565,7 @@ namespace spriteEffect {
             jnz     plot
         }
 #else
-        int16_t h;
-        for (h = 0; h < H; h++) memcpy(&vbuff1[y + h][x], &vbuff2[y + h][x], W);
+        for (int16_t h = 0; h < H; h++) memcpy(&vbuff1[y + h][x], &vbuff2[y + h][x], W);
 #endif
     }
 
@@ -13952,7 +13604,7 @@ namespace spriteEffect {
 
     void jumpBubmio()
     {
-        int16_t i;
+        int16_t i = 0;
 
         newBubmio();
 
@@ -13996,7 +13648,7 @@ namespace spriteEffect {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
         RGB pal[256] = { 0 };
         RGB tmp[256] = { 0 };
         
@@ -14078,7 +13730,7 @@ namespace starEffect {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Stars");
         
@@ -14133,9 +13785,7 @@ namespace star2dEffect {
 
     void createStar()
     {
-        int16_t i;
-
-        for (i = 0; i < MAXSTARS; i++)
+        for (int16_t i = 0; i < MAXSTARS; i++)
         {
             starx[i] = random(IMAGE_WIDTH);
             stary[i] = random(IMAGE_HEIGHT);
@@ -14146,8 +13796,7 @@ namespace star2dEffect {
 
     void moveStar()
     {
-        int16_t i;
-        for (i = 0; i < MAXSTARS; i++)
+        for (int16_t i = 0; i < MAXSTARS; i++)
         {
             if (vmem[stary[i]][starx[i]] == 100) vmem[stary[i]][starx[i]] = 0;
             else
@@ -14195,9 +13844,7 @@ namespace star3dEffect {
 
     void initStars()
     {
-        int16_t i;
-
-        for (i = 0; i < 1000; i++)
+        for (int16_t i = 0; i < 1000; i++)
         {
             do
             {
@@ -14210,9 +13857,7 @@ namespace star3dEffect {
 
     void calcStars()
     {
-        int16_t i;
-
-        for (i = 0; i < 1000; i++)
+        for (int16_t i = 0; i < 1000; i++)
         {
             pos[i].x = ((stars[i].x << density) / stars[i].z) + xofs;
             pos[i].y = ((stars[i].y << density) / stars[i].z) + yofs;
@@ -14221,9 +13866,7 @@ namespace star3dEffect {
 
     void drawStars()
     {
-        int16_t i;
-
-        for (i = 0; i < 1000; i++)
+        for (int16_t i = 0; i < 1000; i++)
         {
             if (pos[i].x > 0 && pos[i].x < IMAGE_WIDTH && pos[i].y > 0 && pos[i].y < IMAGE_HEIGHT)
             {
@@ -14237,9 +13880,7 @@ namespace star3dEffect {
 
     void clearStars()
     {
-        int16_t i;
-
-        for (i = 0; i < 1000; i++)
+        for (int16_t i = 0; i < 1000; i++)
         {
             if (pos[i].x > 0 && pos[i].x < IMAGE_WIDTH && pos[i].y > 0 && pos[i].y < IMAGE_HEIGHT) putPixel(pos[i].x, pos[i].y, 0);
         }
@@ -14247,9 +13888,7 @@ namespace star3dEffect {
 
     void moveStars(uint8_t dir)
     {
-        int16_t i;
-
-        for (i = 0; i < 1000; i++)
+        for (int16_t i = 0; i < 1000; i++)
         {
             if (dir)
             {
@@ -14338,8 +13977,8 @@ namespace fontEffect1 {
 
     void loadFont(const char* fname)
     {
-        int8_t ch;
-        uint8_t tx, ty;
+        int8_t ch = 0;
+        uint8_t tx = 0, ty = 0;
         uint8_t pal[768] = { 0 };
         RGB rgb[256] = { 0 };
 
@@ -14370,16 +14009,14 @@ namespace fontEffect1 {
 
     void putChar(int16_t dx, int16_t dy, int8_t ch)
     {
-        uint8_t c, x, y, i, j;
+        const uint8_t x = chrinfo[ch - 32][0];
+        const uint8_t y = chrinfo[ch - 32][1];
 
-        x = chrinfo[ch - 32][0];
-        y = chrinfo[ch - 32][1];
-
-        for (j = 0; j < y; j++)
+        for (uint8_t j = 0; j < y; j++)
         {
-            for (i = 0; i < x; i++)
+            for (uint8_t i = 0; i < x; i++)
             {
-                c = *(chars[ch - 32] + j * x + i);
+                const uint8_t c = *(chars[ch - 32] + j * x + i);
                 if (c > 0) vmem[dy + j][dx + i] = c;
             }
         }
@@ -14387,8 +14024,7 @@ namespace fontEffect1 {
 
     void writeXY(int16_t x, int16_t y, const char* str)
     {
-        int16_t i;
-        for (i = 0; i < int16_t(strlen(str)); i++)
+        for (int16_t i = 0; i < int16_t(strlen(str)); i++)
         {
             if (str[i] >= 32 && str[i] <= 93)
             {
@@ -14404,8 +14040,7 @@ namespace fontEffect1 {
 
     void freeMem()
     {
-        int16_t i;
-        for (i = 0; i < 64; i++)
+        for (int16_t i = 0; i < 64; i++)
         {
             if (chrinfo[i][2])
             {
@@ -14445,21 +14080,20 @@ namespace fontEffect2 {
 
     void calcPos()
     {
-        int16_t x;
-        for (x = 0; x < IMAGE_WIDTH; x++) ypos[x] = sint1[(x + index) % 230] + sint2[x % 115];
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++) ypos[x] = sint1[(x + index) % 230] + sint2[x % 115];
     }
 
     void calcSin()
     {
-        int16_t i;
+        int16_t i = 0;
         for (i = 0; i < 230; i++) sint1[i] = uint8_t(sin(2 * M_PI * i / 230) * 20 + 20);
         for (i = 0; i < 115; i++) sint2[i] = uint8_t(sin(2 * M_PI * i / 115) * 3 + 3);
     }
 
     void loadFont(const char* fname)
     {
-        int8_t chr;
-        uint8_t w, h;
+        int8_t chr = 0;
+        uint8_t w = 0, h = 0;
         uint8_t pal[768] = { 0 };
         RGB rgb[256] = { 0 };
 
@@ -14490,13 +14124,10 @@ namespace fontEffect2 {
 
     void drawBitmap(uint8_t* map)
     {
-        uint16_t y;
-        int16_t i, j;
-        
-        for (i = 0; i < IMAGE_WIDTH; i++)
+        for (int16_t i = 0; i < IMAGE_WIDTH; i++)
         {
-            y = 0;
-            for (j = 0; j < 60; j++)
+            uint16_t y = 0;
+            for (int16_t j = 0; j < 60; j++)
             {
                 vmem[ypos[i] + j][i] = map[y + i];
                 y += IMAGE_WIDTH;
@@ -14506,8 +14137,7 @@ namespace fontEffect2 {
 
     void freeMem()
     {
-        int16_t i;
-        for (i = 0; i < 64; i++)
+        for (int16_t i = 0; i < 64; i++)
         {
             if (chrinfo[i][2])
             {
@@ -14519,7 +14149,7 @@ namespace fontEffect2 {
 
     void newRows(int8_t chr, uint8_t row, int16_t pos)
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
 
         if (chrinfo[chr - 32][2] != 1) return;
 
@@ -14589,13 +14219,12 @@ namespace fontEffect3 {
 
     void calcSin()
     {
-        int16_t i;
-        for (i = 0; i < 256; i++) sintab[i] = uint8_t(sin(15 * M_PI * i / 755) * 24 + 70);
+        for (int16_t i = 0; i < 256; i++) sintab[i] = uint8_t(sin(15 * M_PI * i / 755) * 24 + 70);
     }
 
     void loadFont(const char* fname)
     {
-        uint8_t width, height, chr;
+        uint8_t width = 0, height = 0, chr = 0;
         uint8_t pal[768] = { 0 };
         RGB rgb[256] = { 0 };
 
@@ -14625,8 +14254,7 @@ namespace fontEffect3 {
 
     void freeMem()
     {
-        int16_t i;
-        for (i = 0; i < 64; i++)
+        for (int16_t i = 0; i < 64; i++)
         {
             if (chrinfo[i][2])
             {
@@ -14638,7 +14266,7 @@ namespace fontEffect3 {
 
     void newRows(uint8_t chr, uint8_t row, int16_t pos)
     {
-        int16_t height, i;
+        int16_t height = 0, i = 0;
         if (chrinfo[chr - 32][2] != 1) return;
 
         i = (30 - chrinfo[chr - 32][1]) >> 1;
@@ -14704,13 +14332,13 @@ namespace thunderBoltEffect {
 
     void addItem(int16_t x, int16_t y, uint8_t item)
     {
-        uint8_t col = vmem[y][x];
+        const uint8_t col = vmem[y][x];
         if (col < item) vmem[y][x] = item;
     }
 
     void processItem(int16_t x, int16_t y, int16_t ints, int16_t dx)
     {
-        int16_t part, dy;
+        int16_t part = 0, dy = 0;
 
         while (ints > 0 && y < MAX_HEIGHT && x > 0 && x < MAX_WIDTH)
         {
@@ -14757,7 +14385,7 @@ namespace thunderBoltEffect {
 
     void flashPalette(RGB* pal)
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
         RGB flash[256] = { 0 };
 
         memcpy(flash, pal, 256 * sizeof(RGB));
@@ -14806,21 +14434,20 @@ namespace thunderBoltEffect {
 
     void run()
     {
-        int16_t i;
         RGB dst[256] = { 0 };
         RGB src[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Thunder-Bold");
 
-        for (i = 0; i < 64; i++)
+        for (uint8_t i = 0; i != 64; i++)
         {
             dst[i].r = 0;
             dst[i].g = 0;
-            dst[i].b = uint8_t(i);
+            dst[i].b = i;
             dst[i + 64].r = 0;
-            dst[i + 64].g = uint8_t(i);
+            dst[i + 64].g = i;
             dst[i + 64].b = 63;
-            dst[i + 128].r = uint8_t(i);
+            dst[i + 128].r = i;
             dst[i + 128].g = 63;
             dst[i + 128].b = 63;
             dst[i + 192].r = 63;
@@ -14835,7 +14462,7 @@ namespace thunderBoltEffect {
 }
 
 namespace scrollingEffect {
-    typedef uint8_t TChar[16];
+    typedef uint8_t TCHAR[16];
 
     const uint8_t bitMask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
     const char* scrolledText = "I LOVE DEMO, GRAPHICS, BITMAP, SUPER VESA ! ";
@@ -14843,7 +14470,7 @@ namespace scrollingEffect {
     uint16_t    sintab[IMAGE_WIDTH] = { 0 };
     uint8_t     chrtab[IMAGE_WIDTH] = { 0 };
     uint8_t     coltab[IMAGE_WIDTH] = { 0 };
-    TChar       tbuff[SIZE_256] = { 0 };
+    TCHAR       tbuff[SIZE_256] = { 0 };
     uint8_t     vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t     vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
@@ -14857,9 +14484,7 @@ namespace scrollingEffect {
 
     void calcSin()
     {
-        int16_t x;
-
-        for (x = 0; x < IMAGE_WIDTH; x++)
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
             sintab[x] = uint16_t(sin(5 * M_PI * x / IMAGE_WIDTH) * 22 + 22);
             if (cos(5 * M_PI * x / IMAGE_WIDTH) <= 0) coltab[x] = 15;
@@ -14869,8 +14494,6 @@ namespace scrollingEffect {
 
     void scrollText()
     {
-        uint8_t chr;
-        int16_t x, i, k;
         uint16_t pos = 0;
         
         do {
@@ -14878,19 +14501,19 @@ namespace scrollingEffect {
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
 
-            chr = scrolledText[pos];
-            for (i = 0; i < 16; i++)
+            const uint8_t chr = scrolledText[pos];
+            for (int16_t i = 0; i < 16; i++)
             {
                 readKeys();
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 if (keyDown(SDL_SCANCODE_RETURN)) break;
 
-                for (x = 0; x < MAX_WIDTH; x++) chrtab[x] = chrtab[x + 1];
+                for (int16_t x = 0; x < MAX_WIDTH; x++) chrtab[x] = chrtab[x + 1];
                 chrtab[MAX_WIDTH] = tbuff[chr][i];
 
-                for (x = 0; x < IMAGE_WIDTH - 8; x++)
+                for (int16_t x = 0; x < IMAGE_WIDTH - 8; x++)
                 {
-                    for (k = 0; k < 8; k++)
+                    for (int16_t k = 0; k < 8; k++)
                     {
                         if (chrtab[x] & bitMask[k]) vmem[80 - sintab[x]][x + k] = coltab[x];
                         else vmem[80 - sintab[x]][x + k] = vbuff[80 - sintab[x]][x + k];
@@ -14954,29 +14577,25 @@ namespace voxelEffect {
             loop    next
         }
 #else
-        uint16_t i;
-        for (i = 0; i < len; i++) vbuff[y + i][x] = col;
+        for (uint16_t i = 0; i < len; i++) vbuff[y + i][x] = col;
 #endif
     }
 
     void ray(int16_t a, uint16_t dx, uint16_t dy, int16_t sx)
     {
-        int16_t miny, h, y;
-        int16_t delx, dely, dt;
+        const int16_t delx = costab[a];
+        const int16_t dely = sintab[a];
 
-        delx = costab[a];
-        dely = sintab[a];
-
-        dt = 0;
-        miny = IMAGE_HEIGHT;
+        int16_t dt = 0;
+        int16_t miny = IMAGE_HEIGHT;
 
         do {
             dx += delx;
             dy += dely;
             dt++;
 
-            h = hmap[dy >> 8][dx >> 8] - height;
-            y = dcomp[dt - 1] - (h << 5) / dt + dst;
+            const int16_t h = hmap[dy >> 8][dx >> 8] - height;
+            const int16_t y = dcomp[dt - 1] - (h << 5) / dt + dst;
 
             if (y < miny && y >= 0)
             {
@@ -14988,11 +14607,9 @@ namespace voxelEffect {
 
     void drawView()
     {
-        int16_t a, i;
-
-        for (i = 0; i < IMAGE_WIDTH; i++)
+        for (int16_t i = 0; i < IMAGE_WIDTH; i++)
         {
-            a = (angle + i + 1888) & 0x7FF;
+            const int16_t a = (angle + i + 1888) & 0x7FF;
             ray(a, x, y, i);
         }
     }
@@ -15008,7 +14625,7 @@ namespace voxelEffect {
 
     void initTables()
     {
-        int16_t i;
+        int16_t i = 0;
         for (i = 0; i < 2048; i++)
         {
             costab[i] = int16_t(cos(i * M_PI / 1024) * 256);
@@ -15072,10 +14689,9 @@ namespace rippleEffect2 {
 
     void generateLand()
     {
-        int16_t i, j;
-        for (i = 0; i < 32; i++)
+        for (int16_t i = 0; i < 32; i++)
         {
-            for (j = 0; j < IMAGE_MIDX; j++)
+            for (int16_t j = 0; j < IMAGE_MIDX; j++)
             {
                 lb[i][j] = uint8_t(sqrt((double(i) * i / S31) + (double(j) * j / S159)) * 127);
                 if (lb[i][j] > 127) lb[i][j] = 127;
@@ -15085,17 +14701,14 @@ namespace rippleEffect2 {
 
     void generateWav()
     {
-        int16_t i, j;
-        double r, d, v, a;
-
-        for (j = 0; j < 64; j++)
+        for (int16_t j = 0; j < 64; j++)
         {
-            for (i = 0; i < 128; i++)
+            for (int16_t i = 0; i < 128; i++)
             {
-                r = 5 * M_PI * (i + 1.0) / IMAGE_WIDTH;
-                d = j * M_PI / 32;
-                v = ((sin(r - d) - sin(-d)) / r) - (cos(r - d) / 2);
-                a = cos(i * M_PI / 256);
+                const double r = 5 * M_PI * (i + 1.0) / IMAGE_WIDTH;
+                const double d = j * M_PI / 32;
+                const double v = ((sin(r - d) - sin(-d)) / r) - (cos(r - d) / 2);
+                const double a = cos(i * M_PI / 256);
                 wb[j][i] = uint8_t(IMAGE_MIDY + IMAGE_MIDY * a * a * v);
             }
         }
@@ -15103,8 +14716,8 @@ namespace rippleEffect2 {
 
     void run()
     {
-        int16_t i, j;
-        uint16_t c, lasth, limit, n = 0;
+        uint16_t n = 0;
+        int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ripple");
@@ -15132,8 +14745,9 @@ namespace rippleEffect2 {
             n = (n + 1) % 64;
             for (j = 0; j < IMAGE_MIDX; j++)
             {
-                c = 63;
-                lasth = 199;
+                uint16_t limit = 0;
+                uint16_t c = 63;
+                uint16_t lasth = 199;
                 for (i = 31; i >= 0; i--)
                 {
                     limit = (56 + i) + wb[n][lb[i][j]];
@@ -15178,14 +14792,11 @@ namespace waterFall {
 
     void makeDrip()
     {
-        int16_t x, y;
-        uint16_t r, s;
-
-        for (x = 0; x < IMAGE_WIDTH; x++)
+        for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
-            r = random(255) << 8;
-            s = (128 + random(128)) << 3;
-            for (y = 0; y < IMAGE_WIDTH; y++)
+            uint16_t r = random(255) << 8;
+            const uint16_t s = (128 + random(128)) << 3;
+            for (int16_t y = 0; y < IMAGE_WIDTH; y++)
             {
                 if (!(r & 0xFF00)) putPixel(x, y, 1);
                 else putPixel(x, y, r >> 8);
@@ -15196,7 +14807,7 @@ namespace waterFall {
 
     void rotatePalette()
     {
-        int16_t i, j;
+        int16_t i = 0, j = 0;
         uint16_t ofs = 0;
         RGB pal[256] = { 0 };
 
@@ -15260,7 +14871,7 @@ namespace winterEffect {
 
     void run()
     {
-        int16_t i;
+        int16_t i = 0;
         uint16_t pos = 0;
         RGB pal[256] = { 0 };
 
@@ -15300,15 +14911,14 @@ namespace winterEffect {
 namespace wormEffect {
     void run()
     {
-        int16_t i, j;
         RGB pal[256] = { 0 };
         RGB tmp[16] = { 0 };
 
         initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Worm");
 
-        for (i = 1; i < 16; i++)
+        for (int16_t i = 1; i < 16; i++)
         {
-            for (j = 0; j < 16; j++)
+            for (int16_t j = 0; j < 16; j++)
             {
                 pal[(i << 4) + j].r = i << 2;
                 pal[(i << 4) + j].g = j << 1;
@@ -15322,7 +14932,7 @@ namespace wormEffect {
 
         do {
             memcpy(tmp, &pal[16], sizeof(tmp));
-            for (i = 1; i < 16; i++) memcpy(&pal[(i - 1) << 4], &pal[i << 4], sizeof(tmp));
+            for (int16_t i = 1; i < 16; i++) memcpy(&pal[(i - 1) << 4], &pal[i << 4], sizeof(tmp));
             memcpy(&pal[240], tmp, sizeof(tmp));
             setPalette(pal);
             delay(FPS_60);
@@ -15461,11 +15071,11 @@ namespace rayCastingEffect {
         done:
         }
 #else
-        int32_t cy, bx, cx;
-        uint16_t ax, px, py;
+        int32_t bx, cx;
+        uint16_t ax, py;
 
-        cy = verts;
-        px = horiz & 0x7F;
+        int32_t cy = verts;
+        uint16_t px = horiz & 0x7F;
 
         for (cx = hmh; cx < hph; cx++)
         {
@@ -15493,7 +15103,7 @@ namespace rayCastingEffect {
 
     void loadMaze(const char* fname)
     {
-        int16_t x, y;
+        int16_t x = 0, y = 0;
         uint8_t tbuff[34] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
@@ -15539,11 +15149,9 @@ namespace rayCastingEffect {
 
     void drawMaze()
     {
-        int16_t i, j;
-
-        for (i = 0; i < 32; i++)
+        for (int16_t i = 0; i < 32; i++)
         {
-            for (j = 0; j < 32; j++)
+            for (int16_t j = 0; j < 32; j++)
             {
                 if (maze[i][j] > 0)
                 {
@@ -15563,24 +15171,20 @@ namespace rayCastingEffect {
 
     void setShade()
     {
-        int16_t i, j, k;
-        int16_t r, g, b;
-        int16_t diff1, diff2;
+        for (int16_t i = 0; i < 256; i++) shade[0][i] = uint8_t(i);
 
-        for (i = 0; i < 256; i++) shade[0][i] = uint8_t(i);
-
-        for (k = 0; k < 16; k++)
+        for (int16_t k = 0; k < 16; k++)
         {
-            for (i = 0; i < 256; i++)
+            for (int16_t i = 0; i < 256; i++)
             {
-                r = (pal[i].r >> 2) * (16 - k);
-                g = (pal[i].g >> 2) * (16 - k);
-                b = (pal[i].b >> 2) * (16 - k);
+                const int16_t r = (pal[i].r >> 2) * (16 - k);
+                const int16_t g = (pal[i].g >> 2) * (16 - k);
+                const int16_t b = (pal[i].b >> 2) * (16 - k);
+                int16_t diff1 = 1000;
 
-                diff1 = 1000;
-                for (j = 0; j < 256; j++)
+                for (int16_t j = 0; j < 256; j++)
                 {
-                    diff2 = abs((pal[j].r << 2) - r) + abs((pal[j].g << 2) - g) + abs((pal[j].b << 2) - b);
+                    int16_t diff2 = abs((pal[j].r << 2) - r) + abs((pal[j].g << 2) - g) + abs((pal[j].b << 2) - b);
                     if (diff1 > diff2)
                     {
                         diff1 = diff2;
@@ -15598,17 +15202,15 @@ namespace rayCastingEffect {
 
     void computeView()
     {
-        int32_t height;
-        int16_t vofs, darker;
-
-        double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-        double slope, angle, dist1, dist2, spacer;
+        double x1 = 0, x2 = 0;
+        double y1 = 0, y2 = 0;
+        double slope = 0;
+        double angle = head + 32;
 
         px128 = int32_t(px * 128);
         py128 = int32_t(py * 128);
-        angle = head + 32;
 
-        for (vofs = 0; vofs < IMAGE_WIDTH; vofs++)
+        for (uint16_t vofs = 0; vofs < IMAGE_WIDTH; vofs++)
         {
             angle -= 0.2;
             magic = int32_t(128.0 * 1024.0 / cos((angle - head) * RAD));
@@ -15667,8 +15269,9 @@ namespace rayCastingEffect {
                 }
             }
 
-            dist1 = (px - x1) * (px - x1) + (py - y1) * (py - y1);
-            dist2 = (px - x2) * (px - x2) + (py - y2) * (py - y2);
+            double spacer = 0;
+            const double dist1 = (px - x1) * (px - x1) + (py - y1) * (py - y1);
+            const double dist2 = (px - x2) * (px - x2) + (py - y2) * (py - y2);
 
             if (dist1 > dist2)
             {
@@ -15681,12 +15284,12 @@ namespace rayCastingEffect {
                 horiz = int32_t(fabs(128 - 128 * y1));
             }
 
-            height = int32_t(magic / spacer);
+            const int32_t height = int32_t(magic / spacer);
             pass = (64 << 16) / height;
             hmh = IMAGE_MIDY - height;
             hph = IMAGE_MIDY + height;
 
-            darker = int32_t(spacer / 1024);
+            uint16_t darker = uint16_t(spacer / 1024);
             if (darker > 15) darker = 15;
             else if (darker > 0) darker--;
 

@@ -16,7 +16,6 @@ GFX_IMAGE   flares[16] = { 0 };
 //check and exit program
 void runExit()
 {
-    int32_t i;
     GFX_IMAGE img;
     memset(&img, 0, sizeof(GFX_IMAGE));
 
@@ -24,7 +23,7 @@ void runExit()
     getImage(0, 0, cresX, cresY, &img);
 
     //decrease rgb and push back to screen
-    for (i = 0; i < 32; i++)
+    for (int32_t i = 0; i < 32; i++)
     {
         fadeOutImage(&img, 8);
         putImage(0, 0, &img);
@@ -41,15 +40,15 @@ void runExit()
     freeImage(&bumpimg);
     freeImage(&logo);
     freeImage(&sky);
-    for (i = 0; i < 16; i++) freeImage(&flares[i]);
+    for (int32_t i = 0; i < 16; i++) freeImage(&flares[i]);
 }
 
 //Show intro message text string
 void showText(int32_t sx, int32_t sy, GFX_IMAGE *img, const char *str)
 {
+    char msg[2] = { 0 };
     int32_t x, y, i, len;
-    char msg[2] = {0};
-    
+        
     //make scrolling text
     memcpy(&texts[0][0], &texts[1][0], sizeof(texts) - sizeof(texts[0]));
     strcpy(texts[MAX_TEXT_LINE - 1], str);
@@ -99,11 +98,6 @@ void runIntro()
     GFX_IMAGE ult, utb, trn, map;
     GFX_IMAGE scr, wcb, wci, gfx, gxb;
     
-    int32_t i0, i1, i2;
-    uint8_t mov = 0;
-    uint8_t *buf1, *buf2;
-    double startTime, waitTime;
-    
     //load image
     loadImage("assets/gfxtheultimate.png", &ult);
     loadImage("assets/gfxlogo.png", &gfx);
@@ -117,29 +111,31 @@ void runIntro()
     newImage(gfx.mWidth, gfx.mHeight, &gxb);
     newImage(ult.mWidth, ult.mHeight, &utb);
 
-    i0 = trn.mWidth * trn.mHeight;
+    int32_t i0 = trn.mWidth * trn.mHeight;
 
     //initialize turnel buffer
-    buf1 = (uint8_t*)calloc(i0, sizeof(uint8_t));
-    buf2 = (uint8_t*)calloc(i0, sizeof(uint8_t));
-    if (!buf1 || !buf2) messageBox(GFX_ERROR, "RunIntro: cannot alloc memory.");
+    uint8_t* buff1 = (uint8_t*)calloc(i0, sizeof(uint8_t));
+    uint8_t* buff2 = (uint8_t*)calloc(i0, sizeof(uint8_t));
+    if (!buff1 || !buff2) messageBox(GFX_ERROR, "RunIntro: cannot alloc memory!");
 
     //calculate turnel buffer
-    prepareTunnel(&trn, buf1, buf2);
+    prepareTunnel(&trn, buff1, buff2);
 
     //redirect draw buffer to image buffer
     setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
     i0 = 30;
-    i1 = 25;
-    i2 = 0;
+
+    uint8_t mov = 0;
+    int32_t i1 = 25;
+    int32_t i2 = 0;
     
     //start record time
-    startTime = getTime();
+    double startTime = getTime();
     do {
         //draw and scale buffer
-        waitTime = getTime();
-        drawTunnel(&trn, &map, buf1, buf2, &mov, 1);
+        double waitTime = getTime();
+        drawTunnel(&trn, &map, buff1, buff2, &mov, 1);
         scaleImage(&scr, &trn, 1);
         
         //welcome message
@@ -203,8 +199,8 @@ void runIntro()
     freeImage(&ult);
     freeImage(&gfx);
     freeImage(&utb);
-    free(buf1);
-    free(buf2);
+    free(buff1);
+    free(buff2);
 }
 
 void runBlocking(int32_t sx, int32_t sy)
@@ -311,7 +307,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
 void runCrossFade(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img;
+    GFX_IMAGE img = { 0 };
     int32_t i = 0, up = 1, val = 1;
 
     //initialize render buffer
@@ -358,15 +354,14 @@ void runAddImage(int32_t sx, int32_t sy)
 
 void runRotateImage(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img;
     uint32_t deg = 0;
-    int32_t *tables = NULL;	
-
+    GFX_IMAGE img = { 0 };
+    
     //initialize render buffer
     newImage(fade2.mWidth, fade2.mHeight, &img);
 
     //pre-calculate lookup table
-    tables = (int32_t*)calloc(intptr_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
+    int32_t* tables = (int32_t*)calloc(intptr_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
     if (!tables) messageBox(GFX_ERROR, "RotateImage: cannot alloc lookup tables.");
 
     do {
@@ -389,9 +384,9 @@ void runRotateImage(int32_t sx, int32_t sy)
 
 void runBilinearRotateImage(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img;
     int32_t angle = 0;
-
+    GFX_IMAGE img = { 0 };
+    
     //initialize render buffer
     newImage(fade2.mWidth, fade2.mHeight, &img);
 
@@ -413,7 +408,7 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
 
 void runAntialias(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img, dst;
+    GFX_IMAGE img = { 0 }, dst = { 0 };
 
     //save current centerx, centery
     const int32_t xc = centerX;
@@ -431,7 +426,7 @@ void runAntialias(int32_t sx, int32_t sy)
         for (int32_t i = 0; i < 3; i++)
         {
             //choose random color
-            uint32_t col = RGB2INT(random(255) + 1, random(255) + 1, random(255) + 1);
+            const uint32_t col = RGB2INT(random(255) + 1, random(255) + 1, random(255) + 1);
 
             //which shape to be draw
             switch (random(3))
@@ -464,7 +459,7 @@ void runLens(GFX_IMAGE* outImg)
     const char *str = "Drag your mouse to see details and left click to exit!";
 
     //load source image
-    GFX_IMAGE scr;
+    GFX_IMAGE scr = { 0 };
     newImage(cresX, cresY, &scr);
 
     //current mouse pos and left button
@@ -477,8 +472,8 @@ void runLens(GFX_IMAGE* outImg)
     showMouseCursor(SDL_DISABLE);
     
     //pre-calculate text position
-    int32_t tx = (scr.mWidth - getFontWidth(str)) >> 1;
-    int32_t ty = scr.mHeight - getFontHeight(str) - 4;
+    const int32_t tx = (scr.mWidth - getFontWidth(str)) >> 1;
+    const int32_t ty = scr.mHeight - getFontHeight(str) - 4;
 
     //redirect to image buffer
     setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
@@ -521,17 +516,17 @@ void runLens(GFX_IMAGE* outImg)
 
 void runBumpImage()
 {
-    GFX_IMAGE dst;
     int32_t cnt = 0;
-    
+    GFX_IMAGE dst = { 0 };
+        
     //loading source image
     newImage(cresX, cresY, &dst);
 
     do {
         //calculate position
         cnt++;
-        int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + centerX);
-        int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + centerY);
+        const int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + centerX);
+        const int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + centerY);
 
         //start bumping buffer
         bumpImage(&dst, &bumpchn, &bumpimg, lx, ly);
@@ -547,42 +542,38 @@ void runBumpImage()
 
 void runPlasmaScale(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE plasma, screen;
-
     uint8_t sinx[256] = { 0 };
-    uint32_t tectr, ofs;
-    uint16_t x1, x2, x3, y1, y2, y3;
-    uint16_t cr, cg, cb, a, b, c;
 
     //initialized lookup table and preload image
     for (int32_t y = 0; y < 256; y++) sinx[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
+    GFX_IMAGE plasma = { 0 }, screen = { 0 };
     newImage(centerX >> 1, centerY >> 1, &plasma);
     newImage(centerX, centerY, &screen);
 
     uint32_t frames = 0;
     uint32_t* data = (uint32_t*)plasma.mData;
-    uint16_t endx = plasma.mWidth >> 1;
+    const uint16_t endx = plasma.mWidth >> 1;
 
     do {
-        ofs = 0;
-        tectr = frames * 10;
-        x1 = sinx[(tectr / 12) & 0xFF];
-        x2 = sinx[(tectr / 11) & 0xFF];
-        x3 = sinx[frames & 0xFF];
-        y1 = sinx[((tectr >> 3) + 64) & 0xFF];
-        y2 = sinx[(tectr / 7 + 64) & 0xFF];
-        y3 = sinx[(tectr / 12 + 64) & 0xFF];
+        uint32_t ofs = 0;
+        const uint32_t tectr = frames * 10;
+        const uint16_t x1 = sinx[(tectr / 12) & 0xFF];
+        const uint16_t x2 = sinx[(tectr / 11) & 0xFF];
+        const uint16_t x3 = sinx[frames & 0xFF];
+        const uint16_t y1 = sinx[((tectr >> 3) + 64) & 0xFF];
+        const uint16_t y2 = sinx[(tectr / 7 + 64) & 0xFF];
+        const uint16_t y3 = sinx[(tectr / 12 + 64) & 0xFF];
 
         //calculate plasma buffer
         for (int32_t y = 0; y < plasma.mHeight; y++)
         {
-            a = sqr(y - y1) + sqr(x1);
-            b = sqr(y - y2) + sqr(x2);
-            c = sqr(y - y3) + sqr(x3);
-            cr = sinx[(a >> 6) & 0xFF];
-            cg = sinx[(b >> 6) & 0xFF];
-            cb = sinx[(c >> 6) & 0xFF];
+            uint16_t a = sqr(y - y1) + sqr(x1);
+            uint16_t b = sqr(y - y2) + sqr(x2);
+            uint16_t c = sqr(y - y3) + sqr(x3);
+            uint16_t cr = sinx[(a >> 6) & 0xFF];
+            uint16_t cg = sinx[(b >> 6) & 0xFF];
+            uint16_t cb = sinx[(c >> 6) & 0xFF];
 #ifdef _USE_ASM
             _asm {
                 xor     ax, ax
@@ -641,20 +632,17 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             }
             ofs += (plasma.mWidth << 2);
 #else
-            uint16_t col1;
-            uint8_t sa, sb, sc;
-            uint32_t col2, idx = ofs;
-
+            uint32_t idx = ofs;
             for (int32_t x = 0; x < endx; x++)
             {
                 c = x - x3 + c;
-                sc = sinx[(c >> 6) & 0xFF];
+                const uint8_t sc = sinx[(c >> 6) & 0xFF];
                 b = x - x2 + b;
-                sb = sinx[(b >> 6) & 0xFF];
+                const uint8_t sb = sinx[(b >> 6) & 0xFF];
                 a = x - x1 + a;
-                sa = sinx[(a >> 6) & 0xFF];
-                col2 = ((sa + cr) << 15) & 0xFFFF0000;
-                col1 = (((sb + cg) << 7) & 0xFF00) + ((sc + cb) >> 1);
+                const uint8_t sa = sinx[(a >> 6) & 0xFF];
+                const uint32_t col2 = ((sa + cr) << 15) & 0xFFFF0000;
+                const uint16_t col1 = (((sb + cg) << 7) & 0xFF00) + ((sc + cb) >> 1);
                 cr = sa;
                 cg = sb;
                 cb = sc;
@@ -681,8 +669,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
 
 void gfxDemo32()
 {
-    int32_t i, xc, yc;
-    GFX_IMAGE bg, tx, scr, old, im;
+    GFX_IMAGE bg = { 0 }, tx = { 0 }, scr = { 0 }, old = { 0 }, im = { 0 };
 
     char sbuff[128] = { 0 };
     const char* initMsg = "Please wait while initialize GFXLIB...";
@@ -703,7 +690,7 @@ void gfxDemo32()
     loadImage("assets/gfxlogosm.png", &logo);
     loadImage("assets/gfxsky.png", &sky);
     
-    for (i = 0; i < 16; i++)
+    for (int32_t i = 0; i < 16; i++)
     {
         sprintf(sbuff, "assets/flare-%dx.png", i + 1);
         loadImage(sbuff, &flares[i]);
@@ -713,8 +700,8 @@ void gfxDemo32()
     putImage(0, 0, &bg);
     putImageAlpha(cresX - logo.mWidth + 1, cresY - logo.mHeight + 1, &logo);
 
-    xc = centerX + 40;
-    yc = centerY + 40;
+    const int32_t xc = centerX + 40;
+    const int32_t yc = centerY + 40;
 
     fillRectPatternAdd(10, 10, xc - 10, yc - 10, RGB_GREY32, ptnHatchX);
     fillRectSub(10, yc, xc - 10, cmaxY - 10, RGB_GREY32);
