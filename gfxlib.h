@@ -69,16 +69,16 @@
 #define SIZE_128            128
 #define SIZE_256            256
 #define SIZE_512            512
-#define SIZE_16K            16384
-#define SIZE_32K            32768
-#define SIZE_64K            65536
+#define SIZE_16K            16384   //128 * 128 size
+#define SIZE_32K            32768   //128 * 256 size
+#define SIZE_64K            65536   //256 * 256 size
 
 //default frame rate
-#define FPS_30              33
-#define FPS_60              17
-#define FPS_90              11
+#define FPS_30              33      //30 frames per second
+#define FPS_60              17      //60 frames per second
+#define FPS_90              11      //90 frames per second
 
-//Projection constant
+//projection constant
 #define ECHE                0.77    //must change for each monitor
 
 //XFN font style
@@ -118,7 +118,7 @@
 #define NUM_BUTTONS         2       //'Exit' and 'Click' button
 #define NUM_MOUSE_BITMAPS   9       //total mouse pointer bitmaps
 
-//Fill poly constant
+//fill poly constant
 #define MAX_POLY_CORNERS    200     //max polygon corners
 #define MAX_STACK_SIZE      2000    //max stack size use to scan
 
@@ -352,8 +352,8 @@ RGB         INT2RGB(uint32_t color);
 uint32_t    RGB2INT(uint8_t r, uint8_t g, uint8_t b);
 
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);
-void        loadPNG(uint8_t* raw, RGB* pal, const char* fname);
-void        loadImage(const char* fname, GFX_IMAGE* im);
+int32_t     loadPNG(uint8_t* raw, RGB* pal, const char* fname);
+int32_t     loadImage(const char* fname, GFX_IMAGE* im);
 void        freeImage(GFX_IMAGE* im);
 
 int32_t     getFontWidth(const char* str);
@@ -361,7 +361,7 @@ int32_t     getFontHeight(const char* str);
 void        setFontType(int32_t type);
 void        setFontSize(uint32_t size);
 void        makeFont(char* str);
-void        loadFont(const char* fname, int32_t type);
+int32_t     loadFont(const char* fname, int32_t type);
 void        freeFont(int32_t type);
 
 void        quit();
@@ -393,8 +393,7 @@ const char* getRenderVersion();
 const char* getImageVersion();
 
 void        showMouseCursor(int32_t show);
-void        getMouseState(int32_t* mx, int32_t* my);
-void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb);
+void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb = NULL, int32_t* rmb = NULL);
 void        setMousePosition(int32_t x, int32_t y);
 
 double      getTime();
@@ -402,7 +401,7 @@ double      getElapsedTime(double tmstart);
 void        waitFor(double tmstart, double ms);
 void        sleepFor(double ms);
 
-void        initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
+int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
 void        setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
 
@@ -502,8 +501,8 @@ void        fillEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint3
 void        fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
 void        fillPolygon(POINT2D* point, int32_t num, uint32_t col);
 
-void        newImage(int32_t width, int32_t height, GFX_IMAGE* img);
-void        updateImage(int32_t width, int32_t height, GFX_IMAGE* img);
+int32_t     newImage(int32_t width, int32_t height, GFX_IMAGE* img);
+int32_t     updateImage(int32_t width, int32_t height, GFX_IMAGE* img);
 void        freeImage(GFX_IMAGE* img);
 void        clearImage(GFX_IMAGE* img);
 
@@ -582,8 +581,8 @@ void        handleMouse(const char* fname);
 void        putPixelBob(int32_t x, int32_t y);
 void        drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
-void        gfxDemo32();
 void        gfxDemo8();
+void        gfxDemo32();
 void        gfxEffects8();
 void        gfxEffects32();
 void        gfxFontView();

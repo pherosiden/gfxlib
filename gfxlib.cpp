@@ -370,20 +370,20 @@ void sleepFor(double tmwait)
 }
 
 //initialize graphic video system
-void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title)
+int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title)
 {
     //initialize SDL video mode only
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         messageBox(GFX_ERROR, "Failed init SDL2: %s", SDL_GetError());
-        return;
+        return 0;
     }
 
     //initialize SDL2 image lib
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
     {
         messageBox(GFX_ERROR, "Failed init SDL image: %s", IMG_GetError());
-        return;
+        return 0;
     }
 
     //create screen to display contents
@@ -391,7 +391,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
-        return;
+        return 0;
     }
 
     //set windows icon
@@ -408,7 +408,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     if (!sdlRenderer)
     {
         messageBox(GFX_ERROR, "Failed to create renderer: %s", SDL_GetError());
-        return;
+        return 0;
     }
 
     //create 32bits texture for render
@@ -416,7 +416,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     if (!sdlTexture)
     {
         messageBox(GFX_ERROR, "Failed to create texture: %s", SDL_GetError());
-        return;
+        return 0;
     }
 
     //use palette color for 8 bits?
@@ -427,7 +427,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
         if (!sdlScreen)
         {
             messageBox(GFX_ERROR, "Failed to create 32 bits surface: %s", SDL_GetError());
-            return;
+            return 0;
         }
 
         //create 8bits surface
@@ -435,7 +435,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
         if (!sdlSurface)
         {
             messageBox(GFX_ERROR, "Failed to create 8 bits surface: %s", SDL_GetError());
-            return;
+            return 0;
         }
 
         //initialize drawing buffer (use current surface pixel buffer)
@@ -443,7 +443,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
-            return;
+            return 0;
         }
 
         //initialze raster function
@@ -474,7 +474,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
-            return;
+            return 0;
         }
 
         //initialize raster function
@@ -512,7 +512,7 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     if (!gfxBuff)
     {
         messageBox(GFX_ERROR, "Cannot init GFXLIB memory!");
-        return;
+        return 0;
     }
 
     //initialize screen buffer size
@@ -528,6 +528,9 @@ void initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     cminY   = 0;
     cmaxX   = texWidth - 1;
     cmaxY   = texHeight - 1;
+    
+    //OK, i'm fine!
+    return 1;
 }
 
 //cleanup function must call after graphics operations ended
@@ -3325,30 +3328,24 @@ void drawBoxExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uin
 void drawPoly(POINT2D* point, int32_t num, uint32_t col)
 {
     if (num < 3) return;
-    for (int32_t i = 0; i < num; i++)
-    {
-        drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[(i + 1) % num].x), int32_t(point[(i + 1) % num].y), col);
-    }
+    for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col);
+    drawLine(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
 }
 
 //draw polygon with add color
 void drawPolyAdd(POINT2D* point, int32_t num, uint32_t col)
 {
     if (num < 3) return;
-    for (int32_t i = 0; i < num; i++)
-    {
-        drawLineAdd(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[(i + 1) % num].x), int32_t(point[(i + 1) % num].y), col);
-    }
+    for (int32_t i = 0; i < num - 1; i++) drawLineAdd(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col);
+    drawLineAdd(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
 }
 
 //draw polygon with sub color
 void drawPolySub(POINT2D* point, int32_t num, uint32_t col)
 {
     if (num < 3) return;
-    for (int32_t i = 0; i < num; i++)
-    {
-        drawLineSub(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[(i + 1) % num].x), int32_t(point[(i + 1) % num].y), col);
-    }
+    for (int32_t i = 0; i < num - 1; i++) drawLineSub(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col);
+    drawLineSub(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
 }
 
 //fill rectangle with corners (x1,y1) and (x2,y2) and color
@@ -4300,6 +4297,7 @@ void fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
 //pt3[] = {{97, 56}, {115, 236}, {205, 146}, {276, 146}, {151, 325}, {259, 433}, {510, 344}, {510, 218}, {242, 271}, {384, 110}};
 //pt4[] = {{256, 150}, {148, 347}, {327, 329}, {311, 204}, {401, 204}, {418, 240}, {257, 222}, {293, 365}, {436, 383}, {455, 150}};
 //pt5[] = {{287, 76}, {129, 110}, {42, 301}, {78, 353}, {146, 337}, {199, 162}, {391, 180}, {322, 353}, {321, 198}, {219, 370}, {391, 405}, {444, 232}, {496, 440}, {565, 214}};
+//pt6[] = {{659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523}};
 void fillPolygon(POINT2D* point, int32_t num, uint32_t col)
 {
     int32_t nodex[MAX_POLY_CORNERS] = { 0 };
@@ -4483,7 +4481,7 @@ void setVisualPage(GFX_IMAGE* page)
 }
 
 //create a new GFX image
-void newImage(int32_t width, int32_t height, GFX_IMAGE* img)
+int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
 {
     //calcule buffer size, add to width and height
     const int32_t bytesPerPixel = bitsPerPixel >> 3;
@@ -4492,28 +4490,29 @@ void newImage(int32_t width, int32_t height, GFX_IMAGE* img)
     if (!size)
     {
         messageBox(GFX_ERROR, "Cannot create image! image size = 0!");
-        return;
+        return 0;
     }
 
     img->mData = (uint8_t*)calloc(size, 1);
     if (!img->mData)
     {
         messageBox(GFX_ERROR, "Cannot alloc memory with size:%lu", size);
-        return;
+        return 0;
     }
 
-    //store image width and height
-    img->mWidth = width;
-    img->mHeight = height;
+    //store image info
+    img->mWidth    = width;
+    img->mHeight   = height;
+    img->mSize     = size;
     img->mRowBytes = width * bytesPerPixel;
-    img->mSize = size;
+    return 1;
 }
 
 //update GFX image with new width, new height
-void updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
+int32_t updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
 {
     //no need update
-    if (img->mWidth == width && img->mHeight == height) return;
+    if (img->mWidth == width && img->mHeight == height) return 1;
 
     //calcule buffer size, add to width and height
     const int32_t bytesPerPixel = bitsPerPixel >> 3;
@@ -4521,24 +4520,26 @@ void updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
 
     if (!size)
     {
-        messageBox(GFX_ERROR, "Create image size = 0!");
-        return;
+        messageBox(GFX_ERROR, "Error update image size = 0!");
+        return 0;
     }
 
+    //reallocate new memory
     uint8_t* pdata = (uint8_t*)realloc(img->mData, size);
     if (!pdata)
     {
-        messageBox(GFX_ERROR, "Alloc memory with size: %lu", size);
-        return;
+        messageBox(GFX_ERROR, "Error alloc memory with size: %lu", size);
+        return 0;
     }
 
     //store image width and height
     memset(pdata, 0, size);
-    img->mData = pdata;
-    img->mWidth = width;
-    img->mHeight = height;
+    img->mData     = pdata;
+    img->mWidth    = width;
+    img->mHeight   = height;
+    img->mSize     = size;
     img->mRowBytes = width * bytesPerPixel;
-    img->mSize = size;
+    return 1;
 }
 
 //cleanup image buffer
@@ -4547,11 +4548,12 @@ void freeImage(GFX_IMAGE* img)
     if (img && img->mData)
     {
         free(img->mData);
-        img->mData = NULL;
-        img->mWidth = 0;
-        img->mHeight = 0;
+        img->mData     = NULL;
+        img->mWidth    = 0;
+        img->mHeight   = 0;
+        img->mSize     = 0;
         img->mRowBytes = 0;
-        img->mSize = 0;
+        
     }
 }
 
@@ -4587,9 +4589,17 @@ void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE*
     //check for loop
     if (!lbWidth || !lbHeight) return;
 
-    //create new image
-    if (!img->mData) newImage(lbWidth, lbHeight, img);
-    else if (img->mWidth != lbWidth || img->mHeight != lbHeight) updateImage(lbWidth, lbHeight, img);
+    //none image pointer?
+    if (!img->mData)
+    {
+        //create new image
+        if (!newImage(lbWidth, lbHeight, img)) return;
+    }
+    else
+    {
+        //update an existing image
+        if (!updateImage(lbWidth, lbHeight, img)) return;
+    }
 
 #ifdef _USE_ASM
     void *imgData = img->mData;
@@ -4656,9 +4666,17 @@ void getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE
     //check for loop
     if (!lbWidth || !lbHeight) return;
 
-    //create new image
-    if (!img->mData) newImage(lbWidth, lbHeight, img);
-    else if (img->mWidth != lbWidth || img->mHeight != lbHeight) updateImage(lbWidth, lbHeight, img);
+    //none image pointer?
+    if (!img->mData)
+    {
+        //create new image
+        if (!newImage(lbWidth, lbHeight, img)) return;
+    }
+    else
+    {
+        //update an existing image
+        if (!updateImage(lbWidth, lbHeight, img)) return;
+    }
 
 #ifdef _USE_ASM
     void *imgData = img->mData;
@@ -6499,14 +6517,24 @@ int32_t getFontWidth(const char* str)
 }
 
 //load font name to memory
-void loadFont(const char* fname, int32_t type)
+int32_t loadFont(const char* fname, int32_t type)
 {
     //check for type range
-    if (type >= GFX_MAX_FONT) messageBox(GFX_WARNING, "Error load font: %s! unknown font type!", fname);
+    if (type >= GFX_MAX_FONT)
+    {
+        messageBox(GFX_WARNING, "Error load font: %s! unknown font type!", fname);
+        return 0;
+    }
+
+    //open font file
+    FILE* fp = fopen(fname, "rb");
+    if (!fp)
+    {
+        messageBox(GFX_WARNING, "Error load font: %s! file not found!", fname);
+        return 0;
+    }
 
     //read font header
-    FILE* fp = fopen(fname, "rb");
-    if (!fp) messageBox(GFX_WARNING, "Error load font: %s! file not found!", fname);
     fread(&gfxFonts[type].header, sizeof(GFX_FONT_HEADER), 1, fp);
 
     //check font signature, version number and memory size
@@ -6514,21 +6542,21 @@ void loadFont(const char* fname, int32_t type)
     {
         fclose(fp);
         messageBox(GFX_WARNING, "Error load font: %s! wrong GFX font!", fname);
+        return 0;
     }
 
     //allocate raw data buffer
     gfxFonts[type].dataPtr = (uint8_t*)calloc(gfxFonts[type].header.memSize, 1);
-    if (gfxFonts[type].dataPtr)
-    {
-        //read raw font data
-        fread(gfxFonts[type].dataPtr, gfxFonts[type].header.memSize, 1, fp);
-        fclose(fp);
-    }
-    else
+    if (!gfxFonts[type].dataPtr)
     {
         fclose(fp);
         messageBox(GFX_WARNING, "Error load font: %s! not enough memory!", fname);
+        return 0;
     }
+
+    //read raw font data
+    fread(gfxFonts[type].dataPtr, gfxFonts[type].header.memSize, 1, fp);
+    fclose(fp);
 
     //reset font header for old font
     if (gfxFonts[type].header.flags & GFX_FONT_MULTI) setFontSize(0);
@@ -6546,8 +6574,11 @@ void loadFont(const char* fname, int32_t type)
         {
             free(gfxFonts[type].dataPtr);
             messageBox(GFX_WARNING, "Error load font: %s! wrong font palette!", fname);
+            return 0;
         }
     }
+
+    return 1;
 }
 
 //release current loaded font
@@ -6714,7 +6745,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
             if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
             {
                 addx += gfxBuff[i << 1];
-                addy += gfxBuff[512 + (i << 1)];
+                addy += gfxBuff[(i << 1) + 512];
             }
 
             //get font width and height
@@ -6861,54 +6892,79 @@ void showPNG(const char* fname)
     freeImage(&png);
 }
 
-//load 8bits PNG
-void loadPNG(uint8_t* raw, RGB* pal, const char* fname)
+//load 8bits PNG image as raw data
+int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 {
-    if (bitsPerPixel != 8) messageBox(GFX_ERROR, "Only 8 bits screen support this function!");
+    if (bitsPerPixel != 8)
+    {
+        messageBox(GFX_ERROR, "Only 8 bits screen support this function!");
+        return 0;
+    }
 
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
         messageBox(GFX_ERROR, "Load image error: %s", IMG_GetError());
-        return;
+        return 0;
     }
 
     //copy raw data and palette
     if (raw) memcpy(raw, image->pixels, intptr_t(image->pitch) * image->h);
     if (pal) memcpy(pal, image->format->palette->colors, image->format->palette->ncolors * sizeof(RGB));
     SDL_FreeSurface(image);
+    return 1;
 }
 
-//load image as GFXLIB texture
-void loadImage(const char* fname, GFX_IMAGE* im)
+//load image as GFXLIB texture format
+int32_t loadImage(const char* fname, GFX_IMAGE* im)
 {
-    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Only 32 bits screen support this function!");
+    if (bitsPerPixel != 32)
+    {
+        messageBox(GFX_ERROR, "Only 32 bits screen support this function!");
+        return 0;
+    }
 
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
         messageBox(GFX_ERROR, "Load image error: %s", IMG_GetError());
-        return;
+        return 0;
     }
 
     //create 32bits texture to convert image format
     SDL_Surface* texture = SDL_CreateRGBSurface(0, image->w, image->h, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     if (!texture)
     {
+        SDL_FreeSurface(image);
         messageBox(GFX_ERROR, "Cannot create surface: %s!", SDL_GetError());
-        return;
+        return 0;
     }
 
     //convert to target pixel format
-    if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+    if (SDL_UpperBlit(image, NULL, texture, NULL))
+    {
+        SDL_FreeSurface(image);
+        SDL_FreeSurface(texture);
+        messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+        return 0;
+    }
 
     //build GFX texture
-    newImage(texture->w, texture->h, im);
+    if (!newImage(texture->w, texture->h, im))
+    {
+        messageBox(GFX_ERROR, "Cannot create new image!");
+        SDL_FreeSurface(image);
+        SDL_FreeSurface(texture);
+        return 0;
+    }
+
+    //copy data to image buffer
     memcpy(im->mData, texture->pixels, im->mSize);
     SDL_FreeSurface(image);
     SDL_FreeSurface(texture);
+    return 1;
 }
 
 //load image as 32bits texture buffer
@@ -6920,6 +6976,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
         return 0;
     }
 
+    //simple load image from file
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
@@ -6927,24 +6984,36 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
         return 0;
     }
 
+    //create 32bits texture
     SDL_Surface* texture = SDL_CreateRGBSurface(0, image->w, image->h, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     if (!texture)
     {
+        SDL_FreeSurface(image);
         messageBox(GFX_ERROR, "Cannot create surface: %s!", SDL_GetError());
         return 0;
     }
 
-    if (SDL_UpperBlit(image, NULL, texture, NULL)) messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+    //convert raw data to texture format
+    if (SDL_UpperBlit(image, NULL, texture, NULL))
+    {
+        SDL_FreeSurface(image);
+        SDL_FreeSurface(texture);
+        messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+        return 0;
+    }
 
+    //create output data buffer
     const uint32_t size = texture->pitch * texture->h;
     uint32_t* pixels = (uint32_t*)calloc(size, 1);
-
     if (!pixels)
     {
+        SDL_FreeSurface(image);
+        SDL_FreeSurface(texture);
         messageBox(GFX_ERROR, "Cannot alloc memory for image data!!!");
         return 0;
     }
 
+    //copy raw data after converted
     memcpy(pixels, texture->pixels, size);
     *txout = pixels;
     *txw = texture->w;
@@ -7275,6 +7344,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
 
     //load mouse bitmap and animation
     loadImage(fname, &bmp);
+    if (!bmp.mData) return;
 
     //allocate memory for mouse under background
     mi->msUnder = (uint8_t*)calloc(MOUSE_SIZE, bytesPerPixel);

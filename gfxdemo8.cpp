@@ -1271,16 +1271,16 @@ void displaySprite(const char *fname)
     int32_t y = (12 + dy) >> 1;
 
     //load sprite bitmap
-    loadImage(fname, &spr);
-    loadImage(fbkg[(bitsPerPixel >> 3) - 1], &bkg);
+    if (!loadImage(fname, &spr)) return;
+    if (!loadImage(fbkg[(bitsPerPixel >> 3) - 1], &bkg)) return;
 
     //create buffer for sprite data
     memset(&img1, 0, sizeof(GFX_IMAGE));
     memset(&img2, 0, sizeof(GFX_IMAGE));
 
     //create screen buffers
-    newImage(bkg.mWidth, bkg.mHeight, &page1);
-    newImage(bkg.mWidth, bkg.mHeight, &page2);
+    if (!newImage(bkg.mWidth, bkg.mHeight, &page1)) return;
+    if (!newImage(bkg.mWidth, bkg.mHeight, &page2)) return;
 
     //copy 1st page to 2nd page 
     memcpy(page1.mData, bkg.mData, bkg.mSize);
@@ -1399,13 +1399,13 @@ void displayPlasma()
     uint8_t cost[256] = {0};
 
     //load text font
-    loadFont("assets/hyena.xfn", 0);
+    if (!loadFont("assets/hyena.xfn", 0)) return;
 
     //plasma image buffer
-    newImage(160, 120, &src);
+    if (!newImage(160, 120, &src)) return;
 
     //scale palsma image buffer
-    newImage(cresX, cresY, &dst);
+    if (!newImage(cresX, cresY, &dst)) return;
     initPlasma(sint, cost);
 
     //display plasma
@@ -1492,8 +1492,9 @@ void gfxDemo8()
     char msgBanner[] = "Light Banner (c) 1998 - 2002 Nguye64n Ngo5c Va6n";
     char msgLoading[] = "D9ang ta3i du74 lie65u a3nh PNG & BMP 32bit ma2u, vui lo2ng d9o75i mo65t la1t....";
 
-    initScreen(800, 600, 32, 0, "GFX-Demo8");
-    loadFont("assets/fontvn.xfn", 0);
+    if (!initScreen(800, 600, 32, 0, "GFX-Demo8")) return;
+    if (!loadFont("assets/fontvn.xfn", 0)) return;
+
     makeFont(msgLoading);
     writeText(centerX - (getFontWidth(msgLoading) >> 1), centerY - getFontHeight(msgLoading), RGB2INT(255, 255, 64), 0, msgLoading);
     render();
@@ -1511,7 +1512,7 @@ void gfxDemo8()
     freeFont(0);
     cleanup();
 
-    initScreen(800, 600, 8, 0, "GFXLIB-Demo8");
+    if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
     const int32_t introY = centerY - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
     
     switch (cresX)
@@ -1526,7 +1527,7 @@ void gfxDemo8()
     getBasePalette(pal2);
     clearPalette();
     
-    loadFont("assets/odhl.xfn", 0);
+    if (!loadFont("assets/odhl.xfn", 0)) return;
     writeText(centerX - (getFontWidth(msgWelcome[0]) >> 1), msgY, 40, 1, msgWelcome[0]);
     writeText(centerX - (getFontWidth(msgWelcome[1]) >> 1), msgY + 60, 32, 1, msgWelcome[1]);
     writeText(centerX - (getFontWidth(msgWelcome[2]) >> 1), msgY + 120, 35, 1, msgWelcome[2]);
@@ -1691,8 +1692,8 @@ void gfxDemo8()
     clearScreen(0);
     clearPalette();
 
-    loadFont("assets/sys8x16.xfn", 0);
-    loadFont("assets/trip.xfn", 1);
+    if (!loadFont("assets/sys8x16.xfn", 0)) return;
+    if (!loadFont("assets/trip.xfn", 1)) return;
     
     FX = FX1;
 
@@ -1841,7 +1842,7 @@ void gfxDemo8()
     clearScreen(0);
     
     j = introY;
-    loadFont("assets/fontvn.xfn", 0);
+    if (!loadFont("assets/fontvn.xfn", 0)) return;
     for (i = 0; i < numTitles; i++)
     {
         j += i * getFontHeight(msgTitle[i]);

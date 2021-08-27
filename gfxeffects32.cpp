@@ -8,7 +8,7 @@
 
 void juliaSet()
 {
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Julia-Set");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Julia-Set")) return;
 
     //after how much iterations the function should stop
     const int32_t maxIterations = 300;
@@ -21,7 +21,7 @@ void juliaSet()
     const double cIm = 0.27015;
     
     //get raw pixels data
-    int32_t i = 0, cwidth, cheight;
+    int32_t i = 0, cwidth = 0, cheight = 0;
     uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
     if (!pixels) return;
 
@@ -34,8 +34,8 @@ void juliaSet()
         for (int32_t x = 0; x < cwidth; x++)
         {
             //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-            double newRe = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-            double newIm = (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
+            double newRe = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
+            double newIm = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
 
             //i will represent the number of iterations, start the iteration process
             for (i = 1; i <= maxIterations; i++)
@@ -110,10 +110,10 @@ void fireDemo1()
     uint8_t avg = 0;
     int32_t i = 0, sum = 0;
     
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Fire");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Fire")) return;
 
     //get drawing buffer
-    int32_t cwidth, cheight;
+    int32_t cwidth = 0, cheight = 0;
     uint32_t* frameBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!frameBuff) return;
 
@@ -167,12 +167,12 @@ void fireDemo1()
 }
 
 static uint32_t palette[SIZE_256] = { 0 };
-static uint32_t fireBuff[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 };
+static uint32_t fireBuff[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
 
 void fireDemo2()
 {
     //set up the screen
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Fire");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Fire")) return;
 
     //get the drawing buffer
     int32_t cwidth, cheight;
@@ -182,9 +182,6 @@ void fireDemo2()
     //validation screen height
     if (cheight < 1) return;
 
-    //used during palette generation
-    RGB color = { 0 };
-    
     //the time of this and the previous frame, for timing
     double time = getTime(), oldTime = 0;
 
@@ -198,7 +195,7 @@ void fireDemo2()
         //Hue goes from 0 to 85: red to yellow
         //Saturation is always the maximum: 255
         //Lightness is 0..255 for x=0..128, and 255 for x=128..255
-        color = HSL2RGB(x / 3, 255, min(255, x * 2));
+        const RGB color = HSL2RGB(x / 3, 255, min(255, x * 2));
 
         //set the palette to the calculated RGB value
         palette[x] = RGB2INT(color.r, color.g, color.b);
@@ -213,28 +210,28 @@ void fireDemo2()
         time = getTime();
 
         //randomize the bottom row of the fire buffer
-        for (int32_t x = 0; x < cwidth; x++) fireBuff[(cheight - 1) * cwidth + x] = abs(32768 + rand()) % 256;
+        for (int32_t x = 0; x < cwidth; x++) fireBuff[cheight - 1][x] = abs(32768 + rand()) % 256;
 
         //do the fire calculations for every pixel, from top to bottom
         for (int32_t y = 0; y < cheight - 1; y++)
         {
             for (int32_t x = 0; x < cwidth; x++)
             {
-                fireBuff[y * cwidth + x] = ((
-                fireBuff[((y + 1) % cheight) * cwidth + ((x - 1 + cwidth) % cwidth)] +
-                fireBuff[((y + 1) % cheight) * cwidth + ((x             ) % cwidth)] +
-                fireBuff[((y + 1) % cheight) * cwidth + ((x + 1         ) % cwidth)] +
-                fireBuff[((y + 2) % cheight) * cwidth + ((x             ) % cwidth)]) * 32) / 129;
+                fireBuff[y][x] = ((
+                fireBuff[(y + 1) % cheight][(x - 1 + cwidth) % cwidth] +
+                fireBuff[(y + 1) % cheight][(x             ) % cwidth] +
+                fireBuff[(y + 1) % cheight][(x + 1         ) % cwidth] +
+                fireBuff[(y + 2) % cheight][(x             ) % cwidth]) * 32 / 129) % 256;
             }
         }
 
         //set the drawing buffer to the fire buffer, using the palette colors
         for (int32_t y = 0; y < cheight; y++)
         {
-            for (int32_t x = 0; x < cwidth; x++) renderBuff[y * cwidth + x] = palette[fireBuff[y * cwidth + x]];
+            for (int32_t x = 0; x < cwidth; x++) renderBuff[y * cwidth + x] = palette[fireBuff[y][x]];
         }
 
-        //draw the buffer and redraw the initScreen
+        //draw the buffer
         render();
     }
 
@@ -353,33 +350,32 @@ void rayCasting()
     int32_t tw = 0, th = 0;
     uint32_t* texture[11] = { 0 };
 
-    //init initScreen mode
-    loadFont("assets/sysfont.xfn", 0);
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting-Demo -- Keys controls: Arrows: move your works!");
+    //init screen mode
+    if (!loadFont("assets/sysfont.xfn", 0)) return;
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting [Fast version] -- Keys: Use arrows to move your works!")) return;
 
     //load some textures
-    loadTexture(&texture[0], &tw, &th, "assets/eagle.png");
-    loadTexture(&texture[1], &tw, &th, "assets/redbrick.png");
-    loadTexture(&texture[2], &tw, &th, "assets/purplestone.png");
-    loadTexture(&texture[3], &tw, &th, "assets/greystone.png");
-    loadTexture(&texture[4], &tw, &th, "assets/bluestone.png");
-    loadTexture(&texture[5], &tw, &th, "assets/mossy.png");
-    loadTexture(&texture[6], &tw, &th, "assets/wood.png");
-    loadTexture(&texture[7], &tw, &th, "assets/colorstone.png");
+    if (!loadTexture(&texture[0], &tw, &th, "assets/eagle.png")) return;
+    if (!loadTexture(&texture[1], &tw, &th, "assets/redbrick.png")) return;
+    if (!loadTexture(&texture[2], &tw, &th, "assets/purplestone.png")) return;
+    if (!loadTexture(&texture[3], &tw, &th, "assets/greystone.png")) return;
+    if (!loadTexture(&texture[4], &tw, &th, "assets/bluestone.png")) return;
+    if (!loadTexture(&texture[5], &tw, &th, "assets/mossy.png")) return;
+    if (!loadTexture(&texture[6], &tw, &th, "assets/wood.png")) return;
+    if (!loadTexture(&texture[7], &tw, &th, "assets/colorstone.png")) return;
 
     //load some sprite textures
-    loadTexture(&texture[8], &tw, &th, "assets/barrel.png");
-    loadTexture(&texture[9], &tw, &th, "assets/pillar.png");
-    loadTexture(&texture[10], &tw, &th, "assets/greenlight.png");
+    if (!loadTexture(&texture[8], &tw, &th, "assets/barrel.png")) return;
+    if (!loadTexture(&texture[9], &tw, &th, "assets/pillar.png")) return;
+    if (!loadTexture(&texture[10], &tw, &th, "assets/greenlight.png")) return;
 
     //get the drawing buffer
-    int32_t cwidth, cheight;
+    int32_t cwidth = 0, cheight = 0;
     uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!renderBuff) return;
 
     //start the main loop
-    do
-    {
+    do {
         //FLOOR CASTING
         for (int32_t y = cheight / 2 + 1; y < cheight; y++)
         {
@@ -389,13 +385,13 @@ void rayCasting()
             const double rayDirX1 = dirX + planeX;
             const double rayDirY1 = dirY + planeY;
 
-            //Current y position compared to the center of the initScreen (the horizon)
+            //current y position compared to the center of the screen (the horizon)
             const int32_t p = y - cheight / 2;
 
-            //Vertical position of the camera.
+            //vertical position of the camera.
             const double posZ = 0.5 * cheight;
 
-            //Horizontal distance from the camera to the floor for the current row.
+            //horizontal distance from the camera to the floor for the current row.
             //0.5 is the z position exactly in the middle between floor and ceiling.
             const double rowDistance = posZ / p;
 
@@ -444,7 +440,7 @@ void rayCasting()
         for (int32_t x = 0; x < cwidth; x++)
         {
             //calculate ray position and direction
-            const double cameraX = 2.0 * x / int64_t(cwidth) - 1; //x-coordinate in camera space
+            const double cameraX = 2.0 * x / intmax_t(cwidth) - 1; //x-coordinate in camera space
             const double rayDirX = dirX + planeX * cameraX;
             const double rayDirY = dirY + planeY * cameraX;
 
@@ -453,11 +449,11 @@ void rayCasting()
             int32_t mapY = int32_t(posY);
 
             //length of ray from current position to next x or y-side
-            double sideDistX = 0;
-            double sideDistY = 0;
+            double sideDistX = 0.0;
+            double sideDistY = 0.0;
 
             //length of ray from one x or y-side to next x or y-side
-            double perpWallDist = 0;
+            double perpWallDist = 0.0;
             const double deltaDistX = abs(1 / rayDirX);
             const double deltaDistY = abs(1 / rayDirY);
 
@@ -507,15 +503,15 @@ void rayCasting()
                     side = 1;
                 }
 
-                //Check if ray has hit a wall
+                //check if ray has hit a wall
                 if (miniMap[mapX][mapY] > 0) hit = 1;
             }
 
-            //Calculate distance of perpendicular ray (Euclidean distance will give fisheye effect!)
+            //calculate distance of perpendicular ray (Euclidean distance will give fisheye effect!)
             if (side == 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
             else perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
 
-            //Calculate height of line to draw on initScreen
+            //calculate height of line to draw on screen
             const int32_t lineHeight = int32_t(cheight / perpWallDist);
 
             //calculate lowest and highest pixel to fill in current stripe
@@ -539,15 +535,15 @@ void rayCasting()
             if (side == 0 && rayDirX > 0) texX = TEXTURE_WIDTH - texX - 1;
             if (side == 1 && rayDirY < 0) texX = TEXTURE_WIDTH - texX - 1;
 
-            //How much to increase the texture coordinate per initScreen pixel
+            //how much to increase the texture coordinate per screen pixel
             const double step =  double(TEXTURE_HEIGHT) / lineHeight;
 
-            //Starting texture coordinate
+            //starting texture coordinate
             double texPos = (drawStart - cheight / 2.0 + lineHeight / 2.0) * step;
 
             for (int32_t y = drawStart; y < drawEnd; y++)
             {
-                //Cast the texture coordinate to integer, and mask with (cheight - 1) in case of overflow
+                //cast the texture coordinate to integer, and mask with (cheight - 1) in case of overflow
                 const int32_t texY = int32_t(texPos) & (TEXTURE_HEIGHT - 1);
                 texPos += step;
 
@@ -585,11 +581,11 @@ void rayCasting()
 
             const double invDet = 1.0 / (planeX * dirY - dirX * planeY); //required for correct matrix multiplication
             const double transformX = invDet * (dirY * spriteX - dirX * spriteY);
-            const double transformY = invDet * (-planeY * spriteX + planeX * spriteY); //this is actually the depth inside the initScreen, that what Z is in 3D
+            const double transformY = invDet * (-planeY * spriteX + planeX * spriteY); //this is actually the depth inside the screen, that what Z is in 3D
 
             const int32_t spriteScreenX = int32_t((cwidth >> 1) * (1 + transformX / transformY));
 
-            //calculate height of the sprite on initScreen
+            //calculate height of the sprite on screen
             const int32_t spriteHeight = abs(int32_t(cheight / transformY)); //using 'transformY' instead of the real distance prevents fisheye
 
             //calculate lowest and highest pixel to fill in current stripe
@@ -608,14 +604,14 @@ void rayCasting()
             int32_t drawEndX = (spriteWidth >> 1) + spriteScreenX;
             if (drawEndX >= cwidth) drawEndX = cwidth - 1;
 
-            //loop through every vertical stripe of the sprite on initScreen
+            //loop through every vertical stripe of the sprite on screen
             for (int32_t stripe = drawStartX; stripe < drawEndX; stripe++)
             {
                 const int32_t texX = int32_t(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
                 //the conditions in the if are:
                 //1) it's in front of camera plane so you don't see things behind you
-                //2) it's on the initScreen (left)
-                //3) it's on the initScreen (right)
+                //2) it's on the screen (left)
+                //3) it's on the screen (right)
                 //4) ZBuffer, with perpendicular distance
                 if (transformY > 0 && stripe > 0 && stripe < cwidth && transformY < zBuffer[stripe])
                 {
@@ -689,6 +685,7 @@ void rayCasting()
         delay(FPS_60);
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
+    //cleanup...
     for (int32_t i = 0; i != 11; i++) free(texture[i]);
     freeFont(0);
     cleanup();
@@ -696,7 +693,7 @@ void rayCasting()
 
 void basicDrawing()
 {
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "2D primitives");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "2D primitives")) return;
 
     //this is outsize screen
     int32_t x1 = -50, y1 = -20, x2 = 1000, y2 = 1200;
@@ -725,11 +722,11 @@ void imageArithmetic()
     uint32_t *image1, *image2;
 
     //load the images into the buffers. This assumes all have the same size.
-    loadTexture(&image1, &w, &h, "assets/photo1.png");
-    loadTexture(&image2, &w, &h, "assets/photo2.png");
+    if (!loadTexture(&image1, &w, &h, "assets/photo1.png")) return;
+    if (!loadTexture(&image2, &w, &h, "assets/photo2.png")) return;
 
-    //set up the initScreen
-    initScreen(w, h, 32, 0, "Image Arithmetic");
+    //set up the screen
+    if (!initScreen(w, h, 32, 0, "Image Arithmetic")) return;
 
     const int32_t size = w * h;
     uint32_t* result = (uint32_t*)getDrawBuffer();
@@ -817,11 +814,11 @@ void crossFading()
     uint32_t *image1, *image2;
 
     //load the images into the buffers. This assumes all have the same size.
-    loadTexture(&image1, &w, &h, "assets/photo1.png");
-    loadTexture(&image2, &w, &h, "assets/photo2.png");
+    if (!loadTexture(&image1, &w, &h, "assets/photo1.png")) return;
+    if (!loadTexture(&image2, &w, &h, "assets/photo2.png")) return;
     
-    //set up the initScreen
-    initScreen(w, h, 32, 0, "Cross-Fading");
+    //set up the screen
+    if (!initScreen(w, h, 32, 0, "Cross-Fading")) return;
     
     const int32_t size = w * h;
     uint32_t* result = (uint32_t*)getDrawBuffer();
@@ -858,8 +855,8 @@ void crossFading()
 
 void juliaExplorer()
 {
-    loadFont("assets/sysfont.xfn", 0);
-    initScreen(320, 240, 32, 0, "Julia-Explorer");
+    if (!loadFont("assets/sysfont.xfn", 0)) return;
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Julia-Explorer")) return;
 
     //use to show/hide text
     int32_t showText = 0;
@@ -878,7 +875,7 @@ void juliaExplorer()
     double cIm = 0.27015;
 
     //retrive the current pixel buffer
-    int32_t i = 0, cwidth, cheight;
+    int32_t i = 0, cwidth = 0, cheight = 0;
     uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
     if (!pixels) return;
 
@@ -896,8 +893,8 @@ void juliaExplorer()
             for (int32_t x = 0; x < cwidth; x++)
             {
                 //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-                double newRe = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-                double newIm = (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
+                double newRe = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
+                double newIm = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
 
                 //start the iteration process
                 for (i = 0; i < maxIterations; i++)
@@ -925,24 +922,24 @@ void juliaExplorer()
             }
         }
 
-        //print the values of all variables on initScreen if that option is enabled
+        //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1, 1, RGB_WHITE, 0, "X:%.16lf", moveX);
-            writeText(1, 9, RGB_WHITE, 0, "Y:%.16lf", moveY);
-            writeText(1, 17, RGB_WHITE, 0, "Z:%.16lf", zoom);
-            writeText(1, 25, RGB_WHITE, 0, "R:%.16lf", cRe);
-            writeText(1, 33, RGB_WHITE, 0, "I:%.16lf", cIm);
-            writeText(1, 41, RGB_WHITE, 0, "N:%d", maxIterations);
+            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", moveX);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", moveY);
+            writeText(1, 19, RGB_WHITE, 0, "Z:%.16lf", zoom);
+            writeText(1, 27, RGB_WHITE, 0, "R:%.16lf", cRe);
+            writeText(1, 35, RGB_WHITE, 0, "I:%.16lf", cIm);
+            writeText(1, 43, RGB_WHITE, 0, "N:%d", maxIterations);
         }
 
-        //print the help text on initScreen if that option is enabled
+        //print the help text on screen if that option is enabled
         if (showText == 0)
         {
-            writeText(1, cheight - 33, RGB_WHITE, 0, "Arrows move (X,Y), I,O zooms (+/-)");
-            writeText(1, cheight - 25, RGB_WHITE, 0, "Key 2,4,6,8 change shape (R,I)     ");
-            writeText(1, cheight - 17, RGB_WHITE, 0, "Keypad z,x changes iterations (N)    ");
-            writeText(1, cheight - 9, RGB_WHITE, 0, "F1=cycle texts");
+            writeText(1, cheight - 35, RGB_WHITE, 0, "Arrows move, I/O zooms");
+            writeText(1, cheight - 27, RGB_WHITE, 0, "Key 1,2,3,4 change shape");
+            writeText(1, cheight - 19, RGB_WHITE, 0, "Keypad z,x changes iterations");
+            writeText(1, cheight - 11, RGB_WHITE, 0, "H cycle texts");
         }
 
         render();
@@ -965,9 +962,9 @@ void juliaExplorer()
         if (keyDown(SDL_SCANCODE_LEFT)) { moveX -= 0.0003 * frameTime / zoom; }
 
         //CHANGE SHAPE keys
-        if (keyDown(SDL_SCANCODE_2)) { cIm += 0.0002 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_8)) { cIm -= 0.0002 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_6)) { cRe += 0.0002 * frameTime / zoom; }
+        if (keyDown(SDL_SCANCODE_1)) { cIm += 0.0002 * frameTime / zoom; }
+        if (keyDown(SDL_SCANCODE_2)) { cIm -= 0.0002 * frameTime / zoom; }
+        if (keyDown(SDL_SCANCODE_3)) { cRe += 0.0002 * frameTime / zoom; }
         if (keyDown(SDL_SCANCODE_4)) { cRe -= 0.0002 * frameTime / zoom; }
 
         //keys to change number of iterations
@@ -975,7 +972,7 @@ void juliaExplorer()
         if (keyPressed(SDL_SCANCODE_X)) { if (maxIterations > 2) maxIterations /= 2; }
 
         //key to change the text options
-        if (keyPressed(SDL_SCANCODE_F1)) { showText++; showText %= 3; }
+        if (keyPressed(SDL_SCANCODE_H)) { showText++; showText %= 3; }
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
         //reduce CPU time
@@ -989,7 +986,7 @@ void juliaExplorer()
 void mandelbrotSet()
 {
     //make larger to see more detail!
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Mandelbrot-Set");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Mandelbrot-Set")) return;
 
     //after how much iterations the function should stop
     const int32_t maxIterations = 300;
@@ -1012,8 +1009,8 @@ void mandelbrotSet()
             double newRe = 0, newIm = 0;
 
             //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-            const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-            const double pi = (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
+            const double pr = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
+            const double pi = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
             
             //start the iteration process
             for (i = 1; i <= maxIterations; i++)
@@ -1049,8 +1046,8 @@ void mandelbrotSet()
 
 void mandelbrotExporer()
 {
-    loadFont("assets/sysfont.xfn", 0);
-    initScreen(320, 240, 32, 0, "Mandelbrot-Explorer");
+    if (!loadFont("assets/sysfont.xfn", 0)) return;
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Mandelbrot-Explorer")) return;
 
     //after how much iterations the function should stop
     int32_t maxIterations = 128;
@@ -1084,8 +1081,8 @@ void mandelbrotExporer()
                 double newRe = 0, newIm = 0;
 
                 //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-                const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-                const double pi = (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
+                const double pr = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
+                const double pi = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
                 
                 //start the iteration process
                 for (i = 1; i <= maxIterations; i++)
@@ -1113,21 +1110,21 @@ void mandelbrotExporer()
             }
         }
 
-        //print the values of all variables on initScreen if that option is enabled
+        //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1, 1, RGB_WHITE, 0, "X:%.16lf", moveX);
-            writeText(1, 9, RGB_WHITE, 0, "Y:%.16lf", moveY);
-            writeText(1, 17, RGB_WHITE, 0, "Z:%.16lf", zoom);
-            writeText(1, 25, RGB_WHITE, 0, "N:%d", maxIterations);
+            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", moveX);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", moveY);
+            writeText(1, 19, RGB_WHITE, 0, "Z:%.16lf", zoom);
+            writeText(1, 27, RGB_WHITE, 0, "N:%d", maxIterations);
         }
 
-        //print the help text on initScreen if that option is enabled
+        //print the help text on screen if that option is enabled
         if (showText == 0)
         {
-            writeText(1, cheight - 33, RGB_WHITE, 0, "Arrows move (X,Y), 1,0 zooms (+/-)");
-            writeText(1, cheight - 25, RGB_WHITE, 0, "Keypad z,x changes iterations (N)    ");
-            writeText(1, cheight - 17, RGB_WHITE, 0, "F1=cycle texts");
+            writeText(1, cheight - 35, RGB_WHITE, 0, "Arrows move, I/O zooms");
+            writeText(1, cheight - 27, RGB_WHITE, 0, "Keypad z,x changes iterations");
+            writeText(1, cheight - 19, RGB_WHITE, 0, "H cycle texts");
         }
 
         render();
@@ -1154,7 +1151,7 @@ void mandelbrotExporer()
         if (keyPressed(SDL_SCANCODE_X)) { if (maxIterations > 2) maxIterations /= 2; }
 
         //key to change the text options
-        if (keyPressed(SDL_SCANCODE_F1)) { showText++; showText %= 3; }
+        if (keyPressed(SDL_SCANCODE_H)) { showText++; showText %= 3; }
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
         //reduce CPU time
@@ -1166,11 +1163,11 @@ void mandelbrotExporer()
 }
 
 static uint32_t colors[SIZE_256] = { 0 };
-static uint32_t plasma[SIZE_256][SIZE_256] = { 0 };
+static uint32_t plasma[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
 
 void plasmaDemo()
 {
-    initScreen(256, 256, 32, 0, "Plasma");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Plasma")) return;
 
     int32_t paletteShift = 0, cwidth = 0, cheight = 0;
     uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
@@ -1185,7 +1182,8 @@ void plasmaDemo()
         colors[x] = RGB2INT(rgb.r, rgb.g, rgb.b);
     }
 
-    uint32_t color;
+    const int32_t mwidth = cwidth >> 1;
+    const int32_t mheight = cheight >> 1;
 
     //generate the plasma once
     for (int32_t y = 0; y < cheight; y++)
@@ -1193,29 +1191,26 @@ void plasmaDemo()
         for (int32_t x = 0; x < cwidth; x++)
         {
             //the plasma buffer is a sum of sines
-            color = uint32_t (
-                128.0 + (128.0 * sin(x / 16.0))
-                + 128.0 + (128.0 * sin(y / 16.0))
-                ) / 2;
+            //const uint32_t color = uint32_t(
+            //      128.0 + (128.0 * sin(x / 16.0))
+            //    + 128.0 + (128.0 * sin(y / 16.0))) >> 1;
+            //plasma[y][x] = color;
 
-            plasma[y][x] = color;
+            //rolling
+            //const uint32_t color = uint32_t(
+            //      128.0 + (128.0 * sin(x / 16.0))
+            //    + 128.0 + (128.0 * sin(y / 8.0))
+            //    + 128.0 + (128.0 * sin((double(x) + y) / 16.0))
+            //    + 128.0 + (128.0 * sin(sqrt(double(x) * x + double(y) * y) / 8.0))) >> 2;
+            //plasma[y][x] = color;
 
-            color = uint32_t (
-                128.0 + (128.0 * sin(x / 16.0))
-                + 128.0 + (128.0 * sin(y / 8.0))
-                + 128.0 + (128.0 * sin((double(x) + y) / 16.0))
-                + 128.0 + (128.0 * sin(sqrt(double(x) * x + double(y) * y) / 8.0))
-                ) / 4;
-
-            plasma[y][x] = color;
-
-            color = uint32_t (
+            //sin
+            const uint32_t color = uint32_t(
                   128.0 + (128.0 * sin(x / 16.0))
                 + 128.0 + (128.0 * sin(y / 32.0))
-                + 128.0 + (128.0 * sin(sqrt((double(x) - cwidth / 2.0) * (double(x) - cwidth / 2.0) + (double(y) - cheight / 2.0) * (double(y) - cheight / 2.0)) / 8.0))
-                + 128.0 + (128.0 * sin(sqrt(double(x) * x + double(y) * y) / 8.0))) / 4;
+                + 128.0 + (128.0 * sin(sqrt((double(x) - mwidth) * (double(x) - mwidth) + (double(y) - mheight) * (double(y) - mheight)) / 8.0))
+                + 128.0 + (128.0 * sin(sqrt(double(x) * x + double(y) * y) / 8.0))) >> 2;
             plasma[y][x] = color;
-
         }
     }
 
@@ -1249,26 +1244,29 @@ void tunnelDemo()
     int32_t w = 0, h = 0;
     uint32_t* texture = NULL;
 
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Tunnel");
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Tunnel")) return;
 
     //load tunnel texture
-    loadTexture(&texture, &w, &h, "assets/map03.png");
+    if (!loadTexture(&texture, &w, &h, "assets/map03.png")) return;
     if (!texture) return;
 
     const double ratio = 100.0;
     const double scale = 1.5;
 
-    int32_t cwidth, cheight;
+    int32_t cwidth = 0, cheight = 0;
     uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!renderBuff) return;
+
+    const int32_t mwidth = cwidth >> 1;
+    const int32_t mheight = cheight >> 1;
 
     //generate non-linear transformation table
     for (int32_t y = 0; y < cheight; y++)
     {
         for (int32_t x = 0; x < cwidth; x++)
         {
-            const int32_t distance = int32_t(ratio * h / sqrt((x - cwidth / 2.0) * (x - cwidth / 2.0) + (y - cheight / 2.0) * (y - cheight / 2.0))) % h;
-            const int32_t angle = int32_t(scale * w * atan2(y - cheight / 2.0, x - cwidth / 2.0) / M_PI);
+            const int32_t distance = int32_t(ratio * h / sqrt((double(x) - mwidth) * (double(x) - mwidth) + (double(y) - mheight) * (double(y) - mheight))) % h;
+            const int32_t angle = int32_t(scale * w * atan2(double(y) - mheight, double(x) - mwidth) / M_PI);
             distBuff[y][x] = distance;
             angleBuff[y][x] = angle;
         }
@@ -1395,10 +1393,13 @@ void imageFillter()
     //load the image into the buffer
     uint32_t* image = NULL;
     int32_t w = 0, h = 0;
-    loadTexture(&image, &w, &h, "assets/photo3.png");
 
-    //set up the initScreen
-    initScreen(w, h, 32, 0, "Filters");
+    //load demo image
+    if (!loadTexture(&image, &w, &h, "assets/photo3.png")) return;
+
+    //set up the screen
+    if (!initScreen(w, h, 32, 0, "Filters")) return;
+
     uint32_t* result = (uint32_t*)getDrawBuffer();
     if (!result) return;
 
@@ -1451,7 +1452,7 @@ void imageFillter()
 // Rewrite to C/C++ by pherosiden@gmail.com                                        //
 //=================================================================================//
 
-//initScreen size
+//screen size
 #define SCREEN_WIDTH			740 //640 + world map width (20 * MINI_MAP_WIDTH)
 #define SCREEN_HEIGHT			480
 
@@ -1512,7 +1513,7 @@ int32_t playerY = PROJECTION_PLANE_HEIGHT >> 1;
 int32_t playerArc = ANGLE60;
 int32_t playerHeight = WALL_HEIGHT >> 1;
 
-//Half of the initScreen height
+//half of the screen height
 int32_t projectionPlaneCenterY = PROJECTION_PLANE_HEIGHT >> 1;
 
 //the following variables are used to keep the player coordinate in the overhead map
@@ -1544,16 +1545,16 @@ uint8_t worldMap[WORLD_MAP_HEIGHT * WORLD_MAP_WIDTH] = {
 };
 
 //some textures raw pixels data
-static uint32_t*    wallTexturePixels;
-static uint32_t*    floorTexturePixels;
-static uint32_t*    ceilingTexturePixels;
-static uint32_t*    drawBuff;
-static int32_t      cwidth, cheight;
+static uint32_t*    drawBuff = NULL;
+static uint32_t*    wallTexture = NULL;
+static uint32_t*    floorTexture = NULL;
+static uint32_t*    ceilingTexture = NULL;
+static int32_t      cwidth = 0, cheight = 0;
 
 //some textures size
-static int32_t      wallTextureWidth, wallTextureHeight;
-static int32_t      floorTextureWidth, floorTextureHeight;
-static int32_t      ceilingTextureWidth, ceilingTextureHeight;
+static int32_t      wallWidth = 0, wallHeight = 0;
+static int32_t      floorWidth = 0, floorHeight = 0;
+static int32_t      ceilingWidth = 0, ceilingHeight = 0;
 
 double arcToRad(double arcAngle)
 {
@@ -1615,7 +1616,7 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
 
     for (currPixel = 0; currPixel < numPixels; currPixel++)
     {
-        //draw the current pixel to initScreen buffer
+        //draw the current pixel to screen buffer
         drawBuff[(y % cheight) * cwidth + (x % cwidth)] = color;
         num += numAdd;  //increase the numerator by the top of the fraction
 
@@ -1641,16 +1642,16 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
 
     int32_t heightToDraw = height;
     int32_t targetOffset = y * cwidth + x;
-    const int32_t lastSourceOffset = offsetX + wallTextureWidth * wallTextureHeight;
+    const int32_t lastSourceOffset = offsetX + wallWidth * wallHeight;
     
     //clip bottom
     if (y + heightToDraw > cheight) heightToDraw = cheight - y;
 
-    int32_t error = 0;
-
     //we need to check this, otherwise, program might crash when trying
     //to fetch the shade if this condition is true (possible if height is 0)
     if (heightToDraw < 0) return;
+
+    int32_t error = 0;
 
     //we're going to draw the first row, then move down and draw the next row
     //and so on we can use the original x destination to find out
@@ -1674,12 +1675,12 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
 
         //cheap shading trick by using brightnessLevel (which doesn't really have to correspond to "brightness") 
         //to alter colors.  You can use logarithmic falloff or linear falloff to produce some interesting effect
-        const uint8_t* color = (const uint8_t*)&wallTexturePixels[offsetX];
+        const uint8_t* color = (const uint8_t*)&wallTexture[offsetX];
 
         //while there's a row to draw & not end of drawing area
-        while (error >= wallTextureWidth)
+        while (error >= wallWidth)
         {
-            error -= wallTextureWidth;
+            error -= wallWidth;
             if (targetOffset >= 0)
             {
                 //make target pixel and color
@@ -1697,7 +1698,7 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
             if (heightToDraw < 1) return;
         }
 
-        offsetX += wallTextureWidth;
+        offsetX += wallWidth;
         if (offsetX > lastSourceOffset) offsetX = lastSourceOffset;
     }
 }
@@ -1717,9 +1718,9 @@ void initData()
     int32_t i = 0;
     double radian = 0;
 
-    loadTexture(&wallTexturePixels, &wallTextureWidth, &wallTextureHeight, "assets/wallr.png");
-    loadTexture(&floorTexturePixels, &floorTextureWidth, &floorTextureHeight, "assets/floor.png");
-    loadTexture(&ceilingTexturePixels, &ceilingTextureWidth, &ceilingTextureHeight, "assets/ceil.png");
+    if (!loadTexture(&wallTexture, &wallWidth, &wallHeight, "assets/wallr.png")) return;
+    if (!loadTexture(&floorTexture, &floorWidth, &floorHeight, "assets/floor.png")) return;
+    if (!loadTexture(&ceilingTexture, &ceilingWidth, &ceilingHeight, "assets/ceil.png")) return;
 
     for (i = 0; i <= ANGLE360; i++)
     {
@@ -1863,7 +1864,7 @@ void doRayCasting()
             //compute distance to the next horizontal wall
             distToNextHorizontalGrid = TILE_SIZE;
 
-            tmpX = itanTable[castArc] * (int64_t(horizontalGrid) - playerY);
+            tmpX = itanTable[castArc] * (intmax_t(horizontalGrid) - playerY);
             //we can get the vertical distance to that wall by
             //(horizontalGrid-playerY)
             //we can get the horizontal distance to that wall by
@@ -1876,7 +1877,7 @@ void doRayCasting()
         {
             horizontalGrid = playerY / TILE_SIZE * TILE_SIZE;
             distToNextHorizontalGrid = -TILE_SIZE;
-            tmpX = itanTable[castArc] * (int64_t(horizontalGrid) - playerY);
+            tmpX = itanTable[castArc] * (intmax_t(horizontalGrid) - playerY);
             intersectionX = tmpX + playerX;
             horizontalGrid--;
         }
@@ -1923,7 +1924,7 @@ void doRayCasting()
         {
             verticalGrid = TILE_SIZE + playerX / TILE_SIZE * TILE_SIZE;
             distToNextVerticalGrid = TILE_SIZE;
-            tmpY = tanTable[castArc] * (int64_t(verticalGrid) - playerX);
+            tmpY = tanTable[castArc] * (intmax_t(verticalGrid) - playerX);
             intersectionY = tmpY + playerY;
         }
         //RAY FACING LEFT
@@ -1931,7 +1932,7 @@ void doRayCasting()
         {
             verticalGrid = playerX / TILE_SIZE * TILE_SIZE;
             distToNextVerticalGrid = -TILE_SIZE;
-            tmpY = tanTable[castArc] * (int64_t(verticalGrid) - playerX);
+            tmpY = tanTable[castArc] * (intmax_t(verticalGrid) - playerX);
             intersectionY = tmpY + playerY;
             verticalGrid--;
         }
@@ -1988,7 +1989,7 @@ void doRayCasting()
             distance = distToHorizontalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
             bottomOfWall = int32_t(ratio * playerHeight + projectionPlaneCenterY);
-            scale = int64_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
+            scale = intmax_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
             topOfWall = bottomOfWall - int32_t(scale);
             offsetX = int32_t(intersectionX) % TILE_SIZE;
         }
@@ -2001,7 +2002,7 @@ void doRayCasting()
             distance = distToVerticalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
             bottomOfWall = int32_t(ratio * playerHeight + projectionPlaneCenterY);
-            scale = int64_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
+            scale = intmax_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
             topOfWall = bottomOfWall - int32_t(scale);
             offsetX = int32_t(intersectionY) % TILE_SIZE;
         }
@@ -2018,14 +2019,14 @@ void doRayCasting()
         if (bottomOfWall > cheight - 1) bottomOfWall = cheight - 1;
 
         //FLOOR CASTING at the simplest! Try to find ways to optimize this, you can do it!
-        if (floorTexturePixels)
+        if (floorTexture)
         {
             //find the first bit so we can just add the width to get the next row (of the same column)
             uint32_t targetOffset = bottomOfWall * cwidth + castColumn;
 
             for (int32_t row = bottomOfWall; row < PROJECTION_PLANE_HEIGHT; row++)
             {
-                const double straightDistance = double(playerHeight) / (double(row) - projectionPlaneCenterY) * PLAYER_PROJECTION_PLAN;
+                const double straightDistance = double(playerHeight) / (intmax_t(row) - projectionPlaneCenterY) * PLAYER_PROJECTION_PLAN;
                 const double actualDistance = straightDistance * fishTable[castColumn];
 
                 int32_t endY = int32_t(actualDistance * sinTable[castArc]);
@@ -2047,7 +2048,7 @@ void doRayCasting()
                     endX %= TILE_SIZE;
 
                     //pixel to draw
-                    const uint32_t sourceOffset = endY * floorTextureWidth + endX;
+                    const uint32_t sourceOffset = endY * floorWidth + endX;
 
                     //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / actualDistance;
@@ -2056,7 +2057,7 @@ void doRayCasting()
 
                     //make target pixel and color
                     uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-                    const uint8_t* color = (uint8_t*)&floorTexturePixels[sourceOffset];
+                    const uint8_t* color = (uint8_t*)&floorTexture[sourceOffset];
 
                     //draw the pixel
                     pixel[2] = uint8_t(color[2] * brightnessLevel);
@@ -2070,7 +2071,7 @@ void doRayCasting()
         }
         
         //CEILING CASTING at the simplest! Try to find ways to optimize this, you can do it!
-        if (ceilingTexturePixels)
+        if (ceilingTexture)
         {
             //find the first bit so we can just add the width to get the next row (of the same column)
             uint32_t targetOffset = topOfWall * cwidth + castColumn;
@@ -2099,7 +2100,7 @@ void doRayCasting()
                     endX %= TILE_SIZE;
 
                     //pixel to draw
-                    const uint32_t sourceOffset = endY * ceilingTextureWidth + endX;
+                    const uint32_t sourceOffset = endY * ceilingWidth + endX;
                     
                     //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / diagonalDistance;
@@ -2108,7 +2109,7 @@ void doRayCasting()
 
                     //make target pixel and color
                     uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-                    const uint8_t* color = (uint8_t*)&ceilingTexturePixels[sourceOffset];
+                    const uint8_t* color = (uint8_t*)&ceilingTexture[sourceOffset];
                     
                     //draw the pixel
                     pixel[2] = uint8_t(color[2] * brightnessLevel);
@@ -2129,18 +2130,19 @@ void doRayCasting()
 
 void runRayCasting()
 {
-    double time = 0; //time of current frame
+    double time = 0;    //time of current frame
     double oldTime = 0; //time of previous frame
 
-    loadFont("assets/sysfont.xfn", 0);
-    initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting-Demo -- Keys control: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch");
+    if (!loadFont("assets/sysfont.xfn", 0)) return;
+    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;
+
     initData();
 
     drawBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!drawBuff) return;
 
-    do
-    {
+    //start the main loop
+    do {
         drawOverheadMap();
         doRayCasting();
         drawPlayerPOVOnOverheadMap();
@@ -2148,8 +2150,12 @@ void runRayCasting()
         //timing for input and FPS counter
         oldTime = time;
         time = getTime();
-        const double frameTime = (time - oldTime) / 1000.0; //frametime is the time this frame has taken, in seconds
-        writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime); //FPS counter
+
+        //frametime is the time this frame has taken, in seconds
+        const double frameTime = (time - oldTime) / 1000.0;
+        
+        //report FPS counter
+        writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime);
         render();
         memset(drawBuff, RGB2INT(255, 255, 255), sizeof(uint32_t) * cwidth * cheight);
 
@@ -2266,9 +2272,10 @@ void runRayCasting()
         delay(FPS_30);
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
-    free(wallTexturePixels);
-    free(floorTexturePixels);
-    free(ceilingTexturePixels);
+    //cleanup...
+    free(wallTexture);
+    free(floorTexture);
+    free(ceilingTexture);
     freeFont(0);
     cleanup();
 }

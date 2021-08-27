@@ -3,23 +3,27 @@
 //max message lines
 #define MAX_TEXT_LINE   23
 
-//String buffer
+//string buffer
 typedef char STRBUFF[80];
 
-//Show text intro message
+//show text intro message
 int32_t     fullSpeed = 0;
+
+//greets scrolling text
 STRBUFF     texts[MAX_TEXT_LINE] = {0};
-GFX_IMAGE   fade1, fade2, flare;
-GFX_IMAGE   bumpchn, bumpimg, logo, sky;
+
+//global cached image
+GFX_IMAGE   flare = { 0 };
+GFX_IMAGE   fade1 = { 0 }, fade2 = { 0 };
+GFX_IMAGE   bumpchn = { 0 }, bumpimg = { 0 };
+GFX_IMAGE   gfxlogo = { 0 }, gfxsky = { 0 };
 GFX_IMAGE   flares[16] = { 0 };
 
 //check and exit program
 void runExit()
 {
-    GFX_IMAGE img;
-    memset(&img, 0, sizeof(GFX_IMAGE));
-
     //capture current screen buffer
+    GFX_IMAGE img = { 0 };
     getImage(0, 0, cresX, cresY, &img);
 
     //decrease rgb and push back to screen
@@ -38,8 +42,8 @@ void runExit()
     freeImage(&flare);
     freeImage(&bumpchn);
     freeImage(&bumpimg);
-    freeImage(&logo);
-    freeImage(&sky);
+    freeImage(&gfxlogo);
+    freeImage(&gfxsky);
     for (int32_t i = 0; i < 16; i++) freeImage(&flares[i]);
 }
 
@@ -94,29 +98,33 @@ void showText(int32_t sx, int32_t sy, GFX_IMAGE *img, const char *str)
 void runIntro()
 {
     const int32_t tw = 3, tg = tw + 5, tu = tg + 3, to = tu + 5, ts = to + 3;
-
-    GFX_IMAGE ult, utb, trn, map;
-    GFX_IMAGE scr, wcb, wci, gfx, gxb;
     
     //load image
-    loadImage("assets/gfxtheultimate.png", &ult);
-    loadImage("assets/gfxlogo.png", &gfx);
-    loadImage("assets/gfxwelcome.png", &wcb);
-    loadImage("assets/map03.png", &map);
+    GFX_IMAGE ult = { 0 }, gfx = { 0 }, wcb = { 0 }, map = { 0 };
+    if (!loadImage("assets/gfxtheultimate.png", &ult)) return;
+    if (!loadImage("assets/gfxlogo.png", &gfx)) return;
+    if (!loadImage("assets/gfxwelcome.png", &wcb)) return;
+    if (!loadImage("assets/map03.png", &map)) return;
 
     //initialize buffer
-    newImage(cresX, cresY, &scr);
-    newImage(centerX, centerY, &trn);
-    newImage(wcb.mWidth, wcb.mHeight, &wci);
-    newImage(gfx.mWidth, gfx.mHeight, &gxb);
-    newImage(ult.mWidth, ult.mHeight, &utb);
+    GFX_IMAGE scr = { 0 }, wci = { 0 };
+    GFX_IMAGE gxb = { 0 }, utb = { 0 }, trn = { 0 };
+    if (!newImage(cresX, cresY, &scr)) return;
+    if (!newImage(centerX, centerY, &trn)) return;
+    if (!newImage(wcb.mWidth, wcb.mHeight, &wci)) return;
+    if (!newImage(gfx.mWidth, gfx.mHeight, &gxb)) return;
+    if (!newImage(ult.mWidth, ult.mHeight, &utb)) return;
 
     int32_t i0 = trn.mWidth * trn.mHeight;
 
-    //initialize turnel buffer
+    //initialize tunnel buffer
     uint8_t* buff1 = (uint8_t*)calloc(i0, sizeof(uint8_t));
     uint8_t* buff2 = (uint8_t*)calloc(i0, sizeof(uint8_t));
-    if (!buff1 || !buff2) messageBox(GFX_ERROR, "RunIntro: cannot alloc memory!");
+    if (!buff1 || !buff2)
+    {
+        messageBox(GFX_ERROR, "RunIntro: cannot alloc memory!");
+        return;
+    }
 
     //calculate turnel buffer
     prepareTunnel(&trn, buff1, buff2);
@@ -205,25 +213,21 @@ void runIntro()
 
 void runBlocking(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img1, img2, img3;
-
-    memset(&img1, 0, sizeof(GFX_IMAGE));
-    memset(&img2, 0, sizeof(GFX_IMAGE));
-    memset(&img3, 0, sizeof(GFX_IMAGE));
-
     //initialize buffer
-    newImage(fade1.mWidth, fade1.mHeight, &img2);
+    GFX_IMAGE img2 = { 0 };
+    if (!newImage(fade1.mWidth, fade1.mHeight, &img2)) return;
 
     //blocking background
     int32_t dec = fade1.mWidth >> 2;
-    do {
+    while (dec > 0 && !finished(SDL_SCANCODE_RETURN))
+    {
         dec--;
         blockOutMidImage(&img2, &fade1, dec << 1, dec << 1);
         brightnessImage(&img2, &img2, uint8_t(255.0 - double(dec) / (fade1.mWidth >> 2) * 255.0));
         putImage(sx, sy, &img2);
         render();
         delay(FPS_60);
-    } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
+    };
 
     //save current background
     const int32_t width  = fade1.mWidth;
@@ -234,28 +238,28 @@ void runBlocking(int32_t sx, int32_t sy)
     freeImage(&img2);
 
     //load next step
-    loadImage("assets/gfxtext.png", &img1);
-    newImage(img1.mWidth, img1.mHeight, &img2);
+    GFX_IMAGE img1 = { 0 };
+    if (!loadImage("assets/gfxtext.png", &img1)) return;
+    if (!newImage(img1.mWidth, img1.mHeight, &img2)) return;
 
     //calculate current position and save current buffer
+    GFX_IMAGE img3 = { 0 };
     const int32_t posx = (width - img2.mWidth) >> 1;
     const int32_t posy = (height - img2.mHeight) >> 1;
     getImage(sx + posx, sy + posy, img1.mWidth, img1.mHeight, &img3);
 
     //blocking next step
     dec = img1.mWidth >> 3;
-    do {
-        //start effect
+    while (dec > 0 && !finished(SDL_SCANCODE_RETURN)) 
+    {
         dec--;
         blockOutMidImage(&img2, &img1, dec << 1, dec << 1);
-        brightnessAlpha(&img2, uint8_t(255.0 - double(dec) / (img1.mWidth >> 3) * 255.0));
-
-        //render to screen
+        brightnessAlpha(&img2, uint8_t(255 - dec / (img1.mWidth >> 3) * 255.0));
         putImage(sx + posx, sy + posy, &img3);
         putImageAlpha(sx + posx, sy + posy, &img2);
         render();
         delay(FPS_60);
-    } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img1);
@@ -265,18 +269,24 @@ void runBlocking(int32_t sx, int32_t sy)
 
 void runScaleUpImage(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img1, img2, img3;
+    GFX_IMAGE img1 = { 0 }, img2 = { 0 }, img3 = { 0 };
 
     //initialize buffer
-    loadImage("assets/gfxspr.png", &img3);
-    newImage(centerX, centerY, &img1);
-    newImage(centerX, centerY, &img2);
+    if (!loadImage("assets/gfxspr.png", &img3)) return;
+    if (!newImage(centerX, centerY, &img1)) return;
+    if (!newImage(centerX, centerY, &img2)) return;
        
     //setup lookup table
     int32_t* tables = (int32_t*)calloc(img2.mWidth, sizeof(int32_t));
-    if (!tables) messageBox(GFX_ERROR, "ScaleUpImage: not enough memory for lookup tables.");
+    if (!tables)
+    {
+        messageBox(GFX_ERROR, "ScaleUpImage: not enough memory for lookup tables.");
+        return;
+    }
 
-    do {
+    //loop until enter key pressed
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
         //redirect render buffer to image buffer
         setDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
 
@@ -296,7 +306,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
         //save current buffer for next step
         memcpy(img1.mData, img2.mData, img2.mSize);
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img1);
@@ -307,13 +317,15 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
 void runCrossFade(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img = { 0 };
     int32_t i = 0, up = 1, val = 1;
 
     //initialize render buffer
-    newImage(fade1.mWidth, fade1.mHeight, &img);
+    GFX_IMAGE img = { 0 };
+    if (!newImage(fade1.mWidth, fade1.mHeight, &img)) return;
 
-    do {
+    //loop until key enter pressed
+    while (!finished(SDL_SCANCODE_RETURN)) 
+    {
         //check blending value
         if (i == 0) val = 1;
         else val = (i << 2) - 1;
@@ -323,10 +335,11 @@ void runCrossFade(int32_t sx, int32_t sy)
         putImage(sx, sy, &img);
         render();
         delay(FPS_60);
+
         //check for change direction
         if (up) i++; else i--;
         if (i == 0 || i == 64) up = !up;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -334,19 +347,19 @@ void runCrossFade(int32_t sx, int32_t sy)
 
 void runAddImage(int32_t sx, int32_t sy)
 {
-    int32_t i = 320;
-
     //change view port to screen
     setViewPort(sx, sy, centerX + 20 - 1, centerY + 20 - 1);
 
-    do {
-        i -= 4;
+    int32_t step = 320;
+    while (step > 4 && !finished(SDL_SCANCODE_RETURN))
+    {
         //put lens image with adding background pixel
+        step -= 4;
         putImage(sx, sy, &fade1);
-        putImageAdd(int32_t(sx + (320 - cos(i / 160.0) * 320)), sy, &flare);
+        putImageAdd(int32_t(sx + (320 - cos(step / 160.0) * 320)), sy, &flare);
         render();
         delay(FPS_60);
-    } while (i != 0 && !finished(SDL_SCANCODE_RETURN));
+    };
 
     //restore view port
     restoreViewPort();
@@ -354,17 +367,26 @@ void runAddImage(int32_t sx, int32_t sy)
 
 void runRotateImage(int32_t sx, int32_t sy)
 {
-    uint32_t deg = 0;
-    GFX_IMAGE img = { 0 };
-    
     //initialize render buffer
-    newImage(fade2.mWidth, fade2.mHeight, &img);
+    GFX_IMAGE img = { 0 };
+    if (!newImage(fade2.mWidth, fade2.mHeight, &img)) return;
+    if (!img.mData) return;
 
     //pre-calculate lookup table
     int32_t* tables = (int32_t*)calloc(intptr_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
-    if (!tables) messageBox(GFX_ERROR, "RotateImage: cannot alloc lookup tables.");
+    if (!tables)
+    {
+        messageBox(GFX_ERROR, "RotateImage: cannot alloc lookup tables.");
+        return;
+    }
 
-    do {
+    //loop step
+    uint32_t deg = 0;
+
+    //loop until return
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
+        //first step
         deg++;
 
         //copy background
@@ -375,7 +397,7 @@ void runRotateImage(int32_t sx, int32_t sy)
         putImage(sx, sy, &img);
         render();
         delay(FPS_60);
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -384,13 +406,20 @@ void runRotateImage(int32_t sx, int32_t sy)
 
 void runBilinearRotateImage(int32_t sx, int32_t sy)
 {
-    int32_t angle = 0;
-    GFX_IMAGE img = { 0 };
-    
     //initialize render buffer
-    newImage(fade2.mWidth, fade2.mHeight, &img);
+    GFX_IMAGE img = { 0 };
+    if (!newImage(fade2.mWidth, fade2.mHeight, &img)) return;
+    if (!img.mData) return;
 
-    do {
+    //start angle
+    int32_t angle = 0;
+
+    //loop until return
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
+        //first step
+        angle++;
+
         //copy background
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
@@ -399,8 +428,7 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
         putImage(sx, sy, &img);
         render();
         delay(FPS_60);
-        angle++;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -408,17 +436,18 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
 
 void runAntialias(int32_t sx, int32_t sy)
 {
-    GFX_IMAGE img = { 0 }, dst = { 0 };
-
     //save current centerx, centery
     const int32_t xc = centerX;
     const int32_t yc = centerY;
 
     //initialize image buffer
-    newImage(xc, yc, &img);
-    newImage(xc, yc, &dst);
+    GFX_IMAGE img = { 0 }, dst = { 0 };
+    if (!newImage(xc, yc, &img)) return;
+    if (!newImage(xc, yc, &dst)) return;
 
-    do {
+    //loop until return
+    while (!finished(SDL_SCANCODE_RETURN)) 
+    {
         //redirect drawing to image buffer
         setDrawBuffer(dst.mData, dst.mWidth, dst.mHeight);
 
@@ -445,7 +474,7 @@ void runAntialias(int32_t sx, int32_t sy)
         fadeOutImage(&dst, 4);
         render();
         delay(FPS_60);
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -460,7 +489,7 @@ void runLens(GFX_IMAGE* outImg)
 
     //load source image
     GFX_IMAGE scr = { 0 };
-    newImage(cresX, cresY, &scr);
+    if (!newImage(cresX, cresY, &scr)) return;
 
     //current mouse pos and left button
     int32_t lmb = 0;
@@ -480,7 +509,7 @@ void runLens(GFX_IMAGE* outImg)
 
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
-        putImage(0, 0, &sky);
+        putImage(0, 0, &gfxsky);
         fillRectSub(0, 0, cmaxX, cmaxY, RGB2INT(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)));
 
         //put all flare image to render buffer
@@ -497,7 +526,7 @@ void runLens(GFX_IMAGE* outImg)
         }
 
         //put logo and draw text message
-        putImageAlpha(cresX - logo.mWidth + 1, 0, &logo);
+        putImageAlpha(cresX - gfxlogo.mWidth + 1, 0, &gfxlogo);
         writeText(tx, ty, RGB2INT(255, 255, 255), 2, str);
         render();
         delay(FPS_60);
@@ -516,15 +545,18 @@ void runLens(GFX_IMAGE* outImg)
 
 void runBumpImage()
 {
-    int32_t cnt = 0;
-    GFX_IMAGE dst = { 0 };
-        
     //loading source image
-    newImage(cresX, cresY, &dst);
+    GFX_IMAGE dst = { 0 };
+    if (!newImage(cresX, cresY, &dst)) return;
 
-    do {
-        //calculate position
+    //loop until return
+    int32_t cnt = 0;
+    while (!finished(SDL_SCANCODE_RETURN)) 
+    {
+        //first step
         cnt++;
+
+        //calculate position
         const int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + centerX);
         const int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + centerY);
 
@@ -534,7 +566,7 @@ void runBumpImage()
         render();
         delay(FPS_60);
         clearImage(&dst);
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&dst);
@@ -548,14 +580,16 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     for (int32_t y = 0; y < 256; y++) sinx[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
     GFX_IMAGE plasma = { 0 }, screen = { 0 };
-    newImage(centerX >> 1, centerY >> 1, &plasma);
-    newImage(centerX, centerY, &screen);
+    if (!newImage(centerX >> 1, centerY >> 1, &plasma)) return;
+    if (!newImage(centerX, centerY, &screen)) return;
 
     uint32_t frames = 0;
     uint32_t* data = (uint32_t*)plasma.mData;
     const uint16_t endx = plasma.mWidth >> 1;
 
-    do {
+    //loop until return
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
         uint32_t ofs = 0;
         const uint32_t tectr = frames * 10;
         const uint16_t x1 = sinx[(tectr / 12) & 0xFF];
@@ -660,7 +694,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         render();
         delay(FPS_60);
         frames++;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //clean up...
     freeImage(&plasma);
@@ -669,44 +703,41 @@ void runPlasmaScale(int32_t sx, int32_t sy)
 
 void gfxDemo32()
 {
-    GFX_IMAGE bg = { 0 }, tx = { 0 }, scr = { 0 }, old = { 0 }, im = { 0 };
-
     char sbuff[128] = { 0 };
     const char* initMsg = "Please wait while initialize GFXLIB...";
 
-    memset(&tx, 0, sizeof(GFX_IMAGE));
-    memset(&scr, 0, sizeof(GFX_IMAGE));
-    memset(&old, 0, sizeof(GFX_IMAGE));
-    
-    loadFont("assets/sysfont.xfn", 0);
-    initScreen(800, 600, 32, 0, "GFXLIB-Demo32");
+    if (!loadFont("assets/sysfont.xfn", 0)) return;
+    if (!initScreen(800, 600, 32, 0, "GFXLIB-Demo32")) return;
     writeText(centerX - 8 * (int32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY127, 2, initMsg);
     render();
 
     initSystemInfo();
-    loadImage("assets/gfxbg5.png", &bg);
-    loadImage("assets/gfxbumpchn.png", &bumpchn);
-    loadImage("assets/gfxbumpimg.png", &bumpimg);
-    loadImage("assets/gfxlogosm.png", &logo);
-    loadImage("assets/gfxsky.png", &sky);
+
+    GFX_IMAGE bg = { 0 };
+    if (!loadImage("assets/gfxbg5.png", &bg)) return;
+    if (!loadImage("assets/gfxbumpchn.png", &bumpchn)) return;
+    if (!loadImage("assets/gfxbumpimg.png", &bumpimg)) return;
+    if (!loadImage("assets/gfxlogosm.png", &gfxlogo)) return;
+    if (!loadImage("assets/gfxsky.png", &gfxsky)) return;
     
     for (int32_t i = 0; i < 16; i++)
     {
         sprintf(sbuff, "assets/flare-%dx.png", i + 1);
-        loadImage(sbuff, &flares[i]);
+        if (!loadImage(sbuff, &flares[i])) return;
     }
 
     runIntro();
     putImage(0, 0, &bg);
-    putImageAlpha(cresX - logo.mWidth + 1, cresY - logo.mHeight + 1, &logo);
+    putImageAlpha(cresX - gfxlogo.mWidth + 1, cresY - gfxlogo.mHeight + 1, &gfxlogo);
 
+    GFX_IMAGE txt = { 0 };
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
-
+    
     fillRectPatternAdd(10, 10, xc - 10, yc - 10, RGB_GREY32, ptnHatchX);
     fillRectSub(10, yc, xc - 10, cmaxY - 10, RGB_GREY32);
     fillRect(20, 20, xc - 20 - 1, yc - 20 - 1, 0);
-    getImage(10, yc, xc - 20, cmaxY - yc - 10, &tx);
+    getImage(10, yc, xc - 20, cmaxY - yc - 10, &txt);
 
     writeText(xc + 10,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
     writeText(xc + 10, 90, RGB_GREY127, 2, "A short show of some abilities");
@@ -726,132 +757,136 @@ void gfxDemo32()
     writeText(xc + 10, 260, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
     render();
     fullSpeed = 1;
-    showText(10, yc, &tx, "Please wait while loading images...");
-    loadImage("assets/fade1x.png", &fade1);
-    showText(10, yc, &tx, " - fade1x.png");
-    loadImage("assets/fade2x.png", &fade2);
-    showText(10, yc, &tx, " - fade2x.png");
-    loadImage("assets/flare0.png", &flare);
-    showText(10, yc, &tx, " - flare0.png");
-    showText(10, yc, &tx, "");
+    showText(10, yc, &txt, "Please wait while loading images...");
+    if (!loadImage("assets/fade1x.png", &fade1)) return;
+    showText(10, yc, &txt, " - fade1x.png");
+    if (!loadImage("assets/fade2x.png", &fade2)) return;
+    showText(10, yc, &txt, " - fade2x.png");
+    if (!loadImage("assets/flare0.png", &flare)) return;
+    showText(10, yc, &txt, " - flare0.png");
+    showText(10, yc, &txt, "");
     fullSpeed = 0;
-    showText(10, yc, &tx, "This is an early demonstration of the abilities of");
-    showText(10, yc, &tx, "GFXLIB. What you will see here are only some of");
-    showText(10, yc, &tx, "the image manipulating effects which are currently");
-    showText(10, yc, &tx, "built in. More to come and show you later...");
+    showText(10, yc, &txt, "This is an early demonstration of the abilities of");
+    showText(10, yc, &txt, "GFXLIB. What you will see here are only some of");
+    showText(10, yc, &txt, "the image manipulating effects which are currently");
+    showText(10, yc, &txt, "built in. More to come and show you later...");
     delay(1000);
-    showText(10, yc, &tx, "Starting...");
+    showText(10, yc, &txt, "Starting...");
     runBlocking(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "What you saw was a combination of the command");
-    showText(10, yc, &tx, "BlockOut and the command BrightnessImage. The text");
-    showText(10, yc, &tx, "is an alphamapped image. You may see: working with");
-    showText(10, yc, &tx, "images got very easy in GFXLIB - no half things");
-    showText(10, yc, &tx, "anymore! To the next... press enter!");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "What you saw was a combination of the command");
+    showText(10, yc, &txt, "BlockOut and the command BrightnessImage. The text");
+    showText(10, yc, &txt, "is an alphamapped image. You may see: working with");
+    showText(10, yc, &txt, "images got very easy in GFXLIB - no half things");
+    showText(10, yc, &txt, "anymore! To the next... press enter!");
     while (!finished(SDL_SCANCODE_RETURN));
     runAddImage(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "This was simply another flag of a draw-operation.");
-    showText(10, yc, &tx, "It was used here to force draw to add the content");
-    showText(10, yc, &tx, "of the image to the background of the image. You");
-    showText(10, yc, &tx, "are also able to subtract the image and to work");
-    showText(10, yc, &tx, "with an alphamap like PNG-images can contain one.");
-    showText(10, yc, &tx, "The next effect - press enter...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "This was simply another flag of a draw-operation.");
+    showText(10, yc, &txt, "It was used here to force draw to add the content");
+    showText(10, yc, &txt, "of the image to the background of the image. You");
+    showText(10, yc, &txt, "are also able to subtract the image and to work");
+    showText(10, yc, &txt, "with an alphamap like PNG-images can contain one.");
+    showText(10, yc, &txt, "The next effect - press enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runCrossFade(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "This thing is called CrossFading or AlphaBlending.");
-    showText(10, yc, &tx, "In GFXLIB, the procedure is called 'BlendImage'.");
-    showText(10, yc, &tx, "This procedure makes of 2 images another, where");
-    showText(10, yc, &tx, "you can decide which image covers more the other.");
-    showText(10, yc, &tx, "Enter...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "This thing is called CrossFading or AlphaBlending.");
+    showText(10, yc, &txt, "In GFXLIB, the procedure is called 'BlendImage'.");
+    showText(10, yc, &txt, "This procedure makes of 2 images another, where");
+    showText(10, yc, &txt, "you can decide which image covers more the other.");
+    showText(10, yc, &txt, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runBilinearRotateImage(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "This is an image rotation. The responsible routine");
-    showText(10, yc, &tx, "for this is called BilinearRotateImage. It doesn't");
-    showText(10, yc, &tx, "seem to be very fast here, but in this demo the");
-    showText(10, yc, &tx, "rotation is an optimize version of bilinear image");
-    showText(10, yc, &tx, "interpolation. You can reach on a INTEL MMX-133 up");
-    showText(10, yc, &tx, "to 20 fps at 640x480x32 bit. You can see another");
-    showText(10, yc, &tx, "version of rotate image is so fast if only rotate");
-    showText(10, yc, &tx, "and show image, check my source code for details.");
-    showText(10, yc, &tx, "Enter...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "This is an image rotation. The responsible routine");
+    showText(10, yc, &txt, "for this is called BilinearRotateImage. It doesn't");
+    showText(10, yc, &txt, "seem to be very fast here, but in this demo the");
+    showText(10, yc, &txt, "rotation is an optimize version of bilinear image");
+    showText(10, yc, &txt, "interpolation. You can reach on a INTEL MMX-133 up");
+    showText(10, yc, &txt, "to 20 fps at 640x480x32 bit. You can see another");
+    showText(10, yc, &txt, "version of rotate image is so fast if only rotate");
+    showText(10, yc, &txt, "and show image, check my source code for details.");
+    showText(10, yc, &txt, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runScaleUpImage(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "Much more fancy than the other FX... Yeah, you see");
-    showText(10, yc, &tx, "two effects combined here. scaleup and blur image");
-    showText(10, yc, &tx, "are doing their work here. Check the source code");
-    showText(10, yc, &tx, "to see the details. The next... Enter :)");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "Much more fancy than the other FX... Yeah, you see");
+    showText(10, yc, &txt, "two effects combined here. scaleup and blur image");
+    showText(10, yc, &txt, "are doing their work here. Check the source code");
+    showText(10, yc, &txt, "to see the details. The next... Enter :)");
     while (!finished(SDL_SCANCODE_RETURN));
     runAntialias(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "Antialiased lines, circles and ellipses. Possible");
-    showText(10, yc, &tx, "with GFXLIB and also even faster than seen here");
-    showText(10, yc, &tx, "(just slow for show). Perfect for 3D models and");
-    showText(10, yc, &tx, "similar. Enter for the next...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "Antialiased lines, circles and ellipses. Possible");
+    showText(10, yc, &txt, "with GFXLIB and also even faster than seen here");
+    showText(10, yc, &txt, "(just slow for show). Perfect for 3D models and");
+    showText(10, yc, &txt, "similar. Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runPlasmaScale(20, 20);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "Plasma effect with hight color, this also combine");
-    showText(10, yc, &tx, "scale up image with bilinear interpolation to");
-    showText(10, yc, &tx, "process image with hight quality. This version is");
-    showText(10, yc, &tx, "optimized using integer number but not really fast");
-    showText(10, yc, &tx, "here. You can still optimized.");
-    showText(10, yc, &tx, "Enter for the next...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "Plasma effect with hight color, this also combine");
+    showText(10, yc, &txt, "scale up image with bilinear interpolation to");
+    showText(10, yc, &txt, "process image with hight quality. This version is");
+    showText(10, yc, &txt, "optimized using integer number but not really fast");
+    showText(10, yc, &txt, "here. You can still optimized.");
+    showText(10, yc, &txt, "Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
     fillRect(20, 20, xc - 20 - 1, yc - 20 - 1, 0);
+
+    GFX_IMAGE scr = { 0 };
     getImage(0, 0, cresX, cresY, &scr);
     runBumpImage();
+
+    GFX_IMAGE old = { 0 }, im = { 0 };
     getImage(0, 0, cresX, cresY, &old);
     newImage(centerX, centerY, &im);
     scaleImage(&im, &old, 0);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "Bumbing effect with full screen, this effect");
-    showText(10, yc, &tx, "combined many images and use subtract, adding");
-    showText(10, yc, &tx, "pixels to calculate render buffer. Scale down");
-    showText(10, yc, &tx, "image using Bresenham algorithm for faster speed");
-    showText(10, yc, &tx, "of image interpolation. Enter for next...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "Bumbing effect with full screen, this effect");
+    showText(10, yc, &txt, "combined many images and use subtract, adding");
+    showText(10, yc, &txt, "pixels to calculate render buffer. Scale down");
+    showText(10, yc, &txt, "image using Bresenham algorithm for faster speed");
+    showText(10, yc, &txt, "of image interpolation. Enter for next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runLens(&old);
     bilinearScaleImage(&im, &old);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "Yeah! Lens effect, this effect also combined many");
-    showText(10, yc, &tx, "images too and other pixel manipulation such as");
-    showText(10, yc, &tx, "substract, adding for each to render buffer. This");
-    showText(10, yc, &tx, "also use bilinear algorithm with hight quality for");
-    showText(10, yc, &tx, "scale down image. Using mouse hardware interrupts");
-    showText(10, yc, &tx, "to tracking mouse event. Enter to continue...");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "Yeah! Lens effect, this effect also combined many");
+    showText(10, yc, &txt, "images too and other pixel manipulation such as");
+    showText(10, yc, &txt, "substract, adding for each to render buffer. This");
+    showText(10, yc, &txt, "also use bilinear algorithm with hight quality for");
+    showText(10, yc, &txt, "scale down image. Using mouse hardware interrupts");
+    showText(10, yc, &txt, "to tracking mouse event. Enter to continue...");
     while (!finished(SDL_SCANCODE_RETURN));
     fullSpeed = 0;
-    showText(10, yc, &tx, "----");
-    showText(10, yc, &tx, "That's all folks! More to come soon. In short time");
-    showText(10, yc, &tx, "that's enought.See from my source code for another");
-    showText(10, yc, &tx, "stuffs.If there occured something which seems tobe");
-    showText(10, yc, &tx, "a bug or any suggestion,please contact me. Thanks!");
-    showText(10, yc, &tx, "");
-    showText(10, yc, &tx, "Nguyen Ngoc Van -- pherosiden@gmail.com");
+    showText(10, yc, &txt, "----");
+    showText(10, yc, &txt, "That's all folks! More to come soon. In short time");
+    showText(10, yc, &txt, "that's enought.See from my source code for another");
+    showText(10, yc, &txt, "stuffs.If there occured something which seems tobe");
+    showText(10, yc, &txt, "a bug or any suggestion,please contact me. Thanks!");
+    showText(10, yc, &txt, "");
+    showText(10, yc, &txt, "Nguyen Ngoc Van -- pherosiden@gmail.com");
     delay(1000);
-    showText(10, yc, &tx, "");
-    showText(10, yc, &tx, "Enter to exit ;-)");
+    showText(10, yc, &txt, "");
+    showText(10, yc, &txt, "Enter to exit ;-)");
     while (!finished(SDL_SCANCODE_RETURN));
     runExit();
     freeImage(&bg);
-    freeImage(&tx);
+    freeImage(&txt);
     freeImage(&scr);
     freeImage(&old);
     freeImage(&im);

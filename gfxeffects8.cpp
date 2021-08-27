@@ -32,7 +32,7 @@ namespace juliaSet {
     //call with juliaSet(256, -0.7, 0.27015, 1, 0, 0);
     void runJulia(int32_t iters, double cre, double cim, double zoom, double mx, double my)
     {
-        initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Julia-Set Demo");
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Julia-Set Demo")) return;
 
         const int32_t mwidth = texWidth >> 1;
         const int32_t mheight = texHeight >> 1;
@@ -70,7 +70,8 @@ namespace juliaSet {
     //call with mandelbrotSet(512, 1179.8039, -0.743153, -0.139405);
     void runMandelbrot(int32_t iters, double zoom, double mx, double my)
     {
-        initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Mandelbrot-Set");
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Mandelbrot-Set")) return;
+
         uint8_t* pixels = (uint8_t*)getDrawBuffer();
         if (!pixels) return;
 
@@ -121,11 +122,11 @@ namespace fadePalette {
         RGB dst[256] = { 0 };
         RGB src[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO")) return;
         uint8_t* vbuff = (uint8_t*)getDrawBuffer();
         if (!vbuff) return;
 
-        loadPNG(vbuff, src, "assets/arnold.png");
+        if (!loadPNG(vbuff, src, "assets/arnold.png")) return;
         setPalette(dst);
         fadeIn(src, FPS_60);
         fadeMax(FPS_60);
@@ -250,8 +251,8 @@ namespace bumpMap {
         int32_t x = 0, y = 0, lmb = 0;
 
         createEnvironmentMap();
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Bump-Mapping -- Move your mouse!");
-        loadPNG(vbuff2[0], NULL, "assets/intro.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Bump-Mapping -- Move your mouse!")) return;
+        if (!loadPNG(vbuff2[0], NULL, "assets/intro.png")) return;
         setFadePalette();
         setMousePosition(IMAGE_WIDTH, IMAGE_HEIGHT);
         showMouseCursor(SDL_DISABLE);
@@ -299,8 +300,8 @@ namespace fireBump {
         int16_t i = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Bump");
-        loadPNG(vbuff1[0], NULL, "assets/author.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Bump")) return;
+        if (!loadPNG(vbuff1[0], NULL, "assets/author.png")) return;
 
         for (i = 0; i < 8; i++) limit[i] = 127 * (i + 1);
                 
@@ -371,9 +372,9 @@ namespace circleEffect {
         int32_t x = 0, y = 0, lmb = 0;
         
         preCalc();
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Circle -- Move your mouse!");
-        loadPNG(vbuff1[0], pal, "assets/image.png");
-        loadPNG(vbuff3[0], NULL, "assets/wall.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Circle -- Move your mouse!")) return;
+        if (!loadPNG(vbuff1[0], pal, "assets/image.png")) return;
+        if (!loadPNG(vbuff3[0], NULL, "assets/wall.png")) return;
         setPalette(pal);
         setMousePosition(40 << 1, 70 << 1);
         showMouseCursor(SDL_DISABLE);
@@ -405,9 +406,9 @@ namespace crossFade {
         RGB pal2[256] = { 0 };
 
         clearPalette();
-        loadPNG(vbuff1[0], pal2, "assets/to.png");
+        if (!loadPNG(vbuff1[0], pal2, "assets/to.png")) return;
         memcpy(vbuff3, vbuff1, IMAGE_SIZE);
-        loadPNG(vbuff1[0], pal1, "assets/from.png");
+        if (!loadPNG(vbuff1[0], pal1, "assets/from.png")) return;
     
         for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
         {
@@ -523,7 +524,7 @@ namespace crossFade {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Cross-Fade");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Cross-Fade")) return;
 
         FILE *fp = fopen("assets/fade.dat", "rb");
         if (!fp)
@@ -1360,7 +1361,7 @@ namespace rainEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rain");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rain")) return;
 
         densityAdd = DENSITY_INIT;
         vmem = (uint8_t*)getDrawBuffer();
@@ -1607,8 +1608,8 @@ namespace waterEffect {
         uint32_t frames = 0;
         uint16_t page = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water");
-        loadPNG(dbuff[0], pal, "assets/sea.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water")) return;
+        if (!loadPNG(dbuff[0], pal, "assets/sea.png")) return;
         setPalette(pal);
         memcpy(vbuff, dbuff, IMAGE_SIZE);
 
@@ -1733,7 +1734,7 @@ namespace skyEffect {
         RGB pal[256] = { 0 };
 
         memset(layer, 0, sizeof(layer));
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Sky-Plasma");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Sky-Plasma")) return;
 
         for (x = 1; x < 128; x++)
         {
@@ -2140,7 +2141,7 @@ namespace phongShader {
     {
         int16_t i = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Phong-Shader");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Phong-Shader")) return;
         initialize();
 
         do {
@@ -2249,7 +2250,7 @@ namespace plasmaTexture {
         vs = 50;
         zoom = 1;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Mapping");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Mapping")) return;
 
         for (i = 0; i < 360; i++) lookup[i] = uint16_t(cos(i * M_PI / 180) * 128);
 
@@ -2674,7 +2675,7 @@ namespace fireDown {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Blur");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Blur")) return;
         for (int16_t i = 0; i < 256; i++) sinTab[i] = roundf(sin(i * M_PI / 128) * 64);
         showFire();
         cleanup();
@@ -2962,7 +2963,7 @@ namespace fireTexture {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping")) return;
         initialize();
         makePalette();
 
@@ -3204,7 +3205,7 @@ namespace fireTexture2 {
     {
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping")) return;
 
         for (int16_t j = 0; j < 256; j++) stab[j] = int16_t(sin(j * M_PI / 128) * DIVD);
 
@@ -3457,7 +3458,7 @@ namespace fireTexture3 {
     {
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping")) return;
 
         for (int16_t j = 0; j < 256; j++) stab[j] = int16_t(sin(j * M_PI / 128) * DIVD);
 
@@ -3655,7 +3656,7 @@ namespace tunnelEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Tunnel");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Tunnel")) return;
         showTunnel();
     }
 }
@@ -3731,12 +3732,13 @@ namespace textureMappingEffect {
         }
     }
 
-    void loadTexture()
+    int16_t loadTexture()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(vbuff2[0], rgb, "assets/tface.png");
-        loadPNG(texture[0], NULL, "assets/robot.png");
+        if (!loadPNG(vbuff2[0], rgb, "assets/tface.png")) return 0;
+        if (!loadPNG(texture[0], NULL, "assets/robot.png")) return 0;
         setPalette(rgb);
+        return 1;
     }
 
     void rotatePoints(int16_t x, int16_t y, int16_t z)
@@ -4451,9 +4453,10 @@ namespace textureMappingEffect {
             }
         }
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Texture-Mapping");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Texture-Mapping")) return;
+        if (!loadTexture()) return;
+        
         setUpPoints();
-        loadTexture();
 
         clipx = 0;
         clipy = MAX_HEIGHT;
@@ -4530,11 +4533,12 @@ namespace bitmapRotate {
         }
     }
 
-    void loadTexture()
+    int16_t loadTexture()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(texture[0], rgb, "assets/crew.png");
+        if (!loadPNG(texture[0], rgb, "assets/crew.png")) return 0;
         setPalette(rgb);
+        return 1;
     }
 
     void run()
@@ -4546,9 +4550,10 @@ namespace bitmapRotate {
         uint16_t dist = 800;
         uint16_t inc = 65535;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rotate-Bitmap");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rotate-Bitmap")) return;
+        if (!loadTexture()) return;
+
         makeTables();
-        loadTexture();
 
         do {
             drawScreen(x, y, dist, rot & 0xFF);
@@ -5348,7 +5353,7 @@ namespace intro16k {
         int16_t i = 0;
         const int16_t dirTab[][2] = { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1} };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "16K-Intro");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "16K-Intro")) return;
         initSintab();
 
         int16_t j = 0;
@@ -6906,8 +6911,8 @@ namespace textScrolling {
     void run()
     {
         RGB pal[256] = { 0 };
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
-        loadPNG(vbuff[0], pal, "assets/friend.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling")) return;
+        if (!loadPNG(vbuff[0], pal, "assets/friend.png")) return;
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         for (uint16_t i = 0; i < LEN; i++) sint[i] = uint16_t(sin(4 * M_PI * i / LEN) * AMP + OFS);
@@ -6934,18 +6939,19 @@ namespace fastShowBMP {
         setPalette(rgb);
     }
 
-    void loadBMP(const char* fname)
+    int16_t loadBMP(const char* fname)
     {
         uint8_t pal[1024] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
-        if (!fp) return;
+        if (!fp) return 0;
 
         fseek(fp, 54, SEEK_SET);
         fread(pal, 1024, 1, fp);
         fread(vbuff, IMAGE_SIZE, 1, fp);
         fclose(fp);
         setRGB(pal);
+        return 1;
     }
 
     void flipScreen()
@@ -6963,8 +6969,8 @@ namespace fastShowBMP {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fast BMP Show");
-        loadBMP("assets/face.bmp");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fast BMP Show")) return;
+        if (!loadBMP("assets/face.bmp")) return;
         flipScreen();
         while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -6998,7 +7004,7 @@ namespace EMS {
         RGB rgb[256] = { 0 };
         uint8_t pal[768] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "DOS-EMS Simulation");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "DOS-EMS Simulation")) return;
         FILE *fp = fopen("assets/mickey.dat", "rb");
         if (!fp) return;
 
@@ -7242,8 +7248,8 @@ namespace fillterEffect {
     {
         RGB outPal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fillter -- Keys: A->M: switched; Spacer: restore");
-        loadPNG(vbuff1[0], pal, "assets/dracula.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fillter -- Keys: A->M: switched; Spacer: restore")) return;
+        if (!loadPNG(vbuff1[0], pal, "assets/dracula.png")) return;
 
         for (int16_t i = 0; i < 256; i++)
         {
@@ -7647,7 +7653,7 @@ namespace fireworkEffect {
         int16_t i = 0;
         const int32_t arrowsPerFrame = roundf((double(NUM_ARROWS) / (80.0 + EXPLODE_FRAMES + FADEDOWN_FRAMES)) * 1000);
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Firework"); 
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Firework")) return; 
         initPalette();
         initCosSinTable();
         initExplodeTable();
@@ -7693,7 +7699,7 @@ namespace candleEffect {
     {
         int16_t x = 0, y = 0, i = 0, j = 0;
         
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Candle");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Candle")) return;
 
         for (i = 0; i < 16; i++)
         {
@@ -7804,7 +7810,7 @@ namespace fireEffect {
         int16_t i = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
 
         for (i = 0; i < 64; i++)
         {
@@ -7905,21 +7911,22 @@ namespace fireEffect2 {
         }
     }
 
-    void loadPalette(const char* fname)
+    int16_t loadPalette(const char* fname)
     {
         uint8_t rgb[768] = { 0 };
         FILE* fp = fopen(fname, "rb");
-        if (!fp) return;
+        if (!fp) return 0;
         fread(rgb, 1, 768, fp);
         fclose(fp);
         convertPalette(rgb, pal);
         setPalette(pal);
+        return 1;
     }
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
-        loadPalette("assets/fire.pal");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire"));
+        if (!loadPalette("assets/fire.pal")) return;
         initSeed();
 
         do {
@@ -7946,7 +7953,7 @@ namespace fireEffect3 {
         int16_t j = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
 
         for (j = 180; j >= 64; j--)
         {
@@ -8166,7 +8173,7 @@ namespace fireEffect4 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
         setFirePal();
 
         do {
@@ -8333,7 +8340,7 @@ namespace fireEffect5 {
         int16_t i = 0, delta = 0;
         uint8_t k = 0, kk = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
         setFirePalette();
 
         FILE *fp = fopen("assets/bline.dat", "rb");
@@ -8435,7 +8442,7 @@ namespace fireEffect6 {
         int16_t col = 0, x = 0;
         int16_t i = 0, j = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire -- Spacer: throw a match; W: water; A/S: +/- intensity");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire -- Spacer: throw a match; W: water; A/S: +/- intensity")) return;
         makePalette();
 
         for (i = 0; i < IMAGE_HEIGHT; i++)
@@ -8545,7 +8552,7 @@ namespace fireEffect7 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
         makePalette();
 
         do {
@@ -8647,7 +8654,7 @@ namespace fireEffect8 {
         int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
 
         for (i = 0; i < 1000; i++)
         {
@@ -8737,7 +8744,7 @@ namespace holeEffect1 {
         }
 
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hole");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hole")) return;
 
         for (i = 0; i < 256; i++)
         {
@@ -8878,7 +8885,7 @@ namespace holeEffect2 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hole");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hole")) return;
         calcTables();
         makeDegradated(50, 50, 64);
         drawHole();
@@ -9306,7 +9313,7 @@ namespace holeEffect3 {
             sinx[i] = int16_t(sin(i * M_PI / 128) * 45);
         }
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hole -- Keys: 1->6: switch effect");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hole -- Keys: 1->6: switch effect")) return;
 
         minx = 0;
         miny = 0;
@@ -9420,7 +9427,7 @@ namespace kaleidoScope {
 
     void run()
     {
-        initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope");
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope")) return;
 
         const int16_t cx = texWidth >> 1;
         const int16_t cy = texHeight >> 1;
@@ -9587,7 +9594,7 @@ namespace kaleidoScope2 {
 
     void run(uint8_t mode)
     {
-        initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope");
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope")) return;
 
         if (mode) makeRainbowPalette();
 
@@ -9686,7 +9693,7 @@ namespace fastCircleFill {
 
     void run()
     {
-        initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Fast Filled-Circle");
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Fast Filled-Circle")) return;
         makePalette(0, 63, 32, 16);
         makePalette(64, 32, 63, 16);
         makePalette(128, 16, 16, 63);
@@ -9719,11 +9726,12 @@ namespace flagsEffect {
         for (int16_t i = 0; i < 256; i++) costab[i] = uint16_t(cos(i * M_PI / 64) * AMPLI);
     }
 
-    void initTexture()
+    int16_t initTexture()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(vbuff1[0], rgb, "assets/skull.png");
+        if (!loadPNG(vbuff1[0], rgb, "assets/skull.png")) return 0;
         setPalette(rgb);
+        return 1;
     }
 
     void putImage()
@@ -9752,9 +9760,10 @@ namespace flagsEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags")) return;
+        if (!initTexture()) return;
+        
         createCosTable();
-        initTexture();
 
         do {
             displayMap();
@@ -9782,7 +9791,7 @@ namespace flagsEffect2 {
         uint16_t wave = 0;
         uint8_t col = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags")) return;
 
         for (i = 0; i < 256; i++) sintab[i] = int16_t(sin(8 * M_PI * i / 255) * 10);
 
@@ -9870,8 +9879,8 @@ namespace lakeEffect {
 
         for (int16_t i = 0; i < 400; i++) sintab[i] = uint8_t(sin(5 * M_PI * i / 100) * 3 + 3);
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lake");
-        loadPNG(vbuff[0], pal, "assets/palio.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lake")) return;
+        if (!loadPNG(vbuff[0], pal, "assets/palio.png")) return;
         setPalette(pal);
 
         memcpy(dbuff, vbuff, IMAGE_SIZE);
@@ -9931,7 +9940,7 @@ namespace landScapeGeneration {
     {
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape-Generation");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape-Generation")) return;
 
         for (uint8_t i = 0; i != 64; i++)
         {
@@ -10114,7 +10123,7 @@ namespace landScapeEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape -- Move your mouse, left click to exit...");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape -- Move your mouse, left click to exit...")) return;
         setPalette();
         generateLandScape();
         setMousePosition(IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -10184,8 +10193,8 @@ namespace lensEffect {
     {
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lens");
-        loadPNG(vbuff2[0], pal, "assets/sunflow.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lens")) return;
+        if (!loadPNG(vbuff2[0], pal, "assets/sunflow.png")) return;
         setPalette(pal);
 
         int16_t x = IMAGE_MIDX;
@@ -10320,8 +10329,8 @@ namespace zoomInEffect {
     {
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-In -- Move your mouse, left click to exit...");
-        loadPNG(vbuff1[0], pal, "assets/insect.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-In -- Move your mouse, left click to exit...")) return;
+        if (!loadPNG(vbuff1[0], pal, "assets/insect.png")) return;
         setPalette(pal);
 
         calcMask();
@@ -10401,7 +10410,7 @@ namespace zoomOutEffect {
         for (i = 0; i < 64; i++) ztab[i] = int16_t(sin(v + i * vadd) * 2500);
         calcMatrix();
 
-        loadPNG(vmem[0], pal, "assets/drunken.png");
+        if (!loadPNG(vmem[0], pal, "assets/drunken.png")) return;
         setPalette(pal);
         memcpy(vbuff, vmem, IMAGE_SIZE);
     }
@@ -10488,7 +10497,7 @@ namespace zoomOutEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-Out");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-Out")) return;
         preCalculate();
 
         int16_t oldx = 0;
@@ -10606,7 +10615,7 @@ namespace lineBobEffect {
     void run()
     {
         uint32_t cnt = 0;
-        initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Line-Bob");
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Line-Bob")) return;
 
         do {
             cnt = 0;
@@ -10855,7 +10864,7 @@ namespace lineBlurEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Line-Blur");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Line-Blur")) return;
         setColors();
 
         memset(vbuff, 0, IMAGE_SIZE);
@@ -11141,8 +11150,8 @@ namespace mazeGeneration {
         int16_t i = 0;
         int32_t keyCode = 0;
 
-        loadFont("assets/sysfont.xfn", 0);
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Maze-Generation");
+        if (!loadFont("assets/sysfont.xfn", 0)) return;
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Maze-Generation")) return;
 
         do {
             clearMaze();
@@ -11250,7 +11259,7 @@ namespace pixelMorphing {
         uint16_t k = 0;
         uint8_t dbuff[80][80] = { 0 };
         memset(nextrow, 0, sizeof(nextrow));
-        loadPNG(dbuff[0], NULL, "assets/boss.png");
+        if (!loadPNG(dbuff[0], NULL, "assets/boss.png")) return;
 
         for (int16_t j = 0; j < 80; j++)
         {
@@ -11278,8 +11287,8 @@ namespace pixelMorphing {
     void run()
     {
         RGB pal[256] = { 0 };
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Pixel-Morphing");
-        loadPNG(vbuff[0], pal, "assets/duke.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Pixel-Morphing")) return;
+        if (!loadPNG(vbuff[0], pal, "assets/duke.png")) return;
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         doPicture();
@@ -11470,7 +11479,7 @@ namespace pierraEffect {
             sinus[i] = sin(i * 0.00628318530718);
         }
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Effect");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Effect")) return;
 
         for (i = 0; i < 64; i++)
         {
@@ -11577,7 +11586,7 @@ namespace plasmaEffect1 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Effect");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Effect")) return;
         initPlasma();
 
         angle = 0;
@@ -11654,7 +11663,7 @@ namespace plasmaEffect2 {
         int16_t bob2x = 230;
         int16_t bob2y = 130;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Effect");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Effect")) return;
 
         for (x = 0; x < IMAGE_WIDTH; x++) fx[x] = uint8_t((cos(M_PI * x / IMAGE_MIDX) + 1) * 127.5);
         for (x = 0; x < IMAGE_HEIGHT; x++) fy[x] = uint8_t((sin(M_PI * x / IMAGE_MIDY) + 1) * 127.5);
@@ -11714,7 +11723,7 @@ namespace plasmaEffect3 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma")) return;
         plasmaPalette();
 
         for (int16_t i = 0; i < IMAGE_WIDTH; i++)
@@ -11790,7 +11799,7 @@ namespace plasmaEffect4 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma")) return;
         setupSinus();
         setColors();
 
@@ -11937,7 +11946,7 @@ namespace plasmaEffect5 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma"));
         makeCoolPalette();
         drawSinCos();
         while (!finished(SDL_SCANCODE_RETURN));
@@ -11957,11 +11966,12 @@ namespace rippleEffect {
     uint8_t sqrtab[SIZE_32K] = { 0 };
     int16_t wave[IMAGE_HEIGHT] = { 0 };
 
-    void initTexture()
+    int16_t initTexture()
     {
         RGB pal[256] = { 0 };
-        loadPNG(vbuff[0], pal, "assets/pig.png");
+        if (!loadPNG(vbuff[0], pal, "assets/pig.png")) return 0;
         setPalette(pal);
+        return 1;
     }
 
     void preCalculate()
@@ -12003,8 +12013,8 @@ namespace rippleEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ripple");
-        initTexture();
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ripple")) return;
+        if (!initTexture()) return;
         preCalculate();
 
         do {
@@ -12299,7 +12309,7 @@ namespace rotateMap {
 
         for (i = 0; i < vertices; i++) drawOrder[i] = i;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rotate-Map");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rotate-Map"));
 
         for (i = 1; i <= PALSIZE; i++)
         {
@@ -12474,8 +12484,8 @@ namespace scaleMap {
             sintab[i] = int16_t(sin(2 * M_PI * i / 255) * 60 + 80);
         }
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Scaler -- Keys: 1->3: change mode");
-        loadPNG(vbuff2[0], pal, "assets/face.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Scaler -- Keys: 1->3: change mode")) return;
+        if (!loadPNG(vbuff2[0], pal, "assets/face.png")) return;
         setPalette(pal);
         runStretch1();
 
@@ -12555,8 +12565,8 @@ namespace shadeBob {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
-        loadPNG(vbuff[0], NULL, "assets/killer.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob")) return;
+        if (!loadPNG(vbuff[0], NULL, "assets/killer.png")) return;
         makePalette();
 
         const int16_t an = 400;
@@ -12661,9 +12671,9 @@ namespace shadePattern {
 
     void initParameter()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob")) return;
         initBrush();
-        loadPNG(vbuff[0], NULL, "assets/killer.png");
+        if (!loadPNG(vbuff[0], NULL, "assets/killer.png")) return;
         generatePalette();
         arrpos = 0;
     }
@@ -12807,7 +12817,7 @@ namespace shadeBobSin {
         int16_t x = 0, y = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob")) return;
 
         for (x = 0; x < 64; x++)
         {
@@ -12827,7 +12837,7 @@ namespace shadeBobSin {
 
         shiftPalette(pal);
         setPalette(pal);
-        loadPNG(vbuff[0], NULL, "assets/killer.png");
+        if (!loadPNG(vbuff[0], NULL, "assets/killer.png")) return;
 
         alpha = 0;
         rx = 150;
@@ -12934,7 +12944,7 @@ namespace snowFall {
     void initSnow()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(vmem[0], rgb, "assets/flake.png");
+        if (!loadPNG(vmem[0], rgb, "assets/flake.png")) return;
         rgb[255].r = 255;
         rgb[255].g = 255;
         rgb[255].b = 255;
@@ -12943,7 +12953,7 @@ namespace snowFall {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Snow-Fall");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Snow-Fall"));
 
         actflk = 0;
         initSnow();
@@ -13356,7 +13366,7 @@ namespace softFire {
         RGB pal[256] = { 0 };
         uint8_t i = 0, j = 0, k = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Soft-Fire -- Keys: A/S: +/- fires");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Soft-Fire -- Keys: A/S: +/- fires")) return;
 
         for (i = 0; i <= 7; i++)
         {
@@ -13657,7 +13667,7 @@ namespace spriteEffect {
         for (i = 0; i < 7; i++) fread(frames[i], W * H, 1, fp);
         fclose(fp);
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Sprites -- Keys: A/S: +/- bubmio!");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Sprites -- Keys: A/S: +/- bubmio!")) return;
 
         for (i = 0; i < 16; i++)
         {
@@ -13666,7 +13676,7 @@ namespace spriteEffect {
             pal[i].b = palbubmio[i][2] << 2;
         }
 
-        loadPNG(vbuff1[0], tmp, "assets/fun.png");
+        if (!loadPNG(vbuff1[0], tmp, "assets/fun.png")) return;
 
         for (i = 16; i < 256; i++)
         {
@@ -13732,7 +13742,7 @@ namespace starEffect {
     {
         int16_t i = 0;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Stars");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Stars")) return;
         
         for (i = 0; i < MAXPOINT; i++)
         {
@@ -13810,7 +13820,7 @@ namespace star2dEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "2D-Stars");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "2D-Stars")) return;
         createStar();
 
         do {
@@ -13914,7 +13924,7 @@ namespace star3dEffect {
     void run()
     {
         RGB pal[256] = { 0 };
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Star-Field -- Keys: A/S: +/- speed; Z/X: +/- density; Arrows: move; B: toggles; Spacer: direction");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Star-Field -- Keys: A/S: +/- speed; Z/X: +/- density; Arrows: move; B: toggles; Spacer: direction")) return;
         initStars();
 
         pal[1].r = 0;
@@ -13975,7 +13985,7 @@ namespace fontEffect1 {
     uint8_t     chrinfo[64][3] = { 0 };
     uint8_t     vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    void loadFont(const char* fname)
+    int16_t loadFont(const char* fname)
     {
         int8_t ch = 0;
         uint8_t tx = 0, ty = 0;
@@ -13983,7 +13993,7 @@ namespace fontEffect1 {
         RGB rgb[256] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
-        if (!fp) exit(1);
+        if (!fp) return 0;
 
         fread(pal, 768, 1, fp);
 
@@ -13993,18 +14003,19 @@ namespace fontEffect1 {
             fread(&tx, 1, 1, fp);
             fread(&ty, 1, 1, fp);
 
-            chars[ch - 32] = (uint8_t*)calloc(1, tx * ty);
+            chars[ch - 32] = (uint8_t*)calloc(intptr_t(tx) * ty, 1);
             if (!chars[ch - 32]) exit(1);
 
             chrinfo[ch - 32][0] = tx;
             chrinfo[ch - 32][1] = ty;
             chrinfo[ch - 32][2] = 1;
-            fread(chars[ch - 32], tx * ty, 1, fp);
+            fread(chars[ch - 32], intptr_t(tx) * ty, 1, fp);
         }
 
         fclose(fp);
         convertPalette(pal, rgb);
         setPalette(rgb);
+        return 1;
     }
 
     void putChar(int16_t dx, int16_t dy, int8_t ch)
@@ -14016,7 +14027,7 @@ namespace fontEffect1 {
         {
             for (uint8_t i = 0; i < x; i++)
             {
-                const uint8_t c = *(chars[ch - 32] + j * x + i);
+                const uint8_t c = *(chars[ch - 32] + intptr_t(j) * x + i);
                 if (c > 0) vmem[dy + j][dx + i] = c;
             }
         }
@@ -14052,8 +14063,8 @@ namespace fontEffect1 {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fonts");
-        loadFont("assets/font001.fnt");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fonts")) return;
+        if (!loadFont("assets/font001.fnt")) return;
         writeXY(1, 2, "I LOVE ...");
         writeXY(1, 38, "DEMOS!");
         writeXY(1, 74, "GRAPHICS!");
@@ -14090,7 +14101,7 @@ namespace fontEffect2 {
         for (i = 0; i < 115; i++) sint2[i] = uint8_t(sin(2 * M_PI * i / 115) * 3 + 3);
     }
 
-    void loadFont(const char* fname)
+    int16_t loadFont(const char* fname)
     {
         int8_t chr = 0;
         uint8_t w = 0, h = 0;
@@ -14098,7 +14109,7 @@ namespace fontEffect2 {
         RGB rgb[256] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
-        if (!fp) exit(1);
+        if (!fp) return 0;
 
         fread(pal, 768, 1, fp);
 
@@ -14108,18 +14119,19 @@ namespace fontEffect2 {
             fread(&w, 1, 1, fp);
             fread(&h, 1, 1, fp);
 
-            chars[chr - 32] = (uint8_t*)calloc(1, w * h);
+            chars[chr - 32] = (uint8_t*)calloc(intptr_t(w) * h, 1);
             if (!chars[chr - 32]) exit(1);
 
             chrinfo[chr - 32][0] = w;
             chrinfo[chr - 32][1] = h;
             chrinfo[chr - 32][2] = 1;
-            fread(chars[chr - 32], w * h, 1, fp);
+            fread(chars[chr - 32], intptr_t(w) * h, 1, fp);
         }
 
         fclose(fp);
         convertPalette(pal, rgb);
         setPalette(rgb);
+        return 1;
     }
 
     void drawBitmap(uint8_t* map)
@@ -14163,7 +14175,7 @@ namespace fontEffect2 {
         }
         else
         {
-            for (y = 0; y < chrinfo[chr - 32][1]; y++) bitmap[y + x][pos] = *(chars[chr - 32] + y * chrinfo[chr - 32][0] + row);
+            for (y = 0; y < chrinfo[chr - 32][1]; y++) bitmap[y + x][pos] = *(chars[chr - 32] + intptr_t(y) * chrinfo[chr - 32][0] + row);
         }
     }
 
@@ -14182,8 +14194,8 @@ namespace fontEffect2 {
     {
         memset(bitmap, 0, sizeof(bitmap));
         calcSin();
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text");
-        loadFont("assets/font003.fnt");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text")) return;
+        if (!loadFont("assets/font003.fnt")) return;
 
         row = 0;
         newrow = 0;
@@ -14222,14 +14234,14 @@ namespace fontEffect3 {
         for (int16_t i = 0; i < 256; i++) sintab[i] = uint8_t(sin(15 * M_PI * i / 755) * 24 + 70);
     }
 
-    void loadFont(const char* fname)
+    int16_t loadFont(const char* fname)
     {
         uint8_t width = 0, height = 0, chr = 0;
         uint8_t pal[768] = { 0 };
         RGB rgb[256] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
-        if (!fp) return;
+        if (!fp) return 0;
         fread(pal, 768, 1, fp);
 
         while (!feof(fp))
@@ -14238,18 +14250,19 @@ namespace fontEffect3 {
             fread(&width, 1, 1, fp);
             fread(&height, 1, 1, fp);
 
-            chars[chr - 32] = (uint8_t*)calloc(1, width * height);
-            if (!chars[chr - 32]) return;
+            chars[chr - 32] = (uint8_t*)calloc(intptr_t(width) * height, 1);
+            if (!chars[chr - 32]) return 0;
 
             chrinfo[chr - 32][0] = width;
             chrinfo[chr - 32][1] = height;
             chrinfo[chr - 32][2] = 1;
-            fread(chars[chr - 32], width * height, 1, fp);
+            fread(chars[chr - 32], intptr_t(width) * height, 1, fp);
         }
 
         fclose(fp);
         convertPalette(pal, rgb);
         setPalette(rgb);
+        return 1;
     }
 
     void freeMem()
@@ -14279,7 +14292,7 @@ namespace fontEffect3 {
         }
         else
         {
-            for (height = 0; height < chrinfo[chr - 32][1]; height++) bitmap[height + i][pos] = *(chars[chr - 32] + height * chrinfo[chr - 32][0] + row);
+            for (height = 0; height < chrinfo[chr - 32][1]; height++) bitmap[height + i][pos] = *(chars[chr - 32] + intptr_t(height) * chrinfo[chr - 32][0] + row);
         }
     }
 
@@ -14298,8 +14311,8 @@ namespace fontEffect3 {
     {
         memset(bitmap, 0, sizeof(bitmap));
         calcSin();
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
-        loadFont("assets/font002.fnt");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling")) return;
+        if (!loadFont("assets/font002.fnt")) return;
 
         row = 0;
         newrow = 0;
@@ -14437,7 +14450,7 @@ namespace thunderBoltEffect {
         RGB dst[256] = { 0 };
         RGB src[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Thunder-Bold");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Thunder-Bold")) return;
 
         for (uint8_t i = 0; i != 64; i++)
         {
@@ -14474,12 +14487,13 @@ namespace scrollingEffect {
     uint8_t     vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t     vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    void loadFont()
+    int16_t loadFont()
     {
         FILE* fp = fopen("assets/font8x16.fnt", "rb");
-        if (!fp) exit(1);
+        if (!fp) return 0;
         fread(tbuff, 1, sizeof(tbuff), fp);
         fclose(fp);
+        return 1;
     }
 
     void calcSin()
@@ -14533,13 +14547,14 @@ namespace scrollingEffect {
     void run()
     {
         RGB pal[256] = { 0 };
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling");
-        loadPNG(vbuff[0], pal, "assets/friend.png");
+
+        if (!loadFont()) return;
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling")) return;
+        if (!loadPNG(vbuff[0], pal, "assets/friend.png")) return;
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         renderBuffer(vmem, IMAGE_SIZE);
         calcSin();
-        loadFont();
         scrollText();
     }
 }
@@ -14614,13 +14629,14 @@ namespace voxelEffect {
         }
     }
 
-    void initMap()
+    int16_t initMap()
     {
         RGB rgb[256] = { 0 };
-        loadPNG(cmap[0], rgb, "assets/ground.png");
-        loadPNG(hmap[0], NULL, "assets/height.png");
-        loadPNG(sky[0], NULL, "assets/sky.png");
+        if (!loadPNG(cmap[0], rgb, "assets/ground.png")) return 0;
+        if (!loadPNG(hmap[0], NULL, "assets/height.png")) return 0;
+        if (!loadPNG(sky[0], NULL, "assets/sky.png")) return 0;
         setPalette(rgb);
+        return 1;
     }
 
     void initTables()
@@ -14644,8 +14660,8 @@ namespace voxelEffect {
         dst = 0;
         angle = 600;
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Voxel -- Keys: A/S: change height; Arrows: move");
-        initMap();
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Voxel -- Keys: A/S: change height; Arrows: move")) return;
+        if (!initMap()) return;
 
         do {
             height = hmap[y >> 8][x >> 8];
@@ -14720,7 +14736,7 @@ namespace rippleEffect2 {
         int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ripple");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ripple")) return;
         generateLand();
         generateWav();
 
@@ -14833,7 +14849,7 @@ namespace waterFall {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water-Fall");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water-Fall")) return;
         makeDrip();
         rotatePalette();
     }
@@ -14875,8 +14891,8 @@ namespace winterEffect {
         uint16_t pos = 0;
         RGB pal[256] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Winter");
-        loadPNG(vbuff[0], pal, "assets/winter.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Winter")) return;
+        if (!loadPNG(vbuff[0], pal, "assets/winter.png")) return;
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         memset(flakes, 0, sizeof(flakes));
@@ -14914,7 +14930,7 @@ namespace wormEffect {
         RGB pal[256] = { 0 };
         RGB tmp[16] = { 0 };
 
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Worm");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Worm")) return;
 
         for (int16_t i = 1; i < 16; i++)
         {
@@ -14928,7 +14944,7 @@ namespace wormEffect {
 
         shiftPalette(pal);
         setPalette(pal);
-        loadPNG((uint8_t*)getDrawBuffer(), NULL, "assets/worm.png");
+        if (!loadPNG((uint8_t*)getDrawBuffer(), NULL, "assets/worm.png")) return;
 
         do {
             memcpy(tmp, &pal[16], sizeof(tmp));
@@ -15101,13 +15117,13 @@ namespace rayCastingEffect {
 #endif
     }
 
-    void loadMaze(const char* fname)
+    int16_t loadMaze(const char* fname)
     {
         int16_t x = 0, y = 0;
         uint8_t tbuff[34] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
-        if (!fp) return;
+        if (!fp) return 0;
 
         for (x = 0; x < 32; x++)
         {
@@ -15145,6 +15161,8 @@ namespace rayCastingEffect {
                 }
             }
         }
+
+        return 1;
     }
 
     void drawMaze()
@@ -15338,11 +15356,12 @@ namespace rayCastingEffect {
 
     void run()
     {
-        initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ray-Casting -- Keys: Arrows: move; TAB: show maze");
-        loadMaze("assets/maze.dat");
-        loadPNG(walls[0], pal, "assets/wallr.png");
-        loadPNG(floors[0], pal, "assets/floor.png");
-        loadPNG(ceils[0], pal, "assets/ceil.png");
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ray-Casting -- Keys: Arrows: move; TAB: show maze")) return;
+        if (!loadMaze("assets/maze.dat")) return;
+        if (!loadPNG(walls[0], pal, "assets/wallr.png")) return;
+        if (!loadPNG(floors[0], pal, "assets/floor.png")) return;
+        if (!loadPNG(ceils[0], pal, "assets/ceil.png")) return;
+
         setPalette(pal);
         setShade();
 
