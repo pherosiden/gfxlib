@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		774C827C26C0F566009D2103 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 774C827B26C0F566009D2103 /* IOKit.framework */; };
 		774C827D26C0F593009D2103 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 774C827926C0F555009D2103 /* CoreFoundation.framework */; };
-		77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; };
+		77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		77801DC626AB2DBB0045402B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC626A71C5600C4C722 /* SDL2.framework */; };
 		779FFE6A26C04A44007785CE /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 779FFE6926C04A44007785CE /* Credits.rtf */; };
 		77EECD4A26BFF10D00959767 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD4726BFF10D00959767 /* Assets.xcassets */; };

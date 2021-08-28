@@ -543,6 +543,7 @@ void        getBasePalette(RGB* pal);
 
 void        clearPalette();
 void        whitePalette();
+void        makeRainbowPalette();
 void        makeLinearPalette();
 void        makeFunkyPalette();
 
