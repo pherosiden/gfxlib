@@ -81,6 +81,9 @@
 //projection constant
 #define ECHE                0.77    //must change for each monitor
 
+//radian const
+#define RAD                 0.017453293
+
 //XFN font style
 #define GFX_FONT_FIXED      0x01    //fixed font (all character have same size)
 #define GFX_FONT_MULTI      0x02    //multiple font
@@ -126,6 +129,7 @@
 #define sqr(a)              ((a) * (a))
 #define max(a, b)           ((a) > (b) ? (a) : (b))
 #define min(a, b)           ((a) < (b) ? (a) : (b))
+#define sign(x)             (((x) >= 0) ? (1) : (-1))
 #define swap(a, b)          {a ^= b; b ^= a; a ^= b;}
 
 //common routines
@@ -208,7 +212,7 @@ typedef struct
 //GFX font
 typedef struct
 {
-    uint8_t         sign[4];                //font signature 'Fnt2'
+    uint8_t         signature[4];           //font signature 'Fnt2'
     uint16_t        version;                //version number 0x0101
     uint8_t         name[32];               //name of font
     uint8_t         copyRight[32];          //font copy-right (use for BGI font)
@@ -345,10 +349,10 @@ extern void     (*putSprite)(int32_t, int32_t, uint32_t, GFX_IMAGE*);
 extern void     (*scaleImage)(GFX_IMAGE*, GFX_IMAGE*, int32_t);
 
 HSL         RGB2HSL(uint8_t r, uint8_t g, uint8_t b);
-RGB         HSL2RGB(int32_t h, int32_t s, int32_t l);
 HSV         RGB2HSV(uint8_t r, uint8_t g, uint8_t b);
-RGB         HSV2RGB(int32_t h, int32_t s, int32_t v);
 RGB         INT2RGB(uint32_t color);
+uint32_t    HSL2RGB(int32_t h, int32_t s, int32_t l);
+uint32_t    HSV2RGB(int32_t h, int32_t s, int32_t v);
 uint32_t    RGB2INT(uint8_t r, uint8_t g, uint8_t b);
 
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);

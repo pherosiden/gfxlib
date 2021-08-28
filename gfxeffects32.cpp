@@ -2,13 +2,12 @@
 #include <algorithm>
 #include "gfxlib.h"
 
-#define FRAME_RATE		30
-#define SCREEN_WIDTH	640
-#define SCREEN_HEIGHT	480 
+#define SCR_WIDTH	640
+#define SCR_HEIGHT	480 
 
 void juliaSet()
 {
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Julia-Set")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Julia-Set")) return;
 
     //after how much iterations the function should stop
     const int32_t maxIterations = 300;
@@ -22,8 +21,14 @@ void juliaSet()
     
     //get raw pixels data
     int32_t i = 0, cwidth = 0, cheight = 0;
-    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
+
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
+    
+    pixels[0] = pbuff;
+    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -53,18 +58,13 @@ void juliaSet()
             }
 
             //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            const RGB color = HSV2RGB(i & 255, 255, 255 * (i < maxIterations));
-
-            //direct access texture
-            pixels[2] = color.r;
-            pixels[1] = color.g;
-            pixels[0] = color.b;
-            pixels += 4;
+            pixels[y][x] = HSV2RGB(i & 255, 255, 255 * (i < maxIterations));
         }
     }
 
     render();
     while (!finished(SDL_SCANCODE_RETURN));
+    free(pixels);
     cleanup();
 }
 
@@ -102,15 +102,15 @@ const uint32_t firePalette[256] = {
     #undef C
 };
 
-static uint8_t dstBuff[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 };
-static uint8_t prevBuff[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 };
+static uint8_t dstBuff[SCR_WIDTH * SCR_HEIGHT] = { 0 };
+static uint8_t prevBuff[SCR_WIDTH * SCR_HEIGHT] = { 0 };
 
 void fireDemo1()
 {
     uint8_t avg = 0;
     int32_t i = 0, sum = 0;
     
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Fire")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Fire")) return;
 
     //get drawing buffer
     int32_t cwidth = 0, cheight = 0;
@@ -167,17 +167,22 @@ void fireDemo1()
 }
 
 static uint32_t palette[SIZE_256] = { 0 };
-static uint32_t fireBuff[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
+static uint32_t fires[SCR_HEIGHT][SCR_WIDTH] = { 0 };
 
 void fireDemo2()
 {
     //set up the screen
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Fire")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Fire")) return;
 
     //get the drawing buffer
-    int32_t cwidth, cheight;
-    uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
-    if (!renderBuff) return;
+    int32_t cwidth = 0, cheight = 0;
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
+
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
+    if (!pixels) return;
+    pixels[0] = pbuff;
+    for (int32_t i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     //validation screen height
     if (cheight < 1) return;
@@ -186,19 +191,17 @@ void fireDemo2()
     double time = getTime(), oldTime = 0;
 
     //make sure the fire buffer is zero in the beginning
-    memset(fireBuff, 0, sizeof(fireBuff));
+    memset(fires, 0, sizeof(fires));
 
     //generate the palette
     for (int32_t x = 0; x < 256; x++)
     {
         //HSL2RGB is used to generate colors:
-        //Hue goes from 0 to 85: red to yellow
-        //Saturation is always the maximum: 255
-        //Lightness is 0..255 for x=0..128, and 255 for x=128..255
-        const RGB color = HSL2RGB(x / 3, 255, min(255, x * 2));
-
+        //hue goes from 0 to 85: red to yellow
+        //saturation is always the maximum: 255
+        //lightness is 0..255 for x=0..128, and 255 for x=128..255
         //set the palette to the calculated RGB value
-        palette[x] = RGB2INT(color.r, color.g, color.b);
+        palette[x] = HSL2RGB(x / 3, 255, min(255, x * 2));
     }
 
     //start the loop (one frame per loop)
@@ -210,31 +213,32 @@ void fireDemo2()
         time = getTime();
 
         //randomize the bottom row of the fire buffer
-        for (int32_t x = 0; x < cwidth; x++) fireBuff[cheight - 1][x] = abs(32768 + rand()) % 256;
+        for (int32_t x = 0; x < cwidth; x++) fires[cheight - 1][x] = abs(32768 + rand()) % 256;
 
         //do the fire calculations for every pixel, from top to bottom
         for (int32_t y = 0; y < cheight - 1; y++)
         {
             for (int32_t x = 0; x < cwidth; x++)
             {
-                fireBuff[y][x] = ((
-                fireBuff[(y + 1) % cheight][(x - 1 + cwidth) % cwidth] +
-                fireBuff[(y + 1) % cheight][(x             ) % cwidth] +
-                fireBuff[(y + 1) % cheight][(x + 1         ) % cwidth] +
-                fireBuff[(y + 2) % cheight][(x             ) % cwidth]) * 32 / 129) % 256;
+                fires[y][x] = ((
+                fires[(y + 1) % cheight][(x - 1 + cwidth) % cwidth] +
+                fires[(y + 1) % cheight][(x             ) % cwidth] +
+                fires[(y + 1) % cheight][(x + 1         ) % cwidth] +
+                fires[(y + 2) % cheight][(x             ) % cwidth]) * 32 / 129) % 256;
             }
         }
 
         //set the drawing buffer to the fire buffer, using the palette colors
         for (int32_t y = 0; y < cheight; y++)
         {
-            for (int32_t x = 0; x < cwidth; x++) renderBuff[y * cwidth + x] = palette[fireBuff[y][x]];
+            for (int32_t x = 0; x < cwidth; x++) pixels[y][x] = palette[fires[y][x]];
         }
 
         //draw the buffer
         render();
     }
 
+    free(pixels);
     cleanup();
 }
 
@@ -276,9 +280,9 @@ int32_t miniMap[MAP_WIDTH][MAP_HEIGHT] =
 
 typedef struct
 {
-    double x;
-    double y;
-    int32_t texture;
+    double  x;
+    double  y;
+    int32_t data;
 } SPRITE;
 
 SPRITE sprite[NUM_SPRITES] =
@@ -312,11 +316,11 @@ SPRITE sprite[NUM_SPRITES] =
 };
 
 //1D Zbuffer
-double zBuffer[SCREEN_WIDTH];
+double zBuffer[SCR_WIDTH] = { 0 };
 
 //arrays used to sort the sprites
-int32_t spriteOrder[NUM_SPRITES];
-double spriteDistance[NUM_SPRITES];
+int32_t spriteOrder[NUM_SPRITES] = { 0 };
+double spriteDistance[NUM_SPRITES] = { 0 };
 
 //function used to sort the sprites
 //sort the sprites based on distance
@@ -344,35 +348,49 @@ void rayCasting()
     double posX = 22.0, posY = 11.5; //x and y start position
     double dirX = -1.0, dirY = 0.0; //initial direction vector
     double planeX = 0.0, planeY = 0.66; //the 2d raycaster version of camera plane
-
     double time = 0, oldTime = 0;
 
-    int32_t tw = 0, th = 0;
-    uint32_t* texture[11] = { 0 };
+    int32_t tw = 0, th = 0, i = 0;
+    uint32_t* pbuffs[11] = { 0 };
+    const char* fname[] = {
+        "assets/eagle.png",
+        "assets/redbrick.png",
+        "assets/purplestone.png",
+        "assets/greystone.png",
+        "assets/bluestone.png",
+        "assets/mossy.png",
+        "assets/wood.png",
+        "assets/colorstone.png",
+        "assets/barrel.png",
+        "assets/pillar.png",
+        "assets/greenlight.png"
+    };
 
     //init screen mode
     if (!loadFont("assets/sysfont.xfn", 0)) return;
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting [Fast version] -- Keys: Use arrows to move your works!")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Raycasting [Fast version] -- Keys: Use arrows to move your works!")) return;
+
+    //maxtrix textures
+    uint32_t** textures[11] = { 0 };
 
     //load some textures
-    if (!loadTexture(&texture[0], &tw, &th, "assets/eagle.png")) return;
-    if (!loadTexture(&texture[1], &tw, &th, "assets/redbrick.png")) return;
-    if (!loadTexture(&texture[2], &tw, &th, "assets/purplestone.png")) return;
-    if (!loadTexture(&texture[3], &tw, &th, "assets/greystone.png")) return;
-    if (!loadTexture(&texture[4], &tw, &th, "assets/bluestone.png")) return;
-    if (!loadTexture(&texture[5], &tw, &th, "assets/mossy.png")) return;
-    if (!loadTexture(&texture[6], &tw, &th, "assets/wood.png")) return;
-    if (!loadTexture(&texture[7], &tw, &th, "assets/colorstone.png")) return;
-
-    //load some sprite textures
-    if (!loadTexture(&texture[8], &tw, &th, "assets/barrel.png")) return;
-    if (!loadTexture(&texture[9], &tw, &th, "assets/pillar.png")) return;
-    if (!loadTexture(&texture[10], &tw, &th, "assets/greenlight.png")) return;
+    for (i = 0; i < 11; i++)
+    {
+        if (!loadTexture(&pbuffs[i], &tw, &th, fname[i])) return;
+        textures[i] = (uint32_t**)calloc(th, sizeof(uint32_t*));
+        if (!textures[i]) return;
+        textures[i][0] = pbuffs[i];
+        for (int32_t j = 1; j < th; j++) textures[i][j] = textures[i][0] + intptr_t(j) * tw;
+    }
 
     //get the drawing buffer
     int32_t cwidth = 0, cheight = 0;
-    uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    uint32_t* pBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pBuff) return;
+    uint32_t** renderBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!renderBuff) return;
+    renderBuff[0] = pBuff;
+    for (i = 0; i < cheight; i++) renderBuff[i] = renderBuff[0] + intptr_t(i) * cwidth;
 
     //start the main loop
     do {
@@ -427,12 +445,12 @@ void rayCasting()
                 else floorTexture = 4;
 
                 //floor
-                color = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
-                renderBuff[y * cwidth + x] = (color >> 1) & 8355711; //make a bit darker
+                color = textures[floorTexture][ty][tx];
+                renderBuff[y][x] = (color >> 1) & 8355711; //make a bit darker
 
                 //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
-                color = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
-                renderBuff[(cheight - y - 1) * cwidth + x] = (color >> 1) & 8355711; //make a bit darker
+                color = textures[ceilingTexture][ty][tx];
+                renderBuff[cheight - y - 1][x] = (color >> 1) & 8355711; //make a bit darker
             }
         }
 
@@ -536,7 +554,7 @@ void rayCasting()
             if (side == 1 && rayDirY < 0) texX = TEXTURE_WIDTH - texX - 1;
 
             //how much to increase the texture coordinate per screen pixel
-            const double step =  double(TEXTURE_HEIGHT) / lineHeight;
+            const double step = double(TEXTURE_HEIGHT) / lineHeight;
 
             //starting texture coordinate
             double texPos = (drawStart - cheight / 2.0 + lineHeight / 2.0) * step;
@@ -547,10 +565,12 @@ void rayCasting()
                 const int32_t texY = int32_t(texPos) & (TEXTURE_HEIGHT - 1);
                 texPos += step;
 
-                uint32_t color = texture[texNum][TEXTURE_WIDTH * texY + texX];
+                //lookup texture color
+                uint32_t color = textures[texNum][texY][texX];
+
                 //make color darker for y-sides: R, G and B byte each divided through two with a 'shift' and an 'and'
                 if (side == 1) color = (color >> 1) & 8355711;
-                renderBuff[y * cwidth + x] = color;
+                renderBuff[y][x] = color;
             }
 
             //SET THE ZBUFFER FOR THE SPRITE CASTING
@@ -562,7 +582,7 @@ void rayCasting()
         for (int32_t i = 0; i < NUM_SPRITES; i++)
         {
             spriteOrder[i] = i;
-            spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
+            spriteDistance[i] = (sqr(posX - sprite[i].x) + sqr(posY - sprite[i].y)); //sqrt not taken, unneeded
         }
 
         sortSprites(spriteOrder, spriteDistance, NUM_SPRITES);
@@ -619,8 +639,8 @@ void rayCasting()
                     {
                         const int32_t d = y * 256 - cheight * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
                         const int32_t texY = ((d * TEXTURE_HEIGHT) / spriteHeight) / 256;
-                        const uint32_t color = texture[sprite[spriteOrder[i]].texture][TEXTURE_WIDTH * texY + texX]; //get current color from the texture
-                        if ((color & 0x00FFFFFF) != 0) renderBuff[y * cwidth + stripe] = color; //paint pixel if it isn't black, black is the invisible color
+                        const uint32_t color = textures[sprite[spriteOrder[i]].data][texY][texX]; //get current color from the texture
+                        if (color & 0x00FFFFFF) renderBuff[y][stripe] = color; //paint pixel if it isn't black, black is the invisible color
                     }
                 }
             }
@@ -634,7 +654,7 @@ void rayCasting()
         render();
 
         //clear current render buffer
-        memset(renderBuff, 0, sizeof(uint32_t)* cwidth* cheight);
+        memset(renderBuff[0], 0, sizeof(uint32_t)* cwidth* cheight);
 
         //fetch user input
         readKeys();
@@ -686,14 +706,20 @@ void rayCasting()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
-    for (int32_t i = 0; i != 11; i++) free(texture[i]);
+    for (int32_t i = 0; i < 11; i++)
+    {
+        free(textures[i][0]);
+        free(textures[i]);
+    }
+
+    free(renderBuff);
     freeFont(0);
     cleanup();
 }
 
 void basicDrawing()
 {
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "2D primitives")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "2D primitives")) return;
 
     //this is outsize screen
     int32_t x1 = -50, y1 = -20, x2 = 1000, y2 = 1200;
@@ -719,7 +745,7 @@ void imageArithmetic()
     int32_t w = 0, h = 0;
 
     //declare image buffers
-    uint32_t *image1, *image2;
+    uint32_t *image1 = NULL, *image2 = NULL;
 
     //load the images into the buffers. This assumes all have the same size.
     if (!loadTexture(&image1, &w, &h, "assets/photo1.png")) return;
@@ -811,7 +837,7 @@ void crossFading()
     int32_t w = 0, h = 0;
 
     //declare image buffers
-    uint32_t *image1, *image2;
+    uint32_t *image1 = NULL, *image2 = NULL;
 
     //load the images into the buffers. This assumes all have the same size.
     if (!loadTexture(&image1, &w, &h, "assets/photo1.png")) return;
@@ -856,7 +882,7 @@ void crossFading()
 void juliaExplorer()
 {
     if (!loadFont("assets/sysfont.xfn", 0)) return;
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Julia-Explorer")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Julia-Explorer")) return;
 
     //use to show/hide text
     int32_t showText = 0;
@@ -876,8 +902,13 @@ void juliaExplorer()
 
     //retrive the current pixel buffer
     int32_t i = 0, cwidth = 0, cheight = 0;
-    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
+    uint32_t* pbuff= (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
+
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
+    pixels[0] = pbuff;
+    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -885,8 +916,6 @@ void juliaExplorer()
     //begin the program loop
     do
     {
-        uint8_t* plots = pixels;
-
         //draw the fractal
         for (int32_t y = 0; y < cheight; y++)
         {
@@ -912,13 +941,7 @@ void juliaExplorer()
                 }
 
                 //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                const RGB color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
-
-                //draw the pixel
-                plots[2] = color.r;
-                plots[1] = color.g;
-                plots[0] = color.b;
-                plots += 4;
+                pixels[y][x] = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
             }
         }
 
@@ -980,13 +1003,14 @@ void juliaExplorer()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     freeFont(0);
+    free(pixels);
     cleanup();
 }
 
 void mandelbrotSet()
 {
     //make larger to see more detail!
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Mandelbrot-Set")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Mandelbrot-Set")) return;
 
     //after how much iterations the function should stop
     const int32_t maxIterations = 300;
@@ -994,9 +1018,14 @@ void mandelbrotSet()
     //you can change these to zoom and change position
     const double zoom = 1, moveX = -0.5, moveY = 0;
 
-    int32_t i, cwidth = 0, cheight = 0;
-    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
+    int32_t i = 0, cwidth = 0, cheight = 0;
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
+
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
+    pixels[0] = pbuff;
+    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -1028,26 +1057,21 @@ void mandelbrotSet()
             }
 
             //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            const RGB color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
-
-            //draw the pixel
-            pixels[2] = color.r;
-            pixels[1] = color.g;
-            pixels[0] = color.b;
-            pixels += 4;
+            pixels[y][x] = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
         }
     }
 
     //make the Mandelbrot Set visible and wait to exit
     render();
     while (!finished(SDL_SCANCODE_RETURN));
+    free(pixels);
     cleanup();
 }
 
 void mandelbrotExporer()
 {
     if (!loadFont("assets/sysfont.xfn", 0)) return;
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Mandelbrot-Explorer")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Mandelbrot-Explorer")) return;
 
     //after how much iterations the function should stop
     int32_t maxIterations = 128;
@@ -1062,8 +1086,13 @@ void mandelbrotExporer()
     double time = 0, oldTime = 0, frameTime = 0;
     
     int32_t i = 0, cwidth = 0, cheight = 0;
-    uint8_t* pixels = (uint8_t*)getDrawBuffer(&cwidth, &cheight);
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
+
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
+    pixels[0] = pbuff;
+    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -1071,8 +1100,6 @@ void mandelbrotExporer()
     //begin main program loop
     do
     {
-        uint8_t* plots = pixels;
-
         //draw the fractal
         for (int32_t y = 0; y < cheight; y++)
         {
@@ -1100,13 +1127,7 @@ void mandelbrotExporer()
                 }
 
                 //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                const RGB color = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
-
-                //draw the pixel
-                plots[2] = color.r;
-                plots[1] = color.g;
-                plots[0] = color.b;
-                plots += 4;
+                pixels[y][x] = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
             }
         }
 
@@ -1159,28 +1180,28 @@ void mandelbrotExporer()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     freeFont(0);
+    free(pixels);
     cleanup();
 }
 
 static uint32_t colors[SIZE_256] = { 0 };
-static uint32_t plasma[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
+static uint32_t plasma[SCR_HEIGHT][SCR_WIDTH] = { 0 };
 
 void plasmaDemo()
 {
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Plasma")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Plasma")) return;
 
     int32_t paletteShift = 0, cwidth = 0, cheight = 0;
-    uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
-    if (!renderBuff) return;
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
 
-    //generate the palette
-    RGB rgb = { 0 };
-    for (int32_t x = 0; x < 256; x++)
-    {
-        //use HSV2RGB to vary the Hue of the color through the palette
-        rgb = HSV2RGB(x, 255, 255);
-        colors[x] = RGB2INT(rgb.r, rgb.g, rgb.b);
-    }
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
+    if (!pixels) return;
+    pixels[0] = pbuff;
+    for (int32_t i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+
+    //use HSV2RGB to vary the Hue of the color through the palette
+    for (int32_t x = 0; x < 256; x++) colors[x] = HSV2RGB(x, 255, 255);
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -1225,7 +1246,7 @@ void plasmaDemo()
         {
             for (int32_t x = 0; x < cwidth; x++)
             {
-                renderBuff[y * cwidth + x] = colors[(plasma[y][x] + paletteShift) % 256];
+                pixels[y][x] = colors[(plasma[y][x] + paletteShift) % 256];
             }
         }
 
@@ -1233,29 +1254,34 @@ void plasmaDemo()
         render();
     }
 
+    free(pixels);
     cleanup();
 }
 
-static int32_t distBuff[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
-static int32_t angleBuff[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
+static int32_t distBuff[SCR_HEIGHT][SCR_WIDTH] = { 0 };
+static int32_t angleBuff[SCR_HEIGHT][SCR_WIDTH] = { 0 };
 
 void tunnelDemo()
 {
-    int32_t w = 0, h = 0;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Tunnel")) return;
+
+    int32_t tw = 0, th = 0, i = 0;
     uint32_t* texture = NULL;
 
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Tunnel")) return;
-
     //load tunnel texture
-    if (!loadTexture(&texture, &w, &h, "assets/map03.png")) return;
-    if (!texture) return;
+    if (!loadTexture(&texture, &tw, &th, "assets/map03.png")) return;
+
+    int32_t cwidth = 0, cheight = 0;
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
+    if (!pbuff) return;
+
+    uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
+    if (!pixels) return;
+    pixels[0] = pbuff;
+    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     const double ratio = 100.0;
     const double scale = 1.5;
-
-    int32_t cwidth = 0, cheight = 0;
-    uint32_t* renderBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
-    if (!renderBuff) return;
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -1265,8 +1291,8 @@ void tunnelDemo()
     {
         for (int32_t x = 0; x < cwidth; x++)
         {
-            const int32_t distance = int32_t(ratio * h / sqrt((double(x) - mwidth) * (double(x) - mwidth) + (double(y) - mheight) * (double(y) - mheight))) % h;
-            const int32_t angle = int32_t(scale * w * atan2(double(y) - mheight, double(x) - mwidth) / M_PI);
+            const int32_t distance = int32_t(ratio * th / sqrt((double(x) - mwidth) * (double(x) - mwidth) + (double(y) - mheight) * (double(y) - mheight))) % th;
+            const int32_t angle = int32_t(scale * tw * atan2(double(y) - mheight, double(x) - mwidth) / M_PI);
             distBuff[y][x] = distance;
             angleBuff[y][x] = angle;
         }
@@ -1278,26 +1304,27 @@ void tunnelDemo()
         const double animation = getTime() / 1000;
 
         //calculate the shift values out of the animation value
-        const int32_t shiftX = int32_t(w * animation * 0.5);
-        const int32_t shiftY = int32_t(h * animation * 0.5);
+        const int32_t shiftX = int32_t(tw * animation * 0.5);
+        const int32_t shiftY = int32_t(th * animation * 0.5);
 
         for (int32_t y = 0; y < cheight; y++)
         {
             for (int32_t x = 0; x < cwidth; x++)
             {
                 //get the texel from the texture by using the tables, shifted with the animation values
-                const int32_t oy = (distBuff[y][x] + shiftX) % h;
-                const int32_t ox = (angleBuff[y][x] + shiftY) % w;
-                int32_t offset = oy * w + ox;
+                const int32_t oy = (distBuff[y][x] + shiftX) % th;
+                const int32_t ox = (angleBuff[y][x] + shiftY) % tw;
+                int32_t offset = oy * tw + ox;
                 if (offset < 0) offset = 0;
-                renderBuff[y * cwidth + x] = texture[offset];
+                pixels[y][x] = texture[offset];
             }
         }
+
         delay(FPS_30);
         render();
     }
 
-    free(texture);
+    free(pixels);
     cleanup();
 }
 
@@ -1390,23 +1417,31 @@ static const double bias = 128.0;
 
 void imageFillter()
 {
-    //load the image into the buffer
-    uint32_t* image = NULL;
-    int32_t w = 0, h = 0;
-
     //load demo image
-    if (!loadTexture(&image, &w, &h, "assets/photo3.png")) return;
+    int32_t i = 0;
+    uint32_t* ptex = NULL;
+    int32_t tw = 0, th = 0;
+    if (!loadTexture(&ptex, &tw, &th, "assets/photo3.png")) return;
 
     //set up the screen
-    if (!initScreen(w, h, 32, 0, "Filters")) return;
+    if (!initScreen(tw, th, 32, 0, "Filters")) return;
 
-    uint32_t* result = (uint32_t*)getDrawBuffer();
-    if (!result) return;
+    uint32_t** image = (uint32_t**)calloc(th, sizeof(uint32_t*));
+    if (!image) return;
+    image[0] = ptex;
+    for (i = 1; i < th; i++) image[i] = image[0] + intptr_t(i) * tw;
+
+    uint32_t* pbuff = (uint32_t*)getDrawBuffer();
+    if (!pbuff) return;
+    uint32_t** pixels = (uint32_t**)calloc(th, sizeof(uint32_t*));
+    if (!pixels) return;
+    pixels[0] = pbuff;
+    for (i = 1; i < th; i++) pixels[i] = pixels[0] + intptr_t(i) * tw;
 
     //apply the filter
-    for (int32_t y = 0; y < h; y++)
+    for (int32_t y = 0; y < th; y++)
     {
-        for (int32_t x = 0; x < w; x++)
+        for (int32_t x = 0; x < tw; x++)
         {
             double red = 0.0, green = 0.0, blue = 0.0;
 
@@ -1415,9 +1450,9 @@ void imageFillter()
             {
                 for (int32_t fx = 0; fx < FILTER_WIDTH; fx++)
                 {
-                    const int32_t dx = (x - FILTER_WIDTH / 2 + fx + w) % w;
-                    const int32_t dy = (y - FILTER_HEIGHT / 2 + fy + h) % h;
-                    const uint8_t* pixel = (const uint8_t*)&image[dy * w + dx];
+                    const int32_t dx = (x - FILTER_WIDTH / 2 + fx + tw) % tw;
+                    const int32_t dy = (y - FILTER_HEIGHT / 2 + fy + th) % th;
+                    const uint8_t* pixel = (const uint8_t*)&image[dy][dx];
                     red   += pixel[2] * filter[fy][fx];
                     green += pixel[1] * filter[fy][fx];
                     blue  += pixel[0] * filter[fy][fx];
@@ -1425,7 +1460,7 @@ void imageFillter()
             }
 
             //make target pixel
-            uint8_t* pdst = (uint8_t*)&result[y * w + x];
+            uint8_t* pdst = (uint8_t*)&pixels[y][x];
 
             //truncate values smaller than zero and larger than 255
             pdst[2] = min(max(int32_t(fact * red + bias), 0), 255);
@@ -1442,7 +1477,9 @@ void imageFillter()
     //redraw & sleep
     render();
     while (!finished(SDL_SCANCODE_RETURN));
+    free(image[0]);
     free(image);
+    free(pixels);
     cleanup();
 }
 
@@ -1452,66 +1489,62 @@ void imageFillter()
 // Rewrite to C/C++ by pherosiden@gmail.com                                        //
 //=================================================================================//
 
-//screen size
-#define SCREEN_WIDTH			740 //640 + world map width (20 * MINI_MAP_WIDTH)
-#define SCREEN_HEIGHT			480
-
 //size of tile (wall height)
-#define TILE_SIZE				128
-#define WALL_HEIGHT				128
+#define TILE_SIZE               128
+#define WALL_HEIGHT             128
 
 //world map width
-#define MINI_MAP_WIDTH			5
+#define MINI_MAP_WIDTH          5
 
 //brightness value
-#define BASE_LIGHT_VALUE		180
+#define BASE_LIGHT_VALUE        180
 
 //MIN distance to wall
-#define MIN_DISTANCE_TO_WALL	60
+#define MIN_DISTANCE_TO_WALL    60
 
 //Player speed
-#define PLAYER_SPEED			32
+#define PLAYER_SPEED            32
 
 //2D map
-#define WORLD_MAP_WIDTH			20
-#define WORLD_MAP_HEIGHT		20
+#define WORLD_MAP_WIDTH         20
+#define WORLD_MAP_HEIGHT        20
 
 //Remember that PROJECTIONPLANE = screen size
-#define PROJECTION_PLANE_WIDTH	640
-#define PROJECTION_PLANE_HEIGHT	480
+#define PROJECTION_PLANE_WIDTH  640
+#define PROJECTION_PLANE_HEIGHT 480
 
 //Player distance to projection plan = PROJECTION_PLANE_WIDTH / 2 / tan(30)
-#define PLAYER_PROJECTION_PLAN	554
+#define PLAYER_PROJECTION_PLAN  554
 
 //We use FOV of 60 degrees.  So we use this FOV basis of the table, taking into account
 //that we need to cast 320 rays (PROJECTIONPLANEWIDTH) within that 60 degree FOV.
-#define ANGLE60					PROJECTION_PLANE_WIDTH
+#define ANGLE60                 PROJECTION_PLANE_WIDTH
 
 //You must make sure these values are integers because we're using loopup tables.
-#define ANGLE0					0
-#define ANGLE30					(ANGLE60 / 2)
-#define ANGLE90					(ANGLE30 * 3)
-#define ANGLE180				(ANGLE90 * 2)
-#define ANGLE270				(ANGLE90 * 3)
-#define ANGLE360				(ANGLE60 * 6)
-#define ANGLE5					(ANGLE30 / 6)
+#define ANGLE0                  0
+#define ANGLE30                 (ANGLE60 / 2)
+#define ANGLE90                 (ANGLE30 * 3)
+#define ANGLE180                (ANGLE90 * 2)
+#define ANGLE270                (ANGLE90 * 3)
+#define ANGLE360                (ANGLE60 * 6)
+#define ANGLE5                  (ANGLE30 / 6)
 
 //trigonometric tables (the ones with "I" such as ISiTable are "Inverse" table)
-double sinTable[ANGLE360 + 1] = { 0 };
-double isinTable[ANGLE360 + 1] = { 0 };
-double cosTable[ANGLE360 + 1] = { 0 };
-double icosTable[ANGLE360 + 1] = { 0 };
-double tanTable[ANGLE360 + 1] = { 0 };
-double itanTable[ANGLE360 + 1] = { 0 };
-double fishTable[ANGLE360 + 1] = { 0 };
+double sinTable[ANGLE360 + 1]   = { 0 };
+double isinTable[ANGLE360 + 1]  = { 0 };
+double cosTable[ANGLE360 + 1]   = { 0 };
+double icosTable[ANGLE360 + 1]  = { 0 };
+double tanTable[ANGLE360 + 1]   = { 0 };
+double itanTable[ANGLE360 + 1]  = { 0 };
+double fishTable[ANGLE360 + 1]  = { 0 };
 double stepTableX[ANGLE360 + 1] = { 0 };
 double stepTableY[ANGLE360 + 1] = { 0 };
 
 //player's attributes
-int32_t playerX = PROJECTION_PLANE_WIDTH >> 1;
-int32_t playerY = PROJECTION_PLANE_HEIGHT >> 1;
-int32_t playerArc = ANGLE60;
-int32_t playerHeight = WALL_HEIGHT >> 1;
+int32_t playerX         = PROJECTION_PLANE_WIDTH >> 1;
+int32_t playerY         = PROJECTION_PLANE_HEIGHT >> 1;
+int32_t playerArc       = ANGLE60;
+int32_t playerHeight    = WALL_HEIGHT >> 1;
 
 //half of the screen height
 int32_t projectionPlaneCenterY = PROJECTION_PLANE_HEIGHT >> 1;
@@ -1521,40 +1554,42 @@ int32_t playerMapX = 0;
 int32_t playerMapY = 0;
 
 //build-in world map
-uint8_t worldMap[WORLD_MAP_HEIGHT * WORLD_MAP_WIDTH] = {
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1,
-    1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,
-    1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,1,1,1,0,1,
-    1,0,0,1,0,1,1,0,1,0,0,1,0,0,1,0,0,1,0,1,
-    1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0,1,
-    1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1,
-    1,0,0,0,1,0,1,0,1,0,0,1,0,0,1,0,0,1,0,1,
-    1,0,0,0,1,1,1,0,1,0,0,1,0,0,1,1,1,1,0,1,
-    1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1,
-    1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1,
-    1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1,
-    1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1,
-    1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1,
-    1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1,
-    1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1,
-    1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+uint8_t worldMap[WORLD_MAP_HEIGHT][WORLD_MAP_WIDTH] = {
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1},
+    {1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,1,1,1,0,1},
+    {1,0,0,1,0,1,1,0,1,0,0,1,0,0,1,0,0,1,0,1},
+    {1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0,1},
+    {1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1},
+    {1,0,0,0,1,0,1,0,1,0,0,1,0,0,1,0,0,1,0,1},
+    {1,0,0,0,1,1,1,0,1,0,0,1,0,0,1,1,1,1,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1},
+    {1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1},
+    {1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1},
+    {1,0,0,1,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
 };
 
 //some textures raw pixels data
-static uint32_t*    drawBuff = NULL;
-static uint32_t*    wallTexture = NULL;
-static uint32_t*    floorTexture = NULL;
-static uint32_t*    ceilingTexture = NULL;
-static int32_t      cwidth = 0, cheight = 0;
+static uint32_t**   drawBuff = NULL;
+static uint32_t**   wallTexture = NULL;
+static uint32_t**   floorTexture = NULL;
+static uint32_t**   ceilingTexture = NULL;
 
 //some textures size
 static int32_t      wallWidth = 0, wallHeight = 0;
 static int32_t      floorWidth = 0, floorHeight = 0;
 static int32_t      ceilingWidth = 0, ceilingHeight = 0;
+
+//scren resolution
+static int32_t      cwidth = 0, cheight = 0;
 
 double arcToRad(double arcAngle)
 {
@@ -1617,7 +1652,7 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     for (currPixel = 0; currPixel < numPixels; currPixel++)
     {
         //draw the current pixel to screen buffer
-        drawBuff[(y % cheight) * cwidth + (x % cwidth)] = color;
+        drawBuff[y % cheight][x % cwidth] = color;
         num += numAdd;  //increase the numerator by the top of the fraction
 
         if (num >= den) //check if numerator >= denominator
@@ -1632,7 +1667,7 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     }
 }
 
-void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t offsetX, double brightnessLevel)
+void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t offset, double brightnessLevel)
 {
     //range check
     if (x > cwidth - 1) x = cwidth - 1;
@@ -1641,8 +1676,6 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
     if (brightnessLevel > 1) brightnessLevel = 1;
 
     int32_t heightToDraw = height;
-    int32_t targetOffset = y * cwidth + x;
-    const int32_t lastSourceOffset = offsetX + wallWidth * wallHeight;
     
     //clip bottom
     if (y + heightToDraw > cheight) heightToDraw = cheight - y;
@@ -1651,8 +1684,13 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
     //to fetch the shade if this condition is true (possible if height is 0)
     if (heightToDraw < 0) return;
 
+    //loop error
     int32_t error = 0;
 
+    //index texture color
+    int32_t offsetY = offset / TILE_SIZE;
+    const int32_t offsetX = offset % TILE_SIZE;
+    
     //we're going to draw the first row, then move down and draw the next row
     //and so on we can use the original x destination to find out
     //the x position of the next row 
@@ -1675,41 +1713,39 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
 
         //cheap shading trick by using brightnessLevel (which doesn't really have to correspond to "brightness") 
         //to alter colors.  You can use logarithmic falloff or linear falloff to produce some interesting effect
-        const uint8_t* color = (const uint8_t*)&wallTexture[offsetX];
+        //const uint8_t* color = (const uint8_t*)&wallTexture[offsetX];
+        const uint8_t* color = (const uint8_t*)&wallTexture[offsetY][offsetX];
 
         //while there's a row to draw & not end of drawing area
         while (error >= wallWidth)
         {
             error -= wallWidth;
-            if (targetOffset >= 0)
+            if (y >= 0)
             {
-                //make target pixel and color
-                uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-
-                //draw the pixel
+                //modify the pixel
+                uint8_t* pixel = (uint8_t*)&drawBuff[y][x];
                 pixel[2] = uint8_t(color[2] * brightnessLevel);
                 pixel[1] = uint8_t(color[1] * brightnessLevel);
                 pixel[0] = uint8_t(color[0] * brightnessLevel);
             }
-            targetOffset += cwidth;
+            y++;
 
             //clip bottom (just return if we reach bottom)
             heightToDraw--;
             if (heightToDraw < 1) return;
         }
 
-        offsetX += wallWidth;
-        if (offsetX > lastSourceOffset) offsetX = lastSourceOffset;
+        //goto next line
+        offsetY++;
+        if (offsetY > wallHeight - 1) offsetY = wallHeight - 1;
     }
 }
 
 void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
-    uint32_t targetOffset = cwidth * y + x;
     for (int32_t h = 0; h < height; h++)
     {
-        for (int32_t w = 0; w < width; w++) drawBuff[targetOffset++] = color;
-        targetOffset += (cwidth - width);
+        for (int32_t w = 0; w < width; w++) drawBuff[y + h][x + w] = color;
     }
 }
 
@@ -1718,10 +1754,40 @@ void initData()
     int32_t i = 0;
     double radian = 0;
 
-    if (!loadTexture(&wallTexture, &wallWidth, &wallHeight, "assets/wallr.png")) return;
-    if (!loadTexture(&floorTexture, &floorWidth, &floorHeight, "assets/floor.png")) return;
-    if (!loadTexture(&ceilingTexture, &ceilingWidth, &ceilingHeight, "assets/ceil.png")) return;
+    //retrive render buffer
+    uint32_t* pBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
+    //setup draw buffer as maxtrix to easy access data
+    drawBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
+    if (!drawBuff) return;
+
+    //assign offset data
+    drawBuff[0] = pBuff;
+    for (i = 1; i < cheight; i++) drawBuff[i] = drawBuff[0] + intptr_t(i) * cwidth;
+
+    //load texture data
+    uint32_t *pWall = NULL, *pFloor = NULL, *pCeiling = NULL;
+    if (!loadTexture(&pWall, &wallWidth, &wallHeight, "assets/wallr.png")) return;
+    if (!loadTexture(&pFloor, &floorWidth, &floorHeight, "assets/floor.png")) return;
+    if (!loadTexture(&pCeiling, &ceilingWidth, &ceilingHeight, "assets/ceil.png")) return;
+
+    //setup texture data as matrix to easy access data
+    wallTexture = (uint32_t**)calloc(wallHeight, sizeof(uint32_t*));
+    if (!wallTexture) return;
+    wallTexture[0] = pWall;
+    for (i = 1; i < wallHeight; i++) wallTexture[i] = wallTexture[0] + intptr_t(i) * wallWidth;
+
+    floorTexture = (uint32_t**)calloc(floorHeight, sizeof(uint32_t*));
+    if (!floorTexture) return;
+    floorTexture[0] = pFloor;
+    for (i = 1; i < floorHeight; i++) floorTexture[i] = floorTexture[0] + intptr_t(i) * floorWidth;
+
+    ceilingTexture = (uint32_t**)calloc(ceilingHeight, sizeof(uint32_t*));
+    if (!ceilingTexture) return;
+    ceilingTexture[0] = pCeiling;
+    for (i = 1; i < ceilingHeight; i++) ceilingTexture[i] = ceilingTexture[0] + intptr_t(i) * ceilingWidth;
+
+    //setup lookup table
     for (i = 0; i <= ANGLE360; i++)
     {
         //populate tables with their radian values.
@@ -1789,8 +1855,8 @@ void drawOverheadMap()
     {
         for (int32_t col = 0; col < WORLD_MAP_WIDTH; col++)
         {
-            if (worldMap[row * WORLD_MAP_WIDTH + col]) drawFillRectangle(PROJECTION_PLANE_WIDTH + col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB2INT(0, 0, 0));
-            else drawFillRectangle(PROJECTION_PLANE_WIDTH + col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB2INT(255, 255, 255));
+            if (worldMap[row][col]) drawFillRectangle(PROJECTION_PLANE_WIDTH + col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB_BLACK);
+            else drawFillRectangle(PROJECTION_PLANE_WIDTH + col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB_WHITE);
         }
     }
 
@@ -1804,7 +1870,7 @@ void drawOverheadMap()
 void drawRayOnOverheadMap(int32_t x, int32_t y)
 {
     //draw line from the player position to the position where the ray intersect with wall
-    drawLineBuffer(playerMapX, playerMapY, PROJECTION_PLANE_WIDTH + x * MINI_MAP_WIDTH / TILE_SIZE, y * MINI_MAP_WIDTH / TILE_SIZE, RGB2INT(0, 255, 0));
+    drawLineBuffer(playerMapX, playerMapY, PROJECTION_PLANE_WIDTH + x * MINI_MAP_WIDTH / TILE_SIZE, y * MINI_MAP_WIDTH / TILE_SIZE, RGB_GREEN);
 }
 
 //draw player POV on the overhead map (for illustartion purpose)
@@ -1812,7 +1878,7 @@ void drawRayOnOverheadMap(int32_t x, int32_t y)
 void drawPlayerPOVOnOverheadMap()
 {
     //draw a red line indication the player's direction
-    drawLineBuffer(playerMapX, playerMapY, int32_t(playerMapX + cosTable[playerArc] * 10), int32_t(playerMapY + sinTable[playerArc] * 10), RGB2INT(255, 0, 0));
+    drawLineBuffer(playerMapX, playerMapY, int32_t(playerMapX + cosTable[playerArc] * 10), int32_t(playerMapY + sinTable[playerArc] * 10), RGB_RED);
 }
 
 void doRayCasting()
@@ -1824,15 +1890,15 @@ void doRayCasting()
     int32_t distToNextVerticalGrid = 0, distToNextHorizontalGrid = 0;
 
     //x, y intersections
-    double intersectionX = 0, intersectionY = 0;
-    double distToNextIntersectionX = 0, distToNextIntersectionY = 0;
+    double intersectionX = 0.0, intersectionY = 0.0;
+    double distToNextIntersectionX = 0.0, distToNextIntersectionY = 0.0;
 
     //the current cell that the ray is in
     int32_t gridIndexX = 0, gridIndexY = 0;
 
     //the distance of the x and y ray intersections from the viewpoint
-    double distToVerticalGridBeingHit = 0;
-    double distToHorizontalGridBeingHit = 0;
+    double distToVerticalGridBeingHit = 0.0;
+    double distToHorizontalGridBeingHit = 0.0;
 
     int32_t castColumn = 0;
     int32_t castArc = playerArc;
@@ -1852,8 +1918,7 @@ void doRayCasting()
     for (castColumn = 0; castColumn < PROJECTION_PLANE_WIDTH; castColumn++)
     {
         //ray is between 0 to 180 degree (1st and 2nd quadrant).
-        int32_t mapIndex = 0;
-        double tmpX = 0, tmpY = 0;
+        double tmpX = 0.0, tmpY = 0.0;
 
         //ray is facing down
         if (castArc > ANGLE0 && castArc < ANGLE180)
@@ -1896,7 +1961,6 @@ void doRayCasting()
             {
                 gridIndexX = int32_t(intersectionX / TILE_SIZE);
                 gridIndexY = horizontalGrid / TILE_SIZE;
-                mapIndex = gridIndexY * WORLD_MAP_WIDTH + gridIndexX;
 
                 //if we've looked as far as outside the map range, then bail out
                 if (gridIndexX >= WORLD_MAP_WIDTH || gridIndexY >= WORLD_MAP_HEIGHT || gridIndexX < 0 || gridIndexY < 0)
@@ -1905,7 +1969,7 @@ void doRayCasting()
                     break;
                 }
                 //if the grid is not an Opening, then stop
-                else if (worldMap[mapIndex])
+                else if (worldMap[gridIndexY][gridIndexX])
                 {
                     distToHorizontalGridBeingHit = (intersectionX - playerX) * icosTable[castArc];
                     break;
@@ -1950,14 +2014,13 @@ void doRayCasting()
                 //compute current map position to inspect
                 gridIndexX = verticalGrid / TILE_SIZE;
                 gridIndexY = int32_t(intersectionY / TILE_SIZE);
-                mapIndex = gridIndexY * WORLD_MAP_WIDTH + gridIndexX;
 
                 if (gridIndexX >= WORLD_MAP_WIDTH || gridIndexY >= WORLD_MAP_HEIGHT || gridIndexX < 0 || gridIndexY < 0)
                 {
                     distToVerticalGridBeingHit = DBL_MAX;
                     break;
                 }
-                else if (worldMap[mapIndex])
+                else if (worldMap[gridIndexY][gridIndexX])
                 {
                     distToVerticalGridBeingHit = (intersectionY - playerY) * isinTable[castArc];
                     break;
@@ -1971,11 +2034,11 @@ void doRayCasting()
         }
 
         //DRAW THE WALL SLICE
-        double ratio = 0;
-        double scale = 0;
-        double distance = 0;
+        double ratio = 0.0;
+        double scale = 0.0;
+        double distance = 0.0;
         
-        int32_t offsetX = 0;        //x offset of drawing texture
+        int32_t offset = 0;         //offset of drawing texture
         int32_t topOfWall = 0;		//used to compute the top and bottom of the sliver that
         int32_t bottomOfWall = 0;	//will be the staring point of floor and ceiling
 
@@ -1991,7 +2054,7 @@ void doRayCasting()
             bottomOfWall = int32_t(ratio * playerHeight + projectionPlaneCenterY);
             scale = intmax_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
             topOfWall = bottomOfWall - int32_t(scale);
-            offsetX = int32_t(intersectionX) % TILE_SIZE;
+            offset = int32_t(intersectionX) % TILE_SIZE;
         }
         //else, we use xray instead (meaning the vertical wall is closer than the horizontal wall)
         else
@@ -2004,13 +2067,13 @@ void doRayCasting()
             bottomOfWall = int32_t(ratio * playerHeight + projectionPlaneCenterY);
             scale = intmax_t(PLAYER_PROJECTION_PLAN) * WALL_HEIGHT / distance;
             topOfWall = bottomOfWall - int32_t(scale);
-            offsetX = int32_t(intersectionY) % TILE_SIZE;
+            offset = int32_t(intersectionY) % TILE_SIZE;
         }
 
         //add simple shading so that farther wall slices appear darker.
         //use arbitrary value of the farthest distance.  
         //trick to give different shades between vertical and horizontal (you could also use different textures for each if you wish to)
-        drawWallSliceRectangleTinted(castColumn, topOfWall, bottomOfWall - topOfWall + 1, offsetX, BASE_LIGHT_VALUE / floor(distance));
+        drawWallSliceRectangleTinted(castColumn, topOfWall, bottomOfWall - topOfWall + 1, offset, BASE_LIGHT_VALUE / floor(distance));
     
         //validate range
         if (topOfWall < 0) topOfWall = 0;
@@ -2022,16 +2085,15 @@ void doRayCasting()
         if (floorTexture)
         {
             //find the first bit so we can just add the width to get the next row (of the same column)
-            uint32_t targetOffset = bottomOfWall * cwidth + castColumn;
-
+            uint32_t nextLine = bottomOfWall;
             for (int32_t row = bottomOfWall; row < PROJECTION_PLANE_HEIGHT; row++)
             {
                 const double straightDistance = double(playerHeight) / (intmax_t(row) - projectionPlaneCenterY) * PLAYER_PROJECTION_PLAN;
                 const double actualDistance = straightDistance * fishTable[castColumn];
 
-                int32_t endY = int32_t(actualDistance * sinTable[castArc]);
                 int32_t endX = int32_t(actualDistance * cosTable[castArc]);
-
+                int32_t endY = int32_t(actualDistance * sinTable[castArc]);
+                
                 //translate relative to viewer coordinates:
                 endX += playerX;
                 endY += playerY;
@@ -2043,29 +2105,21 @@ void doRayCasting()
                 //make sure the tile is within our map
                 if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX >= 0 && cellY >= 0 && endX >= 0 && endY >= 0)
                 {
-                    //find offset of tile and column in texture
-                    endY %= TILE_SIZE;
-                    endX %= TILE_SIZE;
-
-                    //pixel to draw
-                    const uint32_t sourceOffset = endY * floorWidth + endX;
-
                     //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / actualDistance;
                     if (brightnessLevel < 0) brightnessLevel = 0;
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-                    const uint8_t* color = (uint8_t*)&floorTexture[sourceOffset];
+                    uint8_t* pixel = (uint8_t*)&drawBuff[nextLine++][castColumn];
+
+                    //find offset of tile and column in texture                    
+                    const uint8_t* color = (uint8_t*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
 
                     //draw the pixel
                     pixel[2] = uint8_t(color[2] * brightnessLevel);
                     pixel[1] = uint8_t(color[1] * brightnessLevel);
                     pixel[0] = uint8_t(color[0] * brightnessLevel);
-
-                    //go to the next pixel (directly under the current pixel)
-                    targetOffset += cwidth;
                 }
             }
         }
@@ -2074,16 +2128,15 @@ void doRayCasting()
         if (ceilingTexture)
         {
             //find the first bit so we can just add the width to get the next row (of the same column)
-            uint32_t targetOffset = topOfWall * cwidth + castColumn;
-
+            uint32_t nextLine = topOfWall;
             for (int32_t row = topOfWall; row >= 0; row--)
             {
                 const double zoom = (double(WALL_HEIGHT) - playerHeight) / (double(projectionPlaneCenterY) - row);
                 const double diagonalDistance = zoom * PLAYER_PROJECTION_PLAN * fishTable[castColumn];
 
-                int32_t endY = int32_t(diagonalDistance * sinTable[castArc]);
                 int32_t endX = int32_t(diagonalDistance * cosTable[castArc]);
-
+                int32_t endY = int32_t(diagonalDistance * sinTable[castArc]);
+                
                 //translate relative to viewer coordinates:
                 endX += playerX;
                 endY += playerY;
@@ -2095,29 +2148,21 @@ void doRayCasting()
                 //make sure the tile is within our map
                 if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX >= 0 && cellY >= 0 && endX >= 0 && endY >= 0)
                 {
-                    //find offset of tile and column in texture
-                    endY %= TILE_SIZE;
-                    endX %= TILE_SIZE;
-
-                    //pixel to draw
-                    const uint32_t sourceOffset = endY * ceilingWidth + endX;
-                    
                     //cheap shading trick
                     double brightnessLevel = BASE_LIGHT_VALUE / diagonalDistance;
                     if (brightnessLevel < 0) brightnessLevel = 0;
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&drawBuff[targetOffset];
-                    const uint8_t* color = (uint8_t*)&ceilingTexture[sourceOffset];
-                    
+                    uint8_t* pixel = (uint8_t*)&drawBuff[nextLine--][castColumn];
+
+                    //find offset of tile and column in texture
+                    const uint8_t* color = (uint8_t*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];
+
                     //draw the pixel
                     pixel[2] = uint8_t(color[2] * brightnessLevel);
                     pixel[1] = uint8_t(color[1] * brightnessLevel);
                     pixel[0] = uint8_t(color[0] * brightnessLevel);
-
-                    //go to the next pixel (directly above the current pixel)
-                    targetOffset -= cwidth;
                 }
             }
         }
@@ -2130,16 +2175,14 @@ void doRayCasting()
 
 void runRayCasting()
 {
-    double time = 0;    //time of current frame
-    double oldTime = 0; //time of previous frame
+    //time for record FPS
+    double time = 0, oldTime = 0;
 
     if (!loadFont("assets/sysfont.xfn", 0)) return;
-    if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;
+    if (!initScreen(SCR_WIDTH + 100, SCR_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;
 
+    //setup data texture
     initData();
-
-    drawBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
-    if (!drawBuff) return;
 
     //start the main loop
     do {
@@ -2157,8 +2200,10 @@ void runRayCasting()
         //report FPS counter
         writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime);
         render();
-        memset(drawBuff, RGB2INT(255, 255, 255), sizeof(uint32_t) * cwidth * cheight);
-
+        
+        //clear background
+        memset(drawBuff[0], RGB_WHITE, sizeof(uint32_t) * cwidth * cheight);
+        
         //fetch user input
         readKeys();
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -2219,7 +2264,7 @@ void runRayCasting()
         if (dx > 0)
         {
             //moving right
-            if (worldMap[playerCellY * WORLD_MAP_WIDTH + playerCellX + 1] && (playerCellOffsetX > (TILE_SIZE - MIN_DISTANCE_TO_WALL)))
+            if (worldMap[playerCellY][playerCellX + 1] && (playerCellOffsetX > (TILE_SIZE - MIN_DISTANCE_TO_WALL)))
             {
                 //back player up
                 playerX -= (playerCellOffsetX - (TILE_SIZE - MIN_DISTANCE_TO_WALL));
@@ -2228,7 +2273,7 @@ void runRayCasting()
         else
         {
             //moving left
-            if (worldMap[playerCellY * WORLD_MAP_WIDTH + playerCellX - 1] && (playerCellOffsetX < MIN_DISTANCE_TO_WALL))
+            if (worldMap[playerCellY][playerCellX - 1] && (playerCellOffsetX < MIN_DISTANCE_TO_WALL))
             {
                 //back player up
                 playerX += (MIN_DISTANCE_TO_WALL - playerCellOffsetX);
@@ -2238,7 +2283,7 @@ void runRayCasting()
         if (dy < 0)
         {
             //moving up
-            if (worldMap[(playerCellY - 1) * WORLD_MAP_WIDTH + playerCellX] && (playerCellOffsetY < MIN_DISTANCE_TO_WALL))
+            if (worldMap[playerCellY - 1][playerCellX] && (playerCellOffsetY < MIN_DISTANCE_TO_WALL))
             {
                 //back player up 
                 playerY += (MIN_DISTANCE_TO_WALL - playerCellOffsetY);
@@ -2247,7 +2292,7 @@ void runRayCasting()
         else
         {
             //moving down                                  
-            if (worldMap[(playerCellY + 1) * WORLD_MAP_WIDTH + playerCellX] && (playerCellOffsetY > (TILE_SIZE - MIN_DISTANCE_TO_WALL)))
+            if (worldMap[playerCellY + 1][playerCellX] && (playerCellOffsetY > (TILE_SIZE - MIN_DISTANCE_TO_WALL)))
             {
                 //back player up 
                 playerY -= (playerCellOffsetY - (TILE_SIZE - MIN_DISTANCE_TO_WALL));
@@ -2273,6 +2318,10 @@ void runRayCasting()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
+    free(drawBuff);
+    free(wallTexture[0]);
+    free(floorTexture[0]);
+    free(ceilingTexture[0]);
     free(wallTexture);
     free(floorTexture);
     free(ceilingTexture);

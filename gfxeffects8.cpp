@@ -2981,7 +2981,7 @@ namespace fireTexture {
 namespace fireTexture2 {
     #define MPOS	200
     #define DIVD	128
-    #define DIST	150
+    #define FDST	150
     #define XSTR	1
     #define YSTR	2
     #define ZSTR	-1
@@ -3172,8 +3172,8 @@ namespace fireTexture2 {
                 const int16_t y = (COS(ax) * j + SIN(ax) * k) / DIVD;
                 const int16_t z = (COS(ax) * k - SIN(ax) * j) / DIVD;
 
-                px[n] = 160 + (-x * DIST) / (z - DIST);
-                py[n] = 100 + (-y * DIST) / (z - DIST);
+                px[n] = 160 + (-x * FDST) / (z - FDST);
+                py[n] = 100 + (-y * FDST) / (z - FDST);
                 pz[n] = z;
             }
 
@@ -6839,8 +6839,8 @@ namespace textScrolling {
     #define LEN 	    256
     #define SIZE 	    2
     #define CURVE 	    2
-    #define XMAX 	    (309 / SIZE)
-    #define YMAX 	    8
+    #define MAXX 	    (309 / SIZE)
+    #define MAXY 	    8
     #define SPEED 	    -1
 
     const uint8_t mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
@@ -6851,9 +6851,9 @@ namespace textScrolling {
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     
     uint16_t sint[LEN] = { 0 };
-    int16_t xpos[XMAX][YMAX] = { 0 };
-    int16_t ypos[XMAX][YMAX] = { 0 };
-    uint8_t bitmap[XMAX][YMAX] = { 0 };
+    int16_t xpos[MAXX][MAXY] = { 0 };
+    int16_t ypos[MAXX][MAXY] = { 0 };
+    uint8_t bitmap[MAXX][MAXY] = { 0 };
 
     void loadFont()
     {
@@ -6874,19 +6874,19 @@ namespace textScrolling {
 
             if (pos >= uint16_t(strlen(text))) pos = 0;
 
-            for (uint16_t i = 0; i < YMAX; i++)
+            for (uint16_t i = 0; i < MAXY; i++)
             {
-                memcpy(&bitmap[0], &bitmap[1], YMAX * XMAX);
+                memcpy(&bitmap[0], &bitmap[1], MAXY * MAXX);
 
-                for (y = 0; y < YMAX; y++)
+                for (y = 0; y < MAXY; y++)
                 {
-                    if (mask[i] & fbuff[YMAX * c + y]) bitmap[XMAX - 1][y] = 15;
-                    else bitmap[XMAX - 1][y] = 0;
+                    if (mask[i] & fbuff[MAXY * c + y]) bitmap[MAXX - 1][y] = 15;
+                    else bitmap[MAXX - 1][y] = 0;
                 }
 
-                for (x = 0; x < XMAX; x++)
+                for (x = 0; x < MAXX; x++)
                 {
-                    for (y = 0; y < YMAX; y++)
+                    for (y = 0; y < MAXY; y++)
                     {
                         vmem[ypos[x][y]][xpos[x][y]] = vbuff[ypos[x][y]][xpos[x][y]];
                         xpos[x][y] = SIZE * x + sint[(x + y) % LEN] - OFS;
@@ -7290,7 +7290,7 @@ namespace fillterEffect {
 
 namespace fireworkEffect {
     #define ANGLE_SCALE         1440
-    #define XMAX                320
+    #define FMAX                320
     #define NUM_ARROWS          300
     #define ARROWS_LENGTH       10
     #define EXPLODE_FRAMES      25
@@ -7347,7 +7347,7 @@ namespace fireworkEffect {
         if (arrow->angle < (ANGLE_SCALE >> 2)) arrow->angleAdd = -1;
         else arrow->angleAdd = 1;
 
-        arrow->shape[0].x = random(XMAX / 3) + double(XMAX / 3);
+        arrow->shape[0].x = random(FMAX / 3) + double(FMAX / 3);
         arrow->shape[0].y = 220;
 
         for (int16_t i = 1; i < ARROWS_LENGTH; i++)
@@ -7925,7 +7925,7 @@ namespace fireEffect2 {
 
     void run()
     {
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire"));
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
         if (!loadPalette("assets/fire.pal")) return;
         initSeed();
 
@@ -8383,9 +8383,9 @@ namespace fireEffect6 {
     #define YMIN        100
     #define SMOOTH 	    1
     #define FIREMIN     50
-    #define XSTART      40
-    #define XEND        280
-    #define WIDTH       (XEND - XSTART)
+    #define STARTX      40
+    #define ENDX        280
+    #define WIDTH       (ENDX - STARTX)
     #define MAXCOL      110
     #define BARLEN      10
 
@@ -8452,18 +8452,18 @@ namespace fireEffect6 {
 
         do
         {
-            for (i = 0; i < WIDTH; i++) vbuff[MAX_HEIGHT][i + XSTART] = flames[i];
+            for (i = 0; i < WIDTH; i++) vbuff[MAX_HEIGHT][i + STARTX] = flames[i];
 
             for (i = 0; i < WIDTH; i++)
             {
                 for (j = YMIN; j < IMAGE_HEIGHT; j++)
                 {
-                    col = vbuff[j][i + XSTART];
-                    if (!col || col < DECAY || i <= XSTART || i >= XEND) vbuff[j - 1][i + XSTART] = 0;
+                    col = vbuff[j][i + STARTX];
+                    if (!col || col < DECAY || i <= STARTX || i >= ENDX) vbuff[j - 1][i + STARTX] = 0;
                     else
                     {
-                        x = i - (random(3) - 1) + XSTART;
-                        if (x > XEND - 1) x = XEND - 1;
+                        x = i - (random(3) - 1) + STARTX;
+                        if (x > ENDX - 1) x = ENDX - 1;
                         vbuff[j - 1][x] = col - random(DECAY);
                     }
                 }
@@ -9714,7 +9714,7 @@ namespace fastCircleFill {
 
 namespace flagsEffect {
     #define AMPLI 6
-    #define SPEED 4
+    #define FSPEED 4
 
     uint16_t index = 0;
     uint16_t costab[256] = { 0 };
@@ -9771,7 +9771,7 @@ namespace flagsEffect {
             renderBuffer(vbuff2, IMAGE_SIZE);
             delay(FPS_60);
             memset(vbuff2, 0, IMAGE_SIZE);
-            index += SPEED;
+            index += FSPEED;
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -10132,8 +10132,7 @@ namespace landScapeEffect {
 }
 
 namespace lensEffect {
-    #define RAD     30
-    #define SIGN(x) (((x) > 0) ? 1 : -1)
+    #define RDS 30
 
     uint8_t     vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t     vbuff2[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -10143,8 +10142,8 @@ namespace lensEffect {
         const int16_t dx = abs(x2 - x1);
         const int16_t dy = abs(y2 - y1);
 
-        const int16_t sx = SIGN(x2 - x1);
-        const int16_t sy = SIGN(y2 - y1);
+        const int16_t sx = sign(x2 - x1);
+        const int16_t sy = sign(y2 - y1);
 
         int16_t err = (dy << 1) - dx;
 
@@ -10205,7 +10204,7 @@ namespace lensEffect {
 
         do {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
-            circleStretch(x - RAD, y - RAD, x, y, RAD);
+            circleStretch(x - RDS, y - RDS, x, y, RDS);
             renderBuffer(vbuff1, IMAGE_SIZE);
             delay(FPS_60);
 
@@ -10222,9 +10221,9 @@ namespace lensEffect {
 }
 
 namespace zoomInEffect {
-    #define R 40
-    #define H 18
-    #define D 80
+    #define ZR 40
+    #define ZH 18
+    #define ZD 80
 
     const uint8_t hand0[][16] = {
         {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0},
@@ -10266,24 +10265,24 @@ namespace zoomInEffect {
         {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
     };
 
-    int16_t lens[D][D] = { 0 };
+    int16_t lens[ZD][ZD] = { 0 };
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff2[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
     void calcMask()
     {
-        for (int16_t y = 0; y < D; y++)
+        for (int16_t y = 0; y < ZD; y++)
         {
-            for (int16_t x = 0; x < D; x++)
+            for (int16_t x = 0; x < ZD; x++)
             {
-                const int16_t ux = x - (D >> 1);
-                const int16_t uy = y - (D >> 1);
+                const int16_t ux = x - (ZD >> 1);
+                const int16_t uy = y - (ZD >> 1);
 
-                if (ux * ux + uy * uy < R * R)
+                if (ux * ux + uy * uy < ZR * ZR)
                 {
-                    const double z = sqrt(double(R) * R - double(ux) * ux - double(uy) * uy);
-                    const int16_t sx = int16_t((H - z) * (ux / z));
-                    const int16_t sy = int16_t((H - z) * (uy / z));
+                    const double z = sqrt(double(ZR) * ZR - double(ux) * ux - double(uy) * uy);
+                    const int16_t sx = int16_t((ZH - z) * (ux / z));
+                    const int16_t sy = int16_t((ZH - z) * (uy / z));
                     lens[y][x] = sy * IMAGE_WIDTH + sx;
                 }
                 else lens[y][x] = 0;
@@ -10299,8 +10298,8 @@ namespace zoomInEffect {
             {
                 switch (n)
                 {
-                case 0: if (hand0[i][j]) vbuff2[y + i + R - 8][x + j + R - 8] = 255; break;
-                case 1: if (hand1[i][j]) vbuff2[y + i + R - 8][x + j + R - 8] = 255; break;
+                case 0: if (hand0[i][j]) vbuff2[y + i + ZR - 8][x + j + ZR - 8] = 255; break;
+                case 1: if (hand1[i][j]) vbuff2[y + i + ZR - 8][x + j + ZR - 8] = 255; break;
                 }
             }
         }
@@ -10310,15 +10309,15 @@ namespace zoomInEffect {
     {
         memcpy(vbuff2, vbuff1, IMAGE_SIZE);
 
-        for (int16_t y = 0; y < D; y++)
+        for (int16_t y = 0; y < ZD; y++)
         {
-            for (int16_t x = 0; x < D; x++)
+            for (int16_t x = 0; x < ZD; x++)
             {
-                const int16_t ux = x - (D >> 1);
-                const int16_t uy = y - (D >> 1);
+                const int16_t ux = x - (ZD >> 1);
+                const int16_t uy = y - (ZD >> 1);
                 const int16_t vp = y + yp + lens[y][x] / IMAGE_WIDTH;
                 const int16_t hp = x + xp + lens[y][x] % IMAGE_WIDTH;
-                if (vp < IMAGE_HEIGHT && vp > 0 && xp < IMAGE_WIDTH && xp > 0 && (R - 1) * (R - 1) > ux * ux + uy * uy) vbuff2[y + yp][x + xp] = vbuff1[vp][hp];
+                if (vp < IMAGE_HEIGHT && vp > 0 && xp < IMAGE_WIDTH && xp > 0 && (ZR - 1) * (ZR - 1) > ux * ux + uy * uy) vbuff2[y + yp][x + xp] = vbuff1[vp][hp];
             }
         }
 
@@ -10348,8 +10347,8 @@ namespace zoomInEffect {
 
             if (x < 5) x = 5;
             if (y < 5) y = 5;
-            if (x > IMAGE_WIDTH - D - 5) x = IMAGE_WIDTH - D - 5;
-            if (y > IMAGE_HEIGHT - D) y = IMAGE_HEIGHT - D;
+            if (x > IMAGE_WIDTH - ZD - 5) x = IMAGE_WIDTH - ZD - 5;
+            if (y > IMAGE_HEIGHT - ZD) y = IMAGE_HEIGHT - ZD;
 
             if (!(n % 20))
             {
@@ -10629,7 +10628,7 @@ namespace lineBobEffect {
 }
 
 namespace lineBlurEffect {
-    #define SPEED   2
+    #define LSPEED   2
     #define PLUS    1
     #define MINUS   0
 
@@ -10892,49 +10891,49 @@ namespace lineBlurEffect {
             if (points.x0 > MAX_WIDTH)
             {
                 points.dirx0 = MINUS;
-                rd1 = (rand() % SPEED) + 1;
+                rd1 = (rand() % LSPEED) + 1;
             }
 
             if (points.x0 < 1)
             {
                 points.dirx0 = PLUS;
-                rd2 = (rand() % SPEED) + 1;
+                rd2 = (rand() % LSPEED) + 1;
             }
 
             if (points.y0 > MAX_HEIGHT)
             {
                 points.diry0 = MINUS;
-                rd3 = (rand() % SPEED) + 1;
+                rd3 = (rand() % LSPEED) + 1;
             }
 
             if (points.y0 < 1)
             {
                 points.diry0 = PLUS;
-                rd4 = (rand() % SPEED) + 1;
+                rd4 = (rand() % LSPEED) + 1;
             }
 
             if (points.x1 > MAX_WIDTH)
             {
                 points.dirx1 = MINUS;
-                rd5 = (rand() % SPEED) + 1;
+                rd5 = (rand() % LSPEED) + 1;
             }
 
             if (points.x1 < 1)
             {
                 points.dirx1 = PLUS;
-                rd6 = (rand() % SPEED) + 1;
+                rd6 = (rand() % LSPEED) + 1;
             }
 
             if (points.y1 > MAX_HEIGHT)
             {
                 points.diry1 = MINUS;
-                rd7 = (rand() % SPEED) + 1;
+                rd7 = (rand() % LSPEED) + 1;
             }
 
             if (points.y1 < 1)
             {
                 points.diry1 = PLUS;
-                rd8 = (rand() % SPEED) + 1;
+                rd8 = (rand() % LSPEED) + 1;
             }
 
             if (points.dirx0 == PLUS) points.x0 += rd1;
@@ -11946,7 +11945,7 @@ namespace plasmaEffect5 {
 
     void run()
     {
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma"));
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma")) return;
         makeCoolPalette();
         drawSinCos();
         while (!finished(SDL_SCANCODE_RETURN));
@@ -12309,7 +12308,7 @@ namespace rotateMap {
 
         for (i = 0; i < vertices; i++) drawOrder[i] = i;
 
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rotate-Map"));
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Rotate-Map")) return;
 
         for (i = 1; i <= PALSIZE; i++)
         {
@@ -12341,8 +12340,6 @@ namespace rotateMap {
 }
 
 namespace scaleMap {
-    #define SIGN(x) (((x) >= 0) ? 1 : -1)
-
     int16_t costab[256] = { 0 };
     int16_t sintab[256] = { 0 };
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -12353,8 +12350,8 @@ namespace scaleMap {
         const int16_t dx = abs(x2 - x1);
         const int16_t dy = abs(y2 - y1);
 
-        const int16_t sx = SIGN(x2 - x1);
-        const int16_t sy = SIGN(y2 - y1);
+        const int16_t sx = sign(x2 - x1);
+        const int16_t sy = sign(y2 - y1);
 
         int16_t err = (dy << 1) - dx;
         const int16_t dx2 = dx << 1;
@@ -12379,8 +12376,8 @@ namespace scaleMap {
         const int16_t dx = abs(yd2 - yd1);
         const int16_t dy = abs(ys2 - ys1);
 
-        const int16_t sx = SIGN(yd2 - yd1);
-        const int16_t sy = SIGN(ys2 - ys1);
+        const int16_t sx = sign(yd2 - yd1);
+        const int16_t sy = sign(ys2 - ys1);
 
         int16_t err = (dy << 1) - dx;
         const int16_t dx2 = dx << 1;
@@ -12953,7 +12950,7 @@ namespace snowFall {
 
     void run()
     {
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Snow-Fall"));
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Snow-Fall")) return;
 
         actflk = 0;
         initSnow();
@@ -13474,12 +13471,11 @@ namespace softFire {
 }
 
 namespace spriteEffect {
-    #define W 34
-    #define H 63
-    #define D 4
-    #define B 15
+    #define SW 34
+    #define SH 63
+    #define KC 15
 
-    typedef uint8_t TFrame[H][W];
+    typedef uint8_t TFrame[SH][SW];
 
     const uint8_t palbubmio[][3] = {
         {0,	24,	0}, {6,	35, 10}, {12, 47, 20}, {26, 16,	0},
@@ -13513,16 +13509,16 @@ namespace spriteEffect {
             add     bh, byte ptr y
             add     bx, x
             add     edi, ebx
-            mov     dl, H
+            mov     dl, SH
             xor     ecx, ecx
-            add     ecx, W
+            add     ecx, SW
             mov     eax, ecx
         draw:
             push    edi
             mov     ecx, eax
         line:
             mov     bl, [esi]
-            cmp     bl, B
+            cmp     bl, KC
             jnz     store
             inc     esi
             inc     edi
@@ -13540,12 +13536,12 @@ namespace spriteEffect {
         done:
         }
 #else
-        for (int16_t i = 0; i < H; i++)
+        for (int16_t i = 0; i < SH; i++)
         {
-            for (int16_t j = 0; j < W; j++)
+            for (int16_t j = 0; j < SW; j++)
             {
                 const uint8_t col = frames[k][i][j];
-                if (col != B) vbuff1[y + i][x + j] = frames[k][i][j];
+                if (col != KC) vbuff1[y + i][x + j] = frames[k][i][j];
             }
         }
 #endif
@@ -13565,17 +13561,17 @@ namespace spriteEffect {
             add     edi, ebx
             add     esi, ebx
             mov     al, 60
-            mov     bx, H
+            mov     bx, SH
         plot:
-            mov     ecx, W / 2
+            mov     ecx, SW / 2
             rep     movsw
-            add     edi, IMAGE_WIDTH - W
-            add     esi, IMAGE_WIDTH - W
+            add     edi, IMAGE_WIDTH - SW
+            add     esi, IMAGE_WIDTH - SW
             dec     bx
             jnz     plot
         }
 #else
-        for (int16_t h = 0; h < H; h++) memcpy(&vbuff1[y + h][x], &vbuff2[y + h][x], W);
+        for (int16_t h = 0; h < SH; h++) memcpy(&vbuff1[y + h][x], &vbuff2[y + h][x], SW);
 #endif
     }
 
@@ -13586,7 +13582,7 @@ namespace spriteEffect {
         {
             if (!bubmio[i].active)
             {
-                bubmio[i].x = W + rand() % 100;
+                bubmio[i].x = SW + rand() % 100;
                 bubmio[i].y = 0;
                 bubmio[i].active = 1;
                 bubmio[i].frame = 0;
@@ -13632,7 +13628,7 @@ namespace spriteEffect {
                     bubmio[i].x += bubmio[i].speed;
                     bubmio[i].y += bubmio[i].speed;
 
-                    if (bubmio[i].x >= IMAGE_WIDTH - W || bubmio[i].y >= IMAGE_HEIGHT - H)
+                    if (bubmio[i].x >= IMAGE_WIDTH - SW || bubmio[i].y >= IMAGE_HEIGHT - SH)
                     {
                         bubmio[i].active = 0;
                         newBubmio();
@@ -13664,7 +13660,7 @@ namespace spriteEffect {
         
         FILE* fp = fopen("assets/bubmio.dat", "rb");
         if (!fp) exit(1);
-        for (i = 0; i < 7; i++) fread(frames[i], W * H, 1, fp);
+        for (i = 0; i < 7; i++) fread(frames[i], SW * SH, 1, fp);
         fclose(fp);
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Sprites -- Keys: A/S: +/- bubmio!")) return;
@@ -14959,7 +14955,6 @@ namespace wormEffect {
 
 namespace rayCastingEffect {
     #define CLR     111
-    #define RAD     0.01745329
 
     double	head = 0, turn = 0, step = 0;
     double  px = 0, py = 0, newpx = 0, newpy = 0;

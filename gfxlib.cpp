@@ -651,7 +651,7 @@ void messageBox(int32_t type, const char* fmt, ...)
 //RGB to HSL convert
 HSL RGB2HSL(uint8_t ur, uint8_t ug, uint8_t ub)
 {
-    double h = 0, s = 0, l = 0;
+    double h = 0.0, s = 0.0, l = 0.0;
 
     const double r = ur / 256.0;
     const double g = ug / 256.0;
@@ -663,8 +663,8 @@ HSL RGB2HSL(uint8_t ur, uint8_t ug, uint8_t ub)
     //R = G = B, so it's a shade of grey
     if (minColor == maxColor)
     {
-        h = 0;
-        s = 0;
+        h = 0.0;
+        s = 0.0;
         l = r;
     }
     else
@@ -679,30 +679,30 @@ HSL RGB2HSL(uint8_t ur, uint8_t ug, uint8_t ub)
         if (b == maxColor) h = 4.0 + (r - g) / (maxColor - minColor);
 
         //to bring it to a number between 0 and 1
-        h /= 6;
-        if (h < 0) h += 1;
+        h /= 6.0;
+        if (h < 0.0) h += 1.0;
     }
 
     HSL hsl = { 0 };
-    hsl.h = int32_t(h * 255.0);
-    hsl.s = int32_t(s * 255.0);
-    hsl.l = int32_t(l * 255.0);
+    hsl.h = int32_t(h * 255);
+    hsl.s = int32_t(s * 255);
+    hsl.l = int32_t(l * 255);
     return hsl;
 }
 
 //HSL to RGB convert
-RGB HSL2RGB(int32_t hi, int32_t si, int32_t li)
+uint32_t HSL2RGB(int32_t hi, int32_t si, int32_t li)
 {
-    double r = 0, g = 0, b = 0;
-    double temp1 = 0, temp2 = 0;
-    double tempr = 0, tempg = 0, tempb = 0;
+    double r = 0.0, g = 0.0, b = 0.0;
+    double temp1 = 0.0, temp2 = 0.0;
+    double tempr = 0.0, tempg = 0.0, tempb = 0.0;
 
     const double h = hi / 256.0;
     const double s = si / 256.0;
     const double l = li / 256.0;
 
     //if saturation is 0, the color is a shade of grey
-    if (s == 0) r = g = b = l;
+    if (s == 0.0) r = g = b = l;
 
     //if saturation > 0, more complex calculations are needed
     else
@@ -740,11 +740,7 @@ RGB HSL2RGB(int32_t hi, int32_t si, int32_t li)
         else b = temp1;
     }
 
-    RGB rgb = { 0 };
-    rgb.r = int32_t(r * 255.0);
-    rgb.g = int32_t(g * 255.0);
-    rgb.b = int32_t(b * 255.0);
-    return rgb;
+    return RGB2INT(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
 }
 
 //RGB to HSV convert
@@ -783,19 +779,19 @@ HSV RGB2HSV(uint8_t ur, uint8_t ug, uint8_t ub)
     }
 
     HSV hsv = { 0 };
-    hsv.h = int32_t(h * 255.0);
-    hsv.s = int32_t(s * 255.0);
-    hsv.v = int32_t(v * 255.0);
+    hsv.h = int32_t(h * 255);
+    hsv.s = int32_t(s * 255);
+    hsv.v = int32_t(v * 255);
     return hsv;
 }
 
 //HSV to RGB convert
-RGB HSV2RGB(int32_t hi, int32_t si, int32_t vi)
+uint32_t HSV2RGB(int32_t hi, int32_t si, int32_t vi)
 {
     double h = hi / 256.0;
     const double s = si / 256.0;
     const double v = vi / 256.0;
-    double r = 0, g = 0, b = 0;
+    double r = 0.0, g = 0.0, b = 0.0;
 
     //if saturation is 0, the color is a shade of grey
     if (s == 0.0) r = g = b = v;
@@ -822,15 +818,11 @@ RGB HSV2RGB(int32_t hi, int32_t si, int32_t vi)
         case 3: r = p; g = q; b = v; break;
         case 4: r = t; g = p; b = v; break;
         case 5: r = v; g = p; b = q; break;
-        default: r = g = b = 0; break;
+        default: r = g = b = 0.0; break;
         }
     }
 
-    RGB rgb = { 0 };
-    rgb.r = int32_t(r * 255.0);
-    rgb.g = int32_t(g * 255.0);
-    rgb.b = int32_t(b * 255.0);
-    return rgb;
+    return RGB2INT(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
 }
 
 //convert r,g,b values to integer (pixel color)
@@ -6538,7 +6530,7 @@ int32_t loadFont(const char* fname, int32_t type)
     fread(&gfxFonts[type].header, sizeof(GFX_FONT_HEADER), 1, fp);
 
     //check font signature, version number and memory size
-    if (memcmp(gfxFonts[type].header.sign, "Fnt2", 4) || gfxFonts[type].header.version != 0x0101 || !gfxFonts[type].header.memSize)
+    if (memcmp(gfxFonts[type].header.signature, "Fnt2", 4) || gfxFonts[type].header.version != 0x0101 || !gfxFonts[type].header.memSize)
     {
         fclose(fp);
         messageBox(GFX_WARNING, "Error load font: %s! wrong GFX font!", fname);

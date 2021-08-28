@@ -692,6 +692,27 @@ void graphDemo12()
     lineBob();
 }
 
+void graphDemo13()
+{
+    POINT2D points[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
+
+    makeLinearPalette();
+    fillPolygon(points, 19, 50);
+
+    for (int32_t j = 50; j < cmaxY - 50; j++)
+    {
+        for (int32_t i = 50; i < cmaxX - 50; i++)
+        {
+            if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) / 4) % 192);
+        }
+    }
+
+    rotatePalette(16, 207, 192, FPS_60);
+    makeRainbowPalette();
+    for (int32_t y = 0; y < cmaxY; y++) horizLine(0, y, cmaxX, 1 + uint32_t(y / 1.87) % 255);
+    rotatePalette(1, 255, 255, FPS_60);
+}
+
 double FX1(double x, double y)
 {
      double ph = sqrt(x * x + y * y);
@@ -1688,7 +1709,7 @@ void gfxDemo8()
     clearScreen(0);
     graphDemo12();
     fadeRollo(1, 0);
-    
+    graphDemo13();
     clearScreen(0);
     clearPalette();
 
