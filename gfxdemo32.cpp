@@ -3,8 +3,11 @@
 //max message lines
 #define MAX_TEXT_LINE   23
 
+//max message lenght
+#define MAX_MSG_LEN     80
+
 //string buffer
-typedef char STRBUFF[80];
+typedef char STRBUFF[MAX_MSG_LEN];
 
 //show text intro message
 int32_t     fullSpeed = 0;
@@ -14,10 +17,10 @@ STRBUFF     texts[MAX_TEXT_LINE] = {0};
 
 //global cached image
 GFX_IMAGE   flare = { 0 };
+GFX_IMAGE   flares[16] = { 0 };
 GFX_IMAGE   fade1 = { 0 }, fade2 = { 0 };
 GFX_IMAGE   bumpchn = { 0 }, bumpimg = { 0 };
 GFX_IMAGE   gfxlogo = { 0 }, gfxsky = { 0 };
-GFX_IMAGE   flares[16] = { 0 };
 
 //check and exit program
 void runExit()
@@ -50,6 +53,9 @@ void runExit()
 //Show intro message text string
 void showText(int32_t sx, int32_t sy, GFX_IMAGE *img, const char *str)
 {
+    if (!str) return;
+    if (strlen(str) >= MAX_MSG_LEN) return;
+
     char msg[2] = { 0 };
     int32_t x, y, i, len;
         
@@ -126,23 +132,23 @@ void runIntro()
         return;
     }
 
-    //calculate turnel buffer
+    //calculate tunnel buffer
     prepareTunnel(&trn, buff1, buff2);
 
     //redirect draw buffer to image buffer
     setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
     i0 = 30;
-
-    uint8_t mov = 0;
+        
     int32_t i1 = 25;
     int32_t i2 = 0;
-    
+    uint8_t mov = 0;
+
     //start record time
-    double startTime = getTime();
+    uint32_t startTime = getTime();
     do {
         //draw and scale buffer
-        double waitTime = getTime();
+        uint32_t waitTime = getTime();
         drawTunnel(&trn, &map, buff1, buff2, &mov, 1);
         scaleImage(&scr, &trn, 1);
         
@@ -172,6 +178,7 @@ void runIntro()
             brightnessAlpha(&gxb, uint8_t(255 - i1 / 30.0 * 255.0));
             putImageAlpha(centerX - (gxb.mWidth >> 1), centerY - (gxb.mHeight >> 1), &gxb);
             i1--;
+
             if (getElapsedTime(startTime) / 1000 >= tu) i1 = 0;
         }
         //the ultimate message
@@ -188,7 +195,7 @@ void runIntro()
             else
             {
                 putImageAdd(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb);
-                if (getElapsedTime(startTime) / 1000 >= to) fadeOutCircle(((getElapsedTime(startTime) / 1000 - to) / 3) * 100, 20, 3, 0);
+                if (getElapsedTime(startTime) / 1000 >= to) fadeOutCircle(((getElapsedTime(startTime) / 1000.0 - to) / 3.0) * 100.0, 20, 3, 0);
             }
         }
         render();
@@ -756,15 +763,21 @@ void gfxDemo32()
     writeText(xc + 10, 250, RGB_GREY127, 2, "Physical Memory  : %luMB", getTotalMemory());
     writeText(xc + 10, 260, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
     render();
+
     fullSpeed = 1;
     showText(10, yc, &txt, "Please wait while loading images...");
+
     if (!loadImage("assets/fade1x.png", &fade1)) return;
     showText(10, yc, &txt, " - fade1x.png");
+
     if (!loadImage("assets/fade2x.png", &fade2)) return;
     showText(10, yc, &txt, " - fade2x.png");
+
     if (!loadImage("assets/flare0.png", &flare)) return;
     showText(10, yc, &txt, " - flare0.png");
+
     showText(10, yc, &txt, "");
+
     fullSpeed = 0;
     showText(10, yc, &txt, "This is an early demonstration of the abilities of");
     showText(10, yc, &txt, "GFXLIB. What you will see here are only some of");
@@ -773,6 +786,7 @@ void gfxDemo32()
     delay(1000);
     showText(10, yc, &txt, "Starting...");
     runBlocking(20, 20);
+
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "What you saw was a combination of the command");
@@ -782,6 +796,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "anymore! To the next... press enter!");
     while (!finished(SDL_SCANCODE_RETURN));
     runAddImage(20, 20);
+
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "This was simply another flag of a draw-operation.");
@@ -792,6 +807,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "The next effect - press enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runCrossFade(20, 20);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "This thing is called CrossFading or AlphaBlending.");
@@ -801,6 +817,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runBilinearRotateImage(20, 20);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "This is an image rotation. The responsible routine");
@@ -814,6 +831,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runScaleUpImage(20, 20);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Much more fancy than the other FX... Yeah, you see");
@@ -822,6 +840,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "to see the details. The next... Enter :)");
     while (!finished(SDL_SCANCODE_RETURN));
     runAntialias(20, 20);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Antialiased lines, circles and ellipses. Possible");
@@ -830,6 +849,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "similar. Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runPlasmaScale(20, 20);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Plasma effect with hight color, this also combine");
@@ -851,6 +871,7 @@ void gfxDemo32()
     scaleImage(&im, &old, 0);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Bumbing effect with full screen, this effect");
@@ -863,6 +884,7 @@ void gfxDemo32()
     bilinearScaleImage(&im, &old);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Yeah! Lens effect, this effect also combined many");
@@ -872,6 +894,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "scale down image. Using mouse hardware interrupts");
     showText(10, yc, &txt, "to tracking mouse event. Enter to continue...");
     while (!finished(SDL_SCANCODE_RETURN));
+    
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "That's all folks! More to come soon. In short time");
@@ -880,10 +903,10 @@ void gfxDemo32()
     showText(10, yc, &txt, "a bug or any suggestion,please contact me. Thanks!");
     showText(10, yc, &txt, "");
     showText(10, yc, &txt, "Nguyen Ngoc Van -- pherosiden@gmail.com");
-    delay(1000);
     showText(10, yc, &txt, "");
     showText(10, yc, &txt, "Enter to exit ;-)");
     while (!finished(SDL_SCANCODE_RETURN));
+
     runExit();
     freeImage(&bg);
     freeImage(&txt);

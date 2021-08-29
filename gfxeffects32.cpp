@@ -188,7 +188,7 @@ void fireDemo2()
     if (cheight < 1) return;
 
     //the time of this and the previous frame, for timing
-    double time = getTime(), oldTime = 0;
+    uint32_t time = getTime(), oldTime = 0;
 
     //make sure the fire buffer is zero in the beginning
     memset(fires, 0, sizeof(fires));
@@ -348,10 +348,12 @@ void rayCasting()
     double posX = 22.0, posY = 11.5; //x and y start position
     double dirX = -1.0, dirY = 0.0; //initial direction vector
     double planeX = 0.0, planeY = 0.66; //the 2d raycaster version of camera plane
-    double time = 0, oldTime = 0;
+    
+    uint32_t time = 0, oldTime = 0;
 
     int32_t tw = 0, th = 0, i = 0;
     uint32_t* pbuffs[11] = { 0 };
+
     const char* fname[] = {
         "assets/eagle.png",
         "assets/redbrick.png",
@@ -894,7 +896,7 @@ void juliaExplorer()
     double zoom = 1, moveX = 0, moveY = 0;
 
     //current and old time, and their difference (for input)
-    double time = 0, oldTime = 0, frameTime = 0;
+    uint32_t time = 0, oldTime = 0, frameTime = 0;
     
     //pick some values for the constant c, this determines the shape of the Julia Set
     double cRe = -0.7;
@@ -1083,7 +1085,7 @@ void mandelbrotExporer()
     int32_t showText = 0;
 
     //current and old time, and their difference (for input)
-    double time = 0, oldTime = 0, frameTime = 0;
+    uint32_t time = 0, oldTime = 0, frameTime = 0;
     
     int32_t i = 0, cwidth = 0, cheight = 0;
     uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
@@ -1301,7 +1303,7 @@ void tunnelDemo()
     //begin the loop
     while (!finished(SDL_SCANCODE_RETURN))
     {
-        const double animation = getTime() / 1000;
+        const double animation = getTime() / 1000.0;
 
         //calculate the shift values out of the animation value
         const int32_t shiftX = int32_t(tw * animation * 0.5);
@@ -2176,7 +2178,7 @@ void doRayCasting()
 void runRayCasting()
 {
     //time for record FPS
-    double time = 0, oldTime = 0;
+    uint32_t time = 0, oldTime = 0;
 
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(SCR_WIDTH + 100, SCR_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;

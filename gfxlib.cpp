@@ -325,19 +325,19 @@ void setMousePosition(int32_t x, int32_t y)
 }
 
 //returns the time in milliseconds since the program started
-double getTime()
+uint32_t getTime()
 {
     return SDL_GetTicks();
 }
 
 //return passing time from start time
-double getElapsedTime(double tmstart)
+uint32_t getElapsedTime(uint32_t tmstart)
 {
     return getTime() - tmstart;
 }
 
 //wait until time wait is passed, program exit when ESCAPE key pressed
-void waitFor(double tmstart, double tmwait)
+void waitFor(uint32_t tmstart, uint32_t tmwait)
 {
     while (getElapsedTime(tmstart) < tmwait)
     {
@@ -350,10 +350,10 @@ void waitFor(double tmstart, double tmwait)
 }
 
 //sleep until time wait is passed or enter key, program exit when ESCAPE key pressed
-void sleepFor(double tmwait)
+void sleepFor(uint32_t tmwait)
 {
     int32_t done = 0;
-    const double tmstart = getTime();
+    const uint32_t tmstart = getTime();
     while (getElapsedTime(tmstart) < tmwait && !done)
     {
         SDL_PollEvent(&sdlEvent);
@@ -613,7 +613,7 @@ void render()
 //generate random value from number
 int32_t random(int32_t a)
 {
-    return (a == 0) ? 0 : rand() % a;
+    return a ? rand() % a : 0;
 }
 
 //generate random value in range
@@ -829,16 +829,6 @@ uint32_t HSV2RGB(int32_t hi, int32_t si, int32_t vi)
 uint32_t RGB2INT(uint8_t r, uint8_t g, uint8_t b)
 {
     return (r << 16) | (g << 8) | b;
-}
-
-//convert pixel color to r,g,b
-RGB INT2RGB(uint32_t color)
-{
-    RGB rgb = { 0 };
-    rgb.r = (color >> 16) & 0xFF;
-    rgb.g = (color >>  8) & 0xFF;
-    rgb.b = (color      ) & 0xFF;
-    return rgb;
 }
 
 //retrive raw pixels data
@@ -6702,13 +6692,19 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
         }
     }
     //BMP8 font format
-    else if (gfxFonts[fontType].header.subData.bitsPerPixel >= 2 && gfxFonts[fontType].header.subData.bitsPerPixel <= 7)
+    else if (gfxFonts[fontType].header.subData.bitsPerPixel > 1 && gfxFonts[fontType].header.subData.bitsPerPixel < 8)
     {
         //calculate font palette, use for hi-color and true-color
         if (bitsPerPixel > 8)
         {
-            rgb = INT2RGB(col);
-            for (i = 1; i <= gfxFonts[fontType].header.subData.usedColors; i++) *(uint32_t*)&fontPalette[fontType][i << 2] = RGB2INT(rgb.r * i / (gfxFonts[fontType].header.subData.usedColors - 1), rgb.g * i / (gfxFonts[fontType].header.subData.usedColors - 1), rgb.b * i / (gfxFonts[fontType].header.subData.usedColors - 1));
+            uint8_t* pcol = (uint8_t*)&col;
+            for (i = 0; i < gfxFonts[fontType].header.subData.usedColors; i++)
+            {
+                uint8_t* pixels = &fontPalette[fontType][i << 2];
+                pixels[2] = pcol[2] * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+                pixels[1] = pcol[1] * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+                pixels[0] = pcol[0] * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+            }
         }
 
         //genertate random position for animation font
@@ -7485,7 +7481,7 @@ void handleMouse(const char* fname)
     //update last mouse pos
     int32_t lastx = centerX;
     int32_t lasty = centerY;
-    double lastTime = getTime();
+    uint32_t lastTime = getTime();
 
     do
     {
@@ -8333,12 +8329,12 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
 
     //init lookup table
-    for (i = 0; i < src->mWidth; i++) tables[i] = roundf(double(i) / (src->mWidth - 1.0) * ((src->mWidth - 1.0) - (intptr_t(xfact) << 1))) + xfact;
+    for (i = 0; i < src->mWidth; i++) tables[i] = roundf(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1))) + xfact;
 
     //scaleup line by line
     for (i = 0; i < src->mHeight; i++)
     {
-        y = roundf(double(i) / (src->mHeight - 1.0) * ((src->mHeight - 1.0) - (intptr_t(yfact) << 1))) + yfact;
+        y = roundf(double(i) / (intmax_t(src->mHeight) - 1) * ((intmax_t(src->mHeight) - 1) - (intmax_t(yfact) << 1))) + yfact;
         scaleUpLine(pdst, psrc, tables, src->mWidth, y * src->mWidth);
         pdst += dst->mWidth;
     }

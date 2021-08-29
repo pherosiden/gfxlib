@@ -350,7 +350,6 @@ extern void     (*scaleImage)(GFX_IMAGE*, GFX_IMAGE*, int32_t);
 
 HSL         RGB2HSL(uint8_t r, uint8_t g, uint8_t b);
 HSV         RGB2HSV(uint8_t r, uint8_t g, uint8_t b);
-RGB         INT2RGB(uint32_t color);
 uint32_t    HSL2RGB(int32_t h, int32_t s, int32_t l);
 uint32_t    HSV2RGB(int32_t h, int32_t s, int32_t v);
 uint32_t    RGB2INT(uint8_t r, uint8_t g, uint8_t b);
@@ -400,10 +399,10 @@ void        showMouseCursor(int32_t show);
 void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb = NULL, int32_t* rmb = NULL);
 void        setMousePosition(int32_t x, int32_t y);
 
-double      getTime();
-double      getElapsedTime(double tmstart);
-void        waitFor(double tmstart, double ms);
-void        sleepFor(double ms);
+uint32_t    getTime();
+uint32_t    getElapsedTime(uint32_t tmstart);
+void        waitFor(uint32_t tmstart, uint32_t ms);
+void        sleepFor(uint32_t ms);
 
 int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
 void        setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
