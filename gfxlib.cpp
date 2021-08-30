@@ -622,6 +622,14 @@ int32_t randomRange(int32_t a, int32_t b)
     return (a < b) ? (a + (rand() % (b - a + 1))) : (b + (rand() % (a - b + 1)));
 }
 
+//generate double random in ranage
+double frand(double fmin, double fmax)
+{
+    const double fn = double(rand()) / RAND_MAX;
+    return fmin + fn * (fmax - fmin);
+}
+
+
 //raise a message box
 void messageBox(int32_t type, const char* fmt, ...)
 {
@@ -3003,49 +3011,51 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
     }
 }
 
-//rectangle with corners (x1,y1) and (x2,y2) and color
-void drawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+//rectangle with corners (x1,y1) and (width,height) and color
+void drawRect(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
 {
-    horizLine(x1, y1, x2 - x1 + 1, color);
-    vertLine(x1, y1, y2 - y1 + 1, color);
-    horizLine(x1, y2, x2 - x1 + 1, color);
-    vertLine(x2, y1, y2 - y1 + 1, color);
+    horizLine(x1, y1, width, color);
+    vertLine(x1, y1, height, color);
+    horizLine(x1, y1 + height - 1, width, color);
+    vertLine(x1 + width - 1, y1, height, color);
 }
 
 //draw rectangle with add color
-void drawRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col)
+void drawRectAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col)
 {
-    horizLineAdd(x1, y1, x2 - x1 + 1, col);
-    vertLineAdd(x1, y1, y2 - y1 + 1, col);
-    horizLineAdd(x1, y2, x2 - x1 + 1, col);
-    vertLineAdd(x2, y1, y2 - y1 + 1, col);
+    horizLineAdd(x1, y1, width, col);
+    vertLineAdd(x1, y1, height, col);
+    horizLineAdd(x1, y1 + height - 1, width, col);
+    vertLineAdd(x1 + width - 1, y1, height, col);
 }
 
 //draw rectangle with sub color
-void drawRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col)
+void drawRectSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col)
 {
-    horizLineSub(x1, y1, x2 - x1 + 1, col);
-    vertLineSub(x1, y1, y2 - y1 + 1, col);
-    horizLineSub(x1, y2, x2 - x1 + 1, col);
-    vertLineSub(x2, y1, y2 - y1 + 1, col);
+    horizLineSub(x1, y1, width, col);
+    vertLineSub(x1, y1, height, col);
+    horizLineSub(x1, y1 + height - 1, width, col);
+    vertLineSub(x1 + width - 1, y1, height, col);
 }
 
 //draw rectangle with rounded border and color
-void drawRectEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
+void drawRectEx(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
 {
     int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t mid = (y2 - y1) >> 1;
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
+    const int32_t mid = height >> 1;
+
     if (r >= mid - 1) r = mid - 1;
 
-    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
-    horizLine(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
-    vertLine(x1, y1 + r, y2 - y1 - r * 2 + 1, col);
-    horizLine(x1 + r - point[0], y2, width - (r - point[0]) * 2 + 1, col);
-    vertLine(x2, y1 + r, y2 - y1 - r * 2 + 1, col);
+    horizLine(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
+    vertLine(x1, y1 + r, height - (r << 1), col);
+    horizLine(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
+    vertLine(x2, y1 + r, height - (r << 1), col);
 
     for (y = 1; y <= r; y++)
     {
@@ -3067,21 +3077,23 @@ void drawRectEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint3
 }
 
 //draw rectangle with rounded border and add color
-void drawRectExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
+void drawRectExAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
 {
     int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t mid = (y2 - y1) >> 1;
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
+    const int32_t mid = height >> 1;
+
     if (r >= mid - 1) r = mid - 1;
 
-    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
-    horizLineAdd(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
-    vertLineAdd(x1, y1 + r, y2 - y1 - r * 2 + 1, col);
-    horizLineAdd(x1 + r - point[0], y2, width - (r - point[0]) * 2 + 1, col);
-    vertLineAdd(x2, y1 + r, y2 - y1 - r * 2 + 1, col);
+    horizLineAdd(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
+    vertLineAdd(x1, y1 + r, height - (r << 1), col);
+    horizLineAdd(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
+    vertLineAdd(x2, y1 + r, height - (r << 1), col);
 
     for (y = 1; y <= r; y++)
     {
@@ -3096,28 +3108,30 @@ void drawRectExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, ui
     {
         for (x = r - point[y]; x <= r - point[y - 1]; x++)
         {
-            putPixelAdd(x1 + x, y2 - y, col);
+            putPixelAdd(1 + x, y2 - y, col);
             putPixelAdd(x2 - x, y2 - y, col);
         }
     }
 }
 
 //draw rectangle with rounded border
-void drawRectExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
+void drawRectExSub(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
 {
     int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t mid = (y2 - y1) >> 1;
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
+    const int32_t mid = height >> 1;
+
     if (r >= mid - 1) r = mid - 1;
 
-    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
-    horizLineSub(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
-    vertLineSub(x1, y1 + r, y2 - y1 - r * 2 + 1, col);
-    horizLineSub(x1 + r - point[0], y2, width - (r - point[0]) * 2 + 1, col);
-    vertLineSub(x2, y1 + r, y2 - y1 - r * 2 + 1, col);
+    horizLineSub(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
+    vertLineSub(x1, y1 + r, height - (r << 1), col);
+    horizLineSub(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
+    vertLineSub(x2, y1 + r, height - (r << 1), col);
 
     for (y = 1; y <= r; y++)
     {
@@ -3139,15 +3153,17 @@ void drawRectExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, ui
 }
 
 //draw boxed with color
-void drawBox(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t dy, uint32_t col)
+void drawBox(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col)
 {
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
     const int32_t x11 = x1 + dx;
     const int32_t y11 = y1 - dy;
     const int32_t x22 = x2 + dx;
     const int32_t y22 = y2 - dy;
 
-    drawRect(x1, y1, x2, y2, col);
-    drawRect(x11, y11, x22, y22, col);
+    drawRect(x1, y1, width, height, col);
+    drawRect(x11, y11, width, height, col);
     drawLine(x1, y1, x11, y11, col);
     drawLine(x2, y1, x22, y11, col);
     drawLine(x2, y2, x22, y22, col);
@@ -3155,15 +3171,17 @@ void drawBox(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t
 }
 
 //draw boxed with add color
-void drawBoxAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t dy, uint32_t col)
+void drawBoxAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col)
 {
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
     const int32_t x11 = x1 + dx;
     const int32_t y11 = y1 - dy;
     const int32_t x22 = x2 + dx;
     const int32_t y22 = y2 - dy;
 
-    drawRectAdd(x1, y1, x2, y2, col);
-    drawRectAdd(x11, y11, x22, y22, col);
+    drawRectAdd(x1, y1, width, height, col);
+    drawRectAdd(x11, y11, width, height, col);
     drawLineAdd(x1, y1, x11, y11, col);
     drawLineAdd(x2, y1, x22, y11, col);
     drawLineAdd(x2, y2, x22, y22, col);
@@ -3171,15 +3189,17 @@ void drawBoxAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int3
 }
 
 //draw boxed with sub color
-void drawBoxSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t dy, uint32_t col)
+void drawBoxSub(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col)
 {
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
     const int32_t x11 = x1 + dx;
     const int32_t y11 = y1 - dy;
     const int32_t x22 = x2 + dx;
     const int32_t y22 = y2 - dy;
 
-    drawRectSub(x1, y1, x2, y2, col);
-    drawRectSub(x11, y11, x22, y22, col);
+    drawRectSub(x1, y1, width, height, col);
+    drawRectSub(x11, y11, width, height, col);
     drawLineSub(x1, y1, x11, y11, col);
     drawLineSub(x2, y1, x22, y11, col);
     drawLineSub(x2, y2, x22, y22, col);
@@ -3187,21 +3207,23 @@ void drawBoxSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int3
 }
 
 //draw boxed with rounded border
-void drawBoxEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
+void drawBoxEx(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
 {
     int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t mid = (y2 - y1) >> 1;
-    if (r >= mid - 1) r = mid - 1;
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
+    const int32_t mid = height >> 1;
 
-    const int32_t width = abs(x2 - x1);
+    if (r >= mid - 1) r = mid - 1;
+    
     calcCircle(r, point);
 
-    horizLine(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
-    vertLine(x1, y1 + r, y2 - y1 - r * 2 + 1, col);
-    horizLine(x1 + r - point[0], y2, width - (r - point[0]) * 2 + 1, col);
-    vertLine(x2, y1 + r, y2 - y1 - r * 2 + 1, col);
+    horizLine(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
+    vertLine(x1, y1 + r, height - (r << 1), col);
+    horizLine(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
+    vertLine(x2, y1 + r, height - (r << 1), col);
 
     for (y = 1; y <= r; y++)
     {
@@ -3221,27 +3243,29 @@ void drawBoxEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32
         }
     }
 
-    for (y = 1; y <= r; y++) horizLine(x1 + r - point[y - 1] + 1, y1 + y, width - (r * 2 - point[y - 1] * 2) - 1, col);
-    fillRect(x1 + 1, y1 + r + 1, x2 - 1, y2 - r - 1, col);
-    for (y = r; y >= 1; y--) horizLine(x1 + r - point[y - 1] + 1, y2 - y, width - (r * 2 - point[y - 1] * 2) - 1, col);
+    for (y = 1; y <= r; y++) horizLine(x1 + r - point[y - 1] + 1, y1 + y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
+    fillRect(x1 + 1, y1 + r + 1, width - 2, height - (r << 1) - 2, col);
+    for (y = r; y >= 1; y--) horizLine(x1 + r - point[y - 1] + 1, y2 - y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
 }
 
 //draw boxed with rounded border
-void drawBoxExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
+void drawBoxExAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
 {
     int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t mid = (y2 - y1) >> 1;
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
+    const int32_t mid = height >> 1;
+
     if (r >= mid - 1) r = mid - 1;
 
-    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
-    horizLineAdd(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
-    vertLineAdd(x1, y1 + r, y2 - y1 - r * 2 + 1, col);
-    horizLineAdd(x1 + r - point[0], y2, width - (r - point[0]) * 2 + 1, col);
-    vertLineAdd(x2, y1 + r, y2 - y1 - r * 2 + 1, col);
+    horizLineAdd(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
+    vertLineAdd(x1, y1 + r, height - (r << 1), col);
+    horizLineAdd(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
+    vertLineAdd(x2, y1 + r, height - (r << 1), col);
 
     for (y = 1; y <= r; y++)
     {
@@ -3261,27 +3285,29 @@ void drawBoxExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uin
         }
     }
 
-    for (y = 1; y <= r; y++) horizLineAdd(x1 + r - point[y - 1] + 1, y1 + y, width - (r * 2 - point[y - 1] * 2) - 1, col);
-    fillRectAdd(x1 + 1, y1 + r + 1, x2 - 1, y2 - r - 1, col);
-    for (y = r; y >= 1; y--) horizLineAdd(x1 + r - point[y - 1] + 1, y2 - y, width - (r * 2 - point[y - 1] * 2) - 1, col);
+    for (y = 1; y <= r; y++) horizLineAdd(x1 + r - point[y - 1] + 1, y1 + y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
+    fillRectAdd(x1 + 1, y1 + r + 1, width - 2, height - (r << 1) - 2, col);
+    for (y = r; y >= 1; y--) horizLineAdd(x1 + r - point[y - 1] + 1, y2 - y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
 }
 
 //draw boxed with rounded border
-void drawBoxExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col)
+void drawBoxExSub(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
 {
     int32_t x = 0, y = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t mid = (y2 - y1) >> 1;
+    const int32_t x2 = x1 + width - 1;
+    const int32_t y2 = y1 + height - 1;
+    const int32_t mid = height >> 1;
+
     if (r >= mid - 1) r = mid - 1;
 
-    const int32_t width = abs(x2 - x1);
     calcCircle(r, point);
 
-    horizLineSub(x1 + r - point[0], y1, width - (r - point[0]) * 2 + 1, col);
-    vertLineSub(x1, y1 + r, y2 - y1 - r * 2 + 1, col);
-    horizLineSub(x1 + r - point[0], y2, width - (r - point[0]) * 2 + 1, col);
-    vertLineSub(x2, y1 + r, y2 - y1 - r * 2 + 1, col);
+    horizLineSub(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
+    vertLineSub(x1, y1 + r, height - (r << 1), col);
+    horizLineSub(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
+    vertLineSub(x2, y1 + r, height - (r << 1), col);
 
     for (y = 1; y <= r; y++)
     {
@@ -3301,9 +3327,9 @@ void drawBoxExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uin
         }
     }
 
-    for (y = 1; y <= r; y++) horizLineSub(x1 + r - point[y - 1] + 1, y1 + y, width - (r * 2 - point[y - 1] * 2) - 1, col);
-    fillRectSub(x1 + 1, y1 + r + 1, x2 - 1, y2 - r - 1, col);
-    for (y = r; y >= 1; y--) horizLineSub(x1 + r - point[y - 1] + 1, y2 - y, width - (r * 2 - point[y - 1] * 2) - 1, col);
+    for (y = 1; y <= r; y++) horizLineSub(x1 + r - point[y - 1] + 1, y1 + y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
+    fillRectSub(x1 + 1, y1 + r + 1, width - 2, height - (r << 1) - 2, col);
+    for (y = r; y >= 1; y--) horizLineSub(x1 + r - point[y - 1] + 1, y2 - y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
 }
 
 //draw polygon
@@ -3330,10 +3356,14 @@ void drawPolySub(POINT2D* point, int32_t num, uint32_t col)
     drawLineSub(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRect8(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
 {
     if (bitsPerPixel != 8) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3346,11 +3376,11 @@ void fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3360,11 +3390,11 @@ void fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         add     eax, lx1
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         push    edx
-        mov     ebx, width
+        mov     ebx, lbWidth
         shr     ebx, 2
-        mov     edx, width
+        mov     edx, lbWidth
         and     edx, 3
         mov     eax, color
         shl     eax, 8
@@ -3379,25 +3409,30 @@ void fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         mov     ecx, edx
         rep     stosb
         add     edi, [esp]
-        dec     height
+        dec     lbHeight
         jnz     next
         pop     edx
     }
 #else
     //calculate starting address
+    const int32_t addOffset = (texWidth - lbWidth);
     uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
-        memset(dstPixels, color, width);
-        dstPixels += texWidth;
+        for (int32_t x = 0; x < lbWidth; x++) *dstPixels++ = color;
+        if (addOffset > 0) dstPixels += addOffset;
     }
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRect32(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
 {
     if (bitsPerPixel != 32) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3410,11 +3445,11 @@ void fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3425,31 +3460,36 @@ void fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         shl     edx, 2
         mov     eax, color
     next:
-        mov     ecx, width
+        mov     ecx, lbWidth
         rep     stosd
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     next
     }
 #else
     //calculate starting address
+    const int32_t addOffset = (texWidth - lbWidth);
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
-        memset(dstPixels, color, intptr_t(width) << 2);
-        dstPixels += texWidth;
+        for (int32_t x = 0; x < lbWidth; x++) *dstPixels++ = color;
+        if (addOffset > 0) dstPixels += addOffset;
     }
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
 {
     if (bitsPerPixel != 32) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3462,11 +3502,11 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3477,10 +3517,10 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         shl     edx, 2
     next:
-        mov     ecx, width
+        mov     ecx, lbWidth
     plot:
         mov     eax, [edi]
         add     al, byte ptr[color]
@@ -3503,18 +3543,18 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         stosd
         loop    plot
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     next
     }
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const uint32_t addOfs = (texWidth - lbWidth) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t x = 0; x < lbWidth; x++)
         {
             pixels[0] = min(pixels[0] + rgb[0], 255);
             pixels[1] = min(pixels[1] + rgb[1], 255);
@@ -3526,10 +3566,14 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
 {
     if (bitsPerPixel != 32) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3542,11 +3586,11 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3557,10 +3601,10 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         shl     edx, 2
     next:
-        mov     ecx, width
+        mov     ecx, lbWidth
     plot:
         mov     eax, [edi]
         sub     al, byte ptr[color]
@@ -3583,18 +3627,18 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
         stosd
         loop    plot
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     next
     }
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&color;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const uint32_t addOfs = (texWidth - lbWidth) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t x = 0; x < lbWidth; x++)
         {
             pixels[0] = max(pixels[0] - rgb[0], 0);
             pixels[1] = max(pixels[1] - rgb[1], 0);
@@ -3606,10 +3650,14 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPattern8(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
     if (bitsPerPixel != 8) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3622,11 +3670,11 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3637,17 +3685,17 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         mov     esi, pattern
     plot:
         mov     ecx, lx1
         and     ecx, 7
-        mov     ebx, height
+        mov     ebx, lbHeight
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
         mov     ebx, col
-        mov     ecx, width
+        mov     ecx, lbWidth
     next:
         test    al, 1
         jz      step
@@ -3657,18 +3705,18 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
         rol     al, 1
         loop    next
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     plot
     }
 #else
     //calculate starting address
-    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addDstOffs = texWidth - lbWidth;
     uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
         uint8_t al = pattern[y & 7];
         al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t x = 0; x < lbWidth; x++)
         {
             if (al & 1) *dstPixels = col;
             al = _rotl8(al, 1);
@@ -3679,10 +3727,14 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t c
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPattern32(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
     if (bitsPerPixel != 32) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3695,11 +3747,11 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3710,18 +3762,18 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         shl     edx, 2
         mov     esi, pattern
     plot:
         mov     ecx, lx1
         and     ecx, 7
-        mov     ebx, height
+        mov     ebx, lbHeight
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
         mov     ebx, col
-        mov     ecx, width
+        mov     ecx, lbWidth
     next:
         test    al, 1
         jz      step
@@ -3731,18 +3783,18 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
         rol     al, 1
         loop    next
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     plot
     }
 #else
     //calculate starting address
-    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addDstOffs = texWidth - lbWidth;
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
         uint8_t al = pattern[y & 7];
         al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t x = 0; x < lbWidth; x++)
         {
             if (al & 1) *dstPixels = col;
             al = _rotl8(al, 1);
@@ -3753,10 +3805,14 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t 
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
     if (bitsPerPixel != 32) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3769,11 +3825,11 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3784,18 +3840,18 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         shl     edx, 2
         mov     esi, pattern
     plot:
         push    edx
         mov     ecx, lx1
         and     ecx, 7
-        mov     ebx, height
+        mov     ebx, lbHeight
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
-        mov     ecx, width
+        mov     ecx, lbWidth
     next:
         test    al, 1
         jz      step
@@ -3824,20 +3880,20 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
         loop    next
         pop     edx
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     plot
     }
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&col;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const uint32_t addOfs = (texWidth - lbWidth) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
         uint8_t al = pattern[y & 7];
         al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t x = 0; x < lbWidth; x++)
         {
             if (al & 1)
             {
@@ -3853,10 +3909,14 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (x2,y2) and color
-void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern)
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPatternSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
     if (bitsPerPixel != 32) return;
+
+    //calculate new position
+    const int32_t x2 = (x1 + width) - 1;
+    const int32_t y2 = (y1 + height) - 1;
 
     //clip image to context boundaries
     const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
@@ -3869,11 +3929,11 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
     if (ly1 >= ly2) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t lbWidth = (lx2 - lx1) + 1;
+    const int32_t lbHeight = (ly2 - ly1) + 1;
 
     //check for loop
-    if (!width || !height) return;
+    if (!lbWidth || !lbHeight) return;
 
 #ifdef _USE_ASM
     _asm {
@@ -3884,18 +3944,18 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, width
+        sub     edx, lbWidth
         shl     edx, 2
         mov     esi, pattern
     plot:
         push    edx
         mov     ecx, lx1
         and     ecx, 7
-        mov     ebx, height
+        mov     ebx, lbHeight
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
-        mov     ecx, width
+        mov     ecx, lbWidth
     next:
         test    al, 1
         jz      step
@@ -3924,20 +3984,20 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t
         loop    next
         pop     edx
         add     edi, edx
-        dec     height
+        dec     lbHeight
         jnz     plot
     }
 #else
     //calculate starting address
     uint8_t* rgb = (uint8_t*)&col;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const uint32_t addOfs = (texWidth - lbWidth) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t y = 0; y < lbHeight; y++)
     {
         uint8_t al = pattern[y & 7];
         al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t x = 0; x < lbWidth; x++)
         {
             if (al & 1)
             {
@@ -6864,14 +6924,13 @@ void showPNG(const char* fname)
     GFX_IMAGE png;
     loadImage(fname, &png);
 
+    //background color
+    const uint32_t col[2] = { RGB_GREY191, RGB_WHITE };
+
     //make caro background
     for (int32_t y = 0; y < texHeight; y++)
     {
-        for (int32_t x = 0; x < texWidth; x++)
-        {
-            if (((x >> 4) % 2) != ((y >> 4) % 2)) putPixel(x, y, RGB_GREY191);
-            else putPixel(x, y, RGB_WHITE);
-        }
+        for (int32_t x = 0; x < texWidth; x++) fillRect(x, y, 8, 8, col[((x ^ y) >> 3) & 1]);
     }
 
     //render image

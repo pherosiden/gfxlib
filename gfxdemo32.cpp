@@ -741,9 +741,9 @@ void gfxDemo32()
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
     
-    fillRectPatternAdd(10, 10, xc - 10, yc - 10, RGB_GREY32, ptnHatchX);
-    fillRectSub(10, yc, xc - 10, cmaxY - 10, RGB_GREY32);
-    fillRect(20, 20, xc - 20 - 1, yc - 20 - 1, 0);
+    fillRectPatternAdd(10, 10, xc - 20, yc - 20, RGB_GREY32, ptnHatchX);
+    fillRectSub(10, yc, xc - 20, cmaxY - yc - 10, RGB_GREY32);
+    fillRect(20, 20, xc - 40, yc - 40, 0);
     getImage(10, yc, xc - 20, cmaxY - yc - 10, &txt);
 
     writeText(xc + 10,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
@@ -859,7 +859,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "here. You can still optimized.");
     showText(10, yc, &txt, "Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
-    fillRect(20, 20, xc - 20 - 1, yc - 20 - 1, 0);
+    fillRect(20, 20, xc - 40, yc - 40, 0);
 
     GFX_IMAGE scr = { 0 };
     getImage(0, 0, cresX, cresY, &scr);

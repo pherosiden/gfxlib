@@ -378,6 +378,7 @@ int32_t     finished(int32_t key);
 int32_t     random(int32_t a);
 int32_t     randomRange(int32_t a, int32_t b);
 void        randomBuffer(void* buff, int32_t count, int32_t range);
+double      frand(double fmin, double fmax);
 
 void        initSystemInfo();
 uint32_t    getTotalMemory();

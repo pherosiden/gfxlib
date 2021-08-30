@@ -1246,7 +1246,7 @@ void scrollLed(const char *msg)
     int32_t i = 0, j = 0, k = 0, m = 0;
     const int32_t zx = 5, zy = 3, sy = 50;
 
-    drawRectEx(0, sy, cmaxX - 1, sy + (gfxFonts[fontType].header.subData.height << 2), 50, 10);
+    drawRectEx(0, sy, cmaxX - 1, gfxFonts[fontType].header.subData.height << 2, 50, 10);
     
     while (!finished(SDL_SCANCODE_RETURN))
     {

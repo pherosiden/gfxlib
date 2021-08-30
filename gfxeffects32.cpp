@@ -729,12 +729,18 @@ void basicDrawing()
     //the new line represents the part of the old line that is visible on screen
     clipLine(&x1, &y1, &x2, &y2);
 
-    //The newline is drawn as a red line
+    //the newline is drawn as a red line
     drawLineAlpha(x1, y1, x2, y2, RGB_RED);
     drawCircleAlpha(100, 100, 30, RGB_GREEN);
     fillCircle(200, 100, 40, RGB_YELLOW);
+    drawEllipseAlpha(200, 200, 50, 100, RGB_BLUE);
+    fillEllipse(300, 300, 50, 100, RGB_MAGENTA);
     drawRect(150, 150, 200, 200, RGB_CYAN);
+    drawRectEx(400, 20, 200, 80, 50, RGB_CYAN);
     vertLine(320, 100, 300, RGB_WHITE);
+    horizLine(50, 20, 200, RGB_PURPLE);
+    drawBox(400, 350, 100, 100, 50, 50, RGB_GREEN);
+    drawBoxEx(400, 150, 200, 100, 50, RGB_RED);
 
     //make all visible on screen
     render();
@@ -866,7 +872,6 @@ void crossFading()
             uint8_t* pdst = (uint8_t*)itdst++;
             const uint8_t* pimg1 = (const uint8_t*)itimg1++;
             const uint8_t* pimg2 = (const uint8_t*)itimg2++;
-            
             pdst[2] = uint8_t(pimg1[2] * weight + pimg2[2] * (1 - weight));
             pdst[1] = uint8_t(pimg1[1] * weight + pimg2[1] * (1 - weight));
             pdst[0] = uint8_t(pimg1[0] * weight + pimg2[0] * (1 - weight));
@@ -1246,10 +1251,7 @@ void plasmaDemo()
         //draw every pixel again, with the shifted palette color
         for (int32_t y = 0; y < cheight; y++)
         {
-            for (int32_t x = 0; x < cwidth; x++)
-            {
-                pixels[y][x] = colors[(plasma[y][x] + paletteShift) % 256];
-            }
+            for (int32_t x = 0; x < cwidth; x++) pixels[y][x] = colors[(plasma[y][x] + paletteShift) % 256];
         }
 
         //make everything visible
@@ -1268,10 +1270,14 @@ void tunnelDemo()
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Tunnel")) return;
 
     int32_t tw = 0, th = 0, i = 0;
-    uint32_t* texture = NULL;
+    uint32_t* ptext = NULL;
 
     //load tunnel texture
-    if (!loadTexture(&texture, &tw, &th, "assets/map03.png")) return;
+    if (!loadTexture(&ptext, &tw, &th, "assets/map03.png")) return;
+    uint32_t** texture = (uint32_t**)calloc(th, sizeof(uint32_t*));
+    if (!texture) return;
+    texture[0] = ptext;
+    for (i = 1; i < th; i++) texture[i] = texture[0] + intptr_t(i) * tw;
 
     int32_t cwidth = 0, cheight = 0;
     uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
@@ -1282,7 +1288,7 @@ void tunnelDemo()
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
-    const double ratio = 100.0;
+    const double ratio = 128;
     const double scale = 1.5;
 
     const int32_t mwidth = cwidth >> 1;
@@ -1293,10 +1299,8 @@ void tunnelDemo()
     {
         for (int32_t x = 0; x < cwidth; x++)
         {
-            const int32_t distance = int32_t(ratio * th / sqrt((double(x) - mwidth) * (double(x) - mwidth) + (double(y) - mheight) * (double(y) - mheight))) % th;
-            const int32_t angle = int32_t(scale * tw * atan2(double(y) - mheight, double(x) - mwidth) / M_PI);
-            distBuff[y][x] = distance;
-            angleBuff[y][x] = angle;
+            distBuff[y][x] = int32_t(ratio * th / sqrt(sqr(double(x) - mwidth) + sqr(double(y) - mheight))) % th;
+            angleBuff[y][x] = int32_t(scale * tw * atan2(double(y) - mheight, double(x) - mwidth) / M_PI);
         }
     }
 
@@ -1314,11 +1318,9 @@ void tunnelDemo()
             for (int32_t x = 0; x < cwidth; x++)
             {
                 //get the texel from the texture by using the tables, shifted with the animation values
-                const int32_t oy = (distBuff[y][x] + shiftX) % th;
-                const int32_t ox = (angleBuff[y][x] + shiftY) % tw;
-                int32_t offset = oy * tw + ox;
-                if (offset < 0) offset = 0;
-                pixels[y][x] = texture[offset];
+                const int32_t oy = uint32_t(distBuff[y][x] + shiftX) % th;
+                const int32_t ox = uint32_t(angleBuff[y][x] + shiftY) % tw;
+                pixels[y][x] = texture[oy][ox];
             }
         }
 
@@ -1327,6 +1329,8 @@ void tunnelDemo()
     }
 
     free(pixels);
+    free(texture[0]);
+    free(texture);
     cleanup();
 }
 
@@ -1689,7 +1693,7 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
     //loop error
     int32_t error = 0;
 
-    //index texture color
+    //index texture offset
     int32_t offsetY = offset / TILE_SIZE;
     const int32_t offsetX = offset % TILE_SIZE;
     
@@ -1751,7 +1755,7 @@ void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint
     }
 }
 
-void initData()
+int32_t initData()
 {
     int32_t i = 0;
     double radian = 0;
@@ -1761,7 +1765,7 @@ void initData()
 
     //setup draw buffer as maxtrix to easy access data
     drawBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
-    if (!drawBuff) return;
+    if (!drawBuff) return 0;
 
     //assign offset data
     drawBuff[0] = pBuff;
@@ -1769,23 +1773,23 @@ void initData()
 
     //load texture data
     uint32_t *pWall = NULL, *pFloor = NULL, *pCeiling = NULL;
-    if (!loadTexture(&pWall, &wallWidth, &wallHeight, "assets/wallr.png")) return;
-    if (!loadTexture(&pFloor, &floorWidth, &floorHeight, "assets/floor.png")) return;
-    if (!loadTexture(&pCeiling, &ceilingWidth, &ceilingHeight, "assets/ceil.png")) return;
+    if (!loadTexture(&pWall, &wallWidth, &wallHeight, "assets/wallr.png")) return 0;
+    if (!loadTexture(&pFloor, &floorWidth, &floorHeight, "assets/floor.png")) return 0;
+    if (!loadTexture(&pCeiling, &ceilingWidth, &ceilingHeight, "assets/ceil.png")) return 0;
 
     //setup texture data as matrix to easy access data
     wallTexture = (uint32_t**)calloc(wallHeight, sizeof(uint32_t*));
-    if (!wallTexture) return;
+    if (!wallTexture) return 0;
     wallTexture[0] = pWall;
     for (i = 1; i < wallHeight; i++) wallTexture[i] = wallTexture[0] + intptr_t(i) * wallWidth;
 
     floorTexture = (uint32_t**)calloc(floorHeight, sizeof(uint32_t*));
-    if (!floorTexture) return;
+    if (!floorTexture) return 0;
     floorTexture[0] = pFloor;
     for (i = 1; i < floorHeight; i++) floorTexture[i] = floorTexture[0] + intptr_t(i) * floorWidth;
 
     ceilingTexture = (uint32_t**)calloc(ceilingHeight, sizeof(uint32_t*));
-    if (!ceilingTexture) return;
+    if (!ceilingTexture) return 0;
     ceilingTexture[0] = pCeiling;
     for (i = 1; i < ceilingHeight; i++) ceilingTexture[i] = ceilingTexture[0] + intptr_t(i) * ceilingWidth;
 
@@ -1849,6 +1853,8 @@ void initData()
         radian = arcToRad(i);
         fishTable[i + ANGLE30] = 1.0 / cos(radian);
     }
+
+    return 1;
 }
 
 void drawOverheadMap()
@@ -2182,9 +2188,7 @@ void runRayCasting()
 
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(SCR_WIDTH + 100, SCR_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;
-
-    //setup data texture
-    initData();
+    if (!initData()) return;
 
     //start the main loop
     do {
