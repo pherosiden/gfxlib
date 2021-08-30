@@ -85,7 +85,6 @@ Include my old-school demos and effects collection and also provide some drawing
 ![Test Image 1](screenshots/image191.png)
 ![Test Image 1](screenshots/image192.png)
 ![Test Image 1](screenshots/image193.png)
-![Test Image 1](screenshots/image153.png)
 ![Test Image 1](screenshots/image154.png)
 ![Test Image 1](screenshots/image155.png)
 ![Test Image 1](screenshots/image156.png)
