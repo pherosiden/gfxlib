@@ -870,9 +870,11 @@ void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 #else
     uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
-    pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
-    pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+    const uint8_t blend = 255 - pcol[3];
+
+    pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
+    pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
+    pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
 #endif
 }
 
@@ -921,9 +923,11 @@ void putPixelAA(int32_t x, int32_t y, uint32_t argb)
 #else
     uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[2] = (pcol[3] * pixels[2] + (255 - pcol[3]) * pcol[2]) >> 8;
-    pixels[1] = (pcol[3] * pixels[1] + (255 - pcol[3]) * pcol[1]) >> 8;
-    pixels[0] = (pcol[3] * pixels[0] + (255 - pcol[3]) * pcol[0]) >> 8;
+    const uint8_t blend = 255 - pcol[3];
+
+    pixels[2] = (pcol[3] * pixels[2] + blend * pcol[2]) >> 8;
+    pixels[1] = (pcol[3] * pixels[1] + blend * pcol[1]) >> 8;
+    pixels[0] = (pcol[3] * pixels[0] + blend * pcol[0]) >> 8;
 #endif
 }
 
@@ -1542,11 +1546,13 @@ void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
     //calculate starting address
     uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint8_t blend = 255 - pcol[3];
+
     for (int32_t i = 0; i < sx; i++)
     {
-        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
-        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
-        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
+        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
+        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
         pixels += 4;
     }
 #endif
@@ -1916,16 +1922,19 @@ void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
     //calculate starting address
     uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint8_t blend = 255 - pcol[3];
+
     for (int32_t i = 0; i < sy; i++)
     {
-        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
-        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
-        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
+        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
+        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
         pixels += intptr_t(texWidth) << 2;
     }
 #endif
 }
 
+//fast vertical line from (x,y) with sy length, and color
 void vertLine(int32_t x, int32_t y, int32_t sy, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //check for clip-x
@@ -3003,7 +3012,6 @@ void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb
     }
 }
 
-
 //Bresenham drawing an ellipses with sub color
 void drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
@@ -3226,7 +3234,7 @@ void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t
 }
 
 //draw a quad bezier segment
-void drawQuadBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawQuadBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     //anti-aliased mode?
     if (mode == BLEND_MODE_ANTIALIASED)
@@ -3413,7 +3421,7 @@ void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x
 }
 
 //draw full quad bezier (export function)
-void drawQuadBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawQuadBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     int32_t x = x0 - x1, y = y0 - y1;
     double t = x0 - 2.0 * x1 + x2, r = 0.0;
@@ -3526,7 +3534,7 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
 }
 
 //draw rotation quad bezier segment
-void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     //anti-aliased mode
     if (mode == BLEND_MODE_ANTIALIASED)
@@ -3599,7 +3607,7 @@ void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, i
 }
 
 //draw rotation full quad bezier segment (export function)
-void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, int32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, int32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     int32_t x = x0 - 2 * x1 + x2, y = y0 - 2 * y1 + y2;
     double xx = double(x0) - x1, yy = double(y0) - y1, ww = 0.0, t = 0.0, q = 0.0;
@@ -3667,7 +3675,7 @@ void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
 }
 
 //draw rotation of ellipse with rect
-void drawRotatedEllipseRect(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t zd, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawRotatedEllipseRect(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t zd, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     int32_t xd = x1 - x0, yd = y1 - y0;
     double w = double(xd) * yd;
@@ -3690,7 +3698,7 @@ void drawRotatedEllipseRect(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
 }
 
 //draw rotation of ellipse (export function)
-void drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double angle, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double angle, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     const double s = sin(angle);
     double xd = sqr(ra), yd = sqr(rb);
@@ -3706,7 +3714,7 @@ void drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double ang
 }
 
 //draw cubic bezier segment
-void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2, double y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2, double y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     //anti-alased mode?
     if (mode == BLEND_MODE_ANTIALIASED)
@@ -3799,7 +3807,7 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
 }
 
 //draw cubic bezier (export function)
-void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     int32_t n = 0, i = 0;
     const int32_t xc = x0 + x1 - x2 - x3, xa = xc - 4 * (x1 - x2);
@@ -4229,14 +4237,15 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
     uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     const uint32_t addOfs = (texWidth - width) << 2;
+    const uint8_t blend = 255 - pcol[3];
 
     for (int32_t y = 0; y < height; y++)
     {
         for (int32_t x = 0; x < width; x++)
         {
-            pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
-            pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
-            pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+            pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
+            pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
+            pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
             pixels += 4;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -4850,6 +4859,7 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
     uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     const uint32_t addOfs = (texWidth - width) << 2;
+    const uint8_t blend = 255 - pcol[3];
 
     for (int32_t y = 0; y < height; y++)
     {
@@ -4859,9 +4869,9 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
         {
             if (al & 1)
             {
-                pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
-                pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
-                pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+                pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
+                pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
+                pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
             }
             al = _rotl8(al, 1);
             pixels += 4;
@@ -6236,9 +6246,10 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
     {
         for (int32_t j = 0; j < width; j++)
         {
-            dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * (255 - imgPixels[3])) >> 8;
-            dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * (255 - imgPixels[3])) >> 8;
-            dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * (255 - imgPixels[3])) >> 8;
+            const uint8_t blend = 255 - imgPixels[3];
+            dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * blend) >> 8;
+            dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * blend) >> 8;
+            dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * blend) >> 8;
             dstPixels += 4;
             imgPixels += 4;
         }
@@ -7015,6 +7026,7 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
     const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -7023,9 +7035,10 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //we accepted RGB color only
             if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
             {
-                dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * (255 - imgPixels[3])) >> 8;
-                dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * (255 - imgPixels[3])) >> 8;
-                dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * (255 - imgPixels[3])) >> 8;
+                const uint8_t blend = 255 - imgPixels[3];
+                dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * blend) >> 8;
+                dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * blend) >> 8;
+                dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * blend) >> 8;
             }
             dstPixels += 4;
             imgPixels += 4;
