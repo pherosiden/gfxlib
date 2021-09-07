@@ -9905,7 +9905,7 @@ void blurImage(GFX_IMAGE* img)
 }
 
 //FX-effect: alpha-blending image buffer
-void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, uint8_t cover)
+void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
 {
     uint8_t* psrc1 = src1->mData;
     uint8_t* psrc2 = src2->mData;
@@ -9919,7 +9919,8 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, uint8_t cover)
         mov     edi, pdst
         mov     esi, psrc2
         mov     edx, psrc1
-        mov     cl, cover
+        mov     ecx, cover
+        neg     cl
     next:
         push    edx
         mov     ebx, [esi]
