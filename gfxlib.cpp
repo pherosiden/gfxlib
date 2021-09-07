@@ -130,30 +130,6 @@ uint32_t        totalMemory = 0;            //total physical memory in MB
 uint32_t        availableMemory = 0;        //available physical memory in MB
 uint32_t        videoMemory = 0;            //total video memory in MB
 
-//pointer function handlers
-void            (*clearScreen)(uint32_t) = NULL;
-void            (*putPixel)(int32_t, int32_t, uint32_t) = NULL;
-void            (*putPixelAdd)(int32_t, int32_t, uint32_t) = NULL;
-void            (*putPixelSub)(int32_t, int32_t, uint32_t) = NULL;
-void            (*putPixelAnd)(int32_t, int32_t, uint32_t) = NULL;
-void            (*putPixelXor)(int32_t, int32_t, uint32_t) = NULL;
-uint32_t        (*getPixel)(int32_t, int32_t) = NULL;
-void            (*horizLine)(int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*horizLineAdd)(int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*horizLineSub)(int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*horizLinePattern)(int32_t, int32_t, int32_t, uint32_t, uint8_t*) = NULL;
-void            (*horizLinePatternAdd)(int32_t, int32_t, int32_t, uint32_t, uint8_t*) = NULL;
-void            (*horizLinePatternSub)(int32_t, int32_t, int32_t, uint32_t, uint8_t*) = NULL;
-void            (*vertLine)(int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*vertLineAdd)(int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*vertLineSub)(int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*fillRect)(int32_t, int32_t, int32_t, int32_t, uint32_t) = NULL;
-void            (*fillRectPattern)(int32_t, int32_t, int32_t, int32_t, uint32_t, uint8_t*) = NULL;
-void            (*getImage)(int32_t, int32_t, int32_t, int32_t, GFX_IMAGE*) = NULL;
-void            (*putImage)(int32_t, int32_t, GFX_IMAGE*) = NULL;
-void            (*putSprite)(int32_t, int32_t, uint32_t, GFX_IMAGE*) = NULL;
-void            (*scaleImage)(GFX_IMAGE*, GFX_IMAGE*, int32_t) = NULL;
-
 //global SDL objects
 SDL_Window*     sdlWindow = NULL;
 SDL_Surface*	sdlSurface = NULL;
@@ -453,19 +429,6 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         //set default palette
         shiftPalette(basePalette);
         setPalette(basePalette);
-
-        //mapping raster function
-        putPixel            = putPixel8;
-        getPixel            = getPixel8;
-        horizLine           = horizLine8;
-        vertLine            = vertLine8;
-        clearScreen         = clearScreen8;
-        fillRect            = fillRect8;
-        fillRectPattern     = fillRectPattern8;
-        putImage            = putImage8;
-        getImage            = getImage8;
-        putSprite           = putSprite8;
-        scaleImage          = scaleImage8;
     }
     else
     {
@@ -480,27 +443,6 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         //initialize raster function
         bitsPerPixel = 32;
         bytesPerScanline = width << 2;
-
-        //mapping raster functions
-        putPixel        = putPixel32;
-        putPixelAdd     = putPixelAdd32;
-        putPixelSub     = putPixelSub32;
-        putPixelAnd     = putPixelAnd32;
-        putPixelXor     = putPixelXor32;
-        getPixel        = getPixel32;
-        horizLine       = horizLine32;
-        horizLineAdd    = horizLineAdd32;
-        horizLineSub    = horizLineSub32;
-        vertLine        = vertLine32;
-        vertLineAdd     = vertLineAdd32;
-        vertLineSub     = vertLineSub32;
-        clearScreen     = clearScreen32;
-        fillRect        = fillRect32;
-        fillRectPattern = fillRectPattern32;
-        putImage        = putImage32;
-        getImage        = getImage32;
-        putSprite       = putSprite32;
-        scaleImage      = scaleImage32;
     }
 
     //initialize random number generation
@@ -511,7 +453,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     gfxBuff = (uint8_t*)calloc(GFX_BUFF_SIZE, 1);
     if (!gfxBuff)
     {
-        messageBox(GFX_ERROR, "Cannot init GFXLIB memory!");
+        messageBox(GFX_ERROR, "Error initialize GFXLIB memory!");
         return 0;
     }
 
@@ -607,7 +549,7 @@ void render()
         SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
         SDL_RenderPresent(sdlRenderer);
     }
-    else messageBox(GFX_ERROR, "GFXLIB only support render for 32 or 8 bits pixels!");
+    else messageBox(GFX_ERROR, "GFXLIB is only support render for 32 or 8 bits pixels!");
 }
 
 //generate random value from number
@@ -628,7 +570,6 @@ double frand(double fmin, double fmax)
     const double fn = double(rand()) / RAND_MAX;
     return fmin + fn * (fmax - fmin);
 }
-
 
 //raise a message box
 void messageBox(int32_t type, const char* fmt, ...)
@@ -656,50 +597,8 @@ void messageBox(int32_t type, const char* fmt, ...)
     }
 }
 
-//RGB to HSL convert
-HSL RGB2HSL(uint8_t ur, uint8_t ug, uint8_t ub)
-{
-    double h = 0.0, s = 0.0, l = 0.0;
-
-    const double r = ur / 256.0;
-    const double g = ug / 256.0;
-    const double b = ub / 256.0;
-
-    const double maxColor = max(r, max(g, b));
-    const double minColor = min(r, min(g, b));
-
-    //R = G = B, so it's a shade of grey
-    if (minColor == maxColor)
-    {
-        h = 0.0;
-        s = 0.0;
-        l = r;
-    }
-    else
-    {
-        l = (minColor + maxColor) / 2.0;
-
-        if (l < 0.5) s = (maxColor - minColor) / (maxColor + minColor);
-        if (l >= 0.5) s = (maxColor - minColor) / (2.0 - maxColor - minColor);
-
-        if (r == maxColor) h = (g - b) / (maxColor - minColor);
-        if (g == maxColor) h = 2.0 + (b - r) / (maxColor - minColor);
-        if (b == maxColor) h = 4.0 + (r - g) / (maxColor - minColor);
-
-        //to bring it to a number between 0 and 1
-        h /= 6.0;
-        if (h < 0.0) h += 1.0;
-    }
-
-    HSL hsl = { 0 };
-    hsl.h = int32_t(h * 255);
-    hsl.s = int32_t(s * 255);
-    hsl.l = int32_t(l * 255);
-    return hsl;
-}
-
 //HSL to RGB convert
-uint32_t HSL2RGB(int32_t hi, int32_t si, int32_t li)
+uint32_t hsl(int32_t hi, int32_t si, int32_t li)
 {
     double r = 0.0, g = 0.0, b = 0.0;
     double temp1 = 0.0, temp2 = 0.0;
@@ -748,53 +647,11 @@ uint32_t HSL2RGB(int32_t hi, int32_t si, int32_t li)
         else b = temp1;
     }
 
-    return RGB2INT(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
-}
-
-//RGB to HSV convert
-HSV RGB2HSV(uint8_t ur, uint8_t ug, uint8_t ub)
-{
-    const double r = ur / 256.0;
-    const double g = ug / 256.0;
-    const double b = ub / 256.0;
-
-    const double maxColor = max(r, max(g, b));
-    const double minColor = min(r, min(g, b));
-    const double v = maxColor;
-
-    double h = 0.0, s = 0.0;
-    
-    //avoid division by zero when the color is black
-    if (maxColor != 0.0)
-    {
-        s = (maxColor - minColor) / maxColor;
-    }
-
-    if (s == 0.0)
-    {
-        //it doesn't matter what value it has
-        h = 0.0;
-    }
-    else
-    {
-        if (r == maxColor) h = (g - b) / (maxColor - minColor);
-        if (g == maxColor) h = 2.0 + (b - r) / (maxColor - minColor);
-        if (b == maxColor) h = 4.0 + (r - g) / (maxColor - minColor);
-
-        //to bring it to a number between 0 and 1
-        h /= 6.0;
-        if (h < 0.0) h++;
-    }
-
-    HSV hsv = { 0 };
-    hsv.h = int32_t(h * 255);
-    hsv.s = int32_t(s * 255);
-    hsv.v = int32_t(v * 255);
-    return hsv;
+    return rgb(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
 }
 
 //HSV to RGB convert
-uint32_t HSV2RGB(int32_t hi, int32_t si, int32_t vi)
+uint32_t hsv(int32_t hi, int32_t si, int32_t vi)
 {
     double h = hi / 256.0;
     const double s = si / 256.0;
@@ -830,13 +687,20 @@ uint32_t HSV2RGB(int32_t hi, int32_t si, int32_t vi)
         }
     }
 
-    return RGB2INT(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
+    return rgb(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
 }
 
-//convert r,g,b values to integer (pixel color)
-uint32_t RGB2INT(uint8_t r, uint8_t g, uint8_t b)
+//convert r,g,b values to 32bits integer value
+inline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
 {
     return (r << 16) | (g << 8) | b;
+}
+
+inline uint32_t rgba(uint32_t col, uint8_t alpha)
+{
+    uint8_t* pcol = (uint8_t*)&col;
+    pcol[3] = alpha;
+    return col;
 }
 
 //retrive raw pixels data
@@ -848,6 +712,7 @@ void* getDrawBuffer(int32_t *width, int32_t *height)
 }
 
 //set the draw buffer
+//setDrawBuffer and restoreDrawBuffer must be a pair functions
 void setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight)
 {
     oldBuffer = drawBuff;
@@ -860,6 +725,7 @@ void setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight)
 }
 
 //must call after setDrawBuffer call
+//setDrawBuffer and restoreDrawBuffer must be a pair functions
 void restoreDrawBuffer()
 {
     drawBuff  = oldBuffer;
@@ -921,10 +787,8 @@ void restoreViewPort()
 }
 
 //plot a pixel at (x,y) with color
-void putPixel8(int32_t x, int32_t y, uint32_t color)
+void putPixelMix(int32_t x, int32_t y, uint32_t color)
 {
-    if (bitsPerPixel != 8) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -942,10 +806,8 @@ void putPixel8(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with color
-void putPixel32(int32_t x, int32_t y, uint32_t color)
+void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -963,11 +825,60 @@ void putPixel32(int32_t x, int32_t y, uint32_t color)
 #endif
 }
 
-//plot a pixel at (x,y) with color and alpha channel
-void putPixelAlpha(int32_t x, int32_t y, uint32_t col, uint8_t alpha)
+//plot a pixel at (x,y) with alpha channel color
+void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 {
-    if (bitsPerPixel != 32) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff   
+        add     edi, eax
+        mov     al, byte ptr[argb]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 1]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 2]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+    }
+#else
+    uint8_t* pcol = (uint8_t*)&argb;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
+    pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
+    pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+#endif
+}
+
+//plot a pixel at (x,y) with (alpha-blending pixel)
+void putPixelAA(int32_t x, int32_t y, uint32_t argb)
+{
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -977,42 +888,42 @@ void putPixelAlpha(int32_t x, int32_t y, uint32_t col, uint8_t alpha)
         mov     edi, drawBuff   
         add     edi, eax
         mov     al, [edi]
-        mul     alpha
+        mul     byte ptr[argb + 3]
         mov     bx, ax
-        mov     al, byte ptr[col]
+        mov     al, byte ptr[argb]
         mov     cl, 255
-        sub     cl, alpha
+        sub     cl, byte ptr[argb + 3]
         mul     cl
         add     ax, bx
         shr     ax, 8
         stosb
         mov     al, [edi]
-        mul     alpha
+        mul     byte ptr[argb + 3]
         mov     bx, ax
-        mov     al, byte ptr[col + 1]
+        mov     al, byte ptr[argb + 1]
         mov     cl, 255
-        sub     cl, alpha
+        sub     cl, byte ptr[argb + 3]
         mul     cl
         add     ax, bx
         shr     ax, 8
         stosb
         mov     al, [edi]
-        mul     alpha
+        mul     byte ptr[argb + 3]
         mov     bx, ax
-        mov     al, byte ptr[col + 2]
+        mov     al, byte ptr[argb + 2]
         mov     cl, 255
-        sub     cl, alpha
+        sub     cl, byte ptr[argb + 3]
         mul     cl
         add     ax, bx
         shr     ax, 8
         stosb
     }
 #else
-    uint8_t* rgb = (uint8_t*)&col;
+    uint8_t* pcol = (uint8_t*)&argb;
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[0] = (alpha * pixels[0] + rgb[0] * (255 - alpha)) >> 8;
-    pixels[1] = (alpha * pixels[1] + rgb[1] * (255 - alpha)) >> 8;
-    pixels[2] = (alpha * pixels[2] + rgb[2] * (255 - alpha)) >> 8;
+    pixels[2] = (pcol[3] * pixels[2] + (255 - pcol[3]) * pcol[2]) >> 8;
+    pixels[1] = (pcol[3] * pixels[1] + (255 - pcol[3]) * pcol[1]) >> 8;
+    pixels[0] = (pcol[3] * pixels[0] + (255 - pcol[3]) * pcol[0]) >> 8;
 #endif
 }
 
@@ -1045,10 +956,8 @@ void putPixelBob(int32_t x, int32_t y)
 }
 
 //plot a pixel at (x,y) with add color
-void putPixelAdd32(int32_t x, int32_t y, uint32_t color)
+void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1087,10 +996,8 @@ void putPixelAdd32(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with sub color
-void putPixelSub32(int32_t x, int32_t y, uint32_t color)
+void putPixelSub(int32_t x, int32_t y, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1129,10 +1036,8 @@ void putPixelSub32(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with and color
-void putPixelAnd32(int32_t x, int32_t y, uint32_t color)
+void putPixelAnd(int32_t x, int32_t y, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1171,10 +1076,8 @@ void putPixelAnd32(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with xor color
-void putPixelXor32(int32_t x, int32_t y, uint32_t color)
+void putPixelXor(int32_t x, int32_t y, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1212,11 +1115,58 @@ void putPixelXor32(int32_t x, int32_t y, uint32_t color)
 #endif
 }
 
-//peek a pixel at (x,y)
-uint32_t getPixel8(int32_t x, int32_t y)
+//putpixel at (x,y) with color and mode
+void putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    if (bitsPerPixel != 8) return 0;
-    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return 0;
+    //range checking
+    if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
+
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        putPixelMix(x, y, color);
+        return;
+    }
+    
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        putPixelNormal(x, y, color);
+        break;
+
+    case BLEND_MODE_ADD:
+        putPixelAdd(x, y, color);
+        break;
+
+    case BLEND_MODE_SUB:
+        putPixelSub(x, y, color);
+        break;
+
+    case BLEND_MODE_AND:
+        putPixelAnd(x, y, color);
+        break;
+
+    case BLEND_MODE_XOR:
+        putPixelXor(x, y, color);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        putPixelAlpha(x, y, color);
+        break;
+
+    case BLEND_MODE_ANTIALIASED:
+        putPixelAA(x, y, color);
+        break;
+
+    default:
+        break;
+    }
+}
+
+//peek a pixel at (x,y)
+uint32_t getPixelMix(int32_t x, int32_t y)
+{
 #ifdef _USE_ASM
     uint8_t col = 0;
     _asm {
@@ -1235,11 +1185,16 @@ uint32_t getPixel8(int32_t x, int32_t y)
 #endif
 }
 
+
 //peek a pixel at (x,y)
-uint32_t getPixel32(int32_t x, int32_t y)
+uint32_t getPixel(int32_t x, int32_t y)
 {
-    if (bitsPerPixel != 32) return 0;
+    //range checking
     if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return 0;
+
+    //mixed mode?
+    if (bitsPerPixel == 8) return getPixelMix(x, y);
+        
 #ifdef _USE_ASM
     uint32_t col = 0;
     _asm {
@@ -1260,9 +1215,8 @@ uint32_t getPixel32(int32_t x, int32_t y)
 }
 
 //clear screen with color
-void clearScreen8(uint32_t color)
+void clearScreenMix(uint32_t color)
 {
-    if (bitsPerPixel != 8) return;
     const uint32_t lfbSize = texHeight * texWidth;
 #ifdef _USE_ASM
     _asm {
@@ -1288,9 +1242,16 @@ void clearScreen8(uint32_t color)
 }
 
 //clear screen with color
-void clearScreen32(uint32_t color)
+void clearScreen(uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        clearScreenMix(color);
+        return;
+    }
+
+    //height color mode
     const uint32_t lfbSize = texHeight * texWidth;
 #ifdef _USE_ASM
     _asm {
@@ -1307,26 +1268,8 @@ void clearScreen32(uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and color
-void horizLine8(int32_t x, int32_t y, int32_t sx, uint32_t color)
+void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
-    if (bitsPerPixel != 8) return;
-
-    //check for clip-y
-    if (y > cmaxY || y < cminY) return;
-    if (x > cmaxX || sx <= 0) return;
-
-    //check clip boundary
-    if (x < cminX)
-    {
-        //re-calculate sx
-        sx -= (cminX - x) + 1;
-        x = cminX;
-    }
-
-    //inbound check
-    if (sx > cmaxX - x) sx = (cmaxX - x) + 1;
-    if (sx <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1334,7 +1277,7 @@ void horizLine8(int32_t x, int32_t y, int32_t sx, uint32_t color)
         add     eax, x
         mov     edi, drawBuff
         add     edi, eax
-        mov     al, byte ptr color
+        mov     al, byte ptr [color]
         mov     ah, al
         mov     dx, ax
         shl     eax, 16
@@ -1355,26 +1298,8 @@ void horizLine8(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and color
-void horizLine32(int32_t x, int32_t y, int32_t sx, uint32_t color)
+void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //check for clip-y
-    if (y > cmaxY || y < cminY) return;
-    if (x > cmaxX || sx <= 0) return;
-
-    //check clip boundary
-    if (x < cminX)
-    {
-        //re-calculate sx
-        sx -= (cminX - x) + 1;
-        x = cminX;
-    }
-
-    //inbound check
-    if (sx > cmaxX - x) sx = (cmaxX - x) + 1;
-    if (sx <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1394,26 +1319,8 @@ void horizLine32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and add color
-void horizLineAdd32(int32_t x, int32_t y, int32_t sx, uint32_t color)
+void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //check for clip-y
-    if (y > cmaxY || y < cminY) return;
-    if (x > cmaxX || sx <= 0) return;
-
-    //check clip boundary
-    if (x < cminX)
-    {
-        //re-calculate sx
-        sx -= (cminX - x) + 1;
-        x = cminX;
-    }
-
-    //inbound check
-    if (sx > cmaxX - x) sx = (cmaxX - x) + 1;
-    if (sx <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1460,26 +1367,8 @@ void horizLineAdd32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and sub color
-void horizLineSub32(int32_t x, int32_t y, int32_t sx, uint32_t color)
+void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //check for clip-y
-    if (y > cmaxY || y < cminY) return;
-    if (x > cmaxX || sx <= 0) return;
-
-    //check clip boundary
-    if (x < cminX)
-    {
-        //re-calculate sx
-        sx -= (cminX - x) + 1;
-        x = cminX;
-    }
-
-    //inbound check
-    if (sx > cmaxX - x) sx = (cmaxX - x) + 1;
-    if (sx <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1525,26 +1414,205 @@ void horizLineSub32(int32_t x, int32_t y, int32_t sx, uint32_t color)
 #endif
 }
 
-//fast vertical line from (x,y) with sy length, and palette color
-void vertLine8(int32_t x, int32_t y, int32_t sy, uint32_t color)
+//fast horizontal line from (x,y) with sx length, and sub color
+void horizLineAnd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
-    if (bitsPerPixel != 8) return;
-
-    //check for clip-x
-    if (x > cmaxX || x < cminX) return;
-    if (y > cmaxY || sy <= 0) return;
-
-    if (y < cminY)
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff
+        add     edi, eax
+        mov     ecx, sx
+    next:
+        mov     eax, [edi]
+        and     al, byte ptr[color]
+        and     ah, byte ptr[color + 1]
+        mov     ebx, eax
+        shr     ebx, 16
+        and     bl, byte ptr[color + 2]
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        stosd
+        loop    next
+    }
+#else
+    //calculate starting address
+    uint8_t* rgb = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    for (int32_t i = 0; i < sx; i++)
     {
-        //re-calculate sy
-        sy -= (cminY - y) + 1;
-        y = cminY;
+        pixels[0] = pixels[0] & rgb[0];
+        pixels[1] = pixels[1] & rgb[1];
+        pixels[2] = pixels[2] & rgb[2];
+        pixels += 4;
+    }
+#endif
+}
+
+//fast horizontal line from (x,y) with sx length, and sub color
+void horizLineXor(int32_t x, int32_t y, int32_t sx, uint32_t color)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff
+        add     edi, eax
+        mov     ecx, sx
+    next:
+        mov     eax, [edi]
+        xor     al, byte ptr[color]
+        xor     ah, byte ptr[color + 1]
+        mov     ebx, eax
+        shr     ebx, 16
+        xor     bl, byte ptr[color + 2]
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        stosd
+        loop    next
+    }
+#else
+    //calculate starting address
+    uint8_t* rgb = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    for (int32_t i = 0; i < sx; i++)
+    {
+        pixels[0] = pixels[0] ^ rgb[0];
+        pixels[1] = pixels[1] ^ rgb[1];
+        pixels[2] = pixels[2] ^ rgb[2];
+        pixels += 4;
+    }
+#endif
+}
+
+//fast horizontal line from (x,y) with sx length, and sub color
+void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff
+        add     edi, eax
+    next:
+        mov     al, byte ptr[argb]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 1]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 2]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        inc     edi
+        dec     sx
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&argb;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    for (int32_t i = 0; i < sx; i++)
+    {
+        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
+        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
+        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+        pixels += 4;
+    }
+#endif
+}
+
+//fast horizon line from (x, y) with sx length
+void horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode /*= BLEND_MODE_NORMAL*/)
+{
+    //check for clip-y
+    if (y > cmaxY || y < cminY) return;
+    if (x > cmaxX || sx <= 0) return;
+
+    //check clip boundary
+    if (x < cminX)
+    {
+        //re-calculate sx
+        sx -= (cminX - x) + 1;
+        x = cminX;
     }
 
     //inbound check
-    if (sy > cmaxY - y) sy = (cmaxY - y) + 1;
-    if (sy <= 0) return;
+    if (sx > cmaxX - x) sx = (cmaxX - x) + 1;
+    if (sx <= 0) return;
 
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        horizLineMix(x, y, sx, color);
+        return;
+    }
+
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        horizLineNormal(x, y, sx, color);
+        break;
+
+    case BLEND_MODE_ADD:
+        horizLineAdd(x, y, sx, color);
+        break;
+
+    case BLEND_MODE_SUB:
+        horizLineSub(x, y, sx, color);
+        break;
+
+    case BLEND_MODE_AND:
+        horizLineAnd(x, y, sx, color);
+        break;
+
+    case BLEND_MODE_XOR:
+        horizLineXor(x, y, sx, color);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        horizLineAlpha(x, y, sx, color);
+        break;
+
+    default:
+        break;
+    }
+}
+
+//fast vertical line from (x,y) with sy length, and palette color
+void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
+{
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1573,25 +1641,8 @@ void vertLine8(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and rgb color
-void vertLine32(int32_t x, int32_t y, int32_t sy, uint32_t color)
+void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //check for clip-x
-    if (x > cmaxX || x < cminX) return;
-    if (y > cmaxY || sy <= 0) return;
-
-    if (y < cminY)
-    {
-        //re-calculate sy
-        sy -= (cminY - y) + 1;
-        y = cminY;
-    }
-
-    //inbound check
-    if (sy > cmaxY - y) sy = (cmaxY - y) + 1;
-    if (sy <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1622,25 +1673,8 @@ void vertLine32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and add color
-void vertLineAdd32(int32_t x, int32_t y, int32_t sy, uint32_t color)
+void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //check for clip-x
-    if (x > cmaxX || x < cminX) return;
-    if (y > cmaxY || sy <= 0) return;
-
-    if (y < cminY)
-    {
-        //re-calculate sy
-        sy -= (cminY - y) + 1;
-        y = cminY;
-    }
-
-    //inbound check
-    if (sy > cmaxY - y) sy = (cmaxY - y) + 1;
-    if (sy <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1691,25 +1725,8 @@ void vertLineAdd32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and sub color
-void vertLineSub32(int32_t x, int32_t y, int32_t sy, uint32_t color)
+void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //check for clip-x
-    if (x > cmaxX || x < cminX) return;
-    if (y > cmaxY || sy <= 0) return;
-
-    if (y < cminY)
-    {
-        //re-calculate sy
-        sy -= (cminY - y) + 1;
-        y = cminY;
-    }
-
-    //inbound check
-    if (sy > cmaxY - y) sy = (cmaxY - y) + 1;
-    if (sy <= 0) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     eax, y
@@ -1759,16 +1776,222 @@ void vertLineSub32(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #endif
 }
 
+//fast vertical line from (x,y) with sy length, and sub color
+void vertLineAnd(int32_t x, int32_t y, int32_t sy, uint32_t color)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff
+        add     edi, eax
+        mov     ecx, sy
+        mov     ebx, texWidth
+        sub     ebx, 1
+        shl     ebx, 2
+    next:
+        mov     eax, [edi]
+        and     al, byte ptr[color]
+        and     ah, byte ptr[color + 1]
+        mov     edx, eax
+        shr     edx, 16
+        and     dl, byte ptr[color + 2]
+        shl     edx, 16
+        and     eax, 00FFFFh
+        or      eax, edx
+        stosd
+        add     edi, ebx
+        loop    next
+    }
+#else
+    //calculate starting address
+    uint8_t* rgb = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    for (int32_t i = 0; i < sy; i++)
+    {
+        pixels[0] = pixels[0] & rgb[0];
+        pixels[1] = pixels[1] & rgb[1];
+        pixels[2] = pixels[2] & rgb[2];
+        pixels += intptr_t(texWidth) << 2;
+    }
+#endif
+}
+
+//fast vertical line from (x,y) with sy length, and sub color
+void vertLineXor(int32_t x, int32_t y, int32_t sy, uint32_t color)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff
+        add     edi, eax
+        mov     ecx, sy
+        mov     ebx, texWidth
+        sub     ebx, 1
+        shl     ebx, 2
+    next:
+        mov     eax, [edi]
+        xor     al, byte ptr[color]
+        xor     ah, byte ptr[color + 1]
+        mov     edx, eax
+        shr     edx, 16
+        xor     dl, byte ptr[color + 2]
+        shl     edx, 16
+        and     eax, 00FFFFh
+        or      eax, edx
+        stosd
+        add     edi, ebx
+        loop    next
+    }
+#else
+    //calculate starting address
+    uint8_t* rgb = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    for (int32_t i = 0; i < sy; i++)
+    {
+        pixels[0] = pixels[0] ^ rgb[0];
+        pixels[1] = pixels[1] ^ rgb[1];
+        pixels[2] = pixels[2] ^ rgb[2];
+        pixels += intptr_t(texWidth) << 2;
+    }
+#endif
+}
+
+//fast vertical line from (x,y) with sy length, and sub color
+void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        mov     edi, drawBuff
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, 1
+        shl     edx, 2
+    next:
+        mov     al, byte ptr[argb]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 1]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 2]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        inc     edi
+        add     edi, edx
+        dec     sy
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&argb;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    for (int32_t i = 0; i < sy; i++)
+    {
+        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
+        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
+        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+        pixels += intptr_t(texWidth) << 2;
+    }
+#endif
+}
+
+void vertLine(int32_t x, int32_t y, int32_t sy, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    //check for clip-x
+    if (x > cmaxX || x < cminX) return;
+    if (y > cmaxY || sy <= 0) return;
+
+    if (y < cminY)
+    {
+        //re-calculate sy
+        sy -= (cminY - y) + 1;
+        y = cminY;
+    }
+
+    //inbound check
+    if (sy > cmaxY - y) sy = (cmaxY - y) + 1;
+    if (sy <= 0) return;
+
+    if (bitsPerPixel == 8)
+    {
+        vertLineMix(x, y, sy, color);
+        return;
+    }
+
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        vertLineNormal(x, y, sy, color);
+        break;
+
+    case BLEND_MODE_ADD:
+        vertLineAdd(x, y, sy, color);
+        break;
+
+    case BLEND_MODE_SUB:
+        vertLineSub(x, y, sy, color);
+        break;
+
+    case BLEND_MODE_AND:
+        vertLineAnd(x, y, sy, color);
+        break;
+
+    case BLEND_MODE_XOR:
+        vertLineXor(x, y, sy, color);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        vertLineAlpha(x, y, sy, color);
+        break;
+
+    default:
+        break;
+    }
+
+}
+
 //smooth scaling with Bresenham (internal function)
 //because of several simplifications of the algorithm,
 //the zoom range is restricted between 0.5 and 2. That
 //is: dstwidth must be >= srcwidth/2 and <= 2*srcwidth.
 //smooth is used to calculate average pixel and mid-point
-void scaleLine8(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t smooth)
+void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t smooth)
 {
     if (smooth)
     {
-    #ifdef _USE_ASM
+#ifdef _USE_ASM
         uint16_t val = 0;
         _asm {
             mov     ebx, dw
@@ -1876,7 +2099,7 @@ void scaleLine8(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t smoo
 }
 
 //Bresenham scale line with rgb color
-void scaleLine32(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32_t smooth)
+void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32_t smooth)
 {
     if (smooth)
     {
@@ -2013,8 +2236,22 @@ void scaleLine32(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32_t s
     }
 }
 
-//Breshenham scale image buffer (export function)
-void scaleImage8(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
+//Bresenham scale line with rgb color
+void scaleLine(void* dst, void* src, int32_t dw, int32_t sw, int32_t smooth)
+{
+    //mixed mode
+    if (bitsPerPixel == 8)
+    {
+        scaleLineMix((uint8_t*)dst, (uint8_t*)src, dw, sw, smooth);
+        return;
+    }
+
+    //height color mode
+    scaleLineNormal((uint32_t*)dst, (uint32_t*)src, dw, sw, smooth);
+}
+
+//Breshenham scale image buffer
+void scaleImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
 {
 #ifdef _USE_ASM
     //save local value
@@ -2026,7 +2263,7 @@ void scaleImage8(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
 
     //make pointer to call in asm mode
     void *copier = memcpy;
-    void *scaler = scaleLine8;
+    void *scaler = scaleLineMix;
 
     //save local address
     void *oldPtr = NULL;
@@ -2097,7 +2334,7 @@ void scaleImage8(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
         }
         else
         {
-            scaleLine8(dstPtr, srcPtr, dst->mWidth, src->mWidth, smooth);
+            scaleLineMix(dstPtr, srcPtr, dst->mWidth, src->mWidth, smooth);
             srcPrev = srcPtr;
         }
 
@@ -2114,8 +2351,8 @@ void scaleImage8(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
 #endif
 }
 
-//Breshenham scale image buffer (export function)
-void scaleImage32(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
+//Breshenham scale image buffer
+void scaleImageNormal(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
 {
 #ifdef _USE_ASM
     //save local value
@@ -2129,7 +2366,7 @@ void scaleImage32(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
 
     //make pointer to call in asm mode
     void *copier = memcpy;
-    void *scaler = scaleLine32;
+    void *scaler = scaleLine;
 
     //save local address
     void *oldPtr = NULL;
@@ -2205,7 +2442,7 @@ void scaleImage32(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
         }
         else
         {
-            scaleLine32(dstPtr, srcPtr, dst->mWidth, src->mWidth, smooth);
+            scaleLine(dstPtr, srcPtr, dst->mWidth, src->mWidth, smooth);
             srcPrev = srcPtr;
         }
 
@@ -2220,6 +2457,20 @@ void scaleImage32(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
         }
     }
 #endif
+}
+
+//Breshenham scale image buffer (export function)
+void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
+{
+    //mixed mode
+    if (bitsPerPixel == 8)
+    {
+        scaleImageMix(dst, src, smooth);
+        return;
+    }
+
+    //height color mode
+    scaleImageNormal(dst, src, smooth);
 }
 
 //Bi-linear resize image, this only work with RGB color mode
@@ -2346,148 +2597,27 @@ void bilinearRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     }
 }
 
-//Bresenham line from (x1,y1) to (x2,y2) with color
-void drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+//Wu's line from (x1,y1) to (x2,y2) with anti-aliased
+void drawLineAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb)
 {
-    //clip coordinator
-    clipLine(&x1, &y1, &x2, &y2);
-    const int32_t step = abs(y2 - y1) > abs(x2 - x1);
-
-    if (step)
-    {
-        swap(x1, y1);
-        swap(x2, y2);
-    }
-
-    if (x1 > x2)
-    {
-        swap(x1, x2);
-        swap(y1, y2);
-    }
-
-    const int32_t dx = x2 - x1;
-    const int32_t dy = abs(y2 - y1);
-    const int32_t ystep = (y1 < y2) ? 1 : -1;
-
-    int32_t y = y1;
-    int32_t error = dx >> 1;
-    
-    for (int32_t x = x1; x <= x2; x++)
-    {
-        putPixel(step ? y : x, step ? x : y, color);
-        error -= dy;
-        if (error < 0)
-        {
-            y += ystep;
-            error += dx;
-        }
-    }
-}
-
-//Bresenham line from (x1,y1) to (x2,y2) with add color
-void drawLineAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
-{
-    //clip coordinator
-    clipLine(&x1, &y1, &x2, &y2);
-
-    const int32_t step = abs(y2 - y1) > abs(x2 - x1);
-
-    if (step)
-    {
-        swap(x1, y1);
-        swap(x2, y2);
-    }
-
-    if (x1 > x2)
-    {
-        swap(x1, x2);
-        swap(y1, y2);
-    }
-
-    const int32_t dx = x2 - x1;
-    const int32_t dy = abs(y2 - y1);
-    const int32_t ystep = (y1 < y2) ? 1 : -1;
-
-    int32_t y = y1;
-    int32_t error = dx >> 1;
-    
-
-    for (int32_t x = x1; x <= x2; x++)
-    {
-        putPixelAdd(step ? y : x, step ? x : y, color);
-        error -= dy;
-        if (error < 0)
-        {
-            y += ystep;
-            error += dx;
-        }
-    }
-}
-
-//Bresenham line from (x1,y1) to (x2,y2) with sub color
-void drawLineSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
-{
-    //clip coordinator
-    clipLine(&x1, &y1, &x2, &y2);
-
-    const int32_t step = abs(y2 - y1) > abs(x2 - x1);
-
-    if (step)
-    {
-        swap(x1, y1);
-        swap(x2, y2);
-    }
-
-    if (x1 > x2)
-    {
-        swap(x1, x2);
-        swap(y1, y2);
-    }
-
-    const int32_t dx = x2 - x1;
-    const int32_t dy = abs(y2 - y1);
-    const int32_t ystep = (y1 < y2) ? 1 : -1;
-    
-    int32_t y = y1;
-    int32_t error = dx >> 1;
-    
-    for (int32_t x = x1; x <= x2; x++)
-    {
-        putPixelSub(step ? y : x, step ? x : y, color);
-        error -= dy;
-        if (error < 0)
-        {
-            y += ystep;
-            error += dx;
-        }
-    }
-}
-
-//Wu's line from (x1,y1) to (x2,y2) with alpha color
-void drawLineAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb)
-{
-    //clip line
-    clipLine(&x0, &y0, &x1, &y1);
-    
     const int32_t dx = abs(x1 - x0);
     const int32_t sx = x0 < x1 ? 1 : -1;
     const int32_t dy = abs(y1 - y0);
     const int32_t sy = y0 < y1 ? 1 : -1;
     const int32_t ed = ((dx + dy) == 0) ? 1 : int32_t(sqrt(double(dx) * dx + double(dy) * dy));
 
-    int32_t e2, x2;
     int32_t err = dx - dy;
 
     while (1)
     {
-        putPixelAlpha(x0, y0, rgb, 255 * abs(err - dx + dy) / ed);
-        e2 = err;
-        x2 = x0;
+        putPixel(x0, y0, rgba(argb, 255 * abs(err - dx + dy) / ed), BLEND_MODE_ANTIALIASED);
+        const int32_t e2 = err;
+        const int32_t x2 = x0;
 
         if (2 * e2 >= -dx)
         {
             if (x0 == x1) break;
-            if (e2 + dy < ed) putPixelAlpha(x0, y0 + sy, rgb, 255 * (e2 + dy) / ed);
+            if (e2 + dy < ed) putPixel(x0, y0 + sy, rgba(argb, 255 * (e2 + dy) / ed), BLEND_MODE_ANTIALIASED);
             err -= dy;
             x0 += sx;
         }
@@ -2495,9 +2625,55 @@ void drawLineAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb)
         if (2 * e2 <= dy)
         {
             if (y0 == y1) break;
-            if (dx - e2 < ed) putPixelAlpha(x2 + sx, y0, rgb, 255 * (dx - e2) / ed);
+            if (dx - e2 < ed) putPixel(x2 + sx, y0, rgba(argb, 255 * (dx - e2) / ed), BLEND_MODE_ANTIALIASED);
             err += dx;
             y0 += sy;
+        }
+    }
+}
+
+//Bresenham line from (x1,y1) to (x2,y2) with color and mode
+void drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    //clip coordinator
+    clipLine(&x1, &y1, &x2, &y2);
+
+    //alpha mode
+    if (mode == BLEND_MODE_ANTIALIASED)
+    {
+        drawLineAA(x1, y1, x2, y2, color);
+        return;
+    }
+
+    const int32_t step = abs(y2 - y1) > abs(x2 - x1);
+
+    if (step)
+    {
+        swap(x1, y1);
+        swap(x2, y2);
+    }
+
+    if (x1 > x2)
+    {
+        swap(x1, x2);
+        swap(y1, y2);
+    }
+
+    const int32_t dx = x2 - x1;
+    const int32_t dy = abs(y2 - y1);
+    const int32_t ystep = (y1 < y2) ? 1 : -1;
+
+    int32_t y = y1;
+    int32_t error = dx >> 1;
+
+    for (int32_t x = x1; x <= x2; x++)
+    {
+        putPixel(step ? y : x, step ? x : y, color, mode);
+        error -= dy;
+        if (error < 0)
+        {
+            y += ystep;
+            error += dx;
         }
     }
 }
@@ -2506,6 +2682,7 @@ void drawLineAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb)
 void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
     //range check
+    if (bitsPerPixel != 8) return;
     if (x1 < 0 || x1 >= texWidth || x2 < 0 || x2 >= texWidth || y1 < 0 || y1 >= texHeight || y2 < 0 || y2 >= texHeight) return;
 
 #ifdef _USE_ASM    
@@ -2640,82 +2817,9 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 #endif
 }
 
-//Bresenham circle at (xc,yc) with radius and color
-void drawCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
+//Wu's circle with anti-aliased
+void drawCircleAA(int32_t xm, int32_t ym, int32_t rad, uint32_t argb)
 {
-    if (radius <= 0) return;
-
-    int32_t x = 0, y = radius;
-    int32_t p = 1 - radius;
-
-    while (x <= y)
-    {
-        putPixel(xc + x, yc + y, color);
-        putPixel(xc - x, yc + y, color);
-        putPixel(xc + x, yc - y, color);
-        putPixel(xc - x, yc - y, color);
-        putPixel(xc + y, yc + x, color);
-        putPixel(xc - y, yc + x, color);
-        putPixel(xc + y, yc - x, color);
-        putPixel(xc - y, yc - x, color);
-        if (p < 0) p += (x++ << 1) + 3;
-        else p += ((x++ - y--) << 1) + 5;
-    }
-}
-
-//Bresenham circle at (xc,yc) with radius and color
-void drawCircleAdd(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
-{
-    if (radius <= 0) return;
-
-    int32_t x = 0, y = radius;
-    int32_t p = 1 - radius;
-
-    while (x <= y)
-    {
-        putPixelAdd(xc + x, yc + y, color);
-        putPixelAdd(xc - x, yc + y, color);
-        putPixelAdd(xc + x, yc - y, color);
-        putPixelAdd(xc - x, yc - y, color);
-        putPixelAdd(xc + y, yc + x, color);
-        putPixelAdd(xc - y, yc + x, color);
-        putPixelAdd(xc + y, yc - x, color);
-        putPixelAdd(xc - y, yc - x, color);
-        if (p < 0) p += (x++ << 1) + 3;
-        else p += ((x++ - y--) << 1) + 5;
-    }
-}
-
-//Bresenham circle at (xc,yc) with radius and color
-void drawCircleSub(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
-{
-    if (radius <= 0) return;
-
-    int32_t x = 0, y = radius;
-    int32_t p = 1 - radius;
-
-    while (x <= y)
-    {
-        putPixelSub(xc + x, yc + y, color);
-        putPixelSub(xc - x, yc + y, color);
-        putPixelSub(xc + x, yc - y, color);
-        putPixelSub(xc - x, yc - y, color);
-        putPixelSub(xc + y, yc + x, color);
-        putPixelSub(xc - y, yc + x, color);
-        putPixelSub(xc + y, yc - x, color);
-        putPixelSub(xc - y, yc - x, color);
-        if (p < 0) p += (x++ << 1) + 3;
-        else p += ((x++ - y--) << 1) + 5;
-    }
-}
-
-//Wu's circle with alpha blend
-void drawCircleAlpha(int32_t xm, int32_t ym, int32_t rad, uint32_t rgb)
-{
-    //only 32bit support alpha-blend mode
-    if (bitsPerPixel != 32) return;
-    if (rad <= 0) return;
-
     int32_t x = -rad;
     int32_t y = 0;
     int32_t err = (1 - rad) << 1;
@@ -2724,10 +2828,11 @@ void drawCircleAlpha(int32_t xm, int32_t ym, int32_t rad, uint32_t rgb)
 
     do {
         int32_t alpha = 255 * abs(err - 2 * (x + y) - 2) / rad;
-        putPixelAlpha(xm - x, ym + y, rgb, alpha);
-        putPixelAlpha(xm - y, ym - x, rgb, alpha);
-        putPixelAlpha(xm + x, ym - y, rgb, alpha);
-        putPixelAlpha(xm + y, ym + x, rgb, alpha);
+        uint32_t col = rgba(argb, alpha);
+        putPixel(xm - x, ym + y, col, BLEND_MODE_ANTIALIASED);
+        putPixel(xm - y, ym - x, col, BLEND_MODE_ANTIALIASED);
+        putPixel(xm + x, ym - y, col, BLEND_MODE_ANTIALIASED);
+        putPixel(xm + y, ym + x, col, BLEND_MODE_ANTIALIASED);
 
         const int32_t e2 = err;
         const int32_t x2 = x;
@@ -2737,10 +2842,11 @@ void drawCircleAlpha(int32_t xm, int32_t ym, int32_t rad, uint32_t rgb)
             alpha = 255 * (err - 2 * x - 1) / rad;
             if (alpha < 256)
             {
-                putPixelAlpha(xm - x, ym + y + 1, rgb, alpha);
-                putPixelAlpha(xm - y - 1, ym - x, rgb, alpha);
-                putPixelAlpha(xm + x, ym - y - 1, rgb, alpha);
-                putPixelAlpha(xm + y + 1, ym + x, rgb, alpha);
+                col = rgba(argb, alpha);
+                putPixel(xm - x, ym + y + 1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(xm - y - 1, ym - x, col, BLEND_MODE_ANTIALIASED);
+                putPixel(xm + x, ym - y - 1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(xm + y + 1, ym + x, col, BLEND_MODE_ANTIALIASED);
             }
 
             err += ++x * 2 + 1;
@@ -2751,170 +2857,53 @@ void drawCircleAlpha(int32_t xm, int32_t ym, int32_t rad, uint32_t rgb)
             alpha = 255 * (2 * y + 3 - e2) / rad;
             if (alpha < 256)
             {
-                putPixelAlpha(xm - x2 - 1, ym + y, rgb, alpha);
-                putPixelAlpha(xm - y, ym - x2 - 1, rgb, alpha);
-                putPixelAlpha(xm + x2 + 1, ym - y, rgb, alpha);
-                putPixelAlpha(xm + y, ym + x2 + 1, rgb, alpha);
+                col = rgba(argb, alpha);
+                putPixel(xm - x2 - 1, ym + y, col, BLEND_MODE_ANTIALIASED);
+                putPixel(xm - y, ym - x2 - 1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(xm + x2 + 1, ym - y, col, BLEND_MODE_ANTIALIASED);
+                putPixel(xm + y, ym + x2 + 1, col, BLEND_MODE_ANTIALIASED);
             }
             err += ++y * 2 + 1;
         }
     } while (x < 0);
 }
 
-//Bresenham drawing an ellipses with color
-void drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
+//Bresenham circle at (xc,yc) with radius and color
+void drawCircle(int32_t xc, int32_t yc, int32_t rad, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    if (ra <= 0) return;
-    if (rb <= 0) return;
+    //range checking
+    if (rad <= 0) return;
 
-    int32_t mx1 = xc - ra;
-    int32_t mx2 = xc + ra;
-    int32_t my1 = yc;
-    int32_t my2 = yc;
-
-    putPixel(mx2, yc, color);
-    putPixel(mx1, yc, color);
-
-    const int32_t aq = ra * ra;
-    const int32_t bq = rb * rb;
-    const int32_t dx = aq << 1;
-    const int32_t dy = bq << 1;
-
-    int32_t rd = ra * bq;
-    int32_t rx = rd << 1;
-    int32_t ry = 0;
-    int32_t ax = ra;
-
-    while (ax > 0)
+    //alpha mode
+    if (mode == BLEND_MODE_ANTIALIASED)
     {
-        if (rd > 0)
-        {
-            my1++;
-            my2--;
-            ry += dx;
-            rd -= ry;
-        }
+        drawCircleAA(xc, yc, rad, color);
+        return;
+    }
 
-        if (rd <= 0)
-        {
-            ax--;
-            mx1++;
-            mx2--;
-            rx -= dy;
-            rd += rx;
-        }
+    int32_t x = 0, y = rad;
+    int32_t p = 1 - rad;
 
-        putPixel(mx1, my1, color);
-        putPixel(mx1, my2, color);
-        putPixel(mx2, my1, color);
-        putPixel(mx2, my2, color);
+    while (x <= y)
+    {
+        putPixel(xc + x, yc + y, color, mode);
+        putPixel(xc - x, yc + y, color, mode);
+        putPixel(xc + x, yc - y, color, mode);
+        putPixel(xc - x, yc - y, color, mode);
+        putPixel(xc + y, yc + x, color, mode);
+        putPixel(xc - y, yc + x, color, mode);
+        putPixel(xc + y, yc - x, color, mode);
+        putPixel(xc - y, yc - x, color, mode);
+        if (p < 0) p += (x++ << 1) + 3;
+        else p += ((x++ - y--) << 1) + 5;
     }
 }
 
-//Bresenham drawing an ellipses with add color
-void drawEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
-{
-    if (ra <= 0) return;
-    if (rb <= 0) return;
-
-    int32_t mx1 = xc - ra;
-    int32_t mx2 = xc + ra;
-    int32_t my1 = yc;
-    int32_t my2 = yc;
-
-    putPixel(mx2, yc, color);
-    putPixel(mx1, yc, color);
-
-    const int32_t aq = ra * ra;
-    const int32_t bq = rb * rb;
-    const int32_t dx = aq << 1;
-    const int32_t dy = bq << 1;
-
-    int32_t rd = ra * bq;
-    int32_t rx = rd << 1;
-    int32_t ry = 0;
-    int32_t ax = ra;
-
-    while (ax > 0)
-    {
-        if (rd > 0)
-        {
-            my1++;
-            my2--;
-            ry += dx;
-            rd -= ry;
-        }
-
-        if (rd <= 0)
-        {
-            ax--;
-            mx1++;
-            mx2--;
-            rx -= dy;
-            rd += rx;
-        }
-
-        putPixelAdd(mx1, my1, color);
-        putPixelAdd(mx1, my2, color);
-        putPixelAdd(mx2, my1, color);
-        putPixelAdd(mx2, my2, color);
-    }
-}
-
-//Bresenham drawing an ellipses with sub color
-void drawEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
-{
-    if (ra <= 0) return;
-    if (rb <= 0) return;
-
-    int32_t mx1 = xc - ra;
-    int32_t mx2 = xc + ra;
-    int32_t my1 = yc;
-    int32_t my2 = yc;
-
-    putPixel(mx2, yc, color);
-    putPixel(mx1, yc, color);
-
-    const int32_t aq = ra * ra;
-    const int32_t bq = rb * rb;
-    const int32_t dx = aq << 1;
-    const int32_t dy = bq << 1;
-
-    int32_t rd = ra * bq;
-    int32_t rx = rd << 1;
-    int32_t ry = 0;
-    int32_t ax = ra;
-
-    while (ax > 0)
-    {
-        if (rd > 0)
-        {
-            my1++;
-            my2--;
-            ry += dx;
-            rd -= ry;
-        }
-
-        if (rd <= 0)
-        {
-            ax--;
-            mx1++;
-            mx2--;
-            rx -= dy;
-            rd += rx;
-        }
-
-        putPixelSub(mx1, my1, color);
-        putPixelSub(mx1, my2, color);
-        putPixelSub(mx2, my1, color);
-        putPixelSub(mx2, my2, color);
-    }
-}
-
-//Wu's ellipse with alpha blend
-void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb)
+//Wu's ellipse with anti-aliased
+void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb)
 {
     int32_t f = 0;
+    uint32_t col = 0;
     double alpha = 0;
     
     int32_t a = abs(x1 - x0);
@@ -2954,22 +2943,23 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
         else ed = 255 / (ed + 2 * ed * alpha * alpha / (4 * ed * ed + alpha * alpha));
 
         alpha = ed * fabs(err + dx - dy);
+        col = rgba(argb, uint8_t(alpha));
+        putPixel(x0, y0, col, BLEND_MODE_ANTIALIASED);
+        putPixel(x0, y1, col, BLEND_MODE_ANTIALIASED);
+        putPixel(x1, y0, col, BLEND_MODE_ANTIALIASED);
+        putPixel(x1, y1, col, BLEND_MODE_ANTIALIASED);
 
-        putPixelAlpha(x0, y0, rgb, uint8_t(alpha));
-        putPixelAlpha(x0, y1, rgb, uint8_t(alpha));
-        putPixelAlpha(x1, y0, rgb, uint8_t(alpha));
-        putPixelAlpha(x1, y1, rgb, uint8_t(alpha));
-        
         if ((f = (2 * err + dy) >= 0))
         {
             if (x0 >= x1) break;
             alpha = ed * (err + dx);
             if (alpha < 255)
             {
-                putPixelAlpha(x0, y0 + 1, rgb, uint8_t(alpha));
-                putPixelAlpha(x0, y1 - 1, rgb, uint8_t(alpha));
-                putPixelAlpha(x1, y0 + 1, rgb, uint8_t(alpha));
-                putPixelAlpha(x1, y1 - 1, rgb, uint8_t(alpha));
+                col = rgba(argb, uint8_t(alpha));
+                putPixel(x0, y0 + 1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(x0, y1 - 1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(x1, y0 + 1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(x1, y1 - 1, col, BLEND_MODE_ANTIALIASED);
             }
         }
 
@@ -2978,10 +2968,11 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
             alpha = ed * (dy - err);
             if (alpha < 255)
             {
-                putPixelAlpha(x0 + 1, y0, rgb, uint8_t(alpha));
-                putPixelAlpha(x1 - 1, y0, rgb, uint8_t(alpha));
-                putPixelAlpha(x0 + 1, y1, rgb, uint8_t(alpha));
-                putPixelAlpha(x1 - 1, y1, rgb, uint8_t(alpha));
+                col = rgba(argb, uint8_t(alpha));
+                putPixel(x0 + 1, y0, col, BLEND_MODE_ANTIALIASED);
+                putPixel(x1 - 1, y0, col, BLEND_MODE_ANTIALIASED);
+                putPixel(x0 + 1, y1, col, BLEND_MODE_ANTIALIASED);
+                putPixel(x1 - 1, y1, col, BLEND_MODE_ANTIALIASED);
             }
 
             y0++;
@@ -3002,399 +2993,892 @@ void drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t r
         while (y0 - y1 < b)
         {
             alpha = 255.0 * 4 * fabs(err + dx) / b1;
-            putPixelAlpha(x0, ++y0, rgb, uint8_t(alpha));
-            putPixelAlpha(x1, y0, rgb, uint8_t(alpha));
-            putPixelAlpha(x0, --y1, rgb, uint8_t(alpha));
-            putPixelAlpha(x1, y1, rgb, uint8_t(alpha));
+            col = rgba(argb, uint8_t(alpha));
+            putPixel(x0, ++y0, col, BLEND_MODE_ANTIALIASED);
+            putPixel(x1, y0, col, BLEND_MODE_ANTIALIASED);
+            putPixel(x0, --y1, col, BLEND_MODE_ANTIALIASED);
+            putPixel(x1, y1, col, BLEND_MODE_ANTIALIASED);
             err += dy += a;
         }
     }
 }
 
+
+//Bresenham drawing an ellipses with sub color
+void drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    //range checking
+    if (ra <= 0) return;
+    if (rb <= 0) return;
+
+    //alpha mode?
+    if (mode == BLEND_MODE_ANTIALIASED)
+    {
+        drawEllipseAA(xc, yc, ra, rb, color);
+        return;
+    }
+
+    int32_t mx1 = xc - ra;
+    int32_t mx2 = xc + ra;
+    int32_t my1 = yc;
+    int32_t my2 = yc;
+
+    putPixel(mx2, yc, color, mode);
+    putPixel(mx1, yc, color, mode);
+
+    const int32_t aq = ra * ra;
+    const int32_t bq = rb * rb;
+    const int32_t dx = aq << 1;
+    const int32_t dy = bq << 1;
+
+    int32_t rd = ra * bq;
+    int32_t rx = rd << 1;
+    int32_t ry = 0;
+    int32_t ax = ra;
+
+    while (ax > 0)
+    {
+        if (rd > 0)
+        {
+            my1++;
+            my2--;
+            ry += dx;
+            rd -= ry;
+        }
+
+        if (rd <= 0)
+        {
+            ax--;
+            mx1++;
+            mx2--;
+            rx -= dy;
+            rd += rx;
+        }
+
+        putPixel(mx1, my1, color, mode);
+        putPixel(mx1, my2, color, mode);
+        putPixel(mx2, my1, color, mode);
+        putPixel(mx2, my2, color, mode);
+    }
+}
+
 //rectangle with corners (x1,y1) and (width,height) and color
-void drawRect(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
+void drawRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    horizLine(x1, y1, width, color);
-    vertLine(x1, y1, height, color);
-    horizLine(x1, y1 + height - 1, width, color);
-    vertLine(x1 + width - 1, y1, height, color);
-}
-
-//draw rectangle with add color
-void drawRectAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col)
-{
-    horizLineAdd(x1, y1, width, col);
-    vertLineAdd(x1, y1, height, col);
-    horizLineAdd(x1, y1 + height - 1, width, col);
-    vertLineAdd(x1 + width - 1, y1, height, col);
-}
-
-//draw rectangle with sub color
-void drawRectSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col)
-{
-    horizLineSub(x1, y1, width, col);
-    vertLineSub(x1, y1, height, col);
-    horizLineSub(x1, y1 + height - 1, width, col);
-    vertLineSub(x1 + width - 1, y1, height, col);
+    horizLine(x, y, width, color, mode);
+    vertLine(x, y, height, color, mode);
+    horizLine(x, y + height - 1, width, color, mode);
+    vertLine(x + width - 1, y, height, color, mode);
 }
 
 //draw rectangle with rounded border and color
-void drawRectEx(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
+void drawRoundRect(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rad, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    int32_t x = 0, y = 0;
+    int32_t i = 0, j = 0;
     int32_t point[500] = { 0 };
 
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
+    const int32_t x1 = x + width - 1;
+    const int32_t y1 = y + height - 1;
     const int32_t mid = height >> 1;
 
-    if (r >= mid - 1) r = mid - 1;
+    if (rad >= mid - 1) rad = mid - 1;
 
-    calcCircle(r, point);
+    calcCircle(rad, point);
 
-    horizLine(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
-    vertLine(x1, y1 + r, height - (r << 1), col);
-    horizLine(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
-    vertLine(x2, y1 + r, height - (r << 1), col);
+    horizLine(x + rad - point[0], y + 1, width - ((rad - point[0]) << 1), col, mode);
+    vertLine(x, y + rad, height - (rad << 1), col, mode);
+    horizLine(x + rad - point[0], y1 - 1, width - ((rad - point[0]) << 1), col, mode);
+    vertLine(x1, y + rad, height - (rad << 1), col, mode);
 
-    for (y = 1; y <= r; y++)
+    for (i = 1; i <= rad; i++)
     {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
+        for (j = rad - point[i]; j <= rad - point[i - 1]; j++)
         {
-            putPixel(x1 + x, y1 + y, col);
-            putPixel(x2 - x, y1 + y, col);
+            putPixel(x + j, y + i, col, mode);
+            putPixel(x1 - j, y + i, col, mode);
         }
     }
 
-    for (y = 1; y <= r; y++)
+    for (i = 1; i <= rad; i++)
     {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
+        for (j = rad - point[i]; j <= rad - point[i - 1]; j++)
         {
-            putPixel(x1 + x, y2 - y, col);
-            putPixel(x2 - x, y2 - y, col);
-        }
-    }
-}
-
-//draw rectangle with rounded border and add color
-void drawRectExAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
-{
-    int32_t x = 0, y = 0;
-    int32_t point[500] = { 0 };
-
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t mid = height >> 1;
-
-    if (r >= mid - 1) r = mid - 1;
-
-    calcCircle(r, point);
-
-    horizLineAdd(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
-    vertLineAdd(x1, y1 + r, height - (r << 1), col);
-    horizLineAdd(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
-    vertLineAdd(x2, y1 + r, height - (r << 1), col);
-
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelAdd(x1 + x, y1 + y, col);
-            putPixelAdd(x2 - x, y1 + y, col);
-        }
-    }
-
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelAdd(1 + x, y2 - y, col);
-            putPixelAdd(x2 - x, y2 - y, col);
-        }
-    }
-}
-
-//draw rectangle with rounded border
-void drawRectExSub(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
-{
-    int32_t x = 0, y = 0;
-    int32_t point[500] = { 0 };
-
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t mid = height >> 1;
-
-    if (r >= mid - 1) r = mid - 1;
-
-    calcCircle(r, point);
-
-    horizLineSub(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
-    vertLineSub(x1, y1 + r, height - (r << 1), col);
-    horizLineSub(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
-    vertLineSub(x2, y1 + r, height - (r << 1), col);
-
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelSub(x1 + x, y1 + y, col);
-            putPixelSub(x2 - x, y1 + y, col);
-        }
-    }
-
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelSub(x1 + x, y2 - y, col);
-            putPixelSub(x2 - x, y2 - y, col);
+            putPixel(x + j, y1 - i, col, mode);
+            putPixel(x1 - j, y1 - i, col, mode);
         }
     }
 }
 
 //draw boxed with color
-void drawBox(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col)
+void drawBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t x11 = x1 + dx;
-    const int32_t y11 = y1 - dy;
-    const int32_t x22 = x2 + dx;
-    const int32_t y22 = y2 - dy;
+    const int32_t x1 = x + width - 1;
+    const int32_t y1 = y + height - 1;
+    const int32_t x0 = x + dx;
+    const int32_t y0 = y - dy;
+    const int32_t x2 = x1 + dx;
+    const int32_t y2 = y1 - dy;
 
-    drawRect(x1, y1, width, height, col);
-    drawRect(x11, y11, width, height, col);
-    drawLine(x1, y1, x11, y11, col);
-    drawLine(x2, y1, x22, y11, col);
-    drawLine(x2, y2, x22, y22, col);
-    drawLine(x1, y2, x11, y22, col);
+    drawRect(x, y, width, height, col, mode);
+    drawRect(x0, y0, width, height, col, mode);
+    drawLine(x, y, x0, y0, col, mode);
+    drawLine(x1, y, x2, y0, col, mode);
+    drawLine(x1, y1, x2, y2, col, mode);
+    drawLine(x, y1, x0, y2, col, mode);
 }
 
-//draw boxed with add color
-void drawBoxAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col)
+//draw anti-aliased line with width
+void drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col)
 {
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t x11 = x1 + dx;
-    const int32_t y11 = y1 - dy;
-    const int32_t x22 = x2 + dx;
-    const int32_t y22 = y2 - dy;
+    const int32_t dx = abs(x1 - x0), sx = (x0 < x1) ? 1 : -1;
+    const int32_t dy = abs(y1 - y0), sy = (y0 < y1) ? 1 : -1;
+    int32_t err = dx - dy, e2 = 0, x2 = 0, y2 = 0;
 
-    drawRectAdd(x1, y1, width, height, col);
-    drawRectAdd(x11, y11, width, height, col);
-    drawLineAdd(x1, y1, x11, y11, col);
-    drawLineAdd(x2, y1, x22, y11, col);
-    drawLineAdd(x2, y2, x22, y22, col);
-    drawLineAdd(x1, y2, x11, y22, col);
+    const double ed = (dx + dy == 0) ? 1 : sqrt(double(dx) * dx + double(dy) * dy);
+
+    wd = (wd + 1) / 2;
+
+    while (true)
+    {
+        putPixel(x0, y0, rgba(col, uint8_t(max(0, 255 * (abs(err - dx + dy) / ed - wd + 1)))), BLEND_MODE_ALPHA);
+
+        e2 = err;
+        x2 = x0;
+
+        if (2 * e2 >= -dx)
+        {
+            for (e2 += dy, y2 = y0; e2 < ed * wd && (y1 != y2 || dx > dy); e2 += dx) putPixel(x0, y2 += sy, rgba(col, uint8_t(max(0, 255 * (abs(e2) / ed - wd + 1)))), BLEND_MODE_ALPHA);
+            if (x0 == x1) break;
+            e2 = err;
+            err -= dy;
+            x0 += sx;
+        }
+
+        if (2 * e2 <= dy)
+        {
+            for (e2 = dx - e2; e2 < ed * wd && (x1 != x2 || dx < dy); e2 += dy) putPixel(x2 += sx, y0, rgba(col, uint8_t(max(0, 255 * (abs(e2) / ed - wd + 1)))), BLEND_MODE_ALPHA);
+            if (y0 == y1) break;
+            err += dx;
+            y0 += sy;
+        }
+    }
 }
 
-//draw boxed with sub color
-void drawBoxSub(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col)
+//draw anti-aliased full quad bezier segment
+void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col)
 {
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t x11 = x1 + dx;
-    const int32_t y11 = y1 - dy;
-    const int32_t x22 = x2 + dx;
-    const int32_t y22 = y2 - dy;
+    int32_t sx = x2 - x1, sy = y2 - y1;
+    int32_t xx = x0 - x1, yy = y0 - y1, xy = 0;
+    double dx = 0.0, dy = 0.0, err = 0.0, ed = 0.0, cur = double(xx) * sy - double(yy) * sx;
 
-    drawRectSub(x1, y1, width, height, col);
-    drawRectSub(x11, y11, width, height, col);
-    drawLineSub(x1, y1, x11, y11, col);
-    drawLineSub(x2, y1, x22, y11, col);
-    drawLineSub(x2, y2, x22, y22, col);
-    drawLineSub(x1, y2, x11, y22, col);
+    if (sqr(sx) + sqr(sy) > sqr(xx) + sqr(yy))
+    {
+        x2 = x0;
+        x0 = sx + x1;
+        y2 = y0;
+        y0 = sy + y1;
+        cur = -cur;
+    }
+
+    if (cur != 0)
+    {
+        xx += sx; xx *= sx = x0 < x2 ? 1 : -1;
+        yy += sy; yy *= sy = y0 < y2 ? 1 : -1;
+        xy = 2 * xx * yy;
+        xx *= xx;
+        yy *= yy;
+
+        if (cur * sx * sy < 0)
+        {
+            xx = -xx;
+            yy = -yy;
+            xy = -xy;
+            cur = -cur;
+        }
+
+        dx = 4.0 * sy * (intmax_t(x1) - x0) * cur + xx - xy;
+        dy = 4.0 * sx * (intmax_t(y0) - y1) * cur + yy - xy;
+        xx += xx; yy += yy; err = dx + dy + xy;
+
+        do {
+            cur = min(dx + xy, -xy - dy);
+            ed = max(dx + xy, -xy - dy);
+            ed += 2 * ed * cur * cur / (4 * ed * ed + cur * cur);
+            putPixel(x0, y0, rgba(col, uint8_t(255 * fabs(err - dx - dy - xy) / ed)), BLEND_MODE_ANTIALIASED);
+
+            if (x0 == x2 || y0 == y2) break;
+
+            x1 = x0; cur = dx - err; y1 = 2 * err + dy < 0;
+            if (2 * err + dx > 0)
+            {
+                if (err - dy < ed) putPixel(x0, y0 + sy, rgba(col, uint8_t(255 * fabs(err - dy) / ed)), BLEND_MODE_ANTIALIASED);
+                x0 += sx; dx -= xy; err += dy += yy;
+            }
+            if (y1)
+            {
+                if (cur < ed) putPixel(x1 + sx, y0, rgba(col, uint8_t(255 * fabs(cur) / ed)), BLEND_MODE_ANTIALIASED);
+                y0 += sy; dy -= xy; err += dx += xx;
+            }
+        } while (dy < dx);
+    }
+
+    drawLine(x0, y0, x2, y2, col, BLEND_MODE_ANTIALIASED);
 }
 
-//draw boxed with rounded border
-void drawBoxEx(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
+//draw a quad bezier segment
+void drawQuadBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
 {
-    int32_t x = 0, y = 0;
-    int32_t point[500] = { 0 };
+    //anti-aliased mode?
+    if (mode == BLEND_MODE_ANTIALIASED)
+    {
+        drawQuadBezierSegAA(x0, y0, x1, y1, x2, y2, col);
+        return;
+    }
 
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t mid = height >> 1;
+    int32_t sx = x2 - x1, sy = y2 - y1;
+    int32_t xx = x0 - x1, yy = y0 - y1, xy = 0;
+    double dx = 0.0, dy = 0.0, err = 0.0, cur = double(xx) * sy - double(yy) * sx;
 
-    if (r >= mid - 1) r = mid - 1;
+    if (sqr(sx) + sqr(sy) > sqr(xx) + sqr(yy))
+    {
+        x2 = x0;
+        x0 = sx + x1;
+        y2 = y0;
+        y0 = sy + y1;
+        cur = -cur;
+    }
+
+    if (cur != 0)
+    {
+        xx += sx;
+        xx *= sx = x0 < x2 ? 1 : -1;
+        yy += sy;
+        yy *= sy = y0 < y2 ? 1 : -1;
+        xy = 2 * xx * yy;
+        xx *= xx;
+        yy *= yy;
+
+        if (cur * sx * sy < 0)
+        {
+            xx = -xx;
+            yy = -yy;
+            xy = -xy;
+            cur = -cur;
+        }
+
+        dx = 4.0 * sy * cur * (intmax_t(x1) - x0) + xx - xy;
+        dy = 4.0 * sx * cur * (intmax_t(y0) - y1) + yy - xy;
+        xx += xx;
+        yy += yy;
+        err = dx + dy + xy;
+
+        do {
+            putPixel(x0, y0, col, mode);
+            if (x0 == x2 && y0 == y2) return;
+            y1 = 2 * err < dx;
+            if (2 * err > dy)
+            {
+                x0 += sx;
+                dx -= xy;
+                err += dy += yy;
+            }
+            if (y1)
+            {
+                y0 += sy;
+                dy -= xy;
+                err += dx += xx;
+            }
+        } while (dy < 0 && dx > 0);
+    }
+
+    drawLine(x0, y0, x2, y2, col, mode);
+}
+
+//draw anti-aliased cubic bezier segment
+void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x2, double y2, int32_t x3, int32_t y3, uint32_t col)
+{
+    int32_t f = 0, fx = 0, fy = 0, leg = 1;
+    int32_t sx = x0 < x3 ? 1 : -1, sy = y0 < y3 ? 1 : -1;
+
+    const double EP = 0.01;
+    const double xc = -fabs(x0 + x1 - x2 - x3);
+    const double xa = xc - 4.0 * sx * (x1 - x2);
+    const double yc = -fabs(y0 + y1 - y2 - y3);
+    const double ya = yc - 4.0 * sy * (y1 - y2);
+
+    double xb = sx * (x0 - x1 - x2 + x3);
+    double yb = sy * (y0 - y1 - y2 + y3);
+
+    double ip = 0.0;
+    double ab = 0.0, ac = 0.0, bc = 0.0, ba = 0.0;
+    double xx = 0.0, xy = 0.0, yy = 0.0;
+    double dx = 0.0, dy = 0.0, ex = 0.0;
+    double px = 0.0, py = 0.0, ed = 0.0;
+
+    if (xa == 0 && ya == 0)
+    {
+        sx = int32_t(floor((3 * x1 - x0 + 1) / 2));
+        sy = int32_t(floor((3 * y1 - y0 + 1) / 2));
+        drawQuadBezierSeg(x0, y0, sx, sy, x3, y3, col, BLEND_MODE_ANTIALIASED);
+        return;
+    }
+
+    x1 = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + 1;
+    x2 = (x2 - x3) * (x2 - x3) + (y2 - y3) * (y2 - y3) + 1;
+
+    do {
+        ab = xa * yb - xb * ya;
+        ac = xa * yc - xc * ya;
+        bc = xb * yc - xc * yb;
+        ip = 4 * ab * bc - ac * ac;
+        ex = ab * (ab + ac - 3 * bc) + ac * ac;
+        f = (ex > 0) ? 1 : int32_t(sqrt(1 + 1024 / x1));
+        ab *= f; ac *= f; bc *= f; ex *= intmax_t(f) * f;
+        xy = 9 * (ab + ac + bc) / 8;
+        ba = 8 * (xa - ya);
+        dx = 27 * (8 * ab * (yb * yb - ya * yc) + ex * (ya + 2 * yb + yc)) / 64 - ya * ya * (xy - ya);
+        dy = 27 * (8 * ab * (xb * xb - xa * xc) - ex * (xa + 2 * xb + xc)) / 64 - xa * xa * (xy + xa);
+
+        xx = 3 * (3 * ab * (3 * yb * yb - ya * ya - 2 * ya * yc) - ya * (3 * ac * (ya + yb) + ya * ba)) / 4;
+        yy = 3 * (3 * ab * (3 * xb * xb - xa * xa - 2 * xa * xc) - xa * (3 * ac * (xa + xb) + xa * ba)) / 4;
+        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + ba); ac = ya * ya; ba = xa * xa;
+        xy = 3 * (xy + 9.0 * f * (ba * yb * yc - xb * xc * ac) - 18 * xb * yb * ab) / 8;
+
+        if (ex < 0)
+        {
+            dx = -dx; dy = -dy; xx = -xx; yy = -yy; xy = -xy; ac = -ac; ba = -ba;
+        }
+
+        ab = 6 * ya * ac; ac = -6 * xa * ac; bc = 6 * ya * ba; ba = -6 * xa * ba;
+        dx += xy; ex = dx + dy; dy += xy;
+
+        for (fx = fy = f; x0 != x3 && y0 != y3;)
+        {
+            y1 = min(fabs(xy - dx), fabs(dy - xy));
+            ed = max(fabs(xy - dx), fabs(dy - xy));
+            ed = f * (ed + 2 * ed * y1 * y1 / (4 * ed * ed + y1 * y1));
+
+            y1 = 255 * fabs(ex - (intmax_t(f) - fx + 1) * dx - (intmax_t(f) - fy + 1) * dy + f * xy) / ed;
+            if (y1 < 256) putPixel(x0, y0, rgba(col, uint8_t(y1)), BLEND_MODE_ANTIALIASED);
+
+            px = fabs(ex - (intmax_t(f) - fx + 1) * dx + (intmax_t(fy) - 1) * dy);
+            py = fabs(ex + (intmax_t(fx) - 1) * dx - (intmax_t(f) - fy + 1) * dy);
+            y2 = y0;
+
+            do {
+                if ((ip >= -EP) && (dx + xx > xy || dy + yy < xy)) goto exit;
+                y1 = 2 * ex + dx;
+                if (2 * ex + dy > 0)
+                {
+                    fx--; ex += dx += xx; dy += xy += ac; yy += bc; xx += ab;
+                }
+                else if (y1 > 0) goto exit;
+                if (y1 <= 0)
+                {
+                    fy--; ex += dy += yy; dx += xy += bc; xx += ac; yy += ba;
+                }
+            } while (fx > 0 && fy > 0);
+
+            if (2 * fy <= f)
+            {
+                if (py < ed) putPixel(x0 + sx, y0, rgba(col, uint8_t(255 * py / ed)), BLEND_MODE_ANTIALIASED);
+                y0 += sy; fy += f;
+            }
+
+            if (2 * fx <= f)
+            {
+                if (px < ed) putPixel(x0, int32_t(y2) + sy, rgba(col, uint8_t(255 * px / ed)), BLEND_MODE_ANTIALIASED);
+                x0 += sx; fx += f;
+            }
+        }
+
+    exit:
+        if (2 * ex < dy && 2 * fy <= f + 2)
+        {
+            if (py < ed) putPixel(x0 + sx, y0, rgba(col, uint8_t(255 * py / ed)), BLEND_MODE_ANTIALIASED);
+            y0 += sy;
+        }
+
+        if (2 * ex > dx && 2 * fx <= f + 2)
+        {
+            if (px < ed) putPixel(x0, int32_t(y2) + sy, rgba(col, uint8_t(255 * px / ed)), BLEND_MODE_ANTIALIASED);
+            x0 += sx;
+        }
+
+        xx = x0; x0 = x3; x3 = int32_t(xx); sx = -sx; xb = -xb;
+        yy = y0; y0 = y3; y3 = int32_t(yy); sy = -sy; yb = -yb; x1 = x2;
+    } while (leg--);
+
+    drawLine(x0, y0, x3, y3, col, BLEND_MODE_ANTIALIASED);
+}
+
+//draw full quad bezier (export function)
+void drawQuadBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+{
+    int32_t x = x0 - x1, y = y0 - y1;
+    double t = x0 - 2.0 * x1 + x2, r = 0.0;
+
+    if (x * (x2 - x1) > 0)
+    {
+        if ((y * (y2 - y1) > 0) && fabs((y0 - 2.0 * y1 + y2) / t * x) > abs(y))
+        {
+            x0 = x2; x2 = x + x1; y0 = y2; y2 = y + y1;
+        }
+        t = (intmax_t(x0) - x1) / t;
+        r = (1 - t) * ((1 - t) * y0 + 2.0 * t * y1) + t * t * y2;
+        t = (intmax_t(x0) * x2 - intmax_t(x1) * x1) * t / (intmax_t(x0) - x1);
+        x = int32_t(floor(t + 0.5));
+        y = int32_t(floor(r + 0.5));
+        r = (intmax_t(y1) - y0) * (t - x0) / (intmax_t(x1) - x0) + y0;
+        drawQuadBezierSeg(x0, y0, x, int32_t(floor(r + 0.5)), x, y, col, mode);
+        r = (intmax_t(y1) - y2) * (t - x2) / (intmax_t(x1) - x2) + y2;
+        x0 = x1 = x; y0 = y; y1 = int32_t(floor(r + 0.5));
+    }
+
+    if ((y0 - y1) * (y2 - y1) > 0)
+    {
+        t = y0 - 2.0 * y1 + y2;
+        t = (intmax_t(y0) - y1) / t;
+        r = (1 - t) * ((1 - t) * x0 + 2.0 * t * x1) + t * t * x2;
+        t = (intmax_t(y0) * y2 - intmax_t(y1) * y1) * t / (intmax_t(y0) - y1);
+        x = int32_t(floor(r + 0.5));
+        y = int32_t(floor(t + 0.5));
+        r = (intmax_t(x1) - x0) * (t - y0) / (intmax_t(y1) - y0) + x0;
+        drawQuadBezierSeg(x0, y0, int32_t(floor(r + 0.5)), y, x, y, col, mode);
+        r = (intmax_t(x1) - x2) * (t - y2) / (intmax_t(y1) - y2) + x2;
+        x0 = x; x1 = int32_t(floor(r + 0.5)); y0 = y1 = y;
+    }
+
+    drawQuadBezierSeg(x0, y0, x1, y1, x2, y2, col, mode);
+}
+
+//draw anti-aliased rotation quad bezier segment
+void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, uint32_t col)
+{
+    int32_t f = 0;
+    int32_t sx = x2 - x1, sy = y2 - y1;
+
+    double dx = double(x0) - x2, dy = double(y0) - y2, xx = double(x0) - x1, yy = double(y0) - y1;
+    double xy = xx * sy + yy * sx, cur = xx * sy - yy * sx, err = 0.0, ed = 0.0;
+
+    if (cur != 0.0 && w > 0.0)
+    {
+        if (sqr(sx) + sqr(sy) > sqr(xx) + sqr(yy))
+        {
+            x2 = x0; x0 -= int32_t(dx); y2 = y0; y0 -= int32_t(dy); cur = -cur;
+        }
+
+        xx = 2.0 * (4.0 * w * sx * xx + dx * dx);
+        yy = 2.0 * (4.0 * w * sy * yy + dy * dy);
+        sx = x0 < x2 ? 1 : -1;
+        sy = y0 < y2 ? 1 : -1;
+        xy = -2.0 * sx * sy * (2.0 * w * xy + dx * dy);
+
+        if (cur * sx * sy < 0)
+        {
+            xx = -xx; yy = -yy; cur = -cur; xy = -xy;
+        }
+
+        dx = 4.0 * w * (intmax_t(x1) - x0) * sy * cur + xx / 2.0 + xy;
+        dy = 4.0 * w * (intmax_t(y0) - y1) * sx * cur + yy / 2.0 + xy;
+
+        if (w < 0.5 && dy > dx)
+        {
+            cur = (w + 1.0) / 2.0;
+            w = sqrt(w);
+            xy = 1.0 / (w + 1.0);
+            sx = int32_t(floor((x0 + 2.0 * w * x1 + x2) * xy / 2.0 + 0.5));
+            sy = int32_t(floor((y0 + 2.0 * w * y1 + y2) * xy / 2.0 + 0.5));
+            dx = floor((w * x1 + x0) * xy + 0.5);
+            dy = floor((y1 * w + y0) * xy + 0.5);
+            drawQuadRationalBezierSegAA(x0, y0, int32_t(dx), int32_t(dy), sx, sy, cur, col);
+            dx = floor((w * x1 + x2) * xy + 0.5);
+            dy = floor((y1 * w + y2) * xy + 0.5);
+            drawQuadRationalBezierSegAA(sx, sy, int32_t(dx), int32_t(dy), x2, y2, cur, col);
+            return;
+        }
+
+        err = dx + dy - xy;
+
+        do {
+            cur = min(dx - xy, xy - dy);
+            ed = max(dx - xy, xy - dy);
+            ed += 2 * ed * cur * cur / (4. * ed * ed + cur * cur);
+            x1 = int32_t(255 * fabs(err - dx - dy + xy) / ed);
+            if (x1 < 256) putPixel(x0, y0, rgba(col, x1), BLEND_MODE_ANTIALIASED);
+
+            if (f = 2 * err + dy < 0)
+            {
+                if (y0 == y2) return;
+                if (dx - err < ed) putPixel(x0 + sx, y0, rgba(col, uint8_t(255 * fabs(dx - err) / ed)), BLEND_MODE_ANTIALIASED);
+            }
+            if (2 * err + dx > 0)
+            {
+                if (x0 == x2) return;
+                if (err - dy < ed) putPixel(x0, y0 + sy, rgba(col, uint8_t(255 * fabs(err - dy) / ed)), BLEND_MODE_ANTIALIASED);
+                x0 += sx; dx += xy; err += dy += yy;
+            }
+            if (f) { y0 += sy; dy += xy; err += dx += xx; }
+        } while (dy < dx);
+    }
+
+    drawLine(x0, y0, x2, y2, col, BLEND_MODE_ANTIALIASED);
+}
+
+//draw rotation quad bezier segment
+void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+{
+    //anti-aliased mode
+    if (mode == BLEND_MODE_ANTIALIASED)
+    {
+        drawQuadRationalBezierSegAA(x0, y0, x1, y1, x2, y2, w, col);
+        return;
+    }
+
+    int32_t sx = x2 - x1, sy = y2 - y1;
+    double dx = double(x0) - x2, dy = double(y0) - y2, xx = double(x0) - x1, yy = double(y0) - y1;
+    double xy = xx * sy + yy * sx, cur = xx * sy - yy * sx, err = 0.0;
+
+    if (cur != 0.0 && w > 0.0)
+    {
+        if (sqr(sx) + sqr(sy) > sqr(xx) + sqr(yy))
+        {
+            x2 = x0;
+            x0 -= int32_t(dx);
+            y2 = y0;
+            y0 -= int32_t(dy);
+            cur = -cur;
+        }
+
+        xx = 2.0 * (4.0 * w * sx * xx + dx * dx);
+        yy = 2.0 * (4.0 * w * sy * yy + dy * dy);
+        sx = x0 < x2 ? 1 : -1;
+        sy = y0 < y2 ? 1 : -1;
+        xy = -2.0 * sx * sy * (2.0 * w * xy + dx * dy);
+
+        if (cur * sx * sy < 0.0)
+        {
+            xx = -xx;
+            yy = -yy;
+            xy = -xy;
+            cur = -cur;
+        }
+
+        dx = 4.0 * w * (intmax_t(x1) - x0) * sy * cur + xx / 2.0 + xy;
+        dy = 4.0 * w * (intmax_t(y0) - y1) * sx * cur + yy / 2.0 + xy;
+
+        if (w < 0.5 && (dy > xy || dx < xy))
+        {
+            cur = (w + 1.0) / 2.0;
+            w = sqrt(w);
+            xy = 1.0 / (w + 1.0);
+            sx = int32_t(floor((x0 + 2.0 * w * x1 + x2) * xy / 2.0 + 0.5));
+            sy = int32_t(floor((y0 + 2.0 * w * y1 + y2) * xy / 2.0 + 0.5));
+            dx = floor((w * x1 + x0) * xy + 0.5);
+            dy = floor((y1 * w + y0) * xy + 0.5);
+            drawQuadRationalBezierSeg(x0, y0, int32_t(dx), int32_t(dy), sx, sy, cur, col, mode);
+            dx = floor((w * x1 + x2) * xy + 0.5);
+            dy = floor((y1 * w + y2) * xy + 0.5);
+            drawQuadRationalBezierSeg(sx, sy, int32_t(dx), int32_t(dy), x2, y2, cur, col, mode);
+            return;
+        }
+
+        err = dx + dy - xy;
+
+        do {
+            putPixel(x0, y0, col, mode);
+            if (x0 == x2 && y0 == y2) return;
+            x1 = 2 * err > dy;
+            y1 = 2 * (err + yy) < -dy;
+            if (2 * err < dx || y1) { y0 += sy; dy += xy; err += dx += xx; }
+            if (2 * err > dx || x1) { x0 += sx; dx += xy; err += dy += yy; }
+        } while (dy <= xy && dx >= xy);
+    }
+
+    drawLine(x0, y0, x2, y2, col, mode);
+}
+
+//draw rotation full quad bezier segment (export function)
+void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, int32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+{
+    int32_t x = x0 - 2 * x1 + x2, y = y0 - 2 * y1 + y2;
+    double xx = double(x0) - x1, yy = double(y0) - y1, ww = 0.0, t = 0.0, q = 0.0;
+
+    if (xx * (intmax_t(x2) - x1) > 0)
+    {
+        if (yy * (intmax_t(y2) - y1) > 0 && fabs(xx * y) > fabs(yy * x))
+        {
+            x0 = x2;
+            x2 = int32_t(xx) + x1;
+            y0 = y2;
+            y2 = int32_t(yy) + y1;
+        }
+
+        if (x0 == x2 || w == 1.0) t = (intmax_t(x0) - x1) / double(x);
+        else
+        {
+            q = sqrt(4.0 * w * w * (intmax_t(x0) - x1) * (intmax_t(x2) - x1) + (intmax_t(x2) - x0) * (intmax_t(x2) - x0));
+            if (x1 < x0) q = -q;
+            t = (2.0 * w * (intmax_t(x0) - x1) - x0 + x2 + q) / (2.0 * (1.0 - w) * (intmax_t(x2) - x0));
+        }
+
+        q = 1.0 / (2.0 * t * (1.0 - t) * (w - 1.0) + 1.0);
+        xx = (t * t * (x0 - 2.0 * w * x1 + x2) + 2.0 * t * (w * x1 - x0) + x0) * q;
+        yy = (t * t * (y0 - 2.0 * w * y1 + y2) + 2.0 * t * (w * y1 - y0) + y0) * q;
+        ww = t * (w - 1.0) + 1.0;
+        ww *= ww * q;
+        w = ((1.0 - t) * (w - 1.0) + 1.0) * sqrt(q);
+        x = int32_t(floor(xx + 0.5));
+        y = int32_t(floor(yy + 0.5));
+        yy = (xx - x0) * (intmax_t(y1) - y0) / (intmax_t(x1) - x0) + y0;
+        drawQuadRationalBezierSeg(x0, y0, x, int32_t(floor(yy + 0.5)), x, y, ww, col, mode);
+        yy = (xx - x2) * (intmax_t(y1) - y2) / (intmax_t(x1) - x2) + y2;
+        y1 = int32_t(floor(yy + 0.5));
+        x0 = x1 = x;
+        y0 = y;
+    }
+
+    if ((y0 - y1) * (y2 - y1) > 0)
+    {
+        if (y0 == y2 || w == 1.0) t = (intmax_t(y0) - y1) / (y0 - 2.0 * y1 + y2);
+        else
+        {
+            q = sqrt(4.0 * w * w * (intmax_t(y0) - y1) * (intmax_t(y2) - y1) + (intmax_t(y2) - y0) * (intmax_t(y2) - y0));
+            if (y1 < y0) q = -q;
+            t = (2.0 * w * (intmax_t(y0) - y1) - y0 + y2 + q) / (2.0 * (1.0 - w) * (intmax_t(y2) - y0));
+        }
+        q = 1.0 / (2.0 * t * (1.0 - t) * (w - 1.0) + 1.0);
+        xx = (t * t * (x0 - 2.0 * w * x1 + x2) + 2.0 * t * (w * x1 - x0) + x0) * q;
+        yy = (t * t * (y0 - 2.0 * w * y1 + y2) + 2.0 * t * (w * y1 - y0) + y0) * q;
+        ww = t * (w - 1.0) + 1.0;
+        ww *= ww * q;
+        w = ((1.0 - t) * (w - 1.0) + 1.0) * sqrt(q);
+        x = int32_t(floor(xx + 0.5));
+        y = int32_t(floor(yy + 0.5));
+        xx = (intmax_t(x1) - x0) * (yy - y0) / (intmax_t(y1) - y0) + x0;
+        drawQuadRationalBezierSeg(x0, y0, int32_t(floor(xx + 0.5)), y, x, y, ww, col, mode);
+        xx = (intmax_t(x1) - x2) * (yy - y2) / (intmax_t(y1) - y2) + x2;
+        x1 = int32_t(floor(xx + 0.5));
+        x0 = x;
+        y0 = y1 = y;
+    }
+
+    drawQuadRationalBezierSeg(x0, y0, x1, y1, x2, y2, w * w, col, mode);
+}
+
+//draw rotation of ellipse with rect
+void drawRotatedEllipseRect(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t zd, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+{
+    int32_t xd = x1 - x0, yd = y1 - y0;
+    double w = double(xd) * yd;
+
+    if (zd == 0)
+    {
+        drawEllipse(x0, y0, xd + 1, yd + 1, col, mode);
+        return;
+    }
+
+    if (w != 0.0) w = (w - zd) / (w + w);
+
+    xd = int32_t(floor(xd * w + 0.5));
+    yd = int32_t(floor(yd * w + 0.5));
+
+    drawQuadRationalBezierSeg(x0, y0 + yd, x0, y0, x0 + xd, y0, 1.0 - w, col, mode);
+    drawQuadRationalBezierSeg(x0, y0 + yd, x0, y1, x1 - xd, y1, w, col, mode);
+    drawQuadRationalBezierSeg(x1, y1 - yd, x1, y1, x1 - xd, y1, 1.0 - w, col, mode);
+    drawQuadRationalBezierSeg(x1, y1 - yd, x1, y0, x0 + xd, y0, w, col, mode);
+}
+
+//draw rotation of ellipse (export function)
+void drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double angle, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+{
+    const double s = sin(angle);
+    double xd = sqr(ra), yd = sqr(rb);
+    double zd = (xd - yd) * s;
+
+    xd = sqrt(xd - zd * s);
+    yd = sqrt(yd + zd * s);
+    ra = int32_t(xd + 0.5);
+    rb = int32_t(yd + 0.5);
+    zd = zd * ra * rb / (xd * yd);
+
+    drawRotatedEllipseRect(x - ra, y - rb, x + ra, y + rb, int32_t(4 * zd * cos(angle)), col, mode);
+}
+
+//draw cubic bezier segment
+void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2, double y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
+{
+    //anti-alased mode?
+    if (mode == BLEND_MODE_ANTIALIASED)
+    {
+        drawCubicBezierSegAA(x0, y0, x1, y1, x2, y2, x3, y3, col);
+        return;
+    }
+
+    int32_t f = 0, fx = 0, fy = 0, leg = 1;
+    int32_t sx = x0 < x3 ? 1 : -1, sy = y0 < y3 ? 1 : -1;
     
-    calcCircle(r, point);
-
-    horizLine(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
-    vertLine(x1, y1 + r, height - (r << 1), col);
-    horizLine(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
-    vertLine(x2, y1 + r, height - (r << 1), col);
-
-    for (y = 1; y <= r; y++)
+    const double xc = -fabs(x0 + x1 - x2 - x3), xa = xc - 4.0 * sx * (x1 - x2);
+    const double yc = -fabs(y0 + y1 - y2 - y3), ya = yc - 4.0 * sy * (y1 - y2);
+    
+    double* pxy = NULL, EP = 0.01;
+    double xb = sx * (x0 - x1 - x2 + x3), yb = sy * (y0 - y1 - y2 + y3);
+    double ab = 0.0, ac = 0.0, bc = 0.0, cb = 0.0, xx = 0.0, xy = 0.0, yy = 0.0, dx = 0.0, dy = 0.0, ex = 0.0;
+        
+    if (xa == 0 && ya == 0)
     {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixel(x1 + x, y1 + y, col);
-            putPixel(x2 - x, y1 + y, col);
-        }
+        sx = int32_t(floor((3 * x1 - x0 + 1) / 2));
+        sy = int32_t(floor((3 * y1 - y0 + 1) / 2));
+        drawQuadBezierSeg(x0, y0, sx, sy, x3, y3, col, mode);
+        return;
     }
 
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixel(x1 + x, y2 - y, col);
-            putPixel(x2 - x, y2 - y, col);
-        }
-    }
+    x1 = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + 1;
+    x2 = (x2 - x3) * (x2 - x3) + (y2 - y3) * (y2 - y3) + 1;
 
-    for (y = 1; y <= r; y++) horizLine(x1 + r - point[y - 1] + 1, y1 + y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
-    fillRect(x1 + 1, y1 + r + 1, width - 2, height - (r << 1) - 2, col);
-    for (y = r; y >= 1; y--) horizLine(x1 + r - point[y - 1] + 1, y2 - y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
+    do {
+        ab = xa * yb - xb * ya;
+        ac = xa * yc - xc * ya;
+        bc = xb * yc - xc * yb;
+        ex = ab * (ab + ac - 3 * bc) + ac * ac;
+        f = (ex > 0) ? 1 : int32_t(sqrt(1 + 1024 / x1));
+        ab *= f; ac *= f; bc *= f; ex *= intmax_t(f) * f;
+        xy = 9 * (ab + ac + bc) / 8;
+        cb = 8 * (xa - ya);
+        dx = 27 * (8 * ab * (yb * yb - ya * yc) + ex * (ya + 2 * yb + yc)) / 64 - ya * ya * (xy - ya);
+        dy = 27 * (8 * ab * (xb * xb - xa * xc) - ex * (xa + 2 * xb + xc)) / 64 - xa * xa * (xy + xa);
+
+        xx = 3 * (3 * ab * (3 * yb * yb - ya * ya - 2 * ya * yc) - ya * (3 * ac * (ya + yb) + ya * cb)) / 4;
+        yy = 3 * (3 * ab * (3 * xb * xb - xa * xa - 2 * xa * xc) - xa * (3 * ac * (xa + xb) + xa * cb)) / 4;
+        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + cb); ac = ya * ya; cb = xa * xa;
+        xy = 3 * (xy + 9.0 * f * (cb * yb * yc - xb * xc * ac) - 18 * xb * yb * ab) / 8;
+
+        if (ex < 0)
+        {
+            dx = -dx; dy = -dy; xx = -xx; yy = -yy; xy = -xy; ac = -ac; cb = -cb;
+        }
+
+        ab = 6 * ya * ac; ac = -6 * xa * ac; bc = 6 * ya * cb; cb = -6 * xa * cb;
+        dx += xy; ex = dx + dy; dy += xy;
+
+        for (pxy = &xy, fx = fy = f; x0 != x3 && y0 != y3; )
+        {
+            putPixel(x0, y0, col, mode);
+            do {
+                if (dx > *pxy || dy < *pxy) goto exit;
+                y1 = 2 * ex - dy;
+                if (2 * ex >= dx)
+                {
+                    fx--;
+                    ex += dx += xx;
+                    dy += xy += ac;
+                    yy += bc;
+                    xx += ab;
+                }
+                if (y1 <= 0)
+                {
+                    fy--;
+                    ex += dy += yy;
+                    dx += xy += bc;
+                    xx += ac;
+                    yy += cb;
+                }
+            } while (fx > 0 && fy > 0);
+
+            if (2 * fx <= f) { x0 += sx; fx += f; }
+            if (2 * fy <= f) { y0 += sy; fy += f; }
+            if (pxy == &xy && dx < 0 && dy > 0) pxy = &EP;
+        }
+
+    exit:
+        xx = x0; x0 = x3; x3 = int32_t(xx); sx = -sx; xb = -xb;
+        yy = y0; y0 = y3; y3 = int32_t(yy); sy = -sy; yb = -yb; x1 = x2;
+    } while (leg--);
+
+    drawLine(x0, y0, x3, y3, col, mode);
 }
 
-//draw boxed with rounded border
-void drawBoxExAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
+//draw cubic bezier (export function)
+void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*=BLEND_MODE_NORMAL*/)
 {
-    int32_t x = 0, y = 0;
-    int32_t point[500] = { 0 };
+    int32_t n = 0, i = 0;
+    const int32_t xc = x0 + x1 - x2 - x3, xa = xc - 4 * (x1 - x2);
+    const int32_t xb = x0 - x1 - x2 + x3, xd = xb + 4 * (x1 + x2);
+    const int32_t yc = y0 + y1 - y2 - y3, ya = yc - 4 * (y1 - y2);
+    const int32_t yb = y0 - y1 - y2 + y3, yd = yb + 4 * (y1 + y2);
 
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t mid = height >> 1;
+    double fx0 = x0, fx1 = 0.0, fx2 = 0.0, fx3 = 0.0, fy0 = y0, fy1 = 0.0, fy2 = 0.0, fy3 = 0.0;
+    double t1 = double(xb) * xb - double(xa) * xc, t2 = 0, t[5] = { 0 };
 
-    if (r >= mid - 1) r = mid - 1;
-
-    calcCircle(r, point);
-
-    horizLineAdd(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
-    vertLineAdd(x1, y1 + r, height - (r << 1), col);
-    horizLineAdd(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
-    vertLineAdd(x2, y1 + r, height - (r << 1), col);
-
-    for (y = 1; y <= r; y++)
+    if (xa == 0)
     {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
+        if (abs(xc) < 2 * abs(xb)) t[n++] = xc / (2.0 * xb);
+    }
+    else if (t1 > 0.0)
+    {
+        t2 = sqrt(t1);
+        t1 = (xb - t2) / xa; if (fabs(t1) < 1.0) t[n++] = t1;
+        t1 = (xb + t2) / xa; if (fabs(t1) < 1.0) t[n++] = t1;
+    }
+
+    t1 = double(yb) * yb - double(ya) * yc;
+
+    if (ya == 0)
+    {
+        if (abs(yc) < 2 * abs(yb)) t[n++] = yc / (2.0 * yb);
+    }
+    else if (t1 > 0.0)
+    {
+        t2 = sqrt(t1);
+        t1 = (yb - t2) / ya; if (fabs(t1) < 1.0) t[n++] = t1;
+        t1 = (yb + t2) / ya; if (fabs(t1) < 1.0) t[n++] = t1;
+    }
+
+    for (i = 1; i != n; i++)
+    {
+        if ((t1 = t[i - 1]) > t[i])
         {
-            putPixelAdd(x1 + x, y1 + y, col);
-            putPixelAdd(x2 - x, y1 + y, col);
+            t[i - 1] = t[i];
+            t[i] = t1;
+            i = 0;
         }
     }
 
-    for (y = 1; y <= r; y++)
+    t1 = -1.0; t[n] = 1.0;
+    for (i = 0; i <= n; i++)
     {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelAdd(x1 + x, y2 - y, col);
-            putPixelAdd(x2 - x, y2 - y, col);
-        }
+        t2 = t[i];
+        fx1 = (t1 * (t1 * xb - 2.0 * xc) - t2 * (t1 * (t1 * xa - 2.0 * xb) + xc) + xd) / 8 - fx0;
+        fy1 = (t1 * (t1 * yb - 2.0 * yc) - t2 * (t1 * (t1 * ya - 2.0 * yb) + yc) + yd) / 8 - fy0;
+        fx2 = (t2 * (t2 * xb - 2.0 * xc) - t1 * (t2 * (t2 * xa - 2.0 * xb) + xc) + xd) / 8 - fx0;
+        fy2 = (t2 * (t2 * yb - 2.0 * yc) - t1 * (t2 * (t2 * ya - 2.0 * yb) + yc) + yd) / 8 - fy0;
+        fx0 -= fx3 = (t2 * (t2 * (3.0 * xb - t2 * xa) - 3.0 * xc) + xd) / 8;
+        fy0 -= fy3 = (t2 * (t2 * (3.0 * yb - t2 * ya) - 3.0 * yc) + yd) / 8;
+        x3 = int32_t(floor(fx3 + 0.5));
+        y3 = int32_t(floor(fy3 + 0.5));
+        if (fx0 != 0.0) { fx1 *= fx0 = (intmax_t(x0) - x3) / fx0; fx2 *= fx0; }
+        if (fy0 != 0.0) { fy1 *= fy0 = (intmax_t(y0) - y3) / fy0; fy2 *= fy0; }
+        if (x0 != x3 || y0 != y3) drawCubicBezierSeg(x0, y0, x0 + fx1, y0 + fy1, x0 + fx2, y0 + fy2, x3, y3, col, mode);
+        x0 = x3; y0 = y3; fx0 = fx3; fy0 = fy3; t1 = t2;
     }
-
-    for (y = 1; y <= r; y++) horizLineAdd(x1 + r - point[y - 1] + 1, y1 + y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
-    fillRectAdd(x1 + 1, y1 + r + 1, width - 2, height - (r << 1) - 2, col);
-    for (y = r; y >= 1; y--) horizLineAdd(x1 + r - point[y - 1] + 1, y2 - y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
-}
-
-//draw boxed with rounded border
-void drawBoxExSub(int32_t x1, int32_t y1, int32_t width, int32_t height, int32_t r, uint32_t col)
-{
-    int32_t x = 0, y = 0;
-    int32_t point[500] = { 0 };
-
-    const int32_t x2 = x1 + width - 1;
-    const int32_t y2 = y1 + height - 1;
-    const int32_t mid = height >> 1;
-
-    if (r >= mid - 1) r = mid - 1;
-
-    calcCircle(r, point);
-
-    horizLineSub(x1 + r - point[0], y1 + 1, width - ((r - point[0]) << 1), col);
-    vertLineSub(x1, y1 + r, height - (r << 1), col);
-    horizLineSub(x1 + r - point[0], y2 - 1, width - ((r - point[0]) << 1), col);
-    vertLineSub(x2, y1 + r, height - (r << 1), col);
-
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelSub(x1 + x, y1 + y, col);
-            putPixelSub(x2 - x, y1 + y, col);
-        }
-    }
-
-    for (y = 1; y <= r; y++)
-    {
-        for (x = r - point[y]; x <= r - point[y - 1]; x++)
-        {
-            putPixelSub(x1 + x, y2 - y, col);
-            putPixelSub(x2 - x, y2 - y, col);
-        }
-    }
-
-    for (y = 1; y <= r; y++) horizLineSub(x1 + r - point[y - 1] + 1, y1 + y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
-    fillRectSub(x1 + 1, y1 + r + 1, width - 2, height - (r << 1) - 2, col);
-    for (y = r; y >= 1; y--) horizLineSub(x1 + r - point[y - 1] + 1, y2 - y, width - ((r << 1) - (point[y - 1] << 1)) - 1, col);
-}
-
-//draw polygon
-void drawPoly(POINT2D* point, int32_t num, uint32_t col)
-{
-    if (num < 3) return;
-    for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col);
-    drawLine(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
-}
-
-//draw polygon with add color
-void drawPolyAdd(POINT2D* point, int32_t num, uint32_t col)
-{
-    if (num < 3) return;
-    for (int32_t i = 0; i < num - 1; i++) drawLineAdd(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col);
-    drawLineAdd(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
-}
-
-//draw polygon with sub color
-void drawPolySub(POINT2D* point, int32_t num, uint32_t col)
-{
-    if (num < 3) return;
-    for (int32_t i = 0; i < num - 1; i++) drawLineSub(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col);
-    drawLineSub(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col);
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRect8(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
+void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
-    if (bitsPerPixel != 8) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         push    edx
-        mov     ebx, lbWidth
+        mov     ebx, width
         shr     ebx, 2
-        mov     edx, lbWidth
+        mov     edx, width
         and     edx, 3
         mov     eax, color
         shl     eax, 8
@@ -3409,118 +3893,72 @@ void fillRect8(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t c
         mov     ecx, edx
         rep     stosb
         add     edi, [esp]
-        dec     lbHeight
+        dec     height
         jnz     next
         pop     edx
     }
 #else
     //calculate starting address
-    const int32_t addOffset = (texWidth - lbWidth);
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < lbHeight; y++)
+    const int32_t addOffset = (texWidth - width);
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    for (int32_t y = 0; y < height; y++)
     {
-        for (int32_t x = 0; x < lbWidth; x++) *dstPixels++ = color;
+        for (int32_t x = 0; x < width; x++) *dstPixels++ = color;
         if (addOffset > 0) dstPixels += addOffset;
     }
 #endif
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRect32(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
+void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
         mov     eax, color
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
         rep     stosd
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    const int32_t addOffset = (texWidth - lbWidth);
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < lbHeight; y++)
+    const int32_t addOffset = (texWidth - width);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    for (int32_t y = 0; y < height; y++)
     {
-        for (int32_t x = 0; x < lbWidth; x++) *dstPixels++ = color;
+        for (int32_t x = 0; x < width; x++) *dstPixels++ = color;
         if (addOffset > 0) dstPixels += addOffset;
     }
 #endif
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
+void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
     plot:
         mov     eax, [edi]
         add     al, byte ptr[color]
@@ -3543,22 +3981,22 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t
         stosd
         loop    plot
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - lbWidth) << 2;
+    uint8_t* pcol = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < lbHeight; y++)
+    for (int32_t y = 0; y < height; y++)
     {
-        for (int32_t x = 0; x < lbWidth; x++)
+        for (int32_t x = 0; x < width; x++)
         {
-            pixels[0] = min(pixels[0] + rgb[0], 255);
-            pixels[1] = min(pixels[1] + rgb[1], 255);
-            pixels[2] = min(pixels[2] + rgb[2], 255);
+            pixels[0] = min(pixels[0] + pcol[0], 255);
+            pixels[1] = min(pixels[1] + pcol[1], 255);
+            pixels[2] = min(pixels[2] + pcol[2], 255);
             pixels += 4;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -3567,44 +4005,21 @@ void fillRectAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color)
+void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
     plot:
         mov     eax, [edi]
         sub     al, byte ptr[color]
@@ -3627,22 +4042,22 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t
         stosd
         loop    plot
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - lbWidth) << 2;
+    uint8_t* pcol = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < lbHeight; y++)
+    for (int32_t y = 0; y < height; y++)
     {
-        for (int32_t x = 0; x < lbWidth; x++)
+        for (int32_t x = 0; x < width; x++)
         {
-            pixels[0] = max(pixels[0] - rgb[0], 0);
-            pixels[1] = max(pixels[1] - rgb[1], 0);
-            pixels[2] = max(pixels[2] - rgb[2], 0);
+            pixels[0] = max(pixels[0] - pcol[0], 0);
+            pixels[1] = max(pixels[1] - pcol[1], 0);
+            pixels[2] = max(pixels[2] - pcol[2], 0);
             pixels += 4;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -3651,72 +4066,346 @@ void fillRectSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPattern8(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
-    if (bitsPerPixel != 8) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+    plot:
+        mov     eax, [edi]
+        and     al, byte ptr[color]
+        and     ah, byte ptr[color + 1]
+        mov     ebx, eax
+        shr     ebx, 16
+        and     bl, byte ptr[color + 2]
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        stosd
+        loop    plot
+        add     edi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
+
+    for (int32_t y = 0; y < height; y++)
+    {
+        for (int32_t x = 0; x < width; x++)
+        {
+            pixels[0] = pixels[0] & pcol[0];
+            pixels[1] = pixels[1] & pcol[1];
+            pixels[2] = pixels[2] & pcol[2];
+            pixels += 4;
+        }
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+    plot:
+        mov     eax, [edi]
+        xor     al, byte ptr[color]
+        xor     ah, byte ptr[color + 1]
+        mov     ebx, eax
+        shr     ebx, 16
+        xor     bl, byte ptr[color + 2]
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        stosd
+        loop    plot
+        add     edi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&color;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
+
+    for (int32_t y = 0; y < height; y++)
+    {
+        for (int32_t x = 0; x < width; x++)
+        {
+            pixels[0] = pixels[0] ^ pcol[0];
+            pixels[1] = pixels[1] ^ pcol[1];
+            pixels[2] = pixels[2] ^ pcol[2];
+            pixels += 4;
+        }
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+    plot:
+        push    ecx
+        mov     al, byte ptr[argb]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 1]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        mov     al, byte ptr[argb + 2]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        stosb
+        inc     edi
+        pop     ecx
+        loop    plot
+        add     edi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&argb;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
+
+    for (int32_t y = 0; y < height; y++)
+    {
+        for (int32_t x = 0; x < width; x++)
+        {
+            pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
+            pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
+            pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+            pixels += 4;
+        }
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    //calculate new position
+    const int32_t x1 = (x + width) - 1;
+    const int32_t y1 = (y + height) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t lwidth = (lx1 - lx) + 1;
+    const int32_t lheight = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!lwidth || !lheight) return;
+
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        fillRectMix(lx, ly, lwidth, lheight, color);
+        return;
+    }
+
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        fillRectNormal(lx, ly, lwidth, lheight, color);
+        break;
+
+    case BLEND_MODE_ADD:
+        fillRectAdd(lx, ly, lwidth, lheight, color);
+        break;
+
+    case BLEND_MODE_SUB:
+        fillRectSub(lx, ly, lwidth, lheight, color);
+        break;
+
+    case BLEND_MODE_AND:
+        fillRectAnd(lx, ly, lwidth, lheight, color);
+        break;
+
+    case BLEND_MODE_XOR:
+        fillRectXor(lx, ly, lwidth, lheight, color);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        fillRectAlpha(lx, ly, lwidth, lheight, color);
+        break;
+
+    default:
+        break;
+    }
+}
+
+//draw boxed with rounded border
+void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rad, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    int32_t i = 0, j = 0;
+    int32_t a = 0, b = 0;
+    int32_t point[500] = { 0 };
+
+    const int32_t x1 = x + width - 1;
+    const int32_t y1 = y + height - 1;
+    const int32_t mid = height >> 1;
+
+    if (rad >= mid - 1) rad = mid - 1;
+
+    calcCircle(rad, point);
+
+    horizLine(x + rad - point[0], y + 1, width - ((rad - point[0]) << 1), col, mode);
+    vertLine(x, y + rad, height - (rad << 1), col, mode);
+    horizLine(x + rad - point[0], y1 - 1, width - ((rad - point[0]) << 1), col, mode);
+    vertLine(x1, y + rad, height - (rad << 1), col, mode);
+
+    for (i = 1; i <= rad; i++)
+    {
+        a = rad - point[i];
+        b = rad - point[i - 1];
+        for (j = a; j <= b; j++)
+        {
+            putPixel(x + j, y + i, col, mode);
+            putPixel(x1 - j, y + i, col, mode);
+        }
+    }
+
+    for (i = 1; i <= rad; i++)
+    {
+        a = rad - point[i];
+        b = rad - point[i - 1];
+        for (j = a; j <= b; j++)
+        {
+            putPixel(x + j, y1 - i, col, mode);
+            putPixel(x1 - j, y1 - i, col, mode);
+        }
+    }
+
+    for (i = 1; i <= rad; i++) horizLine(x + rad - point[i - 1] + 1, y + i, width - ((rad << 1) - (point[i - 1] << 1)) - 1, col, mode);
+    fillRect(x + 1, y + rad + 1, width - 2, height - (rad << 1) - 2, col, mode);
+    for (i = rad; i >= 1; i--) horizLine(x + rad - point[i - 1] + 1, y1 - i, width - ((rad << 1) - (point[i - 1] << 1)) - 1, col, mode);
+}
+
+//draw polygon
+void drawPoly(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    if (num < 3) return;
+    for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col, mode);
+    drawLine(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col, mode);
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, width
         mov     esi, pattern
     plot:
-        mov     ecx, lx1
+        mov     ecx, x
         and     ecx, 7
-        mov     ebx, lbHeight
+        mov     ebx, height
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
         mov     ebx, col
-        mov     ecx, lbWidth
+        mov     ecx, width
     next:
         test    al, 1
         jz      step
         mov     [edi], bl
-    step:
+    step: 
         inc     edi
         rol     al, 1
         loop    next
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     plot
     }
 #else
     //calculate starting address
-    const uint32_t addDstOffs = texWidth - lbWidth;
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < lbHeight; y++)
+    const uint32_t addDstOffs = texWidth - width;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
-        al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < lbWidth; x++)
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
         {
             if (al & 1) *dstPixels = col;
             al = _rotl8(al, 1);
@@ -3728,52 +4417,29 @@ void fillRectPattern8(int32_t x1, int32_t y1, int32_t width, int32_t height, uin
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPattern32(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
         mov     esi, pattern
     plot:
-        mov     ecx, lx1
+        mov     ecx, x
         and     ecx, 7
-        mov     ebx, lbHeight
+        mov     ebx, height
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
         mov     ebx, col
-        mov     ecx, lbWidth
+        mov     ecx, width
     next:
         test    al, 1
         jz      step
@@ -3783,18 +4449,18 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t width, int32_t height, ui
         rol     al, 1
         loop    next
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     plot
     }
 #else
     //calculate starting address
-    const uint32_t addDstOffs = texWidth - lbWidth;
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    for (int32_t y = 0; y < lbHeight; y++)
+    const uint32_t addDstOffs = texWidth - width;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
-        al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < lbWidth; x++)
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
         {
             if (al & 1) *dstPixels = col;
             al = _rotl8(al, 1);
@@ -3806,67 +4472,44 @@ void fillRectPattern32(int32_t x1, int32_t y1, int32_t width, int32_t height, ui
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
         mov     esi, pattern
     plot:
         push    edx
-        mov     ecx, lx1
+        mov     ecx, x
         and     ecx, 7
-        mov     ebx, lbHeight
+        mov     ebx, height
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
-        mov     ecx, lbWidth
+        mov     ecx, width
     next:
         test    al, 1
         jz      step
         mov     ebx, [edi]
-        add     bl, byte ptr [col]
+        add     bl, byte ptr[col]
         jnc     bstep
         mov     bl, 255
     bstep:
-        add     bh, byte ptr [col + 1]
+        add     bh, byte ptr[col + 1]
         jnc     gstep
         mov     bh, 255
     gstep:
         mov     edx, ebx
         shr     edx, 16
-        add     dl, byte ptr [col + 2]
+        add     dl, byte ptr[col + 2]
         jnc     rstep
         mov     dl, 255
     rstep:
@@ -3880,26 +4523,26 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, u
         loop    next
         pop     edx
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     plot
     }
 #else
     //calculate starting address
-    uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - lbWidth) << 2;
+    uint8_t* pcol = (uint8_t*)&col;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < lbHeight; y++)
+    for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
-        al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < lbWidth; x++)
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
         {
             if (al & 1)
             {
-                pixels[0] = min(pixels[0] + rgb[0], 255);
-                pixels[1] = min(pixels[1] + rgb[1], 255);
-                pixels[2] = min(pixels[2] + rgb[2], 255);
+                pixels[0] = min(pixels[0] + pcol[0], 255);
+                pixels[1] = min(pixels[1] + pcol[1], 255);
+                pixels[2] = min(pixels[2] + pcol[2], 255);
             }
             al = _rotl8(al, 1);
             pixels += 4;
@@ -3910,69 +4553,46 @@ void fillRectPatternAdd(int32_t x1, int32_t y1, int32_t width, int32_t height, u
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternSub(int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
 #ifdef _USE_ASM
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     edi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
         mov     esi, pattern
     plot:
         push    edx
-        mov     ecx, lx1
+        mov     ecx, x
         and     ecx, 7
-        mov     ebx, lbHeight
+        mov     ebx, height
         and     ebx, 7
         mov     al, [esi + ebx]
         rol     al, cl
-        mov     ecx, lbWidth
+        mov     ecx, width
     next:
         test    al, 1
         jz      step
         mov     ebx, [edi]
-        sub     bl, byte ptr [col]
+        sub     bl, byte ptr[col]
         jnc     bstep
-        xor     bl, bl
+        mov     bl, 255
     bstep:
-        sub     bh, byte ptr [col + 1]
+        sub     bh, byte ptr[col + 1]
         jnc     gstep
-        xor     bh, bh
+        mov     bh, 255
     gstep:
         mov     edx, ebx
         shr     edx, 16
-        sub     dl, byte ptr [col + 2]
+        sub     dl, byte ptr[col + 2]
         jnc     rstep
-        xor     dl, dl
+        mov     dl, 255
     rstep:
         shl     edx, 16
         and     ebx, 00FFFFh
@@ -3984,26 +4604,26 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t width, int32_t height, u
         loop    next
         pop     edx
         add     edi, edx
-        dec     lbHeight
+        dec     height
         jnz     plot
     }
 #else
     //calculate starting address
-    uint8_t* rgb = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    const uint32_t addOfs = (texWidth - lbWidth) << 2;
+    uint8_t* pcol = (uint8_t*)&col;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < lbHeight; y++)
+    for (int32_t y = 0; y < height; y++)
     {
         uint8_t al = pattern[y & 7];
-        al = _rotl8(al, lx1 & 7);
-        for (int32_t x = 0; x < lbWidth; x++)
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
         {
             if (al & 1)
             {
-                pixels[0] = max(pixels[0] - rgb[0], 0);
-                pixels[1] = max(pixels[1] - rgb[1], 0);
-                pixels[2] = max(pixels[2] - rgb[2], 0);
+                pixels[0] = max(pixels[0] - pcol[0], 0);
+                pixels[1] = max(pixels[1] - pcol[1], 0);
+                pixels[2] = max(pixels[2] - pcol[2], 0);
             }
             al = _rotl8(al, 1);
             pixels += 4;
@@ -4011,6 +4631,307 @@ void fillRectPatternSub(int32_t x1, int32_t y1, int32_t width, int32_t height, u
         if (addOfs > 0) pixels += addOfs;
     }
 #endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPatternAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, width
+        shl     edx, 2
+        mov     esi, pattern
+    plot:
+        push    edx
+        mov     ecx, x
+        and     ecx, 7
+        mov     ebx, height
+        and     ebx, 7
+        mov     al, [esi + ebx]
+        rol     al, cl
+        mov     ecx, width
+    next:
+        test    al, 1
+        jz      step
+        mov     ebx, [edi]
+        and     bl, byte ptr[col]
+        and     bh, byte ptr[col + 1]
+        mov     edx, ebx
+        shr     edx, 16
+        and     dl, byte ptr[col + 2]
+        shl     edx, 16
+        and     ebx, 00FFFFh
+        or      ebx, edx
+        mov     [edi], ebx
+    step:
+        add     edi, 4
+        rol     al, 1
+        loop    next
+        pop     edx
+        add     edi, edx
+        dec     height
+        jnz     plot
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&col;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
+
+    for (int32_t y = 0; y < height; y++)
+    {
+        uint8_t al = pattern[y & 7];
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
+        {
+            if (al & 1)
+            {
+                pixels[0] = pixels[0] & pcol[0];
+                pixels[1] = pixels[1] & pcol[1];
+                pixels[2] = pixels[2] & pcol[2];
+            }
+            al = _rotl8(al, 1);
+            pixels += 4;
+        }
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPatternXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, width
+        shl     edx, 2
+        mov     esi, pattern
+    plot:
+        push    edx
+        mov     ecx, x
+        and     ecx, 7
+        mov     ebx, height
+        and     ebx, 7
+        mov     al, [esi + ebx]
+        rol     al, cl
+        mov     ecx, width
+    next:
+        test    al, 1
+        jz      step
+        mov     ebx, [edi]
+        xor     bl, byte ptr[col]
+        xor     bh, byte ptr[col + 1]
+        mov     edx, ebx
+        shr     edx, 16
+        xor     dl, byte ptr[col + 2]
+        shl     edx, 16
+        and     ebx, 00FFFFh
+        or      ebx, edx
+        mov     [edi], ebx
+    step:
+        add     edi, 4
+        rol     al, 1
+        loop    next
+        pop     edx
+        add     edi, edx
+        dec     height
+        jnz     plot
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&col;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
+
+    for (int32_t y = 0; y < height; y++)
+    {
+        uint8_t al = pattern[y & 7];
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
+        {
+            if (al & 1)
+            {
+                pixels[0] = pixels[0] ^ pcol[0];
+                pixels[1] = pixels[1] ^ pcol[1];
+                pixels[2] = pixels[2] ^ pcol[2];
+            }
+            al = _rotl8(al, 1);
+            pixels += 4;
+        }
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb, uint8_t* pattern)
+{
+#ifdef _USE_ASM
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, y
+        mul     texWidth
+        add     eax, x
+        shl     eax, 2
+        add     edi, eax
+        mov     edx, texWidth
+        sub     edx, width
+        shl     edx, 2
+        mov     esi, pattern
+    plot:
+        push    edx
+        mov     ecx, x
+        and     ecx, 7
+        mov     ebx, height
+        and     ebx, 7
+        mov     dl, [esi + ebx]
+        rol     dl, cl
+        mov     ecx, width
+    next:
+        push    ecx
+        test    dl, 1
+        jz      step
+        mov     al, byte ptr[argb]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        mov     [edi], al
+        mov     al, byte ptr[argb + 1]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi + 1]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        mov     [edi + 1], al
+        mov     al, byte ptr[argb + 2]
+        mul     byte ptr[argb + 3]
+        mov     bx, ax
+        mov     al, [edi + 2]
+        mov     cl, 255
+        sub     cl, byte ptr[argb + 3]
+        mul     cl
+        add     ax, bx
+        shr     ax, 8
+        mov     [edi + 2], al
+    step:
+        add     edi, 4
+        rol     dl, 1
+        pop     ecx
+        loop    next
+        pop     edx
+        add     edi, edx
+        dec     height
+        jnz     plot
+    }
+#else
+    //calculate starting address
+    uint8_t* pcol = (uint8_t*)&argb;
+    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    const uint32_t addOfs = (texWidth - width) << 2;
+
+    for (int32_t y = 0; y < height; y++)
+    {
+        uint8_t al = pattern[y & 7];
+        al = _rotl8(al, x & 7);
+        for (int32_t x = 0; x < width; x++)
+        {
+            if (al & 1)
+            {
+                pixels[2] = (pcol[2] * pcol[3] + pixels[2] * (255 - pcol[3])) >> 8;
+                pixels[1] = (pcol[1] * pcol[3] + pixels[1] * (255 - pcol[3])) >> 8;
+                pixels[0] = (pcol[0] * pcol[3] + pixels[0] * (255 - pcol[3])) >> 8;
+            }
+            al = _rotl8(al, 1);
+            pixels += 4;
+        }
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    //calculate new position
+    const int32_t x1 = (x + width) - 1;
+    const int32_t y1 = (y + height) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t lwidth = (lx1 - lx) + 1;
+    const int32_t lheight = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!lwidth || !lheight) return;
+
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        fillRectPatternMix(lx, ly, lwidth, lheight, col, pattern);
+        return;
+    }
+
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        fillRectPatternNormal(lx, ly, lwidth, lheight, col, pattern);
+        break;
+
+    case BLEND_MODE_ADD:
+        fillRectPatternAdd(lx, ly, lwidth, lheight, col, pattern);
+        break;
+
+    case BLEND_MODE_SUB:
+        fillRectPatternSub(lx, ly, lwidth, lheight, col, pattern);
+        break;
+
+    case BLEND_MODE_AND:
+        fillRectPatternAnd(lx, ly, lwidth, lheight, col, pattern);
+        break;
+
+    case BLEND_MODE_XOR:
+        fillRectPatternXor(lx, ly, lwidth, lheight, col, pattern);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        fillRectPatternAlpha(lx, ly, lwidth, lheight, col, pattern);
+        break;
+
+    default:
+        break;
+    }
 }
 
 //pre-calculate lookup table for filled-circle
@@ -4176,7 +5097,7 @@ void calcEllipse(int32_t rx, int32_t ry, int32_t* point)
 }
 
 //fast filled Bresenham circle at (xc,yc) with radius and color
-void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
+void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     int32_t i = 0;
     int32_t point[500] = { 0 };
@@ -4189,69 +5110,19 @@ void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
 
     for (i = 0; i <= radius - 1; i++)
     {
-        horizLine(xc - point[i], mc, point[i] << 1, color);
+        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
         mc++;
     }
 
     for (i = radius - 1; i >= 0; i--)
     {
-        horizLine(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-}
-
-//fast filled Bresenham circle at (xc,yc) with radius and color
-void fillCircleAdd(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
-{
-    int32_t i = 0;
-    int32_t point[500] = { 0 };
-
-    //range limited
-    if (radius > 499) messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
-
-    int32_t mc = yc - radius;
-    calcCircle(radius, point);
-
-    for (i = 0; i <= radius - 1; i++)
-    {
-        horizLineAdd(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-
-    for (i = radius - 1; i >= 0; i--)
-    {
-        horizLineAdd(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-}
-
-//fast filled Bresenham circle at (xc,yc) with radius and color
-void fillCircleSub(int32_t xc, int32_t yc, int32_t radius, uint32_t color)
-{
-    int32_t i = 0;
-    int32_t point[500] = { 0 };
-
-    //range limited
-    if (radius > 499) messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
-
-    int32_t mc = yc - radius;
-    calcCircle(radius, point);
-
-    for (i = 0; i <= radius - 1; i++)
-    {
-        horizLineSub(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-
-    for (i = radius - 1; i >= 0; i--)
-    {
-        horizLineSub(xc - point[i], mc, point[i] << 1, color);
+        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
         mc++;
     }
 }
 
 //filled ellipse with color
-void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
+void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     int32_t i = 0;
     int32_t point[500] = { 0 };
@@ -4266,67 +5137,13 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
 
     for (i = 0; i <= rb - 1; i++)
     {
-        horizLine(xc - point[i], mc, point[i] << 1, color);
+        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
         mc++;
     }
 
     for (i = rb - 1; i >= 0; i--)
     {
-        horizLine(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-}
-
-//filled ellipse with add color
-void fillEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
-{
-    int32_t i = 0;
-    int32_t point[500] = { 0 };
-
-    //range limited
-    if (ra > 499 || rb > 499) messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
-
-    int32_t mc = yc - rb;
-
-    if (ra != rb) calcEllipse(ra, rb, point);
-    else calcCircle(ra, point);
-
-    for (i = 0; i <= rb - 1; i++)
-    {
-        horizLineAdd(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-
-    for (i = rb - 1; i >= 0; i--)
-    {
-        horizLineAdd(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-}
-
-//filled ellipse with sub color
-void fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color)
-{
-    int32_t i = 0;
-    int32_t point[500] = { 0 };
-
-    //range limited
-    if (ra > 499 || rb > 499) messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
-
-    int32_t mc = yc - rb;
-
-    if (ra != rb) calcEllipse(ra, rb, point);
-    else calcCircle(ra, point);
-
-    for (i = 0; i <= rb - 1; i++)
-    {
-        horizLineAdd(xc - point[i], mc, point[i] << 1, color);
-        mc++;
-    }
-
-    for (i = rb - 1; i >= 0; i--)
-    {
-        horizLineAdd(xc - point[i], mc, point[i] << 1, color);
+        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
         mc++;
     }
 }
@@ -4340,7 +5157,7 @@ void fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t col
 //pt4[] = {{256, 150}, {148, 347}, {327, 329}, {311, 204}, {401, 204}, {418, 240}, {257, 222}, {293, 365}, {436, 383}, {455, 150}};
 //pt5[] = {{287, 76}, {129, 110}, {42, 301}, {78, 353}, {146, 337}, {199, 162}, {391, 180}, {322, 353}, {321, 198}, {219, 370}, {391, 405}, {444, 232}, {496, 440}, {565, 214}};
 //pt6[] = {{659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523}};
-void fillPolygon(POINT2D* point, int32_t num, uint32_t col)
+void fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     int32_t nodex[MAX_POLY_CORNERS] = { 0 };
     int32_t nodes = 0, y = 0, i = 0, j = 0, swap = 0;
@@ -4353,10 +5170,10 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col)
     //clipping points
     for (i = 1; i < num; i++)
     {
-        if (point[i].x < left)      left    = int32_t(point[i].x);
-        if (point[i].x > right)     right   = int32_t(point[i].x);
-        if (point[i].y < top)       top     = int32_t(point[i].y);
-        if (point[i].y > bottom)    bottom  = int32_t(point[i].y);
+        if (point[i].x < left)      left = int32_t(point[i].x);
+        if (point[i].x > right)     right = int32_t(point[i].x);
+        if (point[i].y < top)       top = int32_t(point[i].y);
+        if (point[i].y > bottom)    bottom = int32_t(point[i].y);
     }
 
     //loop through the rows of the image
@@ -4396,7 +5213,7 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col)
             {
                 if (nodex[i] < left) nodex[i] = left;
                 if (nodex[i + 1] > right) nodex[i + 1] = right;
-                horizLine(nodex[i], y, nodex[i + 1] - nodex[i], col);
+                horizLine(nodex[i], y, nodex[i + 1] - nodex[i], col, mode);
             }
         }
     }
@@ -4465,6 +5282,9 @@ void fadeCircle(int32_t dir, uint32_t col)
             delay(FPS_60);
         }
         break;
+
+    default:
+        break;
     }
 }
 
@@ -4505,16 +5325,21 @@ void fadeRollo(int32_t dir, uint32_t col)
             delay(FPS_60);
         }
         break;
+
+    default:
+        break;
     }
 }
 
-//simulation visual page in VGA mode
+//simulation visual page in VGA mode for compatiple code
+//setActivePage and setVisualPage must be a paire function
 void setActivePage(GFX_IMAGE* page)
 {
     setDrawBuffer(page->mData, page->mWidth, page->mHeight);
 }
 
-//set render page
+//set render page to current page
+//setActivePage and setVisualPage must be a paire function
 void setVisualPage(GFX_IMAGE* page)
 {
     setDrawBuffer(page->mData, page->mWidth, page->mHeight);
@@ -4531,14 +5356,14 @@ int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
 
     if (!size)
     {
-        messageBox(GFX_ERROR, "Cannot create image! image size = 0!");
+        messageBox(GFX_ERROR, "Error create image, size = 0!");
         return 0;
     }
 
     img->mData = (uint8_t*)calloc(size, 1);
     if (!img->mData)
     {
-        messageBox(GFX_ERROR, "Cannot alloc memory with size:%lu", size);
+        messageBox(GFX_ERROR, "Error alloc memory, size:%lu", size);
         return 0;
     }
 
@@ -4606,57 +5431,22 @@ void clearImage(GFX_IMAGE* img)
 }
 
 //get GFX image buffer functions
-void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE* img)
+void getImageMix(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 8) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
-    //none image pointer?
-    if (!img->mData)
-    {
-        //create new image
-        if (!newImage(lbWidth, lbHeight, img)) return;
-    }
-    else
-    {
-        //update an existing image
-        if (!updateImage(lbWidth, lbHeight, img)) return;
-    }
-
 #ifdef _USE_ASM
     void *imgData = img->mData;
     _asm {
         mov     edi, imgData
         mov     esi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         add     esi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
-        mov     eax, lbWidth
+        sub     edx, width
+        mov     eax, width
         shr     eax, 2
-        mov     ebx, lbWidth
+        mov     ebx, width
         and     ebx, 3
     next:
         mov     ecx, eax
@@ -4664,16 +5454,16 @@ void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE*
         mov     ecx, ebx
         rep     movsb
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
     uint8_t* imgPixels = (uint8_t*)img->mData;
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
     if (!dstPixels || !imgPixels) return;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
         memcpy(imgPixels, dstPixels, img->mWidth);
         dstPixels += texWidth;
@@ -4683,70 +5473,35 @@ void getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE*
 }
 
 //get GFX image buffer functions
-void getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE* img)
+void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
-    //calculate new position
-    const int32_t x2 = (x1 + width) - 1;
-    const int32_t y2 = (y1 + height) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
-
-    //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
-
-    //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
-
-    //check for loop
-    if (!lbWidth || !lbHeight) return;
-
-    //none image pointer?
-    if (!img->mData)
-    {
-        //create new image
-        if (!newImage(lbWidth, lbHeight, img)) return;
-    }
-    else
-    {
-        //update an existing image
-        if (!updateImage(lbWidth, lbHeight, img)) return;
-    }
-
 #ifdef _USE_ASM
     void *imgData = img->mData;
     _asm {
         mov     edi, imgData
         mov     esi, drawBuff
-        mov     eax, ly1
+        mov     eax, y
         mul     texWidth
-        add     eax, lx1
+        add     eax, x
         shl     eax, 2
         add     esi, eax
         mov     edx, texWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
         rep     movsd
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else    
     //calculate starting address
     uint32_t* imgPixels = (uint32_t*)img->mData;
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
     if (!dstPixels || !imgPixels) return;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
         memcpy(imgPixels, dstPixels, intptr_t(img->mWidth) << 2);
         dstPixels += texWidth;
@@ -4755,58 +5510,103 @@ void getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE
 #endif
 }
 
-//put GFX image to point (x1, y1)
-void putImage8(int32_t x1, int32_t y1, GFX_IMAGE* img)
+//get GFX image buffer functions
+void getImage(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 8) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + width) - 1;
+    const int32_t y1 = (y + height) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t lwidth = (lx1 - lx) + 1;
+    const int32_t lheight = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!lwidth || !lheight) return;
+
+    //none image pointer?
+    if (!img->mData)
+    {
+        //create new image
+        if (!newImage(lwidth, lheight, img)) return;
+    }
+    else
+    {
+        //update an existing image
+        if (!updateImage(lwidth, lheight, img)) return;
+    }
+
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        getImageMix(lx, ly, lwidth, lheight, img);
+        return;
+    }
+
+    //height color mode
+    getImageNormal(lx, ly, lwidth, lheight, img);
+}
+
+//put GFX image to point (x1, y1)
+void putImageMix(int32_t x, int32_t y, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth  = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         push    ebx
         mov     edx, imgWidth
-        sub     edx, lbWidth
-        mov     eax, lbWidth
+        sub     edx, width
+        mov     eax, width
         shr     eax, 2
-        mov     ebx, lbWidth
+        mov     ebx, width
         and     ebx, 3
     next:
         mov     ecx, eax
@@ -4815,19 +5615,19 @@ void putImage8(int32_t x1, int32_t y1, GFX_IMAGE* img)
         rep     movsb
         add     edi, [esp]
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
         pop     ebx
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly + lx;
+    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
     if (!dstPixels || !imgPixels) return;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        memcpy(dstPixels, imgPixels, lbWidth);
+        memcpy(dstPixels, imgPixels, width);
         dstPixels += texWidth;
         imgPixels += img->mWidth;
     }
@@ -4835,74 +5635,72 @@ void putImage8(int32_t x1, int32_t y1, GFX_IMAGE* img)
 }
 
 //put GFX image to point (x1, y1)
-void putImage32(int32_t x1, int32_t y1, GFX_IMAGE* img)
+void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth  = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         shl     ebx, 2
         mov     edx, imgWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
         rep     movsd
         add     edi, ebx
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
     if (!dstPixels || !imgPixels) return;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        memcpy(dstPixels, imgPixels, intptr_t(lbWidth) << 2);
+        memcpy(dstPixels, imgPixels, intptr_t(width) << 2);
         dstPixels += texWidth;
         imgPixels += img->mWidth;
     }
@@ -4910,48 +5708,48 @@ void putImage32(int32_t x1, int32_t y1, GFX_IMAGE* img)
 }
 
 //put GFX image with add background color
-void putImageAdd(int32_t x1, int32_t y1, GFX_IMAGE* img)
+void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
 {
     if (bitsPerPixel != 32) return;
 
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
     if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth  = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
@@ -4993,8 +5791,8 @@ void putImageAdd(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
@@ -5016,59 +5814,57 @@ void putImageAdd(int32_t x1, int32_t y1, GFX_IMAGE* img)
 }
 
 //put GFX image with sub background color
-void putImageSub(int32_t x1, int32_t y1, GFX_IMAGE* img)
+void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth  = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         shl     ebx, 2
         mov     edx, imgWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
         push    ebx
     plot:
         mov     eax, [edi]
@@ -5095,20 +5891,20 @@ void putImageSub(int32_t x1, int32_t y1, GFX_IMAGE* img)
         pop     ebx
         add     edi, ebx
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
     if (!dstPixels || !imgPixels) return;
 
-    const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
-    const uint32_t addImgOffs = (img->mWidth - lbWidth) << 2;
-    for (int32_t i = 0; i < lbHeight; i++)
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t j = 0; j < lbWidth; j++)
+        for (int32_t j = 0; j < width; j++)
         {
             dstPixels[0] = max(dstPixels[0] - imgPixels[0], 0);
             dstPixels[1] = max(dstPixels[1] - imgPixels[1], 0);
@@ -5122,49 +5918,257 @@ void putImageSub(int32_t x1, int32_t y1, GFX_IMAGE* img)
 #endif
 }
 
-//put GFX image with alpha color
-void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
+//put GFX image with sub background color
+void putImageAnd(int32_t x, int32_t y, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t width = (lx2 - lx1) + 1;
-    const int32_t height = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
     if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+        push    ebx
+    plot:
+        mov     eax, [edi]
+        sub     al, [esi]
+        jnc     bstep
+        xor     al, al
+    bstep:
+        sub     ah, [esi + 1]
+        jnc     gstep
+        xor     ah, ah
+    gstep:
+        mov     ebx, eax
+        shr     ebx, 16
+        sub     bl, [esi + 2]
+        jnc     rstep
+        xor     bl, bl
+    rstep:
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        stosd
+        add     esi, 4
+        loop    plot
+        pop     ebx
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    if (!dstPixels || !imgPixels) return;
+
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < width; j++)
+        {
+            dstPixels[0] = dstPixels[0] & imgPixels[0];
+            dstPixels[1] = dstPixels[1] & imgPixels[1];
+            dstPixels[2] = dstPixels[2] & imgPixels[2];
+            dstPixels += 4;
+            imgPixels += 4;
+        }
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) imgPixels += addImgOffs;
+    }
+#endif
+}
+
+//put GFX image with sub background color
+void putImageXor(int32_t x, int32_t y, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth = img->mWidth;
+
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+        push    ebx
+    plot:
+        mov     eax, [edi]
+        sub     al, [esi]
+        jnc     bstep
+        xor     al, al
+    bstep:
+        sub     ah, [esi + 1]
+        jnc     gstep
+        xor     ah, ah
+    gstep:
+        mov     ebx, eax
+        shr     ebx, 16
+        sub     bl, [esi + 2]
+        jnc     rstep
+        xor     bl, bl
+    rstep:
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        stosd
+        add     esi, 4
+        loop    plot
+        pop     ebx
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    if (!dstPixels || !imgPixels) return;
+
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < width; j++)
+        {
+            dstPixels[0] = dstPixels[0] ^ imgPixels[0];
+            dstPixels[1] = dstPixels[1] ^ imgPixels[1];
+            dstPixels[2] = dstPixels[2] ^ imgPixels[2];
+            dstPixels += 4;
+            imgPixels += 4;
+        }
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) imgPixels += addImgOffs;
+    }
+#endif
+}
+
+//put GFX image with alpha color
+void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth  = img->mWidth;
+
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
@@ -5175,9 +6179,9 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
         sub     edx, width
         shl     edx, 2
     again:
-        mov     ecx, width
         push    ebx
         push    edx
+        mov     ecx, width
     plot:
         mov     al, [esi]
         mul     byte ptr[esi + 3]
@@ -5221,8 +6225,8 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
     if (!dstPixels || !imgPixels) return;
 
     const uint32_t addDstOffs = (texWidth - width) << 2;
@@ -5232,9 +6236,9 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
     {
         for (int32_t j = 0; j < width; j++)
         {
-            dstPixels[0] = (imgPixels[3] * imgPixels[0] + dstPixels[0] * (255 - imgPixels[3])) >> 8;
-            dstPixels[1] = (imgPixels[3] * imgPixels[1] + dstPixels[1] * (255 - imgPixels[3])) >> 8;
-            dstPixels[2] = (imgPixels[3] * imgPixels[2] + dstPixels[2] * (255 - imgPixels[3])) >> 8;
+            dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * (255 - imgPixels[3])) >> 8;
+            dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * (255 - imgPixels[3])) >> 8;
+            dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * (255 - imgPixels[3])) >> 8;
             dstPixels += 4;
             imgPixels += 4;
         }
@@ -5244,56 +6248,96 @@ void putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color)
-void putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
+//put GFX image with alpha color
+void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    if (bitsPerPixel != 8) return;
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        putImageMix(x, y, img);
+        return;
+    }
 
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        putImageNormal(x, y, img);
+        break;
+
+    case BLEND_MODE_ADD:
+        putImageAdd(x, y, img);
+        break;
+
+    case BLEND_MODE_SUB:
+        putImageSub(x, y, img);
+        break;
+
+    case BLEND_MODE_AND:
+        putImageAnd(x, y, img);
+        break;
+
+    case BLEND_MODE_XOR :
+        putImageXor(x, y, img);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        putImageAlpha(x, y, img);
+        break;
+
+    default:
+        break;
+    }
+}
+
+//put a sprite at point(x1, y1) with key color (don't render key color)
+void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+{
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth  = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         mov     edx, imgWidth
-        sub     edx, lbWidth
+        sub     edx, width
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
     plot:
         lodsb
         cmp     al, byte ptr[keyColor]
@@ -5304,21 +6348,21 @@ void putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
         loop    plot
         add     edi, ebx
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
+    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly + lx;
+    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
     if (!dstPixels || !imgPixels) return;
 
-    const uint32_t addDstOffs = texWidth - lbWidth;
-    const uint32_t addImgOffs = img->mWidth - lbWidth;
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t j = 0; j < lbWidth; j++)
+        for (int32_t j = 0; j < width; j++)
         {
             if (*imgPixels != keyColor) *dstPixels = *imgPixels;
             dstPixels++;
@@ -5331,59 +6375,57 @@ void putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 }
 
 //put a sprite at point(x1, y1) with key color (don't render key color)
-void putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
+void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         shl     ebx, 2
         mov     edx, imgWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
     plot:
         lodsd
         and     eax, 00FFFFFFh
@@ -5395,21 +6437,21 @@ void putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
         loop    plot
         add     edi, ebx
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
     if (!dstPixels || !imgPixels) return;
 
-    const uint32_t addDstOffs = texWidth - lbWidth;
-    const uint32_t addImgOffs = img->mWidth - lbWidth;
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t j = 0; j < lbWidth; j++)
+        for (int32_t j = 0; j < width; j++)
         {
             if ((*imgPixels & 0x00FFFFFF) != keyColor) *dstPixels = *imgPixels;
             dstPixels++;
@@ -5422,59 +6464,57 @@ void putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 }
 
 //put a sprite at point(x1, y1) with key color (don't render key color), add with background color
-void putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
+void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         shl     ebx, 2
         mov     edx, imgWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
         push    ebx
     plot:
         lodsd
@@ -5505,21 +6545,21 @@ void putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
         pop     ebx
         add     edi, ebx
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
     if (!dstPixels || !imgPixels) return;
 
-    const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
-    const uint32_t addImgOffs = (img->mWidth - lbWidth) << 2;
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t j = 0; j < lbWidth; j++)
+        for (int32_t j = 0; j < width; j++)
         {
             //we accepted RGB color only
             if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
@@ -5538,59 +6578,57 @@ void putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 }
 
 //put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
-void putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
+void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
-
     //calculate new position
-    const int32_t x2 = (x1 + img->mWidth) - 1;
-    const int32_t y2 = (y1 + img->mHeight) - 1;
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
 
     //clip image to context boundaries
-    const int32_t lx1 = (x1 >= cminX) ? x1 : cminX;
-    const int32_t ly1 = (y1 >= cminY) ? y1 : cminY;
-    const int32_t lx2 = (x2 <= cmaxX) ? x2 : cmaxX;
-    const int32_t ly2 = (y2 <= cmaxY) ? y2 : cmaxY;
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
 
     //validate boundaries
-    if (lx1 >= lx2) return;
-    if (ly1 >= ly2) return;
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
 
     //initialize loop variables
-    const int32_t lbWidth = (lx2 - lx1) + 1;
-    const int32_t lbHeight = (ly2 - ly1) + 1;
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lbWidth || !lbHeight) return;
+    if (!width || !height) return;
 
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    int32_t imgWidth = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     _asm {
         mov     edi, drawBuff
-        mov     eax, ly1
+        mov     eax, ly
         mul     texWidth
-        add     eax, lx1
+        add     eax, lx
         shl     eax, 2
         add     edi, eax
         mov     esi, imgData
-        mov     eax, ly1
-        sub     eax, y1
+        mov     eax, ly
+        sub     eax, y
         mul     imgWidth
-        mov     ebx, lx1
-        sub     ebx, x1
+        mov     ebx, lx
+        sub     ebx, x
         add     eax, ebx
         shl     eax, 2
         add     esi, eax
         mov     ebx, texWidth
-        sub     ebx, lbWidth
+        sub     ebx, width
         shl     ebx, 2
         mov     edx, imgWidth
-        sub     edx, lbWidth
+        sub     edx, width
         shl     edx, 2
     next:
-        mov     ecx, lbWidth
+        mov     ecx, width
         push    ebx
     plot:
         mov     eax, [esi]
@@ -5623,21 +6661,21 @@ void putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
         pop     ebx
         add     edi, ebx
         add     esi, edx
-        dec     lbHeight
+        dec     height
         jnz     next
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1));
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
     if (!dstPixels || !imgPixels) return;
 
-    const uint32_t addDstOffs = (texWidth - lbWidth) << 2;
-    const uint32_t addImgOffs = (img->mWidth - lbWidth) << 2;
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
 
-    for (int32_t i = 0; i < lbHeight; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t j = 0; j < lbWidth; j++)
+        for (int32_t j = 0; j < width; j++)
         {
             //we accepted RGB color only
             if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
@@ -5655,6 +6693,391 @@ void putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
+//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
+void putSpriteAnd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth = img->mWidth;
+
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+        push    ebx
+    plot:
+        mov     eax, [esi]
+        and     eax, 00FFFFFFh
+        cmp     eax, keyColor
+        je      skip
+        mov     eax, [edi]
+        and     al, [esi]
+        and     ah, [esi + 1]
+        mov     ebx, eax
+        shr     ebx, 16
+        and     bl, [esi + 2]
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        mov     [edi], eax
+    skip:
+        add     edi, 4
+        add     esi, 4
+        loop    plot
+        pop     ebx
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    if (!dstPixels || !imgPixels) return;
+
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < width; j++)
+        {
+            //we accepted RGB color only
+            if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
+            {
+                dstPixels[0] = dstPixels[0] & imgPixels[0];
+                dstPixels[1] = dstPixels[1] & imgPixels[1];
+                dstPixels[2] = dstPixels[2] & imgPixels[2];
+            }
+            dstPixels += 4;
+            imgPixels += 4;
+        }
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) imgPixels += addImgOffs;
+    }
+#endif
+}
+
+//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
+void putSpriteXor(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth = img->mWidth;
+
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        mov     ecx, width
+        push    ebx
+    plot:
+        mov     eax, [esi]
+        and     eax, 00FFFFFFh
+        cmp     eax, keyColor
+        je      skip
+        mov     eax, [edi]
+        xor     al, [esi]
+        xor     ah, [esi + 1]
+        mov     ebx, eax
+        shr     ebx, 16
+        xor     bl, [esi + 2]
+        shl     ebx, 16
+        and     eax, 00FFFFh
+        or      eax, ebx
+        mov     [edi], eax
+    skip:
+        add     edi, 4
+        add     esi, 4
+        loop    plot
+        pop     ebx
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    if (!dstPixels || !imgPixels) return;
+
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < width; j++)
+        {
+            //we accepted RGB color only
+            if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
+            {
+                dstPixels[0] = dstPixels[0] ^ imgPixels[0];
+                dstPixels[1] = dstPixels[1] ^ imgPixels[1];
+                dstPixels[2] = dstPixels[2] ^ imgPixels[2];
+            }
+            dstPixels += 4;
+            imgPixels += 4;
+        }
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) imgPixels += addImgOffs;
+    }
+#endif
+}
+
+//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
+void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth = img->mWidth;
+
+    _asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    next:
+        push    ebx
+        push    edx
+        mov     ecx, width
+    plot:
+        mov     eax, [esi]
+        and     eax, 00FFFFFFh
+        cmp     eax, keyColor
+        je      skip
+        mov     al, [esi]
+        mul     byte ptr[esi + 3]
+        mov     bx, ax
+        mov     al, [edi]
+        mov     dl, 255
+        sub     dl, [esi + 3]
+        mul     dl
+        add     ax, bx
+        shr     ax, 8
+        mov     [edi], al
+        mov     al, [esi + 1]
+        mul     byte ptr[esi + 3]
+        mov     bx, ax
+        mov     al, [edi + 1]
+        mov     dl, 255
+        sub     dl, [esi + 3]
+        mul     dl
+        add     ax, bx
+        shr     ax, 8
+        mov     [edi + 1], al
+        mov     al, [esi + 2]
+        mul     byte ptr[esi + 3]
+        mov     bx, ax
+        mov     al, [edi + 2]
+        mov     dl, 255
+        sub     dl, [esi + 3]
+        mul     dl
+        add     ax, bx
+        shr     ax, 8
+        mov     [edi + 2], al
+    skip:
+        add     edi, 4
+        add     esi, 4
+        loop    plot
+        pop     edx
+        pop     ebx
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     next
+    }
+#else
+    //calculate starting address
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    if (!dstPixels || !imgPixels) return;
+
+    const uint32_t addDstOffs = (texWidth - width) << 2;
+    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < width; j++)
+        {
+            //we accepted RGB color only
+            if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
+            {
+                dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * (255 - imgPixels[3])) >> 8;
+                dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * (255 - imgPixels[3])) >> 8;
+                dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * (255 - imgPixels[3])) >> 8;
+            }
+            dstPixels += 4;
+            imgPixels += 4;
+        }
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) imgPixels += addImgOffs;
+    }
+#endif
+}
+
+//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
+void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
+{
+    //mixed mode?
+    if (bitsPerPixel == 8)
+    {
+        putSpriteMix(x, y, keyColor, img);
+        return;
+    }
+
+    //height color mode
+    switch (mode)
+    {
+    case BLEND_MODE_NORMAL:
+        putSpriteNormal(x, y, keyColor, img);
+        break;
+
+    case BLEND_MODE_ADD:
+        putSpriteAdd(x, y, keyColor, img);
+        break;
+
+    case BLEND_MODE_SUB:
+        putSpriteSub(x, y, keyColor, img);
+        break;
+
+    case BLEND_MODE_AND:
+        putSpriteAnd(x, y, keyColor, img);
+        break;
+
+    case BLEND_MODE_XOR:
+        putSpriteXor(x, y, keyColor, img);
+        break;
+
+    case BLEND_MODE_ALPHA:
+        putSpriteAlpha(x, y, keyColor, img);
+        break;
+
+    default:
+        break;
+    }
+
+}
 //Cohen-Sutherland clipping algorithm
 int32_t getCode(int32_t x, int32_t y)
 {
@@ -5957,12 +7380,11 @@ void getBasePalette(RGB* pal)
 //make linear palette (7 circle colors)
 void makeLinearPalette()
 {
-    int16_t i = 0, j = 0;
     RGB pal[256] = { 0 };
 
-    for (i = 0; i < 32; i++)
+    for (int16_t i = 0; i < 32; i++)
     {
-        j = 16 + i;
+        int16_t j = 16 + i;
         pal[j].r = 63;
         pal[j].g = 0;
         pal[j].b = 63 - (i << 1);
@@ -6101,31 +7523,9 @@ void moveTo(int32_t x, int32_t y)
 }
 
 //draw line from current to (x,y)
-void lineTo(int32_t x, int32_t y, uint32_t col)
+void lineTo(int32_t x, int32_t y, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    drawLine(currX, currY, x, y, col);
-    moveTo(x, y);
-}
-
-//draw line from current to (x,y) with add color
-void lineToAdd(int32_t x, int32_t y, uint32_t col)
-{
-    drawLineAdd(currX, currY, x, y, col);
-    moveTo(x, y);
-}
-
-//draw line from current to (x,y) with sub color
-void lineToSub(int32_t x, int32_t y, uint32_t col)
-{
-    drawLineSub(currX, currY, x, y, col);
-    moveTo(x, y);
-}
-
-//draw line from current to (x,y) with alpha color
-void lineToAlpha(int32_t x, int32_t y, uint32_t col)
-{
-    if (bitsPerPixel != 32) return;
-    drawLineAlpha(currX, currY, x, y, col);
+    drawLine(currX, currY, x, y, col, mode);
     moveTo(x, y);
 }
 
@@ -6165,7 +7565,7 @@ void projette(double x, double y, double z)
     break;
 
     default:
-        messageBox(GFX_WARNING, "Unknown projection type!");
+        messageBox(GFX_WARNING, "Warning unknown projection type!");
     break;
     }
 }
@@ -6180,30 +7580,12 @@ void deplaceEn(double x, double y, double z)
 }
 
 //draw line from current cursor in 3D mode
-void traceVers(double x, double y, double z, uint32_t col)
+void traceVers(double x, double y, double z, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     projette(x, y, z);
     cranX = int32_t(centerX + projX * ECHE);
     cranY = int32_t(centerY - projY);
-    lineTo(cranX, cranY, col);
-}
-
-//draw line from current cursor in 3D mode with add color
-void traceVersAdd(double x, double y, double z, uint32_t col)
-{
-    projette(x, y, z);
-    cranX = int32_t(centerX + projX * ECHE);
-    cranY = int32_t(centerY - projY);
-    lineToAdd(cranX, cranY, col);
-}
-
-//draw line from current cursor in 3D mode with sub color
-void traceVersSub(double x, double y, double z, uint32_t col)
-{
-    projette(x, y, z);
-    cranX = int32_t(centerX + projX * ECHE);
-    cranY = int32_t(centerY - projY);
-    lineToSub(cranX, cranY, col);
+    lineTo(cranX, cranY, col, mode);
 }
 
 //string position
@@ -6672,9 +8054,9 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
         else
         {
             //automatic antialias when in 32-bits mode
-            if (bitsPerPixel == 4) lineToAlpha(mx, my, col);
-            else if (mode == 2) lineToAdd(mx, my, col);
-            else if (mode == 3) lineToSub(mx, my, col);
+            if (bitsPerPixel == 4) lineTo(mx, my, col, BLEND_MODE_ALPHA);
+            else if (mode == 2) lineTo(mx, my, col, BLEND_MODE_ADD);
+            else if (mode == 3) lineTo(mx, my, col, BLEND_MODE_SUB);
             else lineTo(mx, my, col);
         }
         stroke++;
@@ -6740,8 +8122,8 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
                     }
                     if (data & (1 << (cx & 31)))
                     {
-                        if (mode == 2) putPixelAdd(x + cx, y + cy, col);
-                        else if (mode == 3) putPixelSub(x + cx, y + cy, col);
+                        if (mode == 2) putPixel(x + cx, y + cy, col, BLEND_MODE_ADD);
+                        else if (mode == 3) putPixel(x + cx, y + cy, col, BLEND_MODE_SUB);
                         else putPixel(x + cx, y + cy, col);
                     }
                 }
@@ -6811,8 +8193,8 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
                     if (!(data & 0x80))
                     {
                         if (bitsPerPixel == 8) putPixel(x + cx, y + cy + addy, data);
-                        else if (mode == 2) putPixelAdd(x + cx, y + cy + addy, *(uint32_t*)&fontPalette[fontType][data << 2]);
-                        else if (mode == 3) putPixelSub(x + cx, y + cy + addy, *(uint32_t*)&fontPalette[fontType][data << 2]);
+                        else if (mode == 2) putPixel(x + cx, y + cy + addy, *(uint32_t*)&fontPalette[fontType][data << 2], BLEND_MODE_ADD);
+                        else if (mode == 3) putPixel(x + cx, y + cy + addy, *(uint32_t*)&fontPalette[fontType][data << 2], BLEND_MODE_SUB);
                         else putPixel(x + cx, y + cy + addy, *(uint32_t*)&fontPalette[fontType][data << 2]);
                     }
                 }
@@ -6868,7 +8250,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
                 for (cx = 0; cx < width; cx++)
                 {
                     data = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos];
-                    putPixelAlpha(x + cx, y + addy + cy, data, 255);
+                    putPixel(x + cx, y + addy + cy, rgba(data, 255), BLEND_MODE_ALPHA);
                     mempos += 4;
                 }
             }
@@ -6934,7 +8316,7 @@ void showPNG(const char* fname)
     }
 
     //render image
-    putImageAlpha(0, 0, &png);
+    putImage(0, 0, &png, BLEND_MODE_ALPHA);
     render();
     freeImage(&png);
 }
@@ -6944,7 +8326,7 @@ int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 {
     if (bitsPerPixel != 8)
     {
-        messageBox(GFX_ERROR, "Only 8 bits screen support this function!");
+        messageBox(GFX_ERROR, "Only 8 bits video mode support!");
         return 0;
     }
 
@@ -6968,7 +8350,7 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
 {
     if (bitsPerPixel != 32)
     {
-        messageBox(GFX_ERROR, "Only 32 bits screen support this function!");
+        messageBox(GFX_ERROR, "Only 32 bits video mode support!");
         return 0;
     }
 
@@ -6985,7 +8367,7 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     if (!texture)
     {
         SDL_FreeSurface(image);
-        messageBox(GFX_ERROR, "Cannot create surface: %s!", SDL_GetError());
+        messageBox(GFX_ERROR, "Error create surface: %s!", SDL_GetError());
         return 0;
     }
 
@@ -6994,14 +8376,14 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     {
         SDL_FreeSurface(image);
         SDL_FreeSurface(texture);
-        messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+        messageBox(GFX_ERROR, "Error convert texture: %s!", SDL_GetError());
         return 0;
     }
 
     //build GFX texture
     if (!newImage(texture->w, texture->h, im))
     {
-        messageBox(GFX_ERROR, "Cannot create new image!");
+        messageBox(GFX_ERROR, "Error create new image!");
         SDL_FreeSurface(image);
         SDL_FreeSurface(texture);
         return 0;
@@ -7019,7 +8401,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
 {
     if (bitsPerPixel != 32)
     {
-        messageBox(GFX_ERROR, "Only 32 bits screen support this function!");
+        messageBox(GFX_ERROR, "Only 32 bits video mode support!");
         return 0;
     }
 
@@ -7027,7 +8409,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
-        messageBox(GFX_ERROR, "Load texture error: %s", IMG_GetError());
+        messageBox(GFX_ERROR, "Error load texture: %s", IMG_GetError());
         return 0;
     }
 
@@ -7036,7 +8418,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     if (!texture)
     {
         SDL_FreeSurface(image);
-        messageBox(GFX_ERROR, "Cannot create surface: %s!", SDL_GetError());
+        messageBox(GFX_ERROR, "Error create surface: %s!", SDL_GetError());
         return 0;
     }
 
@@ -7045,7 +8427,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     {
         SDL_FreeSurface(image);
         SDL_FreeSurface(texture);
-        messageBox(GFX_ERROR, "Cannot convert texture: %s!", SDL_GetError());
+        messageBox(GFX_ERROR, "Error convert texture: %s!", SDL_GetError());
         return 0;
     }
 
@@ -7056,7 +8438,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     {
         SDL_FreeSurface(image);
         SDL_FreeSurface(texture);
-        messageBox(GFX_ERROR, "Cannot alloc memory for image data!!!");
+        messageBox(GFX_ERROR, "Error alloc memory!");
         return 0;
     }
 
@@ -7397,7 +8779,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
     mi->msUnder = (uint8_t*)calloc(MOUSE_SIZE, bytesPerPixel);
     if (!mi->msUnder)
     {
-        messageBox(GFX_ERROR, "Cannot alloc memory!");
+        messageBox(GFX_ERROR, "Error alloc memory!");
         return;
     }
 
@@ -7411,7 +8793,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
         mbm[i].mbData = (uint8_t*)calloc(MOUSE_SIZE, bytesPerPixel);
         if (!mbm[i].mbData)
         {
-            messageBox(GFX_ERROR, "Cannot alloc memory!");
+            messageBox(GFX_ERROR, "Error alloc memory!");
             return;
         }
 
@@ -7443,7 +8825,7 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
             btn[i].btData[j] = (uint8_t*)calloc(BUTTON_SIZE, bytesPerPixel);
             if (!btn[i].btData[j])
             {
-                messageBox(GFX_ERROR, "Cannot alloc memory!");
+                messageBox(GFX_ERROR, "Error alloc memory!");
                 return;
             }
 
@@ -7518,7 +8900,7 @@ void handleMouse(const char* fname)
     const char* bkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
 
     //init and setup bitmap mouse and button
-    if (!initMouseButton(&mi)) messageBox(GFX_ERROR, "Cannot init mouse button!");
+    if (!initMouseButton(&mi)) messageBox(GFX_ERROR, "Error initialize mouse button!");
     loadMouseButton(fname, &mi, mbm, btn);
     
     //hide mouse pointer
@@ -8280,7 +9662,7 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
     {
         //calculate deltax, deltay
         const int32_t cx = (((src->mWidth >> 1) % xb) << 16) | xb;
-        const int32_t cy = (yb - (src->mHeight >> 1) % yb);
+        const int32_t cy = (yb - ((src->mHeight >> 1) % yb));
 
         //process line by line
         for (int32_t y = 0; y < src->mHeight; y++)
@@ -8509,8 +9891,8 @@ void blurImage(GFX_IMAGE* img)
 #endif
 }
 
-//FX-effect: blending image buffer
-void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
+//FX-effect: alpha-blending image buffer
+void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, uint8_t cover)
 {
     uint8_t* psrc1 = src1->mData;
     uint8_t* psrc2 = src2->mData;
@@ -8523,9 +9905,8 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     _asm {
         mov     edi, pdst
         mov     esi, psrc2
-        mov     ecx, cover
         mov     edx, psrc1
-        neg     cl
+        mov     cl, cover
     next:
         push    edx
         mov     ebx, [esi]
@@ -8554,11 +9935,12 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
         jnz     next
     }
 #else
+    const uint8_t blend = 255 - cover;
     for (uint32_t i = 0; i < count; i++)
     {
-        pdst[0] = (cover * psrc1[0] + psrc2[0] * (255 - cover)) >> 8;
-        pdst[1] = (cover * psrc1[1] + psrc2[1] * (255 - cover)) >> 8;
-        pdst[2] = (cover * psrc1[2] + psrc2[2] * (255 - cover)) >> 8;
+        pdst[2] = (cover * psrc1[2] + psrc2[2] * blend) >> 8;
+        pdst[1] = (cover * psrc1[1] + psrc2[1] * blend) >> 8;
+        pdst[0] = (cover * psrc1[0] + psrc2[0] * blend) >> 8;
         pdst  += 4;
         psrc1 += 4;
         psrc2 += 4;

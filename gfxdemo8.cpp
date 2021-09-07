@@ -1246,7 +1246,7 @@ void scrollLed(const char *msg)
     int32_t i = 0, j = 0, k = 0, m = 0;
     const int32_t zx = 5, zy = 3, sy = 50;
 
-    drawRectEx(0, sy, cmaxX - 1, gfxFonts[fontType].header.subData.height << 2, 50, 10);
+    drawRoundRect(0, sy, cmaxX - 1, gfxFonts[fontType].header.subData.height << 2, 50, 10);
     
     while (!finished(SDL_SCANCODE_RETURN))
     {
@@ -1475,7 +1475,7 @@ void displayPlasma()
     freeFont(0);
 }
 
-void gfxDemo8()
+void gfxDemoMix()
 {
     RGB 	pal1[256] = {0};
     RGB 	pal2[256] = {0};
@@ -1517,7 +1517,7 @@ void gfxDemo8()
     if (!loadFont("assets/fontvn.xfn", 0)) return;
 
     makeFont(msgLoading);
-    writeText(centerX - (getFontWidth(msgLoading) >> 1), centerY - getFontHeight(msgLoading), RGB2INT(255, 255, 64), 0, msgLoading);
+    writeText(centerX - (getFontWidth(msgLoading) >> 1), centerY - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
     render();
     sleepFor(2000);
     showPNG("assets/caibang.png");

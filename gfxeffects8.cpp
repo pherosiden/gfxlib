@@ -15273,7 +15273,7 @@ namespace rayCastingEffect {
     }
 }
 
-void gfxEffects8()
+void gfxEffectsMix()
 {
     //mazeGeneration::run();
     starEffect::run();

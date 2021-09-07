@@ -58,7 +58,7 @@ void juliaSet()
             }
 
             //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            pixels[y][x] = HSV2RGB(i & 255, 255, 255 * (i < maxIterations));
+            pixels[y][x] = hsv(i & 255, 255, 255 * (i < maxIterations));
         }
     }
 
@@ -201,7 +201,7 @@ void fireDemo2()
         //saturation is always the maximum: 255
         //lightness is 0..255 for x=0..128, and 255 for x=128..255
         //set the palette to the calculated RGB value
-        palette[x] = HSL2RGB(x / 3, 255, min(255, x * 2));
+        palette[x] = hsl(x / 3, 255, min(255, x * 2));
     }
 
     //start the loop (one frame per loop)
@@ -730,17 +730,18 @@ void basicDrawing()
     clipLine(&x1, &y1, &x2, &y2);
 
     //the newline is drawn as a red line
-    drawLineAlpha(x1, y1, x2, y2, RGB_RED);
-    drawCircleAlpha(100, 100, 30, RGB_GREEN);
+    drawLine(x1, y1, x2, y2, RGB_RED, BLEND_MODE_ANTIALIASED);
+    drawCircle(100, 100, 30, RGB_GREEN, BLEND_MODE_ANTIALIASED);
     fillCircle(200, 100, 40, RGB_YELLOW);
-    drawEllipseAlpha(200, 200, 50, 100, RGB_BLUE);
+    drawEllipse(200, 200, 50, 100, RGB_BLUE, BLEND_MODE_ANTIALIASED);
     fillEllipse(300, 300, 50, 100, RGB_MAGENTA);
     drawRect(150, 150, 200, 200, RGB_CYAN);
-    drawRectEx(400, 20, 200, 80, 50, RGB_CYAN);
+    drawRoundRect(400, 20, 200, 80, 50, RGB_CYAN);
     vertLine(320, 100, 300, RGB_WHITE);
     horizLine(50, 20, 200, RGB_PURPLE);
     drawBox(400, 350, 100, 100, 50, 50, RGB_GREEN);
-    drawBoxEx(400, 150, 200, 100, 50, RGB_RED);
+    drawRoundBox(400, 150, 200, 100, 50, RGB_RED);
+    drawRotatedEllipse(90, 380, 100, 50, 40, rgb(255, 255, 0), BLEND_MODE_ANTIALIASED);
 
     //make all visible on screen
     render();
@@ -948,7 +949,7 @@ void juliaExplorer()
                 }
 
                 //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                pixels[y][x] = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
+                pixels[y][x] = hsv(i % 256, 255, 255 * (i < maxIterations));
             }
         }
 
@@ -1064,7 +1065,7 @@ void mandelbrotSet()
             }
 
             //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            pixels[y][x] = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
+            pixels[y][x] = hsv(i % 256, 255, 255 * (i < maxIterations));
         }
     }
 
@@ -1134,7 +1135,7 @@ void mandelbrotExporer()
                 }
 
                 //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                pixels[y][x] = HSV2RGB(i % 256, 255, 255 * (i < maxIterations));
+                pixels[y][x] = hsv(i % 256, 255, 255 * (i < maxIterations));
             }
         }
 
@@ -1208,7 +1209,7 @@ void plasmaDemo()
     for (int32_t i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
     //use HSV2RGB to vary the Hue of the color through the palette
-    for (int32_t x = 0; x < 256; x++) colors[x] = HSV2RGB(x, 255, 255);
+    for (int32_t x = 0; x < 256; x++) colors[x] = hsv(x, 255, 255);
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -2335,7 +2336,7 @@ void runRayCasting()
     cleanup();
 }
 
-void gfxEffects32()
+void gfxEffects()
 {
     juliaSet();
     mandelbrotSet();

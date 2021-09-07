@@ -1,4 +1,5 @@
 #include "gfxlib.h"
+#include <conio.h>
 
 int main(int argc, char* args[])
 {
@@ -6,10 +7,10 @@ int main(int argc, char* args[])
     chdir(dirname(args[0]));
     chdir("../Resources");
 #endif
-    gfxEffects32();
-    gfxDemo8();
-    gfxDemo32();
+    gfxEffects();
+    gfxDemoMix(); 
+    gfxDemo();
     gfxFontView();
-    gfxEffects8();
+    gfxEffectsMix();
     return 0;
 }

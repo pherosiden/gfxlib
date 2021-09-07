@@ -168,7 +168,7 @@ void runIntro()
                 i0--;
             }
 
-            if (i0 >= -1) putImageAdd(centerX - (wci.mWidth >> 1), centerY - (wci.mHeight >> 1), &wci);
+            if (i0 >= -1) putImage(centerX - (wci.mWidth >> 1), centerY - (wci.mHeight >> 1), &wci, BLEND_MODE_ADD);
             if (getElapsedTime(startTime) / 1000 >= tg) i0 = -1;
         }
         //logo GFXLIB
@@ -176,7 +176,7 @@ void runIntro()
         {
             blockOutMidImage(&gxb, &gfx, i1, i1);
             brightnessAlpha(&gxb, uint8_t(255 - i1 / 30.0 * 255.0));
-            putImageAlpha(centerX - (gxb.mWidth >> 1), centerY - (gxb.mHeight >> 1), &gxb);
+            putImage(centerX - (gxb.mWidth >> 1), centerY - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
             i1--;
 
             if (getElapsedTime(startTime) / 1000 >= tu) i1 = 0;
@@ -184,17 +184,17 @@ void runIntro()
         //the ultimate message
         else if (i1 == 0)
         {
-            putImageAlpha(centerX - (gfx.mWidth >> 1), centerY - (gfx.mHeight >> 1), &gfx);
+            putImage(centerX - (gfx.mWidth >> 1), centerY - (gfx.mHeight >> 1), &gfx, BLEND_MODE_ALPHA);
             if ((getElapsedTime(startTime) / 1000 >= tu) && (i2 <= 15))
             {
                 blurImageEx(&utb, &ult, 15 - (i2 & 15));
                 brightnessImage(&utb, &utb, ((i2 & 15) + 1) * 15 + 15);
-                putImageAdd(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb);
+                putImage(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 i2++;
             }
             else
             {
-                putImageAdd(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb);
+                putImage(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 if (getElapsedTime(startTime) / 1000 >= to) fadeOutCircle(((getElapsedTime(startTime) / 1000.0 - to) / 3.0) * 100.0, 20, 3, 0);
             }
         }
@@ -263,7 +263,7 @@ void runBlocking(int32_t sx, int32_t sy)
         blockOutMidImage(&img2, &img1, dec << 1, dec << 1);
         brightnessAlpha(&img2, uint8_t(255 - dec / (img1.mWidth >> 3) * 255.0));
         putImage(sx + posx, sy + posy, &img3);
-        putImageAlpha(sx + posx, sy + posy, &img2);
+        putImage(sx + posx, sy + posy, &img2, BLEND_MODE_ALPHA);
         render();
         delay(FPS_60);
     }
@@ -298,8 +298,8 @@ void runScaleUpImage(int32_t sx, int32_t sy)
         setDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
 
         //put some random pixel and GFX message
-        for (int32_t i = 0; i < 400; i++) putPixel(random(img1.mWidth - 4) + 2, random(img1.mHeight - 4) + 2, RGB2INT(0, 255, 200));
-        if (random(64) == 32) putImageAlpha((img1.mWidth - img3.mWidth) >> 1, (img1.mHeight - img3.mHeight) >> 1, &img3);
+        for (int32_t i = 0; i < 400; i++) putPixel(random(img1.mWidth - 4) + 2, random(img1.mHeight - 4) + 2, rgb(0, 255, 200));
+        if (random(64) == 32) putImage((img1.mWidth - img3.mWidth) >> 1, (img1.mHeight - img3.mHeight) >> 1, &img3, BLEND_MODE_ALPHA);
 
         //blur & scale buffer
         blurImage(&img1);
@@ -363,7 +363,7 @@ void runAddImage(int32_t sx, int32_t sy)
         //put lens image with adding background pixel
         step -= 4;
         putImage(sx, sy, &fade1);
-        putImageAdd(int32_t(sx + (320 - cos(step / 160.0) * 320)), sy, &flare);
+        putImage(int32_t(sx + (320 - cos(step / 160.0) * 320)), sy, &flare, BLEND_MODE_ADD);
         render();
         delay(FPS_60);
     };
@@ -441,7 +441,7 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
     freeImage(&img);
 }
 
-void runAntialias(int32_t sx, int32_t sy)
+void runAntiAliased(int32_t sx, int32_t sy)
 {
     //save current centerx, centery
     const int32_t xc = centerX;
@@ -462,14 +462,14 @@ void runAntialias(int32_t sx, int32_t sy)
         for (int32_t i = 0; i < 3; i++)
         {
             //choose random color
-            const uint32_t col = RGB2INT(random(255) + 1, random(255) + 1, random(255) + 1);
+            const uint32_t col = rgb(random(255) + 1, random(255) + 1, random(255) + 1);
 
             //which shape to be draw
             switch (random(3))
             {
-            case 0: drawLineAlpha(random(xc), random(yc), random(xc), random(yc), col); break;
-            case 1: drawCircleAlpha(random(xc), random(yc), random(xc) >> 2, col); break;
-            case 2: drawEllipseAlpha(random(xc), random(yc), random(xc), random(yc), col); break;
+            case 0: drawLine(random(xc), random(yc), random(xc), random(yc), col, BLEND_MODE_ANTIALIASED); break;
+            case 1: drawCircle(random(xc), random(yc), random(xc) >> 2, col, BLEND_MODE_ANTIALIASED); break;
+            case 2: drawEllipse(random(xc), random(yc), random(xc), random(yc), col, BLEND_MODE_ANTIALIASED); break;
             }
         }
 
@@ -517,7 +517,7 @@ void runLens(GFX_IMAGE* outImg)
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
         putImage(0, 0, &gfxsky);
-        fillRectSub(0, 0, cmaxX, cmaxY, RGB2INT(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)));
+        fillRect(0, 0, cmaxX, cmaxY, rgb(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)), BLEND_MODE_SUB);
 
         //put all flare image to render buffer
         for (int32_t i = 0; i < 16; i++)
@@ -528,13 +528,13 @@ void runLens(GFX_IMAGE* outImg)
                 //merge current image buffer to background
                 int32_t x = (centerX + ((centerX - mcx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mWidth >> 1);
                 int32_t y = (centerY + ((centerY - mdx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mHeight >> 1);
-                putImageAdd(x, y, &flares[i]);
+                putImage(x, y, &flares[i], BLEND_MODE_ADD);
             }
         }
 
         //put logo and draw text message
-        putImageAlpha(cresX - gfxlogo.mWidth + 1, 0, &gfxlogo);
-        writeText(tx, ty, RGB2INT(255, 255, 255), 2, str);
+        putImage(cresX - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
+        writeText(tx, ty, rgb(255, 255, 255), 2, str);
         render();
         delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
@@ -708,7 +708,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     freeImage(&screen);
 }
 
-void gfxDemo32()
+void gfxDemo()
 {
     char sbuff[128] = { 0 };
     const char* initMsg = "Please wait while initialize GFXLIB...";
@@ -735,14 +735,14 @@ void gfxDemo32()
 
     runIntro();
     putImage(0, 0, &bg);
-    putImageAlpha(cresX - gfxlogo.mWidth + 1, cresY - gfxlogo.mHeight + 1, &gfxlogo);
+    putImage(cresX - gfxlogo.mWidth + 1, cresY - gfxlogo.mHeight + 1, &gfxlogo, BLEND_MODE_ALPHA);
 
     GFX_IMAGE txt = { 0 };
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
     
-    fillRectPatternAdd(10, 10, xc - 20, yc - 20, RGB_GREY32, ptnHatchX);
-    fillRectSub(10, yc, xc - 20, cmaxY - yc - 10, RGB_GREY32);
+    fillRectPattern(10, 10, xc - 20, yc - 20, RGB_GREY32, ptnHatchX, BLEND_MODE_ADD);
+    fillRect(10, yc, xc - 20, cmaxY - yc - 10, RGB_GREY32, BLEND_MODE_SUB);
     fillRect(20, 20, xc - 40, yc - 40, 0);
     getImage(10, yc, xc - 20, cmaxY - yc - 10, &txt);
 
@@ -839,7 +839,7 @@ void gfxDemo32()
     showText(10, yc, &txt, "are doing their work here. Check the source code");
     showText(10, yc, &txt, "to see the details. The next... Enter :)");
     while (!finished(SDL_SCANCODE_RETURN));
-    runAntialias(20, 20);
+    runAntiAliased(20, 20);
     
     fullSpeed = 0;
     showText(10, yc, &txt, "----");

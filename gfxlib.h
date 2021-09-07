@@ -287,6 +287,17 @@ typedef struct
     int32_t         v;
 } HSV;
 
+//pixel blending mode
+enum BLEND_MODE {
+    BLEND_MODE_NORMAL,                      //this's a normal mode
+    BLEND_MODE_ADD,                         //add with background color
+    BLEND_MODE_SUB,                         //sub with background color
+    BLEND_MODE_AND,                         //and width background color
+    BLEND_MODE_XOR,                         //xor width background color
+    BLEND_MODE_ALPHA,                       //alpha blending with background color
+    BLEND_MODE_ANTIALIASED                  //anti-aliased edge (use for line, circle, ellipse, cubic, bezier)
+};
+
 #pragma pack(pop)
 
 extern int32_t  texWidth;                   //current texture width
@@ -327,38 +338,19 @@ extern uint8_t  ptnInterLeave[];
 extern uint8_t  ptnWideDot[];
 extern uint8_t  ptnCloseDot[];
 
-//functions handler for video mode
-extern void     (*clearScreen)(uint32_t);
-extern void     (*putPixel)(int32_t, int32_t, uint32_t);
-extern void     (*putPixelAdd)(int32_t, int32_t, uint32_t);
-extern void     (*putPixelSub)(int32_t, int32_t, uint32_t);
-extern void     (*putPixelAnd)(int32_t, int32_t, uint32_t);
-extern void     (*putPixelXor)(int32_t, int32_t, uint32_t);
-extern uint32_t (*getPixel)(int32_t, int32_t);
-extern void     (*horizLine)(int32_t, int32_t, int32_t, uint32_t);
-extern void     (*horizLineAdd)(int32_t, int32_t, int32_t, uint32_t);
-extern void     (*horizLineSub)(int32_t, int32_t, int32_t, uint32_t);
-extern void     (*vertLine)(int32_t, int32_t, int32_t, uint32_t);
-extern void     (*vertLineAdd)(int32_t, int32_t, int32_t, uint32_t);
-extern void     (*vertLineSub)(int32_t, int32_t, int32_t, uint32_t);
-extern void     (*fillRect)(int32_t, int32_t, int32_t, int32_t, uint32_t);
-extern void     (*fillRectPattern)(int32_t, int32_t, int32_t, int32_t, uint32_t, uint8_t*);
-extern void     (*getImage)(int32_t, int32_t, int32_t, int32_t, GFX_IMAGE*);
-extern void     (*putImage)(int32_t, int32_t, GFX_IMAGE*);
-extern void     (*putSprite)(int32_t, int32_t, uint32_t, GFX_IMAGE*);
-extern void     (*scaleImage)(GFX_IMAGE*, GFX_IMAGE*, int32_t);
+//convert color functions
+uint32_t    hsl(int32_t h, int32_t s, int32_t l);
+uint32_t    hsv(int32_t h, int32_t s, int32_t v);
+uint32_t    rgb(uint8_t r, uint8_t g, uint8_t b);
+uint32_t    rgba(uint32_t col, uint8_t alpha);
 
-HSL         RGB2HSL(uint8_t r, uint8_t g, uint8_t b);
-HSV         RGB2HSV(uint8_t r, uint8_t g, uint8_t b);
-uint32_t    HSL2RGB(int32_t h, int32_t s, int32_t l);
-uint32_t    HSV2RGB(int32_t h, int32_t s, int32_t v);
-uint32_t    RGB2INT(uint8_t r, uint8_t g, uint8_t b);
-
+//load texture and image functions
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);
 int32_t     loadPNG(uint8_t* raw, RGB* pal, const char* fname);
 int32_t     loadImage(const char* fname, GFX_IMAGE* im);
 void        freeImage(GFX_IMAGE* im);
 
+//GFXLIB font functions
 int32_t     getFontWidth(const char* str);
 int32_t     getFontHeight(const char* str);
 void        setFontType(int32_t type);
@@ -367,6 +359,7 @@ void        makeFont(char* str);
 int32_t     loadFont(const char* fname, int32_t type);
 void        freeFont(int32_t type);
 
+//program keyboard input handler
 void        quit();
 void        readKeys();
 void        delay(uint32_t miliseconds);
@@ -375,11 +368,13 @@ int32_t     keyPressed(int32_t key);
 int32_t     waitKeyPressed();
 int32_t     finished(int32_t key);
 
+//some customize random functions
 int32_t     random(int32_t a);
 int32_t     randomRange(int32_t a, int32_t b);
 void        randomBuffer(void* buff, int32_t count, int32_t range);
 double      frand(double fmin, double fmax);
 
+//system info functions
 void        initSystemInfo();
 uint32_t    getTotalMemory();
 uint32_t    getAvailableMemory();
@@ -396,149 +391,95 @@ const char* getDriverVersion();
 const char* getRenderVersion();
 const char* getImageVersion();
 
+//mouse handler functions
 void        showMouseCursor(int32_t show);
 void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb = NULL, int32_t* rmb = NULL);
 void        setMousePosition(int32_t x, int32_t y);
 
+//timer and FPS functions
 uint32_t    getTime();
 uint32_t    getElapsedTime(uint32_t tmstart);
 void        waitFor(uint32_t tmstart, uint32_t ms);
 void        sleepFor(uint32_t ms);
 
+//video and render functions
 int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
 void        setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
-
-void        cleanup();
 void        render();
+void        cleanup();
 void        renderBuffer(const void* buffer, uint32_t size);
 void*       getDrawBuffer(int32_t *width = NULL, int32_t *height = NULL);
 void        setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
 void        restoreDrawBuffer();
 
+//handle program message
 void        messageBox(int32_t type, const char* fmt, ...);
 void        writeText(int32_t x, int32_t y, uint32_t txtColor, uint32_t mode, const char* format, ...);
 int32_t     drawText(int32_t ypos, int32_t size, const char** str);
 
-void        clearScreen8(uint32_t color);
-void        clearScreen32(uint32_t color);
+//drawing functions
+void        clearScreen(uint32_t color);
 
-void        putPixel8(int32_t x, int32_t y, uint32_t color);
-void        putPixel32(int32_t x, int32_t y, uint32_t color);
-void        putPixelAdd32(int32_t x, int32_t y, uint32_t color);
-void        putPixelSub32(int32_t x, int32_t y, uint32_t color);
-void        putPixelAnd32(int32_t x, int32_t y, uint32_t color);
-void        putPixelXor32(int32_t x, int32_t y, uint32_t color);
-void        putPixelAlpha(int32_t x, int32_t y, uint32_t rgb, uint8_t alpha);
+uint32_t    getPixel(int32_t x, int32_t y);
+void        putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 
-uint32_t    getPixel8(int32_t x, int32_t y);
-uint32_t    getPixel32(int32_t x, int32_t y);
-
-void        horizLine8(int32_t x, int32_t y, int32_t sx, uint32_t color);
-void        horizLine32(int32_t x, int32_t y, int32_t sx, uint32_t color);
-void        horizLineAdd32(int32_t x, int32_t y, int32_t sx, uint32_t color);
-void        horizLineSub32(int32_t x, int32_t y, int32_t sx, uint32_t color);
-
-void        vertLine8(int32_t x, int32_t y, int32_t sy, uint32_t color);
-void        vertLine32(int32_t x, int32_t y, int32_t sy, uint32_t color);
-void        vertLineAdd32(int32_t x, int32_t y, int32_t sy, uint32_t color);
-void        vertLineSub32(int32_t x, int32_t y, int32_t sy, uint32_t color);
-
-void        scaleLine8(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t smooth);
-void        scaleLine32(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32_t smooth);
-void        scaleImage8(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth);
-void        scaleImage32(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth);
+void        horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+void        vertLine(int32_t x, int32_t y, int32_t sy, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 
 void        clipLine(int32_t* xs, int32_t* ys, int32_t* xe, int32_t* ye);
-void        drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        drawLineAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        drawLineSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        drawLineAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb);
+void        drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 
-void        drawCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color);
-void        drawCircleAdd(int32_t xc, int32_t yc, int32_t radius, uint32_t color);
-void        drawCircleSub(int32_t xc, int32_t yc, int32_t radius, uint32_t color);
-void        drawCircleAlpha(int32_t xm, int32_t ym, int32_t r, uint32_t rgb);
+void        drawCircle(int32_t xc, int32_t yc, int32_t rad, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+void        drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+void        drawRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+void        drawRoundRect(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rd, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t dx, int32_t dy, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
-void        drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
-void        drawEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
-void        drawEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
-void        drawEllipseAlpha(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rgb);
+void        drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawQuadBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, double w, int32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double angle, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
-void        drawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        drawRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col);
-void        drawRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
+void        drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col);
+void        drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rd, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawPoly(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
-void        drawRectEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col);
-void        drawRectExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col);
-void        drawRectExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col);
+void        moveTo(int32_t x, int32_t y);
+void        lineTo(int32_t x, int32_t y, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
-void        drawBox(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t dy, uint32_t col);
-void        drawBoxAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t dy, uint32_t col);
-void        drawBoxSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t dx, int32_t dy, uint32_t col);
-void        drawBoxEx(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col);
-void        drawBoxExAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col);
-void        drawBoxExSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t r, uint32_t col);
+void        initProjection();
+void        projette(double x, double y, double z);
+void        deplaceEn(double x, double y, double z);
+void        traceVers(double x, double y, double z, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
-void        drawPoly(POINT2D* point, int32_t num, uint32_t col);
-void        drawPolyAdd(POINT2D* point, int32_t num, uint32_t col);
-void        drawPolySub(POINT2D* point, int32_t num, uint32_t col);
-
-void        fillRect8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        fillRect32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        fillRectAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void        fillRectSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-
-void        fillRectPattern8(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern);
-void        fillRectPattern32(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern);
-void        fillRectPatternAdd(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern);
-void        fillRectPatternSub(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col, uint8_t* pattern);
+void        fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+void        fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern, int32_t mode = BLEND_MODE_NORMAL);
 
 void        calcCircle(int32_t r, int32_t* point);
-void        fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color);
-void        fillCircleAdd(int32_t xc, int32_t yc, int32_t radius, uint32_t color);
-void        fillCircleSub(int32_t xc, int32_t yc, int32_t radius, uint32_t color);
-
+void        fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 void        calcEllipse(int32_t rx, int32_t ry, int32_t* point);
-void        fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
-void        fillEllipseAdd(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
-void        fillEllipseSub(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color);
-void        fillPolygon(POINT2D* point, int32_t num, uint32_t col);
+void        fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+
+void        fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+
+void        scaleLine(void* dst, void* src, int32_t dw, int32_t sw, int32_t smooth);
+void        scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth);
+
+void        setActivePage(GFX_IMAGE* page);
+void        setVisualPage(GFX_IMAGE* page);
 
 int32_t     newImage(int32_t width, int32_t height, GFX_IMAGE* img);
 int32_t     updateImage(int32_t width, int32_t height, GFX_IMAGE* img);
 void        freeImage(GFX_IMAGE* img);
 void        clearImage(GFX_IMAGE* img);
 
-void        setActivePage(GFX_IMAGE* page);
-void        setVisualPage(GFX_IMAGE* page);
+void        getImage(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img);
+void        putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode = BLEND_MODE_NORMAL);
 
-void        getImage8(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE* img);
-void        getImage32(int32_t x1, int32_t y1, int32_t width, int32_t height, GFX_IMAGE* img);
+void        putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t mode = BLEND_MODE_NORMAL);
 
-void        putImage8(int32_t x1, int32_t y1, GFX_IMAGE* img);
-void        putImage32(int32_t x1, int32_t y1, GFX_IMAGE* img);
-void        putImageAdd(int32_t x1, int32_t y1, GFX_IMAGE* img);
-void        putImageSub(int32_t x1, int32_t y1, GFX_IMAGE* img);
-void        putImageAlpha(int32_t x1, int32_t y1, GFX_IMAGE* img);
-
-void        putSprite8(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img);
-void        putSprite32(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img);
-void        putSpriteAdd(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img);
-void        putSpriteSub(int32_t x1, int32_t y1, uint32_t keyColor, GFX_IMAGE* img);
-
-void        moveTo(int32_t x, int32_t y);
-void        lineTo(int32_t x, int32_t y, uint32_t col);
-void        lineToAdd(int32_t x, int32_t y, uint32_t col);
-void        lineToSub(int32_t x, int32_t y, uint32_t col);
-
-void        initProjection();
-void        projette(double x, double y, double z);
-void        deplaceEn(double x, double y, double z);
-void        traceVers(double x, double y, double z, uint32_t col);
-void        traceVersAdd(double x, double y, double z, uint32_t col);
-void        traceVersSub(double x, double y, double z, uint32_t col);
-
+//palette function (use for mixed mode - 256 colors)
 void        getPalette(RGB* pal);
 void        setPalette(RGB* pal);
 void        shiftPalette(RGB* pal);
@@ -563,6 +504,7 @@ void        fadeCircle(int32_t dir, uint32_t col);
 void        fadeRollo(int32_t dir, uint32_t col);
 void        fadeOutImage(GFX_IMAGE* img, uint8_t step);
 
+//some FX-effect functiosn
 void        prepareTunnel(GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2);
 void        drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, uint8_t* mov, uint8_t step);
 void        blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur);
@@ -572,7 +514,7 @@ void        blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t
 void        fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col);
 void        scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact);
 void        blurImage(GFX_IMAGE* img);
-void        blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover);
+void        blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, uint8_t cover);
 void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx, int32_t axisy, double angle, double scale);
 void        bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int32_t ly);
 void        bilinearRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle);
@@ -580,14 +522,18 @@ void        bilinearScaleImage(GFX_IMAGE* dst, GFX_IMAGE* src);
 void        initPlasma(uint8_t* sint, uint8_t* cost);
 void        createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IMAGE* img);
 
+//show image and mouse activity simulation
 void        showPNG(const char* fname);
 void        showBMP(const char* fname);
 void        handleMouse(const char* fname);
+
+//other pixels fx
 void        putPixelBob(int32_t x, int32_t y);
 void        drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
-void        gfxDemo8();
-void        gfxDemo32();
-void        gfxEffects8();
-void        gfxEffects32();
+//export demo function (not included in GFXLIB)
+void        gfxDemoMix();
+void        gfxDemo();
+void        gfxEffectsMix();
+void        gfxEffects();
 void        gfxFontView();
