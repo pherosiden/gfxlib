@@ -7618,7 +7618,7 @@ namespace fireworkEffect {
         int16_t i = 0;
         const int32_t arrowsPerFrame = roundf((double(NUM_ARROWS) / (80.0 + EXPLODE_FRAMES + FADEDOWN_FRAMES)) * 1000);
 
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Firework")) return; 
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Firework")) return;
         initPalette();
         initCosSinTable();
         initExplodeTable();

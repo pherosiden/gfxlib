@@ -136,8 +136,8 @@
 #ifdef __APPLE__
 #define _rotr8(v, n)        __rorb(v, n)
 #define _rotl8(v, n)        __rolb(v, n)
-#define LOWORD(a)           (uint16_t(a))
-#define HIWORD(a)           (uint16_t((uint32_t(a) >> 16) & 0xFFFF))
+#define LOWORD(a)           ((a) & 0xFFFF)
+#define HIWORD(a)           (((a) >> 16) & 0xFFFF)
 #endif
 
 //RGB common colors

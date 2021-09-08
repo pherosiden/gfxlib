@@ -1,5 +1,4 @@
 #include "gfxlib.h"
-#include <conio.h>
 
 int main(int argc, char* args[])
 {

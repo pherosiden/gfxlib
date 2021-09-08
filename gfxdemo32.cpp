@@ -488,7 +488,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
     freeImage(&dst);
 }
 
-void runLens(GFX_IMAGE* outImg)
+void runLensFlare(GFX_IMAGE* outImg)
 {
     const int32_t flareput[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     const int32_t flarepos[16] = { -1110, -666, 0, 1087, 1221, 1309, 1776, 2197, 2819, 3130, 3220, 3263, 3663, 3707, 4440, 5125 };
@@ -514,6 +514,9 @@ void runLens(GFX_IMAGE* outImg)
     //redirect to image buffer
     setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
+    //time for record FPS
+    uint32_t time = 0, oldTime = 0;
+
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
         putImage(0, 0, &gfxsky);
@@ -535,6 +538,14 @@ void runLens(GFX_IMAGE* outImg)
         //put logo and draw text message
         putImage(cresX - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
         writeText(tx, ty, rgb(255, 255, 255), 2, str);
+
+        //timing for input and FPS counter
+        oldTime = time;
+        time = getTime();
+
+        //report FPS counter
+        writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / ((time - oldTime) / 1000.0));
+
         render();
         delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
@@ -880,7 +891,7 @@ void gfxDemo()
     showText(10, yc, &txt, "image using Bresenham algorithm for faster speed");
     showText(10, yc, &txt, "of image interpolation. Enter for next...");
     while (!finished(SDL_SCANCODE_RETURN));
-    runLens(&old);
+    runLensFlare(&old);
     bilinearScaleImage(&im, &old);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);
