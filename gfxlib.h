@@ -7,8 +7,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.1.6                                   //
-//          Last Update: 2021-07-24                              //
+//              Version: 1.2.1                                   //
+//          Last Update: 2021-09-11                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -46,122 +46,116 @@
 #endif
 
 //GFX version string
-#define GFX_VERSION         "v21.08.04"
-#define GFX_BUILD_ID        20210804
+#define GFX_VERSION             "v21.09.11"
+#define GFX_BUILD_ID            20210911
 
-#define SCREEN_WIDTH        640     //default screen size
-#define SCREEN_HEIGHT       400
-#define SCREEN_MIDX         320     //center size
-#define SCREEN_MIDY         200
-#define SCREEN_SIZE         256000  //screen size in bytes (SCREEN_WIDTH * SCREEN_HEIGHT)
-#define IMAGE_WIDTH         320     //texture size for mode 13h
-#define IMAGE_HEIGHT        200
-#define MAX_HEIGHT          199     //screen size for mode 13h
-#define MAX_WIDTH           319
-#define MAX_SIZE            63999   //max buffer size for mode 13h
-#define IMAGE_MIDX          160     //center size for mode 13h
-#define IMAGE_MIDY          100
-#define MAX_MIDX            159     //center screen size for mode 13h
-#define MAX_MIDY            99
-#define IMAGE_SIZE          64000   //image size in bytes (IMAGE_WIDTH * IMAGE_HEIGHT)
+//MIXED mode constants
+#define SCREEN_WIDTH            640     //default screen size
+#define SCREEN_HEIGHT           400
+#define SCREEN_MIDX             320     //center size
+#define SCREEN_MIDY             200
+#define SCREEN_SIZE             256000  //screen size in bytes (SCREEN_WIDTH * SCREEN_HEIGHT)
+#define IMAGE_WIDTH             320     //texture size for mode 13h
+#define IMAGE_HEIGHT            200
+#define MAX_HEIGHT              199     //screen size for mode 13h
+#define MAX_WIDTH               319
+#define MAX_SIZE                63999   //max buffer size for mode 13h
+#define IMAGE_MIDX              160     //center size for mode 13h
+#define IMAGE_MIDY              100
+#define MAX_MIDX                159     //center screen size for mode 13h
+#define MAX_MIDY                99
+#define IMAGE_SIZE              64000   //image size in bytes (IMAGE_WIDTH * IMAGE_HEIGHT)
 
 //common buffer size
-#define SIZE_128            128
-#define SIZE_256            256
-#define SIZE_512            512
-#define SIZE_16K            16384   //128 * 128 size
-#define SIZE_32K            32768   //128 * 256 size
-#define SIZE_64K            65536   //256 * 256 size
+#define SIZE_128                128
+#define SIZE_256                256
+#define SIZE_512                512
+#define SIZE_16K                16384   //128 * 128 size
+#define SIZE_32K                32768   //128 * 256 size
+#define SIZE_64K                65536   //256 * 256 size
 
 //default frame rate
-#define FPS_30              33      //30 frames per second
-#define FPS_60              17      //60 frames per second
-#define FPS_90              11      //90 frames per second
+#define FPS_30                  33      //30 frames per second
+#define FPS_60                  17      //60 frames per second
+#define FPS_90                  11      //90 frames per second
 
 //projection constant
-#define ECHE                0.77    //must change for each monitor
+#define ECHE                    0.77    //must change for each monitor
 
 //radian const
-#define RAD                 0.017453293
+#define RAD                     0.017453293
 
 //XFN font style
-#define GFX_FONT_FIXED      0x01    //fixed font (all character have same size)
-#define GFX_FONT_MULTI      0x02    //multiple font
-#define GFX_FONT_ANIMATE    0x04    //animation font
-#define GFX_FONT_ANIPOS     0x08    //random position font
-#define GFX_FONT_SCALEABLE  0x10    //scaleable font
-#define GFX_FONT_VECTOR     0x20    //vector font (like CHR, BGI font)
-#define GFX_BUFF_SIZE       131072  //maximum GFX buffer
-#define GFX_MAX_FONT        5       //maximum GFX font loaded at same time
+#define GFX_FONT_FIXED          0x01    //fixed font (all characters have same size)
+#define GFX_FONT_MULTI          0x02    //multiple font
+#define GFX_FONT_ANIMATE        0x04    //animation font
+#define GFX_FONT_ANIPOS         0x08    //random position font
+#define GFX_FONT_SCALEABLE      0x10    //scaleable font
+#define GFX_FONT_VECTOR         0x20    //vector font (like CHR, BGI font)
+#define GFX_BUFF_SIZE           131072  //maximum GFX buffer
+#define GFX_MAX_FONT            5       //maximum GFX font loaded at same time
 
 //GFX error type
-#define GFX_ERROR           0x01    //raise error message and quit program
-#define GFX_WARNING         0x02    //raise warning message and program will be continued
-#define GFX_INFO            0x03    //raise info message
+#define GFX_ERROR               0x01    //raise error message and quit program
+#define GFX_WARNING             0x02    //raise warning message and program will be continued
+#define GFX_INFO                0x03    //raise info message
 
-//Bitmap mouse and button
-#define MOUSE_WIDTH         24      //mouse width
-#define MOUSE_HEIGHT        24      //mouse height
-#define MOUSE_SIZE          576     //mouse size (mouse width * mouse height)
+#define MOUSE_LEFT_BUTTON       0       //mouse left button pressed
+#define MOUSE_MIDDLE_BUTTON     1       //mouse middle button pressed
+#define MOUSE_RIGHT_BUTTON      2       //mouse right button pressed
 
-#define BUTTON_WIDTH        48      //button width
-#define BUTTON_HEIGHT       24      //button height
-#define BUTTON_SIZE         1152    //button size (button width * button height)
-#define BUTTON_STATES       3
+//button state
+#define BUTTON_STATE_NORMAL     0       //mouse state nornal
+#define BUTTON_STATE_ACTIVE     1       //mouse state active
+#define BUTTON_STATE_PRESSED    2       //mouse state pressed
+#define BUTTON_STATE_WAITING    3       //mouse state waiting
+#define BUTTON_STATE_DISABLED   4       //mouse state diasble
 
-#define LEFT_BUTTON         0       //mouse left button pressed
-#define MIDDLE_BUTTON       1       //mouse middle button pressed
-#define RIGHT_BUTTON        2       //mouse right button pressed
-
-#define STATE_NORM          0       //mouse state nornal
-#define STATE_ACTIVE        1       //mouse state active
-#define STATE_PRESSED       2       //mouse state pressed
-#define STATE_WAITING       3       //mouse state waiting
-
-#define NUM_BUTTONS         2       //'Exit' and 'Click' button
-#define NUM_MOUSE_BITMAPS   9       //total mouse pointer bitmaps
+//button and mouse sprite count
+#define BUTTON_HANDLE_COUNT     2       //number of button to handle
+#define MOUSE_SPRITE_COUNT      9       //number of mouse sprite
+#define BUTTON_STATE_COUNT      4       //number of button state
 
 //fill poly constant
-#define MAX_POLY_CORNERS    200     //max polygon corners
-#define MAX_STACK_SIZE      2000    //max stack size use to scan
+#define MAX_POLY_CORNERS        200     //max polygon corners
 
 //re-defined, some compiler does not define yet
-#define sqr(a)              ((a) * (a))
-#define max(a, b)           ((a) > (b) ? (a) : (b))
-#define min(a, b)           ((a) < (b) ? (a) : (b))
-#define sign(x)             (((x) >= 0) ? (1) : (-1))
-#define swap(a, b)          {a ^= b; b ^= a; a ^= b;}
+#define sqr(a)                  ((a) * (a))
+#define max(a, b)               ((a) > (b) ? (a) : (b))
+#define min(a, b)               ((a) < (b) ? (a) : (b))
+#define sign(x)                 (((x) >= 0) ? (1) : (-1))
+#define swap(a, b)              {a ^= b; b ^= a; a ^= b;}
 
 //common routines
 #ifdef __APPLE__
-#define _rotr8(v, n)        __rorb(v, n)
-#define _rotl8(v, n)        __rolb(v, n)
-#define LOWORD(a)           ((a) & 0xFFFF)
-#define HIWORD(a)           (((a) >> 16) & 0xFFFF)
+#define _rotr8(v, n)            __rorb(v, n)
+#define _rotl8(v, n)            __rolb(v, n)
+#define LOWORD(a)               ((a) & 0xFFFF)
+#define HIWORD(a)               (((a) >> 16) & 0xFFFF)
 #endif
 
 //RGB common colors
-#define RGB_BLACK           0x000000
-#define RGB_WHITE           0xFFFFFF
-#define RGB_RED             0xFF0000
-#define RGB_GREEN           0x00FF00
-#define RGB_BLUE            0x0000FF
-#define RGB_YELLOW          0xFFFF00
-#define RGB_CYAN            0x00FFFF
-#define RGB_MAGENTA         0xFF00FF
-#define RGB_PURPLE          0x800080
-#define RGB_MAROON          0x800000
-#define RGB_DARK_RED        0xC00000
-#define RGB_DARK_GREY       0x808080
-#define RGB_LIGHT_GREY      0xC0C0C0
-#define RGB_DARK_GREEN      0x008000
-#define RGB_NAVY            0x000080
-#define RGB_TEAL            0x008080
-#define RGB_OLIVE           0x808000
-#define RGB_GREY32          0x202020
-#define RGB_GREY64          0x404040
-#define RGB_GREY127         0x7F7F7F
-#define RGB_GREY191         0xBFBFBF
+#define RGB_BLACK               0x000000
+#define RGB_WHITE               0xFFFFFF
+#define RGB_RED                 0xFF0000
+#define RGB_GREEN               0x00FF00
+#define RGB_BLUE                0x0000FF
+#define RGB_YELLOW              0xFFFF00
+#define RGB_CYAN                0x00FFFF
+#define RGB_MAGENTA             0xFF00FF
+#define RGB_PURPLE              0x800080
+#define RGB_MAROON              0x800000
+#define RGB_DARK_RED            0xC00000
+#define RGB_DARK_GREY           0x808080
+#define RGB_LIGHT_GREY          0xC0C0C0
+#define RGB_DARK_GREEN          0x008000
+#define RGB_NAVY                0x000080
+#define RGB_TEAL                0x008080
+#define RGB_OLIVE               0x808000
+#define RGB_GREY32              0x202020
+#define RGB_GREY64              0x404040
+#define RGB_GREY127             0x7F7F7F
+#define RGB_GREY191             0xBFBFBF
 
 #pragma pack(push, 1)
 
@@ -177,99 +171,99 @@ typedef struct
 //GFX stroke vector info
 typedef struct
 {
-    uint8_t         code;                   //stroke code (0: unuse, 1: moveto, 2: lineto)
-    uint8_t         x, y;                   //stroke coordinates
+    uint8_t         code;                       //stroke code (0: unuse, 1: moveto, 2: lineto)
+    uint8_t         x, y;                       //stroke coordinates
 } GFX_STROKE_INFO;
 
 //GFX stroke vector data
 typedef struct
 {
-    uint8_t         width;                  //stroke width
-    uint8_t         height;                 //stroke height
-    uint16_t        numOfLines;             //number of strokes
+    uint8_t         width;                      //stroke width
+    uint8_t         height;                     //stroke height
+    uint16_t        numOfLines;                 //number of strokes
 } GFX_STROKE_DATA;
 
 //GFX font info table
 typedef struct
 {
-    uint32_t        startOffset;            //offset of the font start
-    uint8_t         bitsPerPixel;           //bits per pixel
-    uint16_t        bytesPerLine;           //bytes per line (BMP-font)
-    uint16_t        width;                  //font width
-    uint16_t        height;                 //font height
-    uint16_t        baseLine;               //baseLine of the character
-    uint16_t        descender;              //font desender
-    uint16_t        startChar;              //start of character
-    uint16_t        endChar;                //end of character
-    uint8_t         distance;               //distance between characters
-    uint8_t         randomX;                //only <> 0 if flag anipos on
-    uint8_t         randomY;                //only <> 0 if flag anipos on
-    uint32_t        usedColors;             //only use for BMP8 font
-    uint32_t        spacer;                 //distance for non-existing chars
-    uint8_t         reserved[10];           //reserved for later use
+    uint32_t        startOffset;                //offset of the font start
+    uint8_t         bitsPerPixel;               //bits per pixel
+    uint16_t        bytesPerLine;               //bytes per line (BMP-font)
+    uint16_t        width;                      //font width
+    uint16_t        height;                     //font height
+    uint16_t        baseLine;                   //baseLine of the character
+    uint16_t        descender;                  //font desender
+    uint16_t        startChar;                  //start of character
+    uint16_t        endChar;                    //end of character
+    uint8_t         distance;                   //distance between characters
+    uint8_t         randomX;                    //only <> 0 if flag anipos on
+    uint8_t         randomY;                    //only <> 0 if flag anipos on
+    uint32_t        usedColors;                 //only use for BMP8 font
+    uint32_t        spacer;                     //distance for non-existing chars
+    uint8_t         reserved[10];               //reserved for later use
 } GFX_CHAR_HEADER;
 
 //GFX font
 typedef struct
 {
-    uint8_t         signature[4];           //font signature 'Fnt2'
-    uint16_t        version;                //version number 0x0101
-    uint8_t         name[32];               //name of font
-    uint8_t         copyRight[32];          //font copy-right (use for BGI font)
-    uint8_t         fontType[4];            //font type BMP1, BMP8, VECT, ...
-    uint16_t        subFonts;               //number of sub-fonts (difference size)
-    uint32_t        memSize;                //bytes on load raw data (use this to alloc memory)
-    uint32_t        flags;                  //font flags (ANIPOS, ANIMATION, MULTI, ...)
-    GFX_CHAR_HEADER subData;                //sub-fonts data info
+    uint8_t         signature[4];               //font signature 'Fnt2'
+    uint16_t        version;                    //version number 0x0101
+    uint8_t         name[32];                   //name of font
+    uint8_t         copyRight[32];              //font copy-right (use for BGI font)
+    uint8_t         fontType[4];                //font type BMP1, BMP8, VECT, ...
+    uint16_t        subFonts;                   //number of sub-fonts (difference size)
+    uint32_t        memSize;                    //bytes on load raw data (use this to alloc memory)
+    uint32_t        flags;                      //font flags (ANIPOS, ANIMATION, MULTI, ...)
+    GFX_CHAR_HEADER subData;                    //sub-fonts data info
 } GFX_FONT_HEADER;
 
 //GFX loaded font memory
 typedef struct
 {
-    GFX_FONT_HEADER header;                 //font header
-    uint8_t*        dataPtr;                //font raw data
+    GFX_FONT_HEADER header;                     //font header
+    uint8_t*        dataPtr;                    //font raw data
 } GFX_FONT;
 
 //the structure of image data (base image for GX2LIB)
 typedef struct
 {
-    int32_t         mWidth;                 //image width
-    int32_t         mHeight;                //image height
-    uint32_t        mSize;                  //image size in bytes
-    uint32_t        mRowBytes;              //bytes per scanline
-    uint8_t*        mData;                  //image raw data
+    int32_t         mWidth;                     //image width
+    int32_t         mHeight;                    //image height
+    uint32_t        mSize;                      //image size in bytes
+    uint32_t        mRowBytes;                  //bytes per scanline
+    uint8_t*        mData;                      //image raw data
 } GFX_IMAGE;
 
 //the structure for animated mouse pointers
 typedef struct tagMOUSEBITMAP GFX_BITMAP;
 struct tagMOUSEBITMAP
 {
-    int32_t         mbHotX;                 //mouse hotspot x
-    int32_t         mbHotY;                 //mouse hotspot y
-    uint8_t*        mbData;                 //mouse bitmap data
-    GFX_BITMAP*     mbNext;                 //point to next mouse data
+    int32_t         mbHotX;                     //mouse hotspot x
+    int32_t         mbHotY;                     //mouse hotspot y
+    uint8_t*        mbData;                     //mouse bitmap data
+    GFX_BITMAP*     mbNext;                     //point to next mouse data
 };
 
 //the structure for a bitmap mouse pointer.
 typedef struct
 {
-    int32_t         msPosX;                 //current pos x
-    int32_t         msPosY;                 //current pos y
-    int32_t         msWidth;                //mouse image width
-    int32_t         msHeight;               //mouse image height
-    uint8_t*        msUnder;                //mouse under bacground
-    GFX_BITMAP*     msBitmap;               //hold mouse bitmap info
+    int32_t         msPosX;                     //current pos x
+    int32_t         msPosY;                     //current pos y
+    int32_t         msWidth;                    //mouse image width
+    int32_t         msHeight;                   //mouse image height
+    uint8_t*        msUnder;                    //mouse under bacground
+    GFX_BITMAP*     msBitmap;                   //hold mouse bitmap info
 } GFX_MOUSE;
 
 //the structure for a bitmap button.
 typedef struct
 {
-    int32_t         btPosX;                 //button x
-    int32_t         btPosY;                 //button y
-    int32_t         btState;                //button state (normal, hover, click, disable, ...)
-    int32_t         btWidth;                //button width (each state)
-    int32_t         btHeight;               //button height (each state)
-    uint8_t*        btData[BUTTON_STATES];  //hold mouse bitmap data for each button state
+    int32_t         btPosX;                     //button x
+    int32_t         btPosY;                     //button y
+    int32_t         btState;                    //button state (normal, hover, click, disable)
+    int32_t         btWidth;                    //button width (each state)
+    int32_t         btHeight;                   //button height (each state)
+    uint8_t*        btData[BUTTON_STATE_COUNT];   //hold button data for each button state
 } GFX_BUTTON;
 
 //HSL color type
@@ -289,54 +283,52 @@ typedef struct
 
 //pixel blending mode
 enum BLEND_MODE {
-    BLEND_MODE_NORMAL,                      //this's a normal mode
-    BLEND_MODE_ADD,                         //add with background color
-    BLEND_MODE_SUB,                         //sub with background color
-    BLEND_MODE_AND,                         //and width background color
-    BLEND_MODE_XOR,                         //xor width background color
-    BLEND_MODE_ALPHA,                       //alpha blending with background color
-    BLEND_MODE_ANTIALIASED                  //anti-aliased edge (use for line, circle, ellipse, cubic, bezier)
+    BLEND_MODE_NORMAL,                          //this's a normal mode
+    BLEND_MODE_ADD,                             //add with background color
+    BLEND_MODE_SUB,                             //sub with background color
+    BLEND_MODE_ALPHA,                           //alpha blending with background color
+    BLEND_MODE_ANTIALIASED                      //anti-aliased edge (use for line, circle, ellipse, cubic, bezier)
 };
 
 #pragma pack(pop)
 
-extern int32_t  texWidth;                   //current texture width
-extern int32_t  texHeight;                  //current texture height
-extern uint32_t bitsPerPixel;               //bits per pixel (8/16/32)
+extern int32_t  texWidth;                       //current texture width
+extern int32_t  texHeight;                      //current texture height
+extern uint32_t bitsPerPixel;                   //bits per pixel (8/16/32)
 
 //clip cordinate handle
-extern int32_t  centerX, centerY;           //center screen points
-extern int32_t  cminX, cminY, cmaxX, cmaxY; //view port clip points
-extern int32_t  cresX, cresY, currX, currY; //maxx, maxy, current x, current y
+extern int32_t  currX, currY;                   //current draw cursor
+extern int32_t  centerX, centerY;               //center screen points
+extern int32_t  cminX, cminY, cmaxX, cmaxY;     //view port clip points
 
 //3D projection
-enum PROJ_TYPE { PERSPECTIVE, PARALLELE };  //projection type values
-extern double   DE, rho, theta, phi;        //projection angles
-extern double   aux1, aux2, aux3, aux4;     //temponary values
-extern double   aux5, aux6, aux7, aux8;     //temponary values
-extern double   obsX, obsY, obsZ;           //X,Y,Z coordinate
-extern double   projX, projY;               //projection X,Y
-extern uint8_t  projection;                 //projection type
+enum PROJ_TYPE { PERSPECTIVE, PARALLELE };      //projection type values
+extern double   DE, rho, theta, phi;            //projection angles
+extern double   aux1, aux2, aux3, aux4;         //temponary values
+extern double   aux5, aux6, aux7, aux8;         //temponary values
+extern double   obsX, obsY, obsZ;               //X,Y,Z coordinate
+extern double   projX, projY;                   //projection X,Y
+extern uint8_t  projection;                     //projection type
 
-extern GFX_FONT gfxFonts[GFX_MAX_FONT];     //GFX font loadable at the same time
-extern uint8_t* fontPalette[GFX_MAX_FONT];  //GFX font palette data (BMP8 type)
-extern uint8_t* gfxBuff;                    //GFX buffer
-extern uint32_t subFonts;                   //GFX sub-fonts
-extern uint32_t fontType;                   //current selected font (use for multiple loaded font)
-extern uint32_t randSeed;                   //global random seed
-extern uint32_t factor;                     //global factor
+extern GFX_FONT gfxFonts[GFX_MAX_FONT];         //GFX font loadable at the same time
+extern uint8_t* fontPalette[GFX_MAX_FONT];      //GFX font palette data (BMP8 type)
+extern uint8_t* gfxBuff;                        //GFX buffer
+extern uint32_t subFonts;                       //GFX sub-fonts
+extern uint32_t fontType;                       //current selected font (use for multiple loaded font)
+extern uint32_t randSeed;                       //global random seed
+extern uint32_t factor;                         //global factor
 
 //pattern filled styles
-extern uint8_t  ptnLine[];
-extern uint8_t  ptnLiteSlash[];
-extern uint8_t  ptnSlash[];
-extern uint8_t  ptnBackSlash[];
-extern uint8_t  ptnLiteBackSlash[];
-extern uint8_t  ptnHatch[];
-extern uint8_t  ptnHatchX[];
-extern uint8_t  ptnInterLeave[];
-extern uint8_t  ptnWideDot[];
-extern uint8_t  ptnCloseDot[];
+extern uint8_t  ptnLine[];                      //line fill style
+extern uint8_t  ptnLiteSlash[];                 //line with slash style
+extern uint8_t  ptnSlash[];                     //slash style
+extern uint8_t  ptnBackSlash[];                 //back slash
+extern uint8_t  ptnLiteBackSlash[];             //lite back slash
+extern uint8_t  ptnHatch[];                     //hatch style
+extern uint8_t  ptnHatchX[];                    //hatch x style
+extern uint8_t  ptnInterLeave[];                //inter leaving style
+extern uint8_t  ptnWideDot[];                   //wide dot style
+extern uint8_t  ptnCloseDot[];                  //closed dot style
 
 //convert color functions
 uint32_t    hsl(int32_t h, int32_t s, int32_t l);
@@ -523,9 +515,9 @@ void        initPlasma(uint8_t* sint, uint8_t* cost);
 void        createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IMAGE* img);
 
 //show image and mouse activity simulation
+void        handleMouseButton();
 void        showPNG(const char* fname);
 void        showBMP(const char* fname);
-void        handleMouse(const char* fname);
 
 //other pixels fx
 void        putPixelBob(int32_t x, int32_t y);

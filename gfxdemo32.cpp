@@ -27,7 +27,7 @@ void runExit()
 {
     //capture current screen buffer
     GFX_IMAGE img = { 0 };
-    getImage(0, 0, cresX, cresY, &img);
+    getImage(0, 0, texWidth, texHeight, &img);
 
     //decrease rgb and push back to screen
     for (int32_t i = 0; i < 32; i++)
@@ -115,17 +115,17 @@ void runIntro()
     //initialize buffer
     GFX_IMAGE scr = { 0 }, wci = { 0 };
     GFX_IMAGE gxb = { 0 }, utb = { 0 }, trn = { 0 };
-    if (!newImage(cresX, cresY, &scr)) return;
-    if (!newImage(centerX, centerY, &trn)) return;
+    if (!newImage(texWidth, texHeight, &scr)) return;
+    if (!newImage(texWidth >> 1, texHeight >> 1, &trn)) return;
     if (!newImage(wcb.mWidth, wcb.mHeight, &wci)) return;
     if (!newImage(gfx.mWidth, gfx.mHeight, &gxb)) return;
     if (!newImage(ult.mWidth, ult.mHeight, &utb)) return;
 
-    int32_t i0 = trn.mWidth * trn.mHeight;
-
     //initialize tunnel buffer
-    uint8_t* buff1 = (uint8_t*)calloc(i0, sizeof(uint8_t));
-    uint8_t* buff2 = (uint8_t*)calloc(i0, sizeof(uint8_t));
+    const int32_t tsize = trn.mWidth * trn.mHeight;
+    uint8_t* buff1 = (uint8_t*)calloc(tsize, 1);
+    uint8_t* buff2 = (uint8_t*)calloc(tsize, 1);
+
     if (!buff1 || !buff2)
     {
         messageBox(GFX_ERROR, "RunIntro: cannot alloc memory!");
@@ -138,8 +138,7 @@ void runIntro()
     //redirect draw buffer to image buffer
     setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
-    i0 = 30;
-        
+    int32_t i0 = 30;
     int32_t i1 = 25;
     int32_t i2 = 0;
     uint8_t mov = 0;
@@ -177,8 +176,8 @@ void runIntro()
             blockOutMidImage(&gxb, &gfx, i1, i1);
             brightnessAlpha(&gxb, uint8_t(255 - i1 / 30.0 * 255.0));
             putImage(centerX - (gxb.mWidth >> 1), centerY - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
-            i1--;
 
+            i1--;
             if (getElapsedTime(startTime) / 1000 >= tu) i1 = 0;
         }
         //the ultimate message
@@ -280,8 +279,8 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
     //initialize buffer
     if (!loadImage("assets/gfxspr.png", &img3)) return;
-    if (!newImage(centerX, centerY, &img1)) return;
-    if (!newImage(centerX, centerY, &img2)) return;
+    if (!newImage(texWidth >> 1, texHeight >> 1, &img1)) return;
+    if (!newImage(texWidth >> 1, texHeight >> 1, &img2)) return;
        
     //setup lookup table
     int32_t* tables = (int32_t*)calloc(img2.mWidth, sizeof(int32_t));
@@ -354,22 +353,23 @@ void runCrossFade(int32_t sx, int32_t sy)
 
 void runAddImage(int32_t sx, int32_t sy)
 {
-    //change view port to screen
-    setViewPort(sx, sy, centerX + 20 - 1, centerY + 20 - 1);
+    GFX_IMAGE img = { 0 };
+    if (!newImage(fade1.mWidth, fade1.mHeight, &img)) return;
 
     int32_t step = 320;
     while (step > 4 && !finished(SDL_SCANCODE_RETURN))
     {
         //put lens image with adding background pixel
         step -= 4;
-        putImage(sx, sy, &fade1);
-        putImage(int32_t(sx + (320 - cos(step / 160.0) * 320)), sy, &flare, BLEND_MODE_ADD);
+        setDrawBuffer(img.mData, img.mWidth, img.mHeight);
+        putImage(0, 0, &fade1);
+        putImage(int32_t((320 - cos(step / 160.0) * 320)), 0, &flare, BLEND_MODE_ADD);
+        restoreDrawBuffer();
+        putImage(sx, sy, &img);
         render();
         delay(FPS_60);
-    };
-
-    //restore view port
-    restoreViewPort();
+        clearImage(&img);
+    }
 }
 
 void runRotateImage(int32_t sx, int32_t sy)
@@ -443,14 +443,14 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
 
 void runAntiAliased(int32_t sx, int32_t sy)
 {
-    //save current centerx, centery
-    const int32_t xc = centerX;
-    const int32_t yc = centerY;
+    //save current midx, midy
+    const int32_t midx = texWidth >> 1;
+    const int32_t midy = texHeight >> 1;
 
     //initialize image buffer
     GFX_IMAGE img = { 0 }, dst = { 0 };
-    if (!newImage(xc, yc, &img)) return;
-    if (!newImage(xc, yc, &dst)) return;
+    if (!newImage(midx, midy, &img)) return;
+    if (!newImage(midx, midy, &dst)) return;
 
     //loop until return
     while (!finished(SDL_SCANCODE_RETURN)) 
@@ -467,9 +467,10 @@ void runAntiAliased(int32_t sx, int32_t sy)
             //which shape to be draw
             switch (random(3))
             {
-            case 0: drawLine(random(xc), random(yc), random(xc), random(yc), col, BLEND_MODE_ANTIALIASED); break;
-            case 1: drawCircle(random(xc), random(yc), random(xc) >> 2, col, BLEND_MODE_ANTIALIASED); break;
-            case 2: drawEllipse(random(xc), random(yc), random(xc), random(yc), col, BLEND_MODE_ANTIALIASED); break;
+            case 0: drawLine(random(midx), random(midy), random(midx), random(midy), col, BLEND_MODE_ANTIALIASED); break;
+            case 1: drawCircle(random(midx), random(midy), random(midx) >> 2, col, BLEND_MODE_ANTIALIASED); break;
+            case 2: drawEllipse(random(midx), random(midy), random(midx), random(midy), col, BLEND_MODE_ANTIALIASED); break;
+            default: break;
             }
         }
 
@@ -496,7 +497,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //load source image
     GFX_IMAGE scr = { 0 };
-    if (!newImage(cresX, cresY, &scr)) return;
+    if (!newImage(texWidth, texHeight, &scr)) return;
 
     //current mouse pos and left button
     int32_t lmb = 0;
@@ -536,7 +537,7 @@ void runLensFlare(GFX_IMAGE* outImg)
         }
 
         //put logo and draw text message
-        putImage(cresX - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
+        putImage(texWidth - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
         writeText(tx, ty, rgb(255, 255, 255), 2, str);
 
         //timing for input and FPS counter
@@ -565,7 +566,7 @@ void runBumpImage()
 {
     //loading source image
     GFX_IMAGE dst = { 0 };
-    if (!newImage(cresX, cresY, &dst)) return;
+    if (!newImage(texWidth, texHeight, &dst)) return;
 
     //loop until return
     int32_t cnt = 0;
@@ -598,8 +599,8 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     for (int32_t y = 0; y < 256; y++) sinx[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
     GFX_IMAGE plasma = { 0 }, screen = { 0 };
-    if (!newImage(centerX >> 1, centerY >> 1, &plasma)) return;
-    if (!newImage(centerX, centerY, &screen)) return;
+    if (!newImage(texWidth >> 2, texHeight >> 2, &plasma)) return;
+    if (!newImage(texWidth >> 1, texHeight >> 1, &screen)) return;
 
     uint32_t frames = 0;
     uint32_t* data = (uint32_t*)plasma.mData;
@@ -746,7 +747,7 @@ void gfxDemo()
 
     runIntro();
     putImage(0, 0, &bg);
-    putImage(cresX - gfxlogo.mWidth + 1, cresY - gfxlogo.mHeight + 1, &gfxlogo, BLEND_MODE_ALPHA);
+    putImage(texWidth - gfxlogo.mWidth + 1, texHeight - gfxlogo.mHeight + 1, &gfxlogo, BLEND_MODE_ALPHA);
 
     GFX_IMAGE txt = { 0 };
     const int32_t xc = centerX + 40;
@@ -873,12 +874,12 @@ void gfxDemo()
     fillRect(20, 20, xc - 40, yc - 40, 0);
 
     GFX_IMAGE scr = { 0 };
-    getImage(0, 0, cresX, cresY, &scr);
+    getImage(0, 0, texWidth, texHeight, &scr);
     runBumpImage();
 
     GFX_IMAGE old = { 0 }, im = { 0 };
-    getImage(0, 0, cresX, cresY, &old);
-    newImage(centerX, centerY, &im);
+    getImage(0, 0, texWidth, texHeight, &old);
+    newImage(texWidth >> 1, texHeight >> 1, &im);
     scaleImage(&im, &old, 0);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);

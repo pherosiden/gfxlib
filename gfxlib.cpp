@@ -5,8 +5,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.1.6                                   //
-//          Last Update: 2021-07-24                              //
+//              Version: 1.2.1                                   //
+//          Last Update: 2021-09-11                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -33,8 +33,8 @@
 
 //drawing buffer
 void*           drawBuff = NULL;            //current render buffer
-int32_t         texWidth = 0;               //current buffer width
-int32_t         texHeight = 0;              //current buffer height
+int32_t         texWidth = 0;               //current draw buffer width
+int32_t         texHeight = 0;              //current draw buffer height
 
 //save current buffer
 void*           oldBuffer = NULL;           //saved render buffer
@@ -60,10 +60,6 @@ int32_t         oldMinX = 0;                //saved left-top
 int32_t         oldMinY = 0;                //saved left-top
 int32_t         oldMaxX = 0;                //saved right-bottom
 int32_t         oldMaxY = 0;                //saved right-bottom
-
-//current screen resolution
-int32_t         cresX = 0;                  //X screen resolution
-int32_t         cresY = 0;                  //Y screen resolution
 
 //current draw cursor (2D)
 int32_t         currX = 0;                  //current cursor x
@@ -117,8 +113,8 @@ uint8_t         ptnCloseDot[]      = { 0x88, 0x00, 0x22, 0x00, 0x88, 0x00, 0x22,
 //CPU and video card parameters
 uint32_t        cpuSpeed = 0;               //CPU speed in MHz
 char            cpuName[48] = { 0 };        //full CPU name string
-char            cpuType[13] = { 0 };        //CPU type (INTEL, AMD, ...)
-char            cpuFeatures[48] = { 0 };    //CPU features (MMX, 3DNow!, SSE, SSE2, SSE3, ...)
+char            cpuType[13] = { 0 };        //CPU type (GenuineIntel, AuthenticAMD, ...)
+char            cpuFeatures[48] = { 0 };    //CPU features (MMX, 3DNow!, 3DNowExt!, SSE, SSE2, SSE3, ...)
 char            videoName[128] = { 0 };     //full name of graphic card
 char            driverVersion[32] = { 0 };  //graphic driver version string
 char            renderVersion[32] = { 0 };  //SDL2 version string
@@ -460,10 +456,8 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     //initialize screen buffer size
     texWidth    = width;
     texHeight   = height;
-    centerX     = texWidth >> 1;
-    centerY     = texHeight >> 1;
-    cresX       = width;
-    cresY       = height;
+    centerX     = (texWidth >> 1) - 1;
+    centerY     = (texHeight >> 1) - 1;
 
     //initialize view port size
     cminX   = 0;
@@ -716,11 +710,7 @@ void* getDrawBuffer(int32_t *width, int32_t *height)
 void setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight)
 {
     oldBuffer = drawBuff;
-    oldWidth  = texWidth;
-    oldHeight = texHeight;
-    drawBuff  = newBuff;
-    texWidth  = newWidth;
-    texHeight = newHeight;
+    drawBuff = newBuff;
     setViewPort(0, 0, newWidth - 1, newHeight - 1);
 }
 
@@ -728,9 +718,7 @@ void setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight)
 //setDrawBuffer and restoreDrawBuffer must be a pair functions
 void restoreDrawBuffer()
 {
-    drawBuff  = oldBuffer;
-    texWidth  = oldWidth;
-    texHeight = oldHeight;
+    drawBuff = oldBuffer;
     restoreViewPort();
 }
 
@@ -744,25 +732,13 @@ void renderBuffer(const void* buffer, uint32_t size)
 //set current screen view port for clipping
 void setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
-    //check correct range
-    if (x1 > x2) swap(x1, x2);
-    if (y1 > y2) swap(y1, y2);
-    
-    if (x1 < 0) x1 = 0;
-    if (y1 < 0) y1 = 0;
-    if (x2 < 0) x2 = 0;
-    if (y2 < 0) y2 = 0;
-
-    if (x1 >= texWidth)  x1 = texWidth - 1;
-    if (y1 >= texHeight) y1 = texHeight - 1;
-    if (x2 >= texWidth)  x2 = texWidth - 1;
-    if (y2 >= texHeight) y2 = texHeight - 1;
-
     //save current view port
     oldMinX = cminX;
     oldMinY = cminY;
     oldMaxX = cmaxX;
     oldMaxY = cmaxY;
+    oldWidth = texWidth;
+    oldHeight = texHeight;
 
     //update clip point
     cminX = x1;
@@ -770,9 +746,13 @@ void setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     cmaxX = x2;
     cmaxY = y2;
 
+    //update buffer width and height
+    texWidth = cmaxX - cminX + 1;
+    texHeight = cmaxY - cminY + 1;
+
     //update center x,y
-    centerX = cminX + ((cmaxX - cminX + 1) >> 1);
-    centerY = cminY + ((cmaxY - cminY + 1) >> 1);
+    centerX = (texWidth >> 1) - 1;
+    centerY = (texHeight >> 1) - 1;
 }
 
 //must call after setViewPort call
@@ -782,15 +762,17 @@ void restoreViewPort()
     cminY = oldMinY;
     cmaxX = oldMaxX;
     cmaxY = oldMaxY;
-    centerX = cminX + ((cmaxX - cminX + 1) >> 1);
-    centerY = cminY + ((cmaxY - cminY + 1) >> 1);
+    texWidth = oldWidth;
+    texHeight = oldHeight;
+    centerX = (texWidth >> 1) - 1;
+    centerY = (texHeight >> 1) - 1;
 }
 
 //plot a pixel at (x,y) with color
 void putPixelMix(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -809,7 +791,7 @@ void putPixelMix(int32_t x, int32_t y, uint32_t color)
 void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -829,52 +811,40 @@ void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff   
-        add     edi, eax
-        mov     al, byte ptr[argb]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 1]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 2]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
+    __asm {
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        mov         edi, drawBuff   
+        add         edi, eax
+        xor         eax, eax
+        mov         al, byte ptr[argb + 3]
+        movd        mm0, argb
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
+        emms
     }
 #else
-    uint8_t* pcol = (uint8_t*)&argb;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint8_t blend = 255 - pcol[3];
-
-    pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
-    pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
-    pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    const uint32_t col = *pixels;
+    const uint8_t alpha = argb >> 24;
+    uint32_t g  = col & 0x00ff00;
+    uint32_t rb = col & 0xff00ff;
+    g  += ((argb & 0x00ff00) -  g) * alpha >> 8;
+    rb += ((argb & 0xff00ff) - rb) * alpha >> 8;
+    *pixels = (rb & 0xff00ff) | (g & 0x00ff00);
 #endif
 }
 
@@ -882,52 +852,42 @@ void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 void putPixelAA(int32_t x, int32_t y, uint32_t argb)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff   
-        add     edi, eax
-        mov     al, [edi]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, byte ptr[argb]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, [edi]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, byte ptr[argb + 1]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, [edi]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, byte ptr[argb + 2]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
+    __asm {
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        mov         edi, drawBuff
+        add         edi, eax
+        xor         eax, eax
+        mov         bl, byte ptr[argb + 3]
+        mov         al, 255
+        sub         al, bl
+        movd        mm0, argb
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
+        emms
     }
 #else
-    uint8_t* pcol = (uint8_t*)&argb;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint8_t blend = 255 - pcol[3];
-
-    pixels[2] = (pcol[3] * pixels[2] + blend * pcol[2]) >> 8;
-    pixels[1] = (pcol[3] * pixels[1] + blend * pcol[1]) >> 8;
-    pixels[0] = (pcol[3] * pixels[0] + blend * pcol[0]) >> 8;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    const uint32_t col = *pixels;
+    const uint8_t blend = 255 - (argb >> 24);
+    uint32_t g  = col & 0x00ff00;
+    uint32_t rb = col & 0xff00ff;
+    g  += ((argb & 0x00ff00) - g ) * blend >> 8;
+    rb += ((argb & 0xff00ff) - rb) * blend >> 8;
+    *pixels = (rb & 0xff00ff) | (g & 0x00ff00);
 #endif
 }
 
@@ -937,7 +897,7 @@ void putPixelBob(int32_t x, int32_t y)
     if (bitsPerPixel != 8) return;
     if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -963,32 +923,17 @@ void putPixelBob(int32_t x, int32_t y)
 void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
         shl     eax, 2
         mov     edi, drawBuff
         add     edi, eax
-        mov     eax, [edi]
-        add     al, byte ptr[color]
-        jnc     bstep
-        mov     al, 255
-    bstep:
-        add     ah, byte ptr[color + 1]
-        jnc     gstep
-        mov     ah, 255
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        add     bl, byte ptr[color + 2]
-        jnc     rstep
-        mov     bl, 255
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
+        movd    mm0, [edi]
+        paddusb mm0, color
+        movd    [edi], mm0
+        emms
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
@@ -1003,32 +948,17 @@ void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 void putPixelSub(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
         shl     eax, 2
         mov     edi, drawBuff
         add     edi, eax
-        mov     eax, [edi]
-        sub     al, byte ptr[color]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, byte ptr[color + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, byte ptr[color + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
+        movd    mm0, [edi]
+        psubusb mm0, color
+        movd    [edi], mm0
+        emms
     }
 #else
     uint8_t* rgb = (uint8_t*)&color;
@@ -1036,86 +966,6 @@ void putPixelSub(int32_t x, int32_t y, uint32_t color)
     pixels[0] = max(pixels[0] - rgb[0], 0);
     pixels[1] = max(pixels[1] - rgb[1], 0);
     pixels[2] = max(pixels[2] - rgb[2], 0);
-#endif
-}
-
-//plot a pixel at (x,y) with and color
-void putPixelAnd(int32_t x, int32_t y, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     eax, [edi]
-        and     al, byte ptr[color]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        and     ah, byte ptr[color + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        and     bl, byte ptr[color + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-    }
-#else
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[0] = pixels[0] & rgb[0];
-    pixels[1] = pixels[1] & rgb[1];
-    pixels[2] = pixels[2] & rgb[2];
-#endif
-}
-
-//plot a pixel at (x,y) with xor color
-void putPixelXor(int32_t x, int32_t y, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     eax, [edi]
-        xor     al, byte ptr[color]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        xor     ah, byte ptr[color + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        xor     bl, byte ptr[color + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-    }
-#else
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[0] = pixels[0] ^ rgb[0];
-    pixels[1] = pixels[1] ^ rgb[1];
-    pixels[2] = pixels[2] ^ rgb[2];
 #endif
 }
 
@@ -1147,14 +997,6 @@ void putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode /* = BLEND_MODE
         putPixelSub(x, y, color);
         break;
 
-    case BLEND_MODE_AND:
-        putPixelAnd(x, y, color);
-        break;
-
-    case BLEND_MODE_XOR:
-        putPixelXor(x, y, color);
-        break;
-
     case BLEND_MODE_ALPHA:
         putPixelAlpha(x, y, color);
         break;
@@ -1173,7 +1015,7 @@ uint32_t getPixelMix(int32_t x, int32_t y)
 {
 #ifdef _USE_ASM
     uint8_t col = 0;
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1201,7 +1043,7 @@ uint32_t getPixel(int32_t x, int32_t y)
         
 #ifdef _USE_ASM
     uint32_t col = 0;
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1221,13 +1063,13 @@ uint32_t getPixel(int32_t x, int32_t y)
 //clear screen with color
 void clearScreenMix(uint32_t color)
 {
-    const uint32_t lfbSize = texHeight * texWidth;
+    const uint32_t msize = texHeight * texWidth;
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     edi, drawBuff
-        mov     ecx, lfbSize
+        mov     ecx, msize
         shr     ecx, 2
-        mov     ebx, lfbSize
+        mov     ebx, msize
         and     ebx, 3
         mov     al, byte ptr color
         mov     ah, al
@@ -1240,7 +1082,7 @@ void clearScreenMix(uint32_t color)
     }
 #else
     uint8_t* pixels = (uint8_t*)drawBuff;
-    for (uint32_t i = 0; i < lfbSize; i++) *pixels++ = color;
+    for (uint32_t i = 0; i < msize; i++) *pixels++ = color;
 #endif
     render();
 }
@@ -1256,17 +1098,30 @@ void clearScreen(uint32_t color)
     }
 
     //height color mode
-    const uint32_t lfbSize = texHeight * texWidth;
+    const uint32_t msize = texHeight * texWidth;
 #ifdef _USE_ASM
-    _asm {
-        mov    edi, drawBuff
-        mov    ecx, lfbSize
-        mov    eax, color
-        rep    stosd
+    __asm {
+        mov         edi, drawBuff
+        movd        mm0, color
+        mov         ecx, msize
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm0, mm0
+    again:
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         again
+    once:
+        test        msize, 1
+        jz          end
+        movd        [edi], mm0
+    end:
+        emms        
     }
 #else    
     uint32_t* pixels = (uint32_t*)drawBuff;
-    for (uint32_t i = 0; i < lfbSize; i++) *pixels++ = color;
+    for (uint32_t i = 0; i < msize; i++) *pixels++ = color;
 #endif
     render();
 }
@@ -1275,7 +1130,7 @@ void clearScreen(uint32_t color)
 void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1305,7 +1160,7 @@ void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
 void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1326,35 +1181,33 @@ void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
 void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     ecx, sx
+    __asm {
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        mov         edi, drawBuff
+        add         edi, eax
+        movd        mm1, color
+        mov         ecx, sx
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
     next:
-        mov     eax, [edi]
-        add     al, byte ptr [color]
-        jnc     bstep
-        mov     al, 255
-    bstep:
-        add     ah, byte ptr [color + 1]
-        jnc     gstep
-        mov     ah, 255
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        add     bl, byte ptr [color + 2]
-        jnc     rstep
-        mov     bl, 255
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    next
+        movq        mm0, [edi]
+        paddusb     mm0, mm1
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         next
+    once:
+        test        sx, 1
+        jz          end
+        movd        mm0, [edi]
+        paddusb     mm0, mm1
+        movd        [edi], mm0
+    end:
+        emms
     }
 #else
     //calculate starting address
@@ -1374,35 +1227,33 @@ void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     ecx, sx
+    __asm {
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        mov         edi, drawBuff
+        add         edi, eax
+        movd        mm1, color
+        mov         ecx, sx
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
     next:
-        mov     eax, [edi]
-        sub     al, byte ptr [color]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, byte ptr [color + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, byte ptr [color + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    next
+        movq        mm0, [edi]
+        psubusb     mm0, mm1
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         next
+    once:
+        test        sx, 1
+        jz          end
+        movd        mm0, [edi]
+        psubusb     mm0, mm1
+        movd        [edi], mm0
+    end:
+        emms
     }
 #else
     //calculate starting address
@@ -1418,142 +1269,52 @@ void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
 #endif
 }
 
-//fast horizontal line from (x,y) with sx length, and sub color
-void horizLineAnd(int32_t x, int32_t y, int32_t sx, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     ecx, sx
-    next:
-        mov     eax, [edi]
-        and     al, byte ptr[color]
-        and     ah, byte ptr[color + 1]
-        mov     ebx, eax
-        shr     ebx, 16
-        and     bl, byte ptr[color + 2]
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    next
-    }
-#else
-    //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    for (int32_t i = 0; i < sx; i++)
-    {
-        pixels[0] = pixels[0] & rgb[0];
-        pixels[1] = pixels[1] & rgb[1];
-        pixels[2] = pixels[2] & rgb[2];
-        pixels += 4;
-    }
-#endif
-}
-
-//fast horizontal line from (x,y) with sx length, and sub color
-void horizLineXor(int32_t x, int32_t y, int32_t sx, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     ecx, sx
-    next:
-        mov     eax, [edi]
-        xor     al, byte ptr[color]
-        xor     ah, byte ptr[color + 1]
-        mov     ebx, eax
-        shr     ebx, 16
-        xor     bl, byte ptr[color + 2]
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    next
-    }
-#else
-    //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    for (int32_t i = 0; i < sx; i++)
-    {
-        pixels[0] = pixels[0] ^ rgb[0];
-        pixels[1] = pixels[1] ^ rgb[1];
-        pixels[2] = pixels[2] ^ rgb[2];
-        pixels += 4;
-    }
-#endif
-}
-
-//fast horizontal line from (x,y) with sx length, and sub color
+//fast horizontal line from (x,y) with sx length, and blending pixel
 void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
+    __asm {
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        mov         edi, drawBuff
+        add         edi, eax
+        xor         eax, eax
     next:
-        mov     al, byte ptr[argb]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 1]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 2]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        inc     edi
-        dec     sx
-        jnz     next
+        mov         al, byte ptr[argb + 3]
+        movd        mm0, argb
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
+        add         edi, 4
+        dec         sx
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* pcol = (uint8_t*)&argb;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint8_t blend = 255 - pcol[3];
-
+    const uint8_t alpha = argb >> 24;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    
     for (int32_t i = 0; i < sx; i++)
     {
-        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
-        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
-        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
-        pixels += 4;
+        const uint32_t col = *pixels;
+        uint32_t g  = col & 0x00ff00;
+        uint32_t rb = col & 0xff00ff;
+        g  += ((argb & 0x00ff00) - g ) * alpha >> 8;
+        rb += ((argb & 0xff00ff) - rb) * alpha >> 8;
+        *pixels++ = (rb & 0xff00ff) | (g & 0x00ff00);
     }
 #endif
 }
@@ -1599,14 +1360,6 @@ void horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode /*
         horizLineSub(x, y, sx, color);
         break;
 
-    case BLEND_MODE_AND:
-        horizLineAnd(x, y, sx, color);
-        break;
-
-    case BLEND_MODE_XOR:
-        horizLineXor(x, y, sx, color);
-        break;
-
     case BLEND_MODE_ALPHA:
         horizLineAlpha(x, y, sx, color);
         break;
@@ -1620,7 +1373,7 @@ void horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode /*
 void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1633,7 +1386,8 @@ void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
     next:
         stosb
         add     edi, ebx
-        loop    next
+        dec     ecx
+        jnz     next
     }
 #else
     //calculate starting address
@@ -1650,7 +1404,7 @@ void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
 void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1664,8 +1418,9 @@ void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
         mov     eax, color
     next:
         stosd
-        add     edi, ebx 
-        loop    next
+        add     edi, ebx
+        dec     ecx
+        jnz     next
     }
 #else
     //calculate starting address
@@ -1682,7 +1437,7 @@ void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
 void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1691,30 +1446,15 @@ void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
         add     edi, eax
         mov     ecx, sy
         mov     ebx, texWidth
-        sub     ebx, 1
         shl     ebx, 2
     next:
-        mov     eax, [edi]
-        add     al, byte ptr [color]
-        jnc     bstep
-        mov     al, 255
-    bstep:
-        add     ah, byte ptr [color + 1]
-        jnc     gstep
-        mov     ah, 255
-    gstep:
-        mov     edx, eax
-        shr     edx, 16
-        add     dl, byte ptr [color + 2]
-        jnc     rstep
-        mov     dl, 255
-    rstep:
-        shl     edx, 16
-        and     eax, 00FFFFh
-        or      eax, edx
-        stosd 
+        movd    mm0, [edi]
+        paddusb mm0, color
+        movd    [edi], mm0
         add     edi, ebx 
-        loop    next
+        dec     ecx
+        jnz     next
+        emms
     }
 #else
     //calculate starting address
@@ -1734,7 +1474,7 @@ void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
@@ -1743,30 +1483,15 @@ void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
         add     edi, eax
         mov     ecx, sy
         mov     ebx, texWidth
-        sub     ebx, 1
         shl     ebx, 2
     next:
-        mov     eax, [edi]
-        sub     al, byte ptr [color]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, byte ptr [color + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     edx, eax
-        shr     edx, 16
-        sub     dl, byte ptr [color + 2]
-        jnc     rstep
-        xor     dl, dl
-    rstep:
-        shl     edx, 16
-        and     eax, 00FFFFh
-        or      eax, edx
-        stosd 
-        add     edi, ebx 
-        loop    next
+        movd    mm0, [edi]
+        psubusb mm0, color
+        movd    [edi], mm0
+        add     edi, ebx
+        dec     ecx
+        jnz     next
+        emms
     }
 #else
     //calculate starting address
@@ -1783,153 +1508,54 @@ void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and sub color
-void vertLineAnd(int32_t x, int32_t y, int32_t sy, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     ecx, sy
-        mov     ebx, texWidth
-        sub     ebx, 1
-        shl     ebx, 2
-    next:
-        mov     eax, [edi]
-        and     al, byte ptr[color]
-        and     ah, byte ptr[color + 1]
-        mov     edx, eax
-        shr     edx, 16
-        and     dl, byte ptr[color + 2]
-        shl     edx, 16
-        and     eax, 00FFFFh
-        or      eax, edx
-        stosd
-        add     edi, ebx
-        loop    next
-    }
-#else
-    //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    for (int32_t i = 0; i < sy; i++)
-    {
-        pixels[0] = pixels[0] & rgb[0];
-        pixels[1] = pixels[1] & rgb[1];
-        pixels[2] = pixels[2] & rgb[2];
-        pixels += intptr_t(texWidth) << 2;
-    }
-#endif
-}
-
-//fast vertical line from (x,y) with sy length, and sub color
-void vertLineXor(int32_t x, int32_t y, int32_t sy, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     ecx, sy
-        mov     ebx, texWidth
-        sub     ebx, 1
-        shl     ebx, 2
-    next:
-        mov     eax, [edi]
-        xor     al, byte ptr[color]
-        xor     ah, byte ptr[color + 1]
-        mov     edx, eax
-        shr     edx, 16
-        xor     dl, byte ptr[color + 2]
-        shl     edx, 16
-        and     eax, 00FFFFh
-        or      eax, edx
-        stosd
-        add     edi, ebx
-        loop    next
-    }
-#else
-    //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    for (int32_t i = 0; i < sy; i++)
-    {
-        pixels[0] = pixels[0] ^ rgb[0];
-        pixels[1] = pixels[1] ^ rgb[1];
-        pixels[2] = pixels[2] ^ rgb[2];
-        pixels += intptr_t(texWidth) << 2;
-    }
-#endif
-}
-
-//fast vertical line from (x,y) with sy length, and sub color
 void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        mov     edi, drawBuff
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, 1
-        shl     edx, 2
+    __asm {
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        mov         edi, drawBuff
+        add         edi, eax
+        xor         eax, eax
+        mov         edx, texWidth
+        shl         edx, 2
     next:
-        mov     al, byte ptr[argb]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 1]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 2]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        inc     edi
-        add     edi, edx
-        dec     sy
-        jnz     next
+        mov         al, byte ptr[argb + 3]
+        movd        mm0, argb
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
+        add         edi, edx
+        dec         sy
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* pcol = (uint8_t*)&argb;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint8_t blend = 255 - pcol[3];
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    const uint8_t alpha = argb >> 24;
 
     for (int32_t i = 0; i < sy; i++)
     {
-        pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
-        pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
-        pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
-        pixels += intptr_t(texWidth) << 2;
+        const uint32_t col = *pixels;
+        uint32_t  g = col & 0x00ff00;
+        uint32_t rb = col & 0xff00ff;
+        g  += ((argb & 0x00ff00) - g ) * alpha >> 8;
+        rb += ((argb & 0xff00ff) - rb) * alpha >> 8;
+        *pixels = (rb & 0xff00ff) | (g & 0x00ff00);
+        pixels += intptr_t(texWidth);
     }
 #endif
 }
@@ -1973,14 +1599,6 @@ void vertLine(int32_t x, int32_t y, int32_t sy, uint32_t color, int32_t mode /* 
         vertLineSub(x, y, sy, color);
         break;
 
-    case BLEND_MODE_AND:
-        vertLineAnd(x, y, sy, color);
-        break;
-
-    case BLEND_MODE_XOR:
-        vertLineXor(x, y, sy, color);
-        break;
-
     case BLEND_MODE_ALPHA:
         vertLineAlpha(x, y, sy, color);
         break;
@@ -2002,7 +1620,7 @@ void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t sm
     {
 #ifdef _USE_ASM
         uint16_t val = 0;
-        _asm {
+        __asm {
             mov     ebx, dw
             mov     eax, dw
             cmp     eax, sw
@@ -2035,7 +1653,8 @@ void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t sm
             sub     ebx, dw
             inc     esi
         cycle:
-            loop    next
+            dec     ecx
+            jnz     next
             mov     eax, dw
             cmp     eax, sw
             jna     end
@@ -2065,7 +1684,7 @@ void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t sm
     else
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edx, edx
             mov     esi, src
             mov     edi, dst
@@ -2084,7 +1703,8 @@ void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t sm
             sub     ebx, dw
             inc     esi
         done1:
-            loop    next1
+            dec     ecx
+            jnz     next1
         }
 #else
         int32_t error = 0;
@@ -2114,7 +1734,7 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
     {
 #ifdef _USE_ASM
         uint16_t val = 0;
-        _asm {
+        __asm {
             mov     ebx, dw
             mov     eax, dw
             cmp     eax, sw
@@ -2160,7 +1780,8 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
             sub     ebx, dw
             add     esi, 4
         cycle:
-            loop    next
+            dec     ecx
+            jnz     next
             mov     eax, dw
             cmp     eax, sw
             jna     end
@@ -2202,7 +1823,7 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
     else
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edx, edx
             mov     esi, src
             mov     edi, dst
@@ -2222,7 +1843,8 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
             sub     ebx, dw
             add     esi, 4
         step:
-            loop    begin
+            dec     ecx
+            jnz     begin
         }        
 #else
         int32_t error = 0;
@@ -2279,7 +1901,7 @@ void scaleImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
     void *dstPtr = dst->mData;
     void *srcPtr = src->mData;
 
-    _asm {
+    __asm {
         mov     edi, dstPtr
         mov     esi, srcPtr
         xor     edx, edx
@@ -2323,7 +1945,8 @@ void scaleImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
         add     esi, srcWidth
     cycle:
         pop     ecx
-        loop    next
+        dec     ecx
+        jnz     next
     }
 #else    
     int32_t error = 0;
@@ -2382,7 +2005,7 @@ void scaleImageNormal(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
     void *dstPtr = dst->mData;
     void *srcPtr = src->mData;
 
-    _asm {
+    __asm {
         mov     edi, dstPtr
         mov     esi, srcPtr
         xor     edx, edx
@@ -2431,7 +2054,8 @@ void scaleImageNormal(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
         add     esi, dsi
     cycle:
         pop     ecx
-        loop    next
+        dec     ecx
+        jnz     next
     }
 #else    
     int32_t error = 0;
@@ -2486,8 +2110,8 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t smooth)
 //optimize version using integer, this is not fully optimized
 void bilinearScaleImage(GFX_IMAGE* dst, GFX_IMAGE* src)
 {
-    //only works with 32 bits
-    if (bitsPerPixel != 32) return;
+    //only works with rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //cache local data pointer
     uint32_t* dstp = (uint32_t*)dst->mData;
@@ -2539,8 +2163,8 @@ void bilinearScaleImage(GFX_IMAGE* dst, GFX_IMAGE* src)
 //bilinear image rotation (optimize version using FIXED POINT)
 void bilinearRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
 {
-    //only works with 32 bits
-    if (bitsPerPixel != 32) return;
+    //only works with rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
@@ -2701,7 +2325,7 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     int32_t sc = 0, dc = 0;
     void* plotPixel = putPixelBob;
 
-    _asm {
+    __asm {
         mov     ecx, 1
         mov     edx, 1
         mov     edi, y2
@@ -2919,7 +2543,7 @@ void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb
     const int32_t b = abs(y1 - y0);
 
     //only 32bit support alpha-blend mode
-    if (bitsPerPixel != 32) return;
+    if (bitsPerPixel <= 8) return;
     if (a <= 0 || b <= 0) return;
 
     int32_t b1 = b & 1;
@@ -3875,7 +3499,7 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
 void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, y
         mul     texWidth
@@ -3909,9 +3533,9 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //calculate starting address
     const int32_t addOffset = (texWidth - width);
     uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t x = 0; x < width; x++) *dstPixels++ = color;
+        for (int32_t j = 0; j < width; j++) *dstPixels++ = color;
         if (addOffset > 0) dstPixels += addOffset;
     }
 #endif
@@ -3921,31 +3545,45 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     eax, color
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         edx, texWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm0, color
+    again:
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm0, mm0
     next:
-        mov     ecx, width
-        rep     stosd
-        add     edi, edx
-        dec     height
-        jnz     next
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         next
+    once:
+        test        width, 1
+        jz          end
+        movd        [edi], mm0
+        add         edi, 4
+    end:
+        add         edi, edx
+        dec         height
+        jnz         again
+        emms
     }
 #else
     //calculate starting address
     const int32_t addOffset = (texWidth - width);
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t x = 0; x < width; x++) *dstPixels++ = color;
+        for (int32_t j = 0; j < width; j++) *dstPixels++ = color;
         if (addOffset > 0) dstPixels += addOffset;
     }
 #endif
@@ -3955,42 +3593,41 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
 void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        movd        mm1, color
+    again:
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1,mm1
     plot:
-        mov     eax, [edi]
-        add     al, byte ptr[color]
-        jnc     bstep
-        mov     al, 255
-    bstep:
-        add     ah, byte ptr[color + 1]
-        jnc     gstep
-        mov     ah, 255
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        add     bl, byte ptr[color + 2]
-        jnc     rstep
-        mov     bl, 255
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    plot
-        add     edi, edx
-        dec     height
-        jnz     next
+        movq        mm0, [edi]
+        paddusb     mm0, mm1
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          end
+        movd        mm0, [edi]
+        paddusb     mm0, mm1
+        movd        [edi], mm0
+        add         edi, 4
+    end:
+        add         edi, ebx
+        dec         height
+        jnz         again
+        emms
     }
 #else
     //calculate starting address
@@ -3998,9 +3635,9 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t j = 0; j < width; j++)
         {
             pixels[0] = min(pixels[0] + pcol[0], 255);
             pixels[1] = min(pixels[1] + pcol[1], 255);
@@ -4016,42 +3653,41 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        movd        mm1, color
+    again:
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
     plot:
-        mov     eax, [edi]
-        sub     al, byte ptr[color]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, byte ptr[color + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, byte ptr[color + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    plot
-        add     edi, edx
-        dec     height
-        jnz     next
+        movq        mm0, [edi]
+        psubusb     mm0, mm1
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          end
+        movd        mm0, [edi]
+        psubusb     mm0, mm1
+        movd        [edi], mm0
+        add         edi, 4
+    end:
+        add         edi, ebx
+        dec         height
+        jnz         again
+        emms
     }
 #else
     //calculate starting address
@@ -4059,9 +3695,9 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t j = 0; j < width; j++)
         {
             pixels[0] = max(pixels[0] - pcol[0], 0);
             pixels[1] = max(pixels[1] - pcol[1], 0);
@@ -4073,180 +3709,63 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
-    plot:
-        mov     eax, [edi]
-        and     al, byte ptr[color]
-        and     ah, byte ptr[color + 1]
-        mov     ebx, eax
-        shr     ebx, 16
-        and     bl, byte ptr[color + 2]
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    plot
-        add     edi, edx
-        dec     height
-        jnz     next
-    }
-#else
-    //calculate starting address
-    uint8_t* pcol = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint32_t addOfs = (texWidth - width) << 2;
-
-    for (int32_t y = 0; y < height; y++)
-    {
-        for (int32_t x = 0; x < width; x++)
-        {
-            pixels[0] = pixels[0] & pcol[0];
-            pixels[1] = pixels[1] & pcol[1];
-            pixels[2] = pixels[2] & pcol[2];
-            pixels += 4;
-        }
-        if (addOfs > 0) pixels += addOfs;
-    }
-#endif
-}
-
-//fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
-    plot:
-        mov     eax, [edi]
-        xor     al, byte ptr[color]
-        xor     ah, byte ptr[color + 1]
-        mov     ebx, eax
-        shr     ebx, 16
-        xor     bl, byte ptr[color + 2]
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    plot
-        add     edi, edx
-        dec     height
-        jnz     next
-    }
-#else
-    //calculate starting address
-    uint8_t* pcol = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint32_t addOfs = (texWidth - width) << 2;
-
-    for (int32_t y = 0; y < height; y++)
-    {
-        for (int32_t x = 0; x < width; x++)
-        {
-            pixels[0] = pixels[0] ^ pcol[0];
-            pixels[1] = pixels[1] ^ pcol[1];
-            pixels[2] = pixels[2] ^ pcol[2];
-            pixels += 4;
-        }
-        if (addOfs > 0) pixels += addOfs;
-    }
-#endif
-}
-
-//fill rectangle with corners (x1,y1) and (width,height) and color
+//fill rectangle with corners (x1,y1) and (width,height) and blending pixel
 void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         edx, texWidth
+        sub         edx, width
+        shl         edx, 2
+        xor         eax, eax
     next:
-        mov     ecx, width
+        mov         ecx, width
     plot:
-        push    ecx
-        mov     al, byte ptr[argb]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 1]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, byte ptr[argb + 2]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        inc     edi
-        pop     ecx
-        loop    plot
-        add     edi, edx
-        dec     height
-        jnz     next
+        mov         al, byte ptr[argb + 3]
+        movd        mm0, argb
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
+        add         edi, 4
+        dec         ecx
+        jnz         plot
+        add         edi, edx
+        dec         height
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* pcol = (uint8_t*)&argb;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint32_t addOfs = (texWidth - width) << 2;
-    const uint8_t blend = 255 - pcol[3];
-
-    for (int32_t y = 0; y < height; y++)
+    const uint32_t addOfs = texWidth - width;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    
+    for (int32_t i = 0; i < height; i++)
     {
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t j = 0; j < width; j++)
         {
-            pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
-            pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
-            pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
-            pixels += 4;
+            const uint32_t col = *pixels;
+            const uint8_t alpha = argb >> 24;
+            uint32_t g  = col & 0x00ff00;
+            uint32_t rb = col & 0xff00ff;
+            g  += ((argb & 0x00ff00) - g ) * alpha >> 8;
+            rb += ((argb & 0xff00ff) - rb) * alpha >> 8;
+            *pixels++ = (rb & 0xff00ff) | (g & 0x00ff00);
         }
         if (addOfs > 0) pixels += addOfs;
     }
@@ -4297,14 +3816,6 @@ void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t colo
 
     case BLEND_MODE_SUB:
         fillRectSub(lx, ly, lwidth, lheight, color);
-        break;
-
-    case BLEND_MODE_AND:
-        fillRectAnd(lx, ly, lwidth, lheight, color);
-        break;
-
-    case BLEND_MODE_XOR:
-        fillRectXor(lx, ly, lwidth, lheight, color);
         break;
 
     case BLEND_MODE_ALPHA:
@@ -4375,7 +3886,7 @@ void drawPoly(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BLEND
 void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, y
         mul     texWidth
@@ -4401,7 +3912,8 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
     step: 
         inc     edi
         rol     al, 1
-        loop    next
+        dec     ecx
+        jnz     next
         add     edi, edx
         dec     height
         jnz     plot
@@ -4410,11 +3922,11 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //calculate starting address
     const uint32_t addDstOffs = texWidth - width;
     uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[y & 7];
         al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
+        for (int32_t j = 0; j < width; j++)
         {
             if (al & 1) *dstPixels = col;
             al = _rotl8(al, 1);
@@ -4429,47 +3941,71 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
 void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     esi, pattern
+    __asm {
+        mov         esi, pattern
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         edx, texWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm0, col
     plot:
-        mov     ecx, x
-        and     ecx, 7
-        mov     ebx, height
-        and     ebx, 7
-        mov     al, [esi + ebx]
-        rol     al, cl
-        mov     ebx, col
-        mov     ecx, width
+        mov         ecx, x
+        and         ecx, 7
+        mov         ebx, height
+        and         ebx, 7
+        mov         al, [esi + ebx]
+        rol         al, cl
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm0, mm0
     next:
-        test    al, 1
-        jz      step
-        mov     [edi], ebx
-    step:
-        add     edi, 4
-        rol     al, 1
-        loop    next
-        add     edi, edx
-        dec     height
-        jnz     plot
+        test        al, 1
+        jz          skip1
+        test        al, 2
+        jz          skip2
+        movq        [edi], mm0
+        jmp         skip0
+    skip2:
+        movd        [edi + 4], mm0
+        jmp         skip0
+    skip1:
+        test        al, 2
+        jz          skip0
+        movd        [edi], mm0
+    skip0:
+        add         edi, 8
+        rol         al, 2
+        dec         ecx
+        jnz         next
+    once:
+        test        width, 1
+        jz          end1
+        test        al, 2
+        jz          end0
+        movd        [edi], mm0
+    end0:
+        add         edi, 4
+    end1:
+        add         edi, edx
+        dec         height
+        jnz         plot
+        emms
     }
 #else
     //calculate starting address
     const uint32_t addDstOffs = texWidth - width;
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[y & 7];
-        al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
+        uint8_t al = pattern[i & 7];
+        al = _rotl8(al, 7);
+        for (int32_t j = 0; j < width; j++)
         {
             if (al & 1) *dstPixels = col;
             al = _rotl8(al, 1);
@@ -4484,56 +4020,69 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
 void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     esi, pattern
+    __asm {
+        mov         esi, pattern
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         edx, texWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm1, col
     plot:
-        push    edx
-        mov     ecx, x
-        and     ecx, 7
-        mov     ebx, height
-        and     ebx, 7
-        mov     al, [esi + ebx]
-        rol     al, cl
-        mov     ecx, width
+        mov         ecx, x
+        and         ecx, 7
+        mov         ebx, height
+        and         ebx, 7
+        mov         al, [esi + ebx]
+        rol         al, cl
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
     next:
-        test    al, 1
-        jz      step
-        mov     ebx, [edi]
-        add     bl, byte ptr[col]
-        jnc     bstep
-        mov     bl, 255
-    bstep:
-        add     bh, byte ptr[col + 1]
-        jnc     gstep
-        mov     bh, 255
-    gstep:
-        mov     edx, ebx
-        shr     edx, 16
-        add     dl, byte ptr[col + 2]
-        jnc     rstep
-        mov     dl, 255
-    rstep:
-        shl     edx, 16
-        and     ebx, 00FFFFh
-        or      ebx, edx
-        mov     [edi], ebx
-    step:
-        add     edi, 4
-        rol     al, 1
-        loop    next
-        pop     edx
-        add     edi, edx
-        dec     height
-        jnz     plot
+        test        al, 1
+        jz          skip1
+        test        al, 2
+        jz          skip2
+        movq        mm0, [edi]
+        paddusb     mm0, mm1
+        movq        [edi], mm0
+        jmp         skip0
+    skip2:
+        movd        mm0, [edi + 4]
+        paddusb     mm0, mm1
+        movd        [edi + 4], mm0
+        jmp         skip0
+    skip1:
+        test        al, 2
+        jz          skip0
+        movd        mm0, [edi]
+        paddusb     mm0, mm1
+        movd        [edi], mm0
+    skip0:
+        add         edi, 8
+        rol         al, 2
+        dec         ecx
+        jnz         next
+    once:
+        test        width, 1
+        jz          end1
+        test        al, 2
+        jz          end0
+        movd        mm0, [edi]
+        paddusb     mm0, mm1
+        movd        [edi], mm0
+    end0:
+        add         edi, 4
+    end1:
+        add         edi, edx
+        dec         height
+        jnz         plot
+        emms
     }
 #else
     //calculate starting address
@@ -4541,11 +4090,11 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[y & 7];
-        al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
+        uint8_t al = pattern[i & 7];
+        al = _rotl8(al, 7);
+        for (int32_t j = 0; j < width; j++)
         {
             if (al & 1)
             {
@@ -4565,56 +4114,69 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
 void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     esi, pattern
+    __asm {
+        mov         esi, pattern
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         edx, texWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm1, col
     plot:
-        push    edx
-        mov     ecx, x
-        and     ecx, 7
-        mov     ebx, height
-        and     ebx, 7
-        mov     al, [esi + ebx]
-        rol     al, cl
-        mov     ecx, width
+        mov         ecx, x
+        and         ecx, 7
+        mov         ebx, height
+        and         ebx, 7
+        mov         al, [esi + ebx]
+        rol         al, cl
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
     next:
-        test    al, 1
-        jz      step
-        mov     ebx, [edi]
-        sub     bl, byte ptr[col]
-        jnc     bstep
-        mov     bl, 255
-    bstep:
-        sub     bh, byte ptr[col + 1]
-        jnc     gstep
-        mov     bh, 255
-    gstep:
-        mov     edx, ebx
-        shr     edx, 16
-        sub     dl, byte ptr[col + 2]
-        jnc     rstep
-        mov     dl, 255
-    rstep:
-        shl     edx, 16
-        and     ebx, 00FFFFh
-        or      ebx, edx
-        mov     [edi], ebx
-    step:
-        add     edi, 4
-        rol     al, 1
-        loop    next
-        pop     edx
-        add     edi, edx
-        dec     height
-        jnz     plot
+        test        al, 1
+        jz          skip1
+        test        al, 2
+        jz          skip2
+        movq        mm0, [edi]
+        psubusb     mm0, mm1
+        movq        [edi], mm0
+        jmp         skip0
+    skip2:
+        movd        mm0, [edi + 4]
+        psubusb     mm0, mm1
+        movd        [edi + 4], mm0
+        jmp         skip0
+    skip1:
+        test        al, 2
+        jz          skip0
+        movd        mm0, [edi]
+        psubusb     mm0, mm1
+        movd        [edi], mm0
+    skip0:
+        add         edi, 8
+        rol         al, 2
+        dec         ecx
+        jnz         next
+    once:
+        test        width, 1
+        jz          end1
+        test        al, 2
+        jz          end0
+        movd        mm0, [edi]
+        psubusb     mm0, mm1
+        movd        [edi], mm0
+    end0:
+        add         edi, 4
+    end1:
+        add         edi, edx
+        dec         height
+        jnz         plot
+        emms
     }
 #else
     //calculate starting address
@@ -4622,11 +4184,11 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     const uint32_t addOfs = (texWidth - width) << 2;
 
-    for (int32_t y = 0; y < height; y++)
+    for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[y & 7];
-        al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
+        uint8_t al = pattern[i & 7];
+        al = _rotl8(al, 7);
+        for (int32_t j = 0; j < width; j++)
         {
             if (al & 1)
             {
@@ -4642,239 +4204,83 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
 #endif
 }
 
-//fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     esi, pattern
-    plot:
-        push    edx
-        mov     ecx, x
-        and     ecx, 7
-        mov     ebx, height
-        and     ebx, 7
-        mov     al, [esi + ebx]
-        rol     al, cl
-        mov     ecx, width
-    next:
-        test    al, 1
-        jz      step
-        mov     ebx, [edi]
-        and     bl, byte ptr[col]
-        and     bh, byte ptr[col + 1]
-        mov     edx, ebx
-        shr     edx, 16
-        and     dl, byte ptr[col + 2]
-        shl     edx, 16
-        and     ebx, 00FFFFh
-        or      ebx, edx
-        mov     [edi], ebx
-    step:
-        add     edi, 4
-        rol     al, 1
-        loop    next
-        pop     edx
-        add     edi, edx
-        dec     height
-        jnz     plot
-    }
-#else
-    //calculate starting address
-    uint8_t* pcol = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint32_t addOfs = (texWidth - width) << 2;
-
-    for (int32_t y = 0; y < height; y++)
-    {
-        uint8_t al = pattern[y & 7];
-        al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
-        {
-            if (al & 1)
-            {
-                pixels[0] = pixels[0] & pcol[0];
-                pixels[1] = pixels[1] & pcol[1];
-                pixels[2] = pixels[2] & pcol[2];
-            }
-            al = _rotl8(al, 1);
-            pixels += 4;
-        }
-        if (addOfs > 0) pixels += addOfs;
-    }
-#endif
-}
-
-//fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
-{
-#ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     esi, pattern
-    plot:
-        push    edx
-        mov     ecx, x
-        and     ecx, 7
-        mov     ebx, height
-        and     ebx, 7
-        mov     al, [esi + ebx]
-        rol     al, cl
-        mov     ecx, width
-    next:
-        test    al, 1
-        jz      step
-        mov     ebx, [edi]
-        xor     bl, byte ptr[col]
-        xor     bh, byte ptr[col + 1]
-        mov     edx, ebx
-        shr     edx, 16
-        xor     dl, byte ptr[col + 2]
-        shl     edx, 16
-        and     ebx, 00FFFFh
-        or      ebx, edx
-        mov     [edi], ebx
-    step:
-        add     edi, 4
-        rol     al, 1
-        loop    next
-        pop     edx
-        add     edi, edx
-        dec     height
-        jnz     plot
-    }
-#else
-    //calculate starting address
-    uint8_t* pcol = (uint8_t*)&col;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint32_t addOfs = (texWidth - width) << 2;
-
-    for (int32_t y = 0; y < height; y++)
-    {
-        uint8_t al = pattern[y & 7];
-        al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
-        {
-            if (al & 1)
-            {
-                pixels[0] = pixels[0] ^ pcol[0];
-                pixels[1] = pixels[1] ^ pcol[1];
-                pixels[2] = pixels[2] ^ pcol[2];
-            }
-            al = _rotl8(al, 1);
-            pixels += 4;
-        }
-        if (addOfs > 0) pixels += addOfs;
-    }
-#endif
-}
-
-//fill rectangle with corners (x1,y1) and (width,height) and color
+//fill rectangle with corners (x1,y1) and (width,height) and blending pixel
 void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb, uint8_t* pattern)
 {
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, y
-        mul     texWidth
-        add     eax, x
-        shl     eax, 2
-        add     edi, eax
-        mov     edx, texWidth
-        sub     edx, width
-        shl     edx, 2
-        mov     esi, pattern
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         edx, texWidth
+        sub         edx, width
+        shl         edx, 2
+        mov         esi, pattern
     plot:
-        push    edx
-        mov     ecx, x
-        and     ecx, 7
-        mov     ebx, height
-        and     ebx, 7
-        mov     dl, [esi + ebx]
-        rol     dl, cl
-        mov     ecx, width
+        push        edx
+        mov         ecx, x
+        and         ecx, 7
+        mov         ebx, height
+        and         ebx, 7
+        mov         dl, [esi + ebx]
+        rol         dl, cl
+        mov         ecx, width
+        xor         eax, eax
     next:
-        push    ecx
-        test    dl, 1
-        jz      step
-        mov     al, byte ptr[argb]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        mov     [edi], al
-        mov     al, byte ptr[argb + 1]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi + 1]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        mov     [edi + 1], al
-        mov     al, byte ptr[argb + 2]
-        mul     byte ptr[argb + 3]
-        mov     bx, ax
-        mov     al, [edi + 2]
-        mov     cl, 255
-        sub     cl, byte ptr[argb + 3]
-        mul     cl
-        add     ax, bx
-        shr     ax, 8
-        mov     [edi + 2], al
+        test        dl, 1
+        jz          step
+        mov         al, byte ptr[argb + 3]
+        movd        mm0, argb
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
     step:
-        add     edi, 4
-        rol     dl, 1
-        pop     ecx
-        loop    next
-        pop     edx
-        add     edi, edx
-        dec     height
-        jnz     plot
+        add         edi, 4
+        rol         dl, 1
+        dec         ecx
+        jnz         next
+        pop         edx
+        add         edi, edx
+        dec         height
+        jnz         plot
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* pcol = (uint8_t*)&argb;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    const uint32_t addOfs = (texWidth - width) << 2;
-    const uint8_t blend = 255 - pcol[3];
-
-    for (int32_t y = 0; y < height; y++)
+    const uint32_t addOfs = texWidth - width;
+    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    
+    for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[y & 7];
-        al = _rotl8(al, x & 7);
-        for (int32_t x = 0; x < width; x++)
+        uint8_t al = pattern[i & 7];
+        al = _rotl8(al, 7);
+        for (int32_t j = 0; j < width; j++)
         {
             if (al & 1)
             {
-                pixels[2] = (pcol[2] * pcol[3] + pixels[2] * blend) >> 8;
-                pixels[1] = (pcol[1] * pcol[3] + pixels[1] * blend) >> 8;
-                pixels[0] = (pcol[0] * pcol[3] + pixels[0] * blend) >> 8;
+                const uint32_t col = *pixels;
+                const uint8_t alpha = argb >> 24;
+                uint32_t g  = col & 0x00ff00;
+                uint32_t rb = col & 0xff00ff;
+                g  += ((argb & 0x00ff00) - g ) * alpha >> 8;
+                rb += ((argb & 0xff00ff) - rb) * alpha >> 8;
+                *pixels = (rb & 0xff00ff) | (g & 0x00ff00);
             }
             al = _rotl8(al, 1);
-            pixels += 4;
+            pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
     }
@@ -4927,14 +4333,6 @@ void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32
         fillRectPatternSub(lx, ly, lwidth, lheight, col, pattern);
         break;
 
-    case BLEND_MODE_AND:
-        fillRectPatternAnd(lx, ly, lwidth, lheight, col, pattern);
-        break;
-
-    case BLEND_MODE_XOR:
-        fillRectPatternXor(lx, ly, lwidth, lheight, col, pattern);
-        break;
-
     case BLEND_MODE_ALPHA:
         fillRectPatternAlpha(lx, ly, lwidth, lheight, col, pattern);
         break;
@@ -4951,7 +4349,7 @@ void calcCircle(int32_t rd, int32_t* point)
     if (rd <= 0) return;
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     ebx, 1
         sub     ebx, rd
         mov     edi, point
@@ -5025,7 +4423,7 @@ void calcEllipse(int32_t rx, int32_t ry, int32_t* point)
     if (rx <= 0 || ry <= 0) return;
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, rx
         mov     xa, eax
         neg     eax
@@ -5445,7 +4843,7 @@ void getImageMix(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE*
 {
 #ifdef _USE_ASM
     void *imgData = img->mData;
-    _asm {
+    __asm {
         mov     edi, imgData
         mov     esi, drawBuff
         mov     eax, y
@@ -5487,7 +4885,7 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
 {
 #ifdef _USE_ASM
     void *imgData = img->mData;
-    _asm {
+    __asm {
         mov     edi, imgData
         mov     esi, drawBuff
         mov     eax, y
@@ -5500,12 +4898,29 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
         shl     edx, 2
     next:
         mov     ecx, width
-        rep     movsd
+        shr     ecx, 1
+        jz      once
+    plot:
+        movq    mm0, [esi]
+        movq    [edi], mm0
+        add     edi, 8
+        add     esi, 8
+        dec     ecx
+        jnz     plot
+    once:
+        test    width, 1
+        jz      end
+        movd    mm0, [esi]
+        movd    [edi], mm0
+        add     edi, 4
+        add     esi, 4
+    end:
         add     esi, edx
         dec     height
         jnz     next
+        emms
     }
-#else    
+#else
     //calculate starting address
     uint32_t* imgPixels = (uint32_t*)img->mData;
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
@@ -5595,7 +5010,7 @@ void putImageMix(int32_t x, int32_t y, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
 
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, ly
         mul     texWidth
@@ -5672,7 +5087,7 @@ void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
 
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, ly
         mul     texWidth
@@ -5696,11 +5111,28 @@ void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
         shl     edx, 2
     next:
         mov     ecx, width
-        rep     movsd
+        shr     ecx, 1
+        jz      once
+    plot:
+        movq    mm0, [esi]
+        movq    [edi], mm0
+        add     edi, 8
+        add     esi, 8
+        dec     ecx
+        jnz     plot
+    once:
+        test    width, 1
+        jz      end
+        movd    mm0, [esi]
+        movd    [edi], mm0
+        add     edi, 4
+        add     esi, 4
+    end:
         add     edi, ebx
         add     esi, edx
         dec     height
         jnz     next
+        emms
     }
 #else
     //calculate starting address
@@ -5720,7 +5152,8 @@ void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
 //put GFX image with add background color
 void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) return;
+    //only work with rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //calculate new position
     const int32_t x1 = (x + img->mWidth) - 1;
@@ -5747,7 +5180,7 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
 
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, ly
         mul     texWidth
@@ -5771,42 +5204,38 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
         shl     edx, 2
     again:
         mov     ecx, width
-        push    ebx
+        shr     ecx, 1
+        jz      once
     plot:
-        lodsd
-        add     al, [edi]
-        jnc     bstep
-        mov     al, 0FFh
-    bstep:
-        add     ah, [edi + 1]
-        jnc     gstep
-        mov     ah, 0FFh
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        add     bl, [edi + 2]
-        jnc     rstep
-        mov     bl, 0FFh
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        loop    plot
-        pop     ebx
+        movq    mm0, [esi]
+        paddusb mm0, [edi]
+        movq    [edi], mm0
+        add     esi, 8
+        add     edi, 8
+        dec     ecx
+        jnz     plot
+    once:
+        test    width, 1
+        jz      end
+        movd    mm0, [esi]
+        paddusb mm0, [edi]
+        movd    [edi], mm0
+        add     esi, 4
+        add     edi, 4
+    end:
         add     edi, ebx
         add     esi, edx
         dec     height
         jnz     again
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
     const uint32_t addDstOffs = (texWidth - width) << 2;
     const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+
     for (int32_t i = 0; i < height; i++)
     {
         for (int32_t j = 0; j < width; j++)
@@ -5851,7 +5280,7 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
 
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, ly
         mul     texWidth
@@ -5873,262 +5302,47 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
         mov     edx, imgWidth
         sub     edx, width
         shl     edx, 2
-    next:
+    again:
         mov     ecx, width
-        push    ebx
+        shr     ecx, 1
+        jz      once
     plot:
-        mov     eax, [edi]
-        sub     al, [esi]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, [esi + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, [esi + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
+        movq    mm0, [esi]
+        psubusb mm0, [edi]
+        movq    [edi], mm0
+        add     esi, 8
+        add     edi, 8
+        dec     ecx
+        jnz     plot
+    once:
+        test    width, 1
+        jz      end
+        movd    mm0, [esi]
+        psubusb mm0, [edi]
+        movd    [edi], mm0
         add     esi, 4
-        loop    plot
-        pop     ebx
+        add     edi, 4
+    end:
         add     edi, ebx
         add     esi, edx
         dec     height
-        jnz     next
+        jnz     again
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
     const uint32_t addDstOffs = (texWidth - width) << 2;
     const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+
     for (int32_t i = 0; i < height; i++)
     {
         for (int32_t j = 0; j < width; j++)
         {
-            dstPixels[0] = max(dstPixels[0] - imgPixels[0], 0);
-            dstPixels[1] = max(dstPixels[1] - imgPixels[1], 0);
-            dstPixels[2] = max(dstPixels[2] - imgPixels[2], 0);
-            dstPixels += 4;
-            imgPixels += 4;
-        }
-        if (addDstOffs > 0) dstPixels += addDstOffs;
-        if (addImgOffs > 0) imgPixels += addImgOffs;
-    }
-#endif
-}
-
-//put GFX image with sub background color
-void putImageAnd(int32_t x, int32_t y, GFX_IMAGE* img)
-{
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
-#ifdef _USE_ASM
-    void* imgData = img->mData;
-    const int32_t imgWidth = img->mWidth;
-
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
-        push    ebx
-    plot:
-        mov     eax, [edi]
-        sub     al, [esi]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, [esi + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, [esi + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        add     esi, 4
-        loop    plot
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
-    }
-#else
-    //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
-    for (int32_t i = 0; i < height; i++)
-    {
-        for (int32_t j = 0; j < width; j++)
-        {
-            dstPixels[0] = dstPixels[0] & imgPixels[0];
-            dstPixels[1] = dstPixels[1] & imgPixels[1];
-            dstPixels[2] = dstPixels[2] & imgPixels[2];
-            dstPixels += 4;
-            imgPixels += 4;
-        }
-        if (addDstOffs > 0) dstPixels += addDstOffs;
-        if (addImgOffs > 0) imgPixels += addImgOffs;
-    }
-#endif
-}
-
-//put GFX image with sub background color
-void putImageXor(int32_t x, int32_t y, GFX_IMAGE* img)
-{
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
-#ifdef _USE_ASM
-    void* imgData = img->mData;
-    const int32_t imgWidth = img->mWidth;
-
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
-        push    ebx
-    plot:
-        mov     eax, [edi]
-        sub     al, [esi]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, [esi + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, [esi + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        stosd
-        add     esi, 4
-        loop    plot
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
-    }
-#else
-    //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
-    for (int32_t i = 0; i < height; i++)
-    {
-        for (int32_t j = 0; j < width; j++)
-        {
-            dstPixels[0] = dstPixels[0] ^ imgPixels[0];
-            dstPixels[1] = dstPixels[1] ^ imgPixels[1];
-            dstPixels[2] = dstPixels[2] ^ imgPixels[2];
+            dstPixels[2] = max(imgPixels[2] - dstPixels[2], 0);
+            dstPixels[1] = max(imgPixels[1] - dstPixels[1], 0);
+            dstPixels[0] = max(imgPixels[0] - dstPixels[0], 0);
             dstPixels += 4;
             imgPixels += 4;
         }
@@ -6166,93 +5380,81 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
 
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, ly
+        mul         texWidth
+        add         eax, lx
+        shl         eax, 2
+        add         edi, eax
+        mov         esi, imgData
+        mov         eax, ly
+        sub         eax, y
+        mul         imgWidth
+        mov         ebx, lx
+        sub         ebx, x
+        add         eax, ebx
+        shl         eax, 2
+        add         esi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        mov         edx, imgWidth
+        sub         edx, width
+        shl         edx, 2
     again:
-        push    ebx
-        push    edx
-        mov     ecx, width
+        mov         ecx, width
+        xor         eax, eax
     plot:
-        mov     al, [esi]
-        mul     byte ptr[esi + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     dl, 255
-        sub     dl, [esi + 3]
-        mul     dl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, [esi + 1]
-        mul     byte ptr[esi + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     dl, 255
-        sub     dl, [esi + 3]
-        mul     dl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        mov     al, [esi + 2]
-        mul     byte ptr[esi + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     dl, 255
-        sub     dl, [esi + 3]
-        mul     dl
-        add     ax, bx
-        shr     ax, 8
-        stosb
-        inc     edi
-        add     esi, 4
-        loop    plot
-        pop     edx
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     again
+        mov         al, [esi + 3]
+        movd        mm0, [esi]
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
+        add         edi, 4
+        add         esi, 4
+        dec         ecx
+        jnz         plot
+        add         edi, ebx
+        add         esi, edx
+        dec         height
+        jnz         again
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
     if (!dstPixels || !imgPixels) return;
 
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    const uint32_t addDstOffs = (texWidth - width);
+    const uint32_t addImgOffs = (img->mWidth - width);
 
     for (int32_t i = 0; i < height; i++)
     {
         for (int32_t j = 0; j < width; j++)
         {
-            const uint8_t blend = 255 - imgPixels[3];
-            dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * blend) >> 8;
-            dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * blend) >> 8;
-            dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * blend) >> 8;
-            dstPixels += 4;
-            imgPixels += 4;
+            const uint32_t srcCol = *imgPixels;
+            const uint32_t dstCol = *dstPixels;
+            const uint8_t alpha = srcCol >> 24;
+            uint32_t gCol  = dstCol & 0x00ff00;
+            uint32_t rbCol = dstCol & 0xff00ff;
+            gCol  += ((srcCol & 0x00ff00) - gCol ) * alpha >> 8;
+            rbCol += ((srcCol & 0xff00ff) - rbCol) * alpha >> 8;
+            *dstPixels++ = (rbCol & 0xff00ff) | (gCol & 0x00ff00);
+            imgPixels++;
         }
+
         if (addDstOffs > 0) dstPixels += addDstOffs;
         if (addImgOffs > 0) imgPixels += addImgOffs;
     }
@@ -6282,14 +5484,6 @@ void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE
 
     case BLEND_MODE_SUB:
         putImageSub(x, y, img);
-        break;
-
-    case BLEND_MODE_AND:
-        putImageAnd(x, y, img);
-        break;
-
-    case BLEND_MODE_XOR :
-        putImageXor(x, y, img);
         break;
 
     case BLEND_MODE_ALPHA:
@@ -6329,7 +5523,7 @@ void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
 
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, ly
         mul     texWidth
@@ -6356,7 +5550,8 @@ void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         mov     [edi], al
     skip:
         inc     edi
-        loop    plot
+        dec     ecx
+        jnz     plot
         add     edi, ebx
         add     esi, edx
         dec     height
@@ -6413,43 +5608,70 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
 
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, ly
+        mul         texWidth
+        add         eax, lx
+        shl         eax, 2
+        add         edi, eax
+        mov         esi, imgData
+        mov         eax, ly
+        sub         eax, y
+        mul         imgWidth
+        mov         ebx, lx
+        sub         ebx, x
+        add         eax, ebx
+        shl         eax, 2
+        add         esi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        mov         edx, imgWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm4, keyColor
+        punpckldq   mm4, mm4
+        mov         eax, 0FFFFFFFFh
+        movd        mm5, eax
+        punpckldq   mm5, mm5
+        mov         eax, 0FFFFFFh
+        movd        mm6, eax
+        punpckldq   mm6, mm6
     next:
-        mov     ecx, width
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
     plot:
-        lodsd
-        and     eax, 00FFFFFFh
-        cmp     eax, keyColor
-        je      skip
-        mov     [edi], eax
+        movq        mm0, [esi]
+        movq        mm2, mm4
+        pand        mm0, mm6
+        pcmpeqd     mm2, mm0
+        movq        mm1, [edi]
+        pand        mm1, mm2
+        pxor        mm2, mm5
+        pand        mm0, mm2
+        por         mm1, mm0
+        movq        [edi], mm1
+        add         esi, 8
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          skip
+        add         esi, 4
+        add         edi, 4
+        mov         eax, [esi]
+        cmp         eax, keyColor
+        je          skip
+        mov         [edi - 4], eax
     skip:
-        add     edi, 4
-        loop    plot
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
+        add         edi, ebx
+        add         esi, edx
+        dec         height
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
@@ -6502,62 +5724,73 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
 
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, ly
+        mul         texWidth
+        add         eax, lx
+        shl         eax, 2
+        add         edi, eax
+        mov         esi, imgData
+        mov         eax, ly
+        sub         eax, y
+        mul         imgWidth
+        mov         ebx, lx
+        sub         ebx, x
+        add         eax, ebx
+        shl         eax, 2
+        add         esi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        mov         edx, imgWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm4, keyColor
+        punpckldq   mm4, mm4
+        mov         eax, 0FFFFFFFFh
+        movd        mm5, eax
+        punpckldq   mm5, mm5
+        mov         eax, 0FFFFFFh
+        movd        mm6, eax
+        punpckldq   mm6, mm6
     next:
-        mov     ecx, width
-        push    ebx
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
     plot:
-        lodsd
-        and     eax, 00FFFFFFh
-        cmp     eax, keyColor
-        je      skip
-        add     al, [edi]
-        jnc     bstep
-        mov     al, 255
-    bstep:
-        add     ah, [edi + 1]
-        jnc     gstep
-        mov     ah, 255
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        add     bl, [edi + 2]
-        jnc     rstep
-        mov     bl, 255
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        mov     [edi], eax
+        movq        mm0, [esi]
+        movq        mm2, mm4
+        pand        mm0, mm6
+        pcmpeqd     mm2, mm0
+        movq        mm1, [edi]
+        pand        mm1, mm2
+        pxor        mm2, mm5
+        pand        mm0, mm2
+        por         mm1, mm0
+        paddusb     mm1, [edi]
+        movq        [edi], mm1
+        add         esi, 8
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          skip
+        add         esi, 4
+        add         edi, 4
+        mov         eax, [esi]
+        cmp         eax, keyColor
+        je          skip
+        movd        mm3, eax
+        paddusb     mm3, [edi - 4]
+        movd        [edi - 4], mm3
     skip:
-        add     edi, 4
-        loop    plot
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
+        add         edi, ebx
+        add         esi, edx
+        dec         height
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
@@ -6575,9 +5808,9 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //we accepted RGB color only
             if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
             {
-                dstPixels[0] = min(dstPixels[0] + imgPixels[0], 255);
-                dstPixels[1] = min(dstPixels[1] + imgPixels[1], 255);
-                dstPixels[2] = min(dstPixels[2] + imgPixels[2], 255);
+                dstPixels[0] = min(imgPixels[0] + dstPixels[0], 255);
+                dstPixels[1] = min(imgPixels[1] + dstPixels[1], 255);
+                dstPixels[2] = min(imgPixels[2] + dstPixels[2], 255);
             }
             dstPixels += 4;
             imgPixels += 4;
@@ -6616,64 +5849,73 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
 
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, ly
+        mul         texWidth
+        add         eax, lx
+        shl         eax, 2
+        add         edi, eax
+        mov         esi, imgData
+        mov         eax, ly
+        sub         eax, y
+        mul         imgWidth
+        mov         ebx, lx
+        sub         ebx, x
+        add         eax, ebx
+        shl         eax, 2
+        add         esi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        mov         edx, imgWidth
+        sub         edx, width
+        shl         edx, 2
+        movd        mm4, keyColor
+        punpckldq   mm4, mm4
+        mov         eax, 0FFFFFFFFh
+        movd        mm5, eax
+        punpckldq   mm5, mm5
+        mov         eax, 0FFFFFFh
+        movd        mm6, eax
+        punpckldq   mm6, mm6
     next:
-        mov     ecx, width
-        push    ebx
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
     plot:
-        mov     eax, [esi]
-        and     eax, 00FFFFFFh
-        cmp     eax, keyColor
-        je      skip
-        mov     eax, [edi]
-        sub     al, [esi]
-        jnc     bstep
-        xor     al, al
-    bstep:
-        sub     ah, [esi + 1]
-        jnc     gstep
-        xor     ah, ah
-    gstep:
-        mov     ebx, eax
-        shr     ebx, 16
-        sub     bl, [esi + 2]
-        jnc     rstep
-        xor     bl, bl
-    rstep:
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        mov     [edi], eax
+        movq        mm0, [esi]
+        movq        mm2, mm4
+        pand        mm0, mm6
+        pcmpeqd     mm2, mm0
+        movq        mm1, [edi]
+        pand        mm1, mm2
+        pxor        mm2, mm5
+        pand        mm0, mm2
+        por         mm1, mm0
+        psubusb     mm1, [edi]
+        movq        [edi], mm1
+        add         esi, 8
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          skip
+        add         esi, 4
+        add         edi, 4
+        mov         eax, [esi]
+        cmp         eax, keyColor
+        je          skip
+        movd        mm3, eax
+        psubusb     mm3, [edi - 4]
+        movd        [edi - 4], mm3
     skip:
-        add     edi, 4
-        add     esi, 4
-        loop    plot
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
+        add         edi, ebx
+        add         esi, edx
+        dec         height
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
@@ -6691,223 +5933,9 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //we accepted RGB color only
             if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
             {
-                dstPixels[0] = max(dstPixels[0] - imgPixels[0], 0);
-                dstPixels[1] = max(dstPixels[1] - imgPixels[1], 0);
-                dstPixels[2] = max(dstPixels[2] - imgPixels[2], 0);
-            }
-            dstPixels += 4;
-            imgPixels += 4;
-        }
-        if (addDstOffs > 0) dstPixels += addDstOffs;
-        if (addImgOffs > 0) imgPixels += addImgOffs;
-    }
-#endif
-}
-
-//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
-void putSpriteAnd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
-{
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
-#ifdef _USE_ASM
-    void* imgData = img->mData;
-    const int32_t imgWidth = img->mWidth;
-
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
-        push    ebx
-    plot:
-        mov     eax, [esi]
-        and     eax, 00FFFFFFh
-        cmp     eax, keyColor
-        je      skip
-        mov     eax, [edi]
-        and     al, [esi]
-        and     ah, [esi + 1]
-        mov     ebx, eax
-        shr     ebx, 16
-        and     bl, [esi + 2]
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        mov     [edi], eax
-    skip:
-        add     edi, 4
-        add     esi, 4
-        loop    plot
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
-    }
-#else
-    //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
-
-    for (int32_t i = 0; i < height; i++)
-    {
-        for (int32_t j = 0; j < width; j++)
-        {
-            //we accepted RGB color only
-            if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
-            {
-                dstPixels[0] = dstPixels[0] & imgPixels[0];
-                dstPixels[1] = dstPixels[1] & imgPixels[1];
-                dstPixels[2] = dstPixels[2] & imgPixels[2];
-            }
-            dstPixels += 4;
-            imgPixels += 4;
-        }
-        if (addDstOffs > 0) dstPixels += addDstOffs;
-        if (addImgOffs > 0) imgPixels += addImgOffs;
-    }
-#endif
-}
-
-//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
-void putSpriteXor(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
-{
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
-#ifdef _USE_ASM
-    void* imgData = img->mData;
-    const int32_t imgWidth = img->mWidth;
-
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
-    next:
-        mov     ecx, width
-        push    ebx
-    plot:
-        mov     eax, [esi]
-        and     eax, 00FFFFFFh
-        cmp     eax, keyColor
-        je      skip
-        mov     eax, [edi]
-        xor     al, [esi]
-        xor     ah, [esi + 1]
-        mov     ebx, eax
-        shr     ebx, 16
-        xor     bl, [esi + 2]
-        shl     ebx, 16
-        and     eax, 00FFFFh
-        or      eax, ebx
-        mov     [edi], eax
-    skip:
-        add     edi, 4
-        add     esi, 4
-        loop    plot
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
-    }
-#else
-    //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
-
-    for (int32_t i = 0; i < height; i++)
-    {
-        for (int32_t j = 0; j < width; j++)
-        {
-            //we accepted RGB color only
-            if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
-            {
-                dstPixels[0] = dstPixels[0] ^ imgPixels[0];
-                dstPixels[1] = dstPixels[1] ^ imgPixels[1];
-                dstPixels[2] = dstPixels[2] ^ imgPixels[2];
+                dstPixels[0] = max(imgPixels[0] - dstPixels[0], 0);
+                dstPixels[1] = max(imgPixels[1] - dstPixels[1], 0);
+                dstPixels[2] = max(imgPixels[2] - dstPixels[2], 0);
             }
             dstPixels += 4;
             imgPixels += 4;
@@ -6946,87 +5974,68 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
 
-    _asm {
-        mov     edi, drawBuff
-        mov     eax, ly
-        mul     texWidth
-        add     eax, lx
-        shl     eax, 2
-        add     edi, eax
-        mov     esi, imgData
-        mov     eax, ly
-        sub     eax, y
-        mul     imgWidth
-        mov     ebx, lx
-        sub     ebx, x
-        add     eax, ebx
-        shl     eax, 2
-        add     esi, eax
-        mov     ebx, texWidth
-        sub     ebx, width
-        shl     ebx, 2
-        mov     edx, imgWidth
-        sub     edx, width
-        shl     edx, 2
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, ly
+        mul         texWidth
+        add         eax, lx
+        shl         eax, 2
+        add         edi, eax
+        mov         esi, imgData
+        mov         eax, ly
+        sub         eax, y
+        mul         imgWidth
+        mov         ebx, lx
+        sub         ebx, x
+        add         eax, ebx
+        shl         eax, 2
+        add         esi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        mov         edx, imgWidth
+        sub         edx, width
+        shl         edx, 2
     next:
-        push    ebx
-        push    edx
-        mov     ecx, width
+        mov         ecx, width
     plot:
-        mov     eax, [esi]
-        and     eax, 00FFFFFFh
-        cmp     eax, keyColor
-        je      skip
-        mov     al, [esi]
-        mul     byte ptr[esi + 3]
-        mov     bx, ax
-        mov     al, [edi]
-        mov     dl, 255
-        sub     dl, [esi + 3]
-        mul     dl
-        add     ax, bx
-        shr     ax, 8
-        mov     [edi], al
-        mov     al, [esi + 1]
-        mul     byte ptr[esi + 3]
-        mov     bx, ax
-        mov     al, [edi + 1]
-        mov     dl, 255
-        sub     dl, [esi + 3]
-        mul     dl
-        add     ax, bx
-        shr     ax, 8
-        mov     [edi + 1], al
-        mov     al, [esi + 2]
-        mul     byte ptr[esi + 3]
-        mov     bx, ax
-        mov     al, [edi + 2]
-        mov     dl, 255
-        sub     dl, [esi + 3]
-        mul     dl
-        add     ax, bx
-        shr     ax, 8
-        mov     [edi + 2], al
+        mov         eax, [esi]
+        and         eax, 00FFFFFFh
+        cmp         eax, keyColor
+        je          skip
+        xor         eax, eax
+        mov         al, [esi + 3]
+        movd        mm0, [esi]
+        movd        mm1, [edi]
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        punpckldq   mm3, mm3
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        psrlw       mm0, 8
+        packuswb    mm0, mm2
+        paddb       mm0, mm4
+        movd        [edi], mm0
     skip:
-        add     edi, 4
-        add     esi, 4
-        loop    plot
-        pop     edx
-        pop     ebx
-        add     edi, ebx
-        add     esi, edx
-        dec     height
-        jnz     next
+        add         edi, 4
+        add         esi, 4
+        dec         ecx
+        jnz         plot
+        add         edi, ebx
+        add         esi, edx
+        dec         height
+        jnz         next
+        emms
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
-    if (!dstPixels || !imgPixels) return;
-
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
-    
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
+    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
+    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -7035,13 +6044,17 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //we accepted RGB color only
             if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
             {
-                const uint8_t blend = 255 - imgPixels[3];
-                dstPixels[2] = (imgPixels[2] * imgPixels[3] + dstPixels[2] * blend) >> 8;
-                dstPixels[1] = (imgPixels[1] * imgPixels[3] + dstPixels[1] * blend) >> 8;
-                dstPixels[0] = (imgPixels[0] * imgPixels[3] + dstPixels[0] * blend) >> 8;
+                const uint32_t srcCol = *imgPixels;
+                const uint32_t dstCol = *dstPixels;
+                const uint8_t alpha = srcCol >> 24;
+                uint32_t gCol  = dstCol & 0x00ff00;
+                uint32_t rbCol = dstCol & 0xff00ff;
+                gCol  += ((srcCol & 0x00ff00) - gCol ) * alpha >> 8;
+                rbCol += ((srcCol & 0xff00ff) - rbCol) * alpha >> 8;
+                *dstPixels = (rbCol & 0xff00ff) | (gCol & 0x00ff00);
             }
-            dstPixels += 4;
-            imgPixels += 4;
+            dstPixels++;
+            imgPixels++;
         }
         if (addDstOffs > 0) dstPixels += addDstOffs;
         if (addImgOffs > 0) imgPixels += addImgOffs;
@@ -7072,14 +6085,6 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
 
     case BLEND_MODE_SUB:
         putSpriteSub(x, y, keyColor, img);
-        break;
-
-    case BLEND_MODE_AND:
-        putSpriteAnd(x, y, keyColor, img);
-        break;
-
-    case BLEND_MODE_XOR:
-        putSpriteXor(x, y, keyColor, img);
         break;
 
     case BLEND_MODE_ALPHA:
@@ -7750,7 +6755,7 @@ void makeFont(char* str)
 void randomBuffer(void* buff, int32_t count, int32_t range)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     edi, buff
         mov     ecx, count
         mov     ebx, randSeed
@@ -7763,7 +6768,8 @@ void randomBuffer(void* buff, int32_t count, int32_t range)
         mul     range
         shr     eax, 16
         stosw
-        loop    next
+        dec     ecx
+        jnz     next
         mov     randSeed, ebx
     }
 #else
@@ -8361,9 +7367,10 @@ int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 //load image as GFXLIB texture format
 int32_t loadImage(const char* fname, GFX_IMAGE* im)
 {
-    if (bitsPerPixel != 32)
+    //only work with rgb mode
+    if (bitsPerPixel <= 8)
     {
-        messageBox(GFX_ERROR, "Only 32 bits video mode support!");
+        messageBox(GFX_ERROR, "Only video with rgb mode supported!");
         return 0;
     }
 
@@ -8412,9 +7419,10 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
 //load image as 32bits texture buffer
 int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fname)
 {
-    if (bitsPerPixel != 32)
+    //only rgb mode
+    if (bitsPerPixel <= 8)
     {
-        messageBox(GFX_ERROR, "Only 32 bits video mode support!");
+        messageBox(GFX_ERROR, "Only video with rgb mode supported!");
         return 0;
     }
 
@@ -8481,8 +7489,8 @@ int32_t initMouseButton(GFX_MOUSE* mi)
 //draw mouse cursor
 void drawMouseCursor(GFX_MOUSE* mi)
 {
-    //check color channel
-    if (bitsPerPixel != 32) return;
+    //only rgb mode
+    if (bitsPerPixel <= 8) return;
 
     int32_t mx = mi->msPosX - mi->msBitmap->mbHotX;
     int32_t my = mi->msPosY - mi->msBitmap->mbHotY;
@@ -8499,7 +7507,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
     uint32_t* msImage = (uint32_t*)mi->msBitmap->mbData;
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, my
         mul     texWidth
         add     eax, mx
@@ -8593,7 +7601,6 @@ void drawMouseCursor(GFX_MOUSE* mi)
         if (addOffs > 0) srcPixels += addOffs;
     }
 #endif
-    render();
 }
 
 //hide the mouse cursor
@@ -8602,8 +7609,8 @@ void clearMouseCursor(GFX_MOUSE* mi)
     int32_t mx = mi->msPosX - mi->msBitmap->mbHotX;
     int32_t my = mi->msPosY - mi->msBitmap->mbHotY;
 
-    //check color channel
-    if (bitsPerPixel != 32) return;
+    //only rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //check clip boundary
     if (mx < cminX) mx = cminX;
@@ -8616,7 +7623,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
     uint32_t* msUnder = (uint32_t*)mi->msUnder;
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     eax, my
         mul     texWidth
         add     eax, mx
@@ -8676,14 +7683,13 @@ void clearMouseCursor(GFX_MOUSE* mi)
         if (addOffs > 0) dstPixels += addOffs;
     }
 #endif
-    render();
-}
+ }
 
 //draw bitmap button
 void drawButton(GFX_BUTTON* btn)
 {
-    //check color channel
-    if (bitsPerPixel != 32) return;
+    //only rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //calculate coordinator
     const int32_t x1 = btn->btPosX;
@@ -8709,10 +7715,10 @@ void drawButton(GFX_BUTTON* btn)
     if (!lbWidth || !lbHeight) return;
 
     const int32_t btnWidth = btn->btWidth;
-    void* btnData = btn->btData[btn->btState % BUTTON_STATES];
+    void* btnData = btn->btData[btn->btState % BUTTON_STATE_COUNT];
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     edi, drawBuff
         mov     eax, ly1
         mul     texWidth
@@ -8746,7 +7752,8 @@ void drawButton(GFX_BUTTON* btn)
     skip:
         add     edi, 4
     done:
-        loop    plot
+        dec     ecx
+        jnz     plot
         add     edi, ebx
         add     esi, edx
         dec     lbHeight
@@ -8773,23 +7780,21 @@ void drawButton(GFX_BUTTON* btn)
         if (addImgOffs > 0) imgPixels += addImgOffs;
     }
 #endif
-    render();
 }
 
-//load the bitmap mouse button
-void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTTON* btn)
+//load mouse sprite pointer
+void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
 {
-    GFX_IMAGE bmp = { 0 };
-    int32_t i = 0, j = 0, y = 0;
-    uint8_t *src = NULL, *dst = NULL;
+    //load mouse pointers
+    GFX_IMAGE msPointer = { 0 };
+    if (!loadImage(fname, &msPointer)) return;
+
+    const int32_t msHeight = msPointer.mHeight;
+    const int32_t msWidth = msPointer.mWidth / 9;
     const int32_t bytesPerPixel = bitsPerPixel >> 3;
 
-    //load mouse bitmap and animation
-    loadImage(fname, &bmp);
-    if (!bmp.mData) return;
-
     //allocate memory for mouse under background
-    mi->msUnder = (uint8_t*)calloc(MOUSE_SIZE, bytesPerPixel);
+    mi->msUnder = (uint8_t*)calloc(msWidth * msHeight, bytesPerPixel);
     if (!mi->msUnder)
     {
         messageBox(GFX_ERROR, "Error alloc memory!");
@@ -8797,28 +7802,30 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
     }
 
     //init mouse image width and height
-    mi->msWidth = MOUSE_WIDTH;
-    mi->msHeight = MOUSE_HEIGHT;
+    mi->msWidth = msWidth;
+    mi->msHeight = msHeight;
 
     //copy mouse cursors
-    for (i = 0; i < NUM_MOUSE_BITMAPS; i++)
+    for (int32_t i = 0; i < MOUSE_SPRITE_COUNT; i++)
     {
-        mbm[i].mbData = (uint8_t*)calloc(MOUSE_SIZE, bytesPerPixel);
+        mbm[i].mbData = (uint8_t*)calloc(msWidth * msHeight, bytesPerPixel);
         if (!mbm[i].mbData)
         {
-            messageBox(GFX_ERROR, "Error alloc memory!");
+            messageBox(GFX_ERROR, "Error create mouse sprite:%d!", i);
             return;
         }
 
+        //initialize mouse state
         mbm[i].mbHotX = 12;
         mbm[i].mbHotY = 12;
         mbm[i].mbNext = &mbm[i + 1];
-        
-        for (y = 0; y < MOUSE_HEIGHT; y++)
+
+        //copy data from mouse image to gfx mouse struct
+        for (int32_t y = 0; y < msHeight; y++)
         {
-            dst = &mbm[i].mbData[y * MOUSE_WIDTH * bytesPerPixel];
-            src = &bmp.mData[(i * MOUSE_WIDTH + y * bmp.mWidth) * bytesPerPixel];
-            memcpy(dst, src, intptr_t(bytesPerPixel) * MOUSE_WIDTH);
+            uint8_t* dst = &mbm[i].mbData[y * msWidth * bytesPerPixel];
+            const uint8_t* src = &msPointer.mData[(i * msWidth + y * msPointer.mWidth) * bytesPerPixel];
+            memcpy(dst, src, intptr_t(bytesPerPixel) * msWidth);
         }
     }
 
@@ -8827,66 +7834,55 @@ void loadMouseButton(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTT
     mbm[0].mbHotY = 2;
     mbm[0].mbNext = &mbm[0];
     mbm[8].mbNext = &mbm[1];
+    freeImage(&msPointer);
+}
 
-    //copy button bitmaps
-    for (i = 0; i < NUM_BUTTONS; i++)
+//load GFX button
+void loadButton(const char* fname, GFX_BUTTON* btn)
+{
+    //load button
+    GFX_IMAGE img = { 0 };
+    if (!loadImage(fname, &img)) return;
+    
+    const int32_t btnHeight = img.mHeight;
+    const int32_t btnWidth = img.mWidth / BUTTON_STATE_COUNT;
+    const int32_t bytesPerPixel = bitsPerPixel >> 3;
+
+    btn->btWidth = btnWidth;
+    btn->btHeight = btnHeight;
+
+    //create button
+    for (int32_t i = 0; i < BUTTON_STATE_COUNT; i++)
     {
-        btn[i].btWidth = BUTTON_WIDTH;
-        btn[i].btHeight = BUTTON_HEIGHT;
-        for (j = 0; j < BUTTON_STATES; j++)
+        btn->btData[i] = (uint8_t*)calloc(btnWidth * btnHeight, bytesPerPixel);
+        if (!btn->btData[i])
         {
-            btn[i].btData[j] = (uint8_t*)calloc(BUTTON_SIZE, bytesPerPixel);
-            if (!btn[i].btData[j])
-            {
-                messageBox(GFX_ERROR, "Error alloc memory!");
-                return;
-            }
+            messageBox(GFX_ERROR, "Error create button:%d!", i);
+            return;
+        }
 
-            for (y = 0; y < BUTTON_HEIGHT; y++)
-            {
-                dst = &btn[i].btData[j][y * BUTTON_WIDTH * bytesPerPixel];
-                src = &bmp.mData[(i * (bmp.mWidth >> 1) + j * BUTTON_WIDTH + (BUTTON_HEIGHT + y) * bmp.mWidth) * bytesPerPixel];
-                memcpy(dst, src, intptr_t(bytesPerPixel) * BUTTON_WIDTH);
-            }
+        //copy button data
+        for (int32_t y = 0; y < btnHeight; y++)
+        {
+            uint8_t* dst = &btn->btData[i][y * btnWidth * bytesPerPixel];
+            const uint8_t* src = &img.mData[(i * btnWidth + y * img.mWidth) * bytesPerPixel];
+            memcpy(dst, src, intptr_t(bytesPerPixel) * btnWidth);
         }
     }
 
-    //init button 'click me'
-    btn[0].btPosX = centerX - BUTTON_WIDTH - 20;
-    btn[0].btPosY = centerY - (BUTTON_HEIGHT >> 1);
-    btn[0].btState = STATE_NORM;
-
-    //init button 'exit'
-    btn[1].btPosX = centerX + BUTTON_WIDTH + 10;
-    btn[1].btPosY = centerY - (BUTTON_HEIGHT >> 1);
-    btn[1].btState = STATE_NORM;
+    freeImage(&img);
 }
 
-//release mouse button
-void closeMouseButton(GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTTON* btn)
+//release mouse sprite
+void freeMouse(GFX_MOUSE* mi, GFX_BITMAP* mbm)
 {
-    int32_t i = 0, j = 0;
-
     //cleanup mouse bitmap
-    for (i = 0; i < NUM_MOUSE_BITMAPS; i++)
+    for (int32_t i = 0; i < MOUSE_SPRITE_COUNT; i++)
     {
         if (mbm[i].mbData)
         {
             free(mbm[i].mbData);
             mbm[i].mbData = NULL;
-        }
-    }
-
-    //cleanup button bitmap
-    for (i = 0; i < NUM_BUTTONS; i++)
-    {
-        for (j = 0; j < BUTTON_STATES; j++)
-        {
-            if (btn[i].btData[j])
-            {
-                free(btn[i].btData[j]);
-                btn[i].btData[j] = NULL;
-            }
         }
     }
 
@@ -8899,23 +7895,49 @@ void closeMouseButton(GFX_MOUSE* mi, GFX_BITMAP* mbm, GFX_BUTTON* btn)
     }
 }
 
-//automatic mouse event handler
-void handleMouse(const char* fname)
+//free button
+void freeButton(GFX_BUTTON* btn)
 {
-    GFX_MOUSE mi = { 0 };
-    GFX_BITMAP* msNew = NULL;
-    GFX_BUTTON btn[NUM_BUTTONS] = { 0 };
-    GFX_BITMAP mbm[NUM_MOUSE_BITMAPS] = { 0 };
+    for (int32_t i = 0; i < BUTTON_STATE_COUNT; i++)
+    {
+        if (btn->btData[i])
+        {
+            free(btn->btData[i]);
+            btn->btData[i] = NULL;
+        }
+    }
+}
 
-    int32_t i = 0, done = 0;
-    int32_t mcx = 0, mdx = 0, mbx = 0;
-    uint32_t needDraw = 0xFFFF;
+//simulation mouse event handler
+void handleMouseButton()
+{
     const char* bkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
 
     //init and setup bitmap mouse and button
-    if (!initMouseButton(&mi)) messageBox(GFX_ERROR, "Error initialize mouse button!");
-    loadMouseButton(fname, &mi, mbm, btn);
+    GFX_MOUSE mi = { 0 };
+    if (!initMouseButton(&mi))
+    {
+        messageBox(GFX_ERROR, "Error initialize mouse button!");
+        return;
+    }
     
+    GFX_BITMAP mbm[MOUSE_SPRITE_COUNT] = { 0 };
+    loadMouse("assets/mpointer24.png", &mi, mbm);
+
+    GFX_BUTTON btn[BUTTON_HANDLE_COUNT] = { 0 };
+    loadButton("assets/clickbtn24.png", &btn[0]);
+    loadButton("assets/exitbtn24.png", &btn[1]);
+
+    //init button 'click me'
+    btn[0].btPosX = centerX - btn[0].btWidth - 20;
+    btn[0].btPosY = centerY - (btn[0].btHeight >> 1);
+    btn[0].btState = BUTTON_STATE_NORMAL;
+
+    //init button 'exit'
+    btn[1].btPosX = centerX + btn[1].btWidth + 10;
+    btn[1].btPosY = centerY - (btn[1].btHeight >> 1);
+    btn[1].btState = BUTTON_STATE_NORMAL;
+
     //hide mouse pointer
     showMouseCursor(SDL_DISABLE);
 
@@ -8936,11 +7958,16 @@ void handleMouse(const char* fname)
     int32_t lastx = centerX;
     int32_t lasty = centerY;
     uint32_t lastTime = getTime();
+    
+    //current mouse pointer
+    GFX_BITMAP* msNew = NULL;
+
+    int32_t i = 0, done = 0;
+    int32_t mcx = 0, mdx = 0, mbx = 0;
+    uint32_t needDraw = 0xFFFF;
 
     do
     {
-        delay(FPS_60);
-
         //get current moust coordinate
         getMouseState(&mcx, &mdx, &mbx, NULL);
 
@@ -8959,7 +7986,7 @@ void handleMouse(const char* fname)
             //draw buttons
             if (needDraw > 1)
             {
-                for (i = 0; i < NUM_BUTTONS; i++)
+                for (i = 0; i < BUTTON_HANDLE_COUNT; i++)
                 {
                     if (needDraw & (2 << i)) drawButton(&btn[i]);
                 }
@@ -9002,14 +8029,14 @@ void handleMouse(const char* fname)
         }
 
         //check for new button state
-        for (i = 0; i < NUM_BUTTONS; i++)
+        for (i = 0; i < BUTTON_HANDLE_COUNT; i++)
         {
             //check if mouse inside the button region
-            if (mcx >= btn[i].btPosX && mcx <= btn[i].btPosX + BUTTON_WIDTH && mdx >= btn[i].btPosY && mdx <= btn[i].btPosY + BUTTON_HEIGHT)
+            if (mcx >= btn[i].btPosX && mcx <= btn[i].btPosX + btn[i].btWidth && mdx >= btn[i].btPosY && mdx <= btn[i].btPosY + btn[i].btHeight)
             {
-                if (mbx == 0 && btn[i].btState == STATE_PRESSED)
+                if (mbx == 0 && btn[i].btState == BUTTON_STATE_PRESSED)
                 {
-                    btn[i].btState = STATE_ACTIVE;
+                    btn[i].btState = BUTTON_STATE_ACTIVE;
                     needDraw |= (2 << i);
                     if (i == 0)
                     {
@@ -9020,47 +8047,52 @@ void handleMouse(const char* fname)
                 }
                 else if (mbx == 1)
                 {
-                    btn[i].btState = STATE_PRESSED;
+                    btn[i].btState = BUTTON_STATE_PRESSED;
                     needDraw |= (2 << i);
                 }
-                else if (btn[i].btState == STATE_NORM && mbx == 0)
+                else if (btn[i].btState == BUTTON_STATE_NORMAL && mbx == 0)
                 {
-                    btn[i].btState = STATE_ACTIVE;
+                    btn[i].btState = BUTTON_STATE_ACTIVE;
                     needDraw |= (2 << i);
                 }
-                else if (btn[i].btState == STATE_WAITING)
+                else if (btn[i].btState == BUTTON_STATE_WAITING)
                 {
                     if (mbx == 1)
                     {
-                        btn[i].btState = STATE_PRESSED;
+                        btn[i].btState = BUTTON_STATE_PRESSED;
                     }
                     else
                     {
-                        btn[i].btState = STATE_ACTIVE;
+                        btn[i].btState = BUTTON_STATE_ACTIVE;
                     }
                     needDraw |= (2 << i);
                 }
             }
-            else if (btn[i].btState == STATE_ACTIVE)
+            else if (btn[i].btState == BUTTON_STATE_ACTIVE)
             {
-                btn[i].btState = STATE_NORM;
+                btn[i].btState = BUTTON_STATE_NORMAL;
                 needDraw |= (2 << i);
             }
-            else if (btn[i].btState == STATE_PRESSED && mbx == 1)
+            else if (btn[i].btState == BUTTON_STATE_PRESSED && mbx == 1)
             {
-                btn[i].btState = STATE_WAITING;
+                btn[i].btState = BUTTON_STATE_WAITING;
                 needDraw |= (2 << i);
             }
-            else if (btn[i].btState == STATE_WAITING && mbx == 0)
+            else if (btn[i].btState == BUTTON_STATE_WAITING && mbx == 0)
             {
-                btn[i].btState = STATE_NORM;
+                btn[i].btState = BUTTON_STATE_NORMAL;
                 needDraw |= (2 << i);
             }
         }
+
+        render();
+        delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN) && !done);
 
     //release mouse bitmap and callback handler
-    closeMouseButton(&mi, mbm, btn);
+    freeMouse(&mi, mbm);
+    freeButton(&btn[0]);
+    freeButton(&btn[1]);
     showMouseCursor(SDL_ENABLE);
 }
 
@@ -9076,7 +8108,7 @@ void createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IM
     const uint8_t sx = img->mWidth >> 1;
     const uint8_t sy = img->mHeight >> 1;
 
-    _asm {
+    __asm {
         mov     edi, data
         xor     eax, eax
         xor     dh, dh
@@ -9245,13 +8277,14 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2
     uint32_t* dst = (uint32_t*)dimg->mData;
     uint32_t* src = (uint32_t*)simg->mData;
     
-    if (bitsPerPixel != 32) return;
+    //only rgb mode
+    if (bitsPerPixel <= 8) return;
 
     *ang += step;
 
 #ifdef _USE_ASM
     uint8_t tmp = *ang;
-    _asm {
+    __asm {
         mov     ecx, ang
         mov     edi, dst
         mov     esi, src
@@ -9288,8 +8321,8 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
     uint8_t* psrc = src->mData;
     const uint32_t nsize = src->mSize >> 2;
 
-    //only support 32bit color
-    if (bitsPerPixel != 32) return;
+    //only support for rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //check for small source size
     if (blur <= 0 || nsize <= uint32_t(2 * blur)) return;
@@ -9298,7 +8331,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
     if (blur > 127) blur = 127;
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     esi, psrc
         mov     edi, pdst
         mov     ecx, nsize
@@ -9378,7 +8411,8 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
         mov     bl, [esi + ecx * 4]
         neg     ecx
         add     eax, ebx
-        loop    lpixb
+        dec     ecx
+        jnz     lpixb
         pop     ecx
         mov     ebx, edx
         xor     edx, edx
@@ -9387,7 +8421,8 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
         mov     [edi], al
         add     esi, 4
         add     edi, 4
-        loop    lpxb
+        dec     ecx
+        jnz     lpxb
         pop     eax
         pop     edi
         pop     esi
@@ -9435,7 +8470,8 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
         mov     [edi], al
         add     esi, 4
         add     edi, 4
-        loop    lp2xb
+        dec     ecx
+        jnz     lp2xb
         pop     eax
         pop     edi
         pop     esi
@@ -9526,15 +8562,15 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
     uint32_t* psrc = (uint32_t*)src->mData;
     const uint32_t nsize = src->mSize >> 2;
 
-    //only support 32bit color
-    if (bitsPerPixel != 32) return;
+    //only support fro rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //check light range
     if (bright == 0 || bright == 255) return;
 
 #ifdef _USE_ASM
     uint32_t* pdst = (uint32_t*)dst->mData;
-    _asm {
+    __asm {
         mov     ecx, nsize
         mov     edi, pdst
         mov     esi, psrc
@@ -9551,7 +8587,8 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
         mov     eax, ebx
         stosd
         add     esi, 4
-        loop    next
+        dec     ecx
+        jnz     next
     }
 #else
     for (uint32_t i = 0; i < nsize; i++)
@@ -9569,7 +8606,7 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     edx, count
         mov     ebx, val
         mov     edi, dst
@@ -9633,7 +8670,7 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
     if (bright == 0 || bright == 255) return;
 
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     ecx, nsize
         mov     edi, data
         xor     eax, eax
@@ -9643,7 +8680,8 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
         mul     bl
         mov     [edi + 3], ah
         add     edi, 4
-        loop    next
+        dec     ecx
+        jnz     next
     }
 #else
     for (uint32_t i = 0; i < nsize; i++)
@@ -9662,8 +8700,8 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
     uint32_t* pdst = (uint32_t*)dst->mData;
     uint32_t* psrc = (uint32_t*)src->mData;
 
-    //only support 32bit color
-    if (bitsPerPixel != 32) return;
+    //only support for rgb mode
+    if (bitsPerPixel <= 8) return;
 
     //check minimum blocking
     if (xb == 0) xb = 1;
@@ -9708,44 +8746,50 @@ void fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col)
     switch (type)
     {
     case 0:
-        for (y = 0; y < cresY / dsize; y++)
+        for (y = 0; y < texHeight / dsize; y++)
         {
             val = int32_t(smax * pc / 100.0);
-            for (x = 0; x < cresX / dsize; x++) fillCircle(x * dsize + size, y * dsize + size, val, col);
+            for (x = 0; x < texWidth / dsize; x++) fillCircle(x * dsize + size, y * dsize + size, val, col);
         }
         break;
+
     case 1:
-        for (y = 0; y < cresY / dsize; y++)
+        for (y = 0; y < texHeight / dsize; y++)
         {
-            for (x = 0; x < cresX / dsize; x++)
+            for (x = 0; x < texWidth / dsize; x++)
             {
-                val = int32_t((smax + (double(cresY) / dsize - y) * 2.0) * pc / 100.0);
+                val = int32_t((smax + (double(texHeight) / dsize - y) * 2.0) * pc / 100.0);
                 if (val > smax) val = smax;
                 fillCircle(x * dsize + size, y * dsize + size, val, col);
             }
         }
         break;
+
     case 2:
-        for (y = 0; y < cresY / dsize; y++)
+        for (y = 0; y < texHeight / dsize; y++)
         {
-            for (x = 0; x < cresX / dsize; x++)
+            for (x = 0; x < texWidth / dsize; x++)
             {
-                val = int32_t((smax + (double(cresX) / dsize - x) * 2.0) * pc / 100.0);
+                val = int32_t((smax + (double(texWidth) / dsize - x) * 2.0) * pc / 100.0);
                 if (val > smax) val = smax;
                 fillCircle(x * dsize + size, y * dsize + size, val, col);
             }
         }
         break;
+
     case 3:
-        for (y = 0; y < cresY / dsize; y++)
+        for (y = 0; y < texHeight / dsize; y++)
         {
-            for (x = 0; x < cresX / dsize; x++)
+            for (x = 0; x < texWidth / dsize; x++)
             {
-                val = int32_t((smax + (double(cresX) / size - (double(x) + y))) * pc / 100.0);
+                val = int32_t((smax + (double(texWidth) / size - (double(x) + y))) * pc / 100.0);
                 if (val > smax) val = smax;
                 fillCircle(x * dsize + size, y * dsize + size, val, col);
             }
         }
+        break;
+
+    default:
         break;
     }
 }
@@ -9755,7 +8799,7 @@ void scaleUpLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t count, i
 {
 #ifdef _USE_ASM
     yval <<= 2;
-    _asm {
+    __asm {
         mov     ecx, count
         mov     ebx, src
         add     ebx, yval
@@ -9765,7 +8809,8 @@ void scaleUpLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t count, i
         lodsd
         mov     eax, [ebx + eax * 4]
         stosd
-        loop    next
+        dec     ecx
+        jnz     next
     }
 #else
     for (int32_t i = 0; i < count; i++) *dst++ = src[tables[i] + yval];
@@ -9780,7 +8825,7 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     uint32_t* psrc = (uint32_t*)src->mData;
 
     //check color mode
-    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
 
     //init lookup table
     for (i = 0; i < src->mWidth; i++) tables[i] = roundf(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1))) + xfact;
@@ -9797,14 +8842,14 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
 //FX-effect: blur image buffer
 void blurImage(GFX_IMAGE* img)
 {
-    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
 
     const uint32_t width = img->mWidth;
     const uint32_t* data = (const uint32_t*)img->mData;
 
 #ifdef _USE_ASM
     uint32_t height = img->mHeight;
-    _asm {
+    __asm {
         mov     edi, data
     step:
         mov     edx, width
@@ -9910,47 +8955,56 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     uint8_t* psrc1 = src1->mData;
     uint8_t* psrc2 = src2->mData;
     uint8_t* pdst = dst->mData;
-    const uint32_t count = src1->mSize >> 2;
+    const uint32_t width = src1->mSize >> 2;
 
-    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
 
 #ifdef _USE_ASM
-    _asm {
-        mov     edi, pdst
-        mov     esi, psrc2
-        mov     edx, psrc1
-        mov     ecx, cover
-        neg     cl
-    next:
-        push    edx
-        mov     ebx, [esi]
-        mov     edx, [edx]
-        mov     al, dh
-        and     edx, 00FF00FFh
-        mov     ah, bh
-        and     ebx, 00FF00FFh
-        sub     edx, ebx
-        imul    edx, ecx
-        shr     edx, 8
-        add     ebx, edx
-        xor     edx, edx
-        mov     dl, ah
-        xor     ah, ah
-        mov     bh, dl
-        sub     ax, dx
-        mul     cx
-        add     bh, ah
-        pop     edx
-        mov     [edi], ebx
-        add     esi, 4
-        add     edx, 4
-        add     edi, 4
-        dec     count
-        jnz     next
+    __asm {
+        mov         ecx, width
+        shr         ecx, 1
+        jz          end
+        mov         edi, pdst
+        mov         edx, psrc1
+        mov         esi, psrc2
+        movzx       eax, cover
+        xor         eax, 0FFh
+        movd        mm3, eax
+        punpcklwd   mm3, mm3
+        pxor        mm2, mm2
+        punpckldq   mm3, mm3
+    again:
+        movq        mm0, [edx]
+        movq        mm1, [esi]
+        movq        mm5, mm0
+        punpcklbw   mm0, mm2
+        movq        mm4, mm1
+        punpcklbw   mm1, mm2
+        psubw       mm0, mm1
+        pmullw      mm0, mm3
+        movq        mm6, mm4
+        psrlw       mm0, 8
+        psrlq       mm5, 32
+        psrlq       mm4, 32
+        punpcklbw   mm5, mm2
+        punpcklbw   mm4, mm2
+        psubw       mm5, mm4
+        pmullw      mm5, mm3
+        psrlw       mm5, 8
+        packuswb    mm0, mm5
+        paddb       mm0, mm6
+        movq        [edi], mm0
+        add         edx,8
+        add         edi,8
+        add         esi,8
+        dec         ecx
+        jnz         again
+        emms
+    end:
     }
 #else
     const uint8_t blend = 255 - cover;
-    for (uint32_t i = 0; i < count; i++)
+    for (uint32_t i = 0; i < width; i++)
     {
         pdst[2] = (cover * psrc1[2] + psrc2[2] * blend) >> 8;
         pdst[1] = (cover * psrc1[1] + psrc2[1] * blend) >> 8;
@@ -9967,7 +9021,7 @@ void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, in
 {
 #ifdef _USE_ASM
     const int32_t pos = (width + 1) << 3;
-    _asm {
+    __asm {
         mov     ecx, width
         dec     ecx
         mov     esi, src
@@ -10031,7 +9085,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
     uint32_t* psrc = (uint32_t*)src->mData;
     uint32_t* pdst = (uint32_t*)dst->mData;
 
-    if (bitsPerPixel != 32) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
 
     //recalculate axisx, axisy
     axisx = dst->mWidth - axisx;
@@ -10105,7 +9159,7 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
     int32_t x = 0, y = 0, osrc2 = 0, osrc1 = 0, odst = 0;
     
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov     y, 100
     starty:
         mov     ebx, y
@@ -10287,7 +9341,7 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
 //FX-effect: fade-out image buffer
 void fadeOutImage(GFX_IMAGE* img, uint8_t step)
 {
-    if (bitsPerPixel != 32) return;
+    if (bitsPerPixel <= 8) return;
 
     uint8_t* pixels = img->mData;
     const uint32_t size = img->mSize >> 2;
@@ -10327,7 +9381,7 @@ uint64_t getCyclesCount()
 {
 #ifdef _USE_ASM
     uint64_t count = 0;
-    _asm {
+    __asm {
         cpuid
         rdtsc
         mov dword ptr[count    ], eax
@@ -10353,7 +9407,7 @@ void calcCpuSpeed()
 void CPUID(int32_t* cpuinfo, uint32_t funcid)
 {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
         mov    eax, funcid
         mov    edi, cpuinfo
         cpuid

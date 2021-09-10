@@ -658,10 +658,10 @@ void lineBob()
 {
     uint32_t frames = 0;
     
-    int32_t x1 = rand() % cresX;
-    int32_t x2 = rand() % cresX;
-    int32_t y1 = rand() % cresY;
-    int32_t y2 = rand() % cresY;
+    int32_t x1 = rand() % texWidth;
+    int32_t x2 = rand() % texWidth;
+    int32_t y1 = rand() % texHeight;
+    int32_t y2 = rand() % texHeight;
     
     int32_t dx1 = 1;
     int32_t dx2 = -1;
@@ -1426,7 +1426,7 @@ void displayPlasma()
     if (!newImage(160, 120, &src)) return;
 
     //scale palsma image buffer
-    if (!newImage(cresX, cresY, &dst)) return;
+    if (!newImage(texWidth, texHeight, &dst)) return;
     initPlasma(sint, cost);
 
     //display plasma
@@ -1456,7 +1456,7 @@ void displayPlasma()
     }
     setPalette(pal);
 
-    ypos = cresY;
+    ypos = texHeight;
 
     //display scale image and scroll text
     do {
@@ -1527,7 +1527,7 @@ void gfxDemoMix()
     sleepFor(2000);
     fadeCircle(3, 0);
 
-    handleMouse("assets/mouse24.png");
+    handleMouseButton();
     displaySprite("assets/smile32.png");
 
     freeFont(0);
@@ -1536,7 +1536,7 @@ void gfxDemoMix()
     if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
     const int32_t introY = centerY - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
     
-    switch (cresX)
+    switch (texWidth)
     {
         case  640: ratio = 1.0;	 break;
         case  800: ratio = 1.25; break;
