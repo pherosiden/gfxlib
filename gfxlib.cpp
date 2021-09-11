@@ -200,23 +200,18 @@ int32_t keyPressed(int32_t key)
 //read input key from user
 int32_t waitKeyPressed()
 {
+    SDL_Event event;
     int32_t done = 0;
     int32_t pressedKey = 0;
-    
-    //flush all queue events
-    while (SDL_PollEvent(&sdlEvent))
-    {
-        if (sdlEvent.type == SDL_QUIT) break;
-    }
 
     while (!done)
     {
-        while (SDL_PollEvent(&sdlEvent))
+        if (SDL_WaitEvent(&event))
         {
-            if (sdlEvent.type == SDL_QUIT || sdlEvent.type == SDL_KEYDOWN)
+            if (event.type == SDL_QUIT || event.type == SDL_KEYDOWN)
             {
                 done = 1;
-                pressedKey = sdlEvent.key.keysym.scancode;
+                pressedKey = event.key.keysym.scancode;
             }
         }
         SDL_Delay(1);
@@ -259,12 +254,6 @@ void quit()
 {
     cleanup();
     exit(1);
-}
-
-//get current mouse state
-void getMouseState(int32_t* mx, int32_t* my)
-{
-    SDL_GetMouseState(mx, my);
 }
 
 //show or hide mouse cursor
@@ -437,7 +426,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         }
 
         //initialize raster function
-        bitsPerPixel = 32;
+        bitsPerPixel = bpp;
         bytesPerScanline = width << 2;
     }
 
@@ -526,15 +515,7 @@ void cleanup()
 //render function, use this to render draw buffer to video memory
 void render()
 {
-    if (bitsPerPixel == 32)
-    {
-        //RGBA mode, just render texture to video memory without any conversation
-        SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
-        SDL_RenderClear(sdlRenderer);
-        SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-        SDL_RenderPresent(sdlRenderer);
-    }
-    else if (bitsPerPixel == 8)
+    if (bitsPerPixel == 8)
     {
         //256 colors palette, we must convert 8 bits surface to 32 bits surface
         SDL_UpperBlit(sdlSurface, NULL, sdlScreen, NULL);
@@ -543,7 +524,14 @@ void render()
         SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
         SDL_RenderPresent(sdlRenderer);
     }
-    else messageBox(GFX_ERROR, "GFXLIB is only support render for 32 or 8 bits pixels!");
+    else
+    {
+        //rgb mode, just render texture to video memory without any conversation
+        SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
+        SDL_RenderClear(sdlRenderer);
+        SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+        SDL_RenderPresent(sdlRenderer);
+    }
 }
 
 //generate random value from number
@@ -692,12 +680,10 @@ inline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
 
 inline uint32_t rgba(uint32_t col, uint8_t alpha)
 {
-    uint8_t* pcol = (uint8_t*)&col;
-    pcol[3] = alpha;
-    return col;
+    return (uint32_t(alpha) << 24) | col;
 }
 
-//retrive raw pixels data
+//retrive raw pixels data buffer
 void* getDrawBuffer(int32_t *width, int32_t *height)
 {
     if (width) *width = texWidth;
@@ -706,16 +692,16 @@ void* getDrawBuffer(int32_t *width, int32_t *height)
 }
 
 //set the draw buffer
-//setDrawBuffer and restoreDrawBuffer must be a pair functions
-void setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight)
+//!!!changeDrawBuffer and restoreDrawBuffer must be a pair functions!!!
+void changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight)
 {
     oldBuffer = drawBuff;
     drawBuff = newBuff;
-    setViewPort(0, 0, newWidth - 1, newHeight - 1);
+    changeViewPort(0, 0, newWidth - 1, newHeight - 1);
 }
 
 //must call after setDrawBuffer call
-//setDrawBuffer and restoreDrawBuffer must be a pair functions
+//!!!changeDrawBuffer and restoreDrawBuffer must be a pair functions!!!
 void restoreDrawBuffer()
 {
     drawBuff = oldBuffer;
@@ -730,7 +716,8 @@ void renderBuffer(const void* buffer, uint32_t size)
 }
 
 //set current screen view port for clipping
-void setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
+//!!!changeViewPort and restoreViewPort must be a pair functions!!!
+void changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
     //save current view port
     oldMinX = cminX;
@@ -756,6 +743,7 @@ void setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 }
 
 //must call after setViewPort call
+//!!!changeViewPort and restoreViewPort must be a pair functions!!!
 void restoreViewPort()
 {
     cminX = oldMinX;
@@ -860,9 +848,8 @@ void putPixelAA(int32_t x, int32_t y, uint32_t argb)
         mov         edi, drawBuff
         add         edi, eax
         xor         eax, eax
-        mov         bl, byte ptr[argb + 3]
         mov         al, 255
-        sub         al, bl
+        sub         al, byte ptr[argb + 3]
         movd        mm0, argb
         movd        mm1, [edi]
         movd        mm3, eax
@@ -4743,14 +4730,14 @@ void fadeRollo(int32_t dir, uint32_t col)
 //setActivePage and setVisualPage must be a paire function
 void setActivePage(GFX_IMAGE* page)
 {
-    setDrawBuffer(page->mData, page->mWidth, page->mHeight);
+    changeDrawBuffer(page->mData, page->mWidth, page->mHeight);
 }
 
 //set render page to current page
 //setActivePage and setVisualPage must be a paire function
 void setVisualPage(GFX_IMAGE* page)
 {
-    setDrawBuffer(page->mData, page->mWidth, page->mHeight);
+    changeDrawBuffer(page->mData, page->mWidth, page->mHeight);
     render();
     restoreDrawBuffer();
 }
@@ -7072,9 +7059,7 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
         if (stroke->code == 1) moveTo(mx, my);
         else
         {
-            //automatic antialias when in 32-bits mode
-            if (bitsPerPixel == 4) lineTo(mx, my, col, BLEND_MODE_ALPHA);
-            else if (mode == 2) lineTo(mx, my, col, BLEND_MODE_ADD);
+            if (mode == 2) lineTo(mx, my, col, BLEND_MODE_ADD);
             else if (mode == 3) lineTo(mx, my, col, BLEND_MODE_SUB);
             else lineTo(mx, my, col);
         }
@@ -8664,7 +8649,7 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
     const uint32_t nsize = img->mSize >> 2;
     
     //only support 32bit color
-    if (bitsPerPixel != 4) return;
+    if (bitsPerPixel != 32) return;
 
     //check for minimum
     if (bright == 0 || bright == 255) return;

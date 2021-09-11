@@ -396,13 +396,13 @@ void        sleepFor(uint32_t ms);
 
 //video and render functions
 int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
-void        setViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+void        changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
 void        render();
 void        cleanup();
 void        renderBuffer(const void* buffer, uint32_t size);
 void*       getDrawBuffer(int32_t *width = NULL, int32_t *height = NULL);
-void        setDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
+void        changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
 void        restoreDrawBuffer();
 
 //handle program message

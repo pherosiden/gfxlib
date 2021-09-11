@@ -78,7 +78,7 @@ void drawCylodiod(int32_t xc, int32_t yc, int32_t rd, uint8_t a, uint8_t b, doub
         const double y2 = yc + rd * sin(3 * angle) * sin(angle) * sin(b * angle);
         lineTo(int32_t(x2), int32_t(y2), uint32_t(angle + col));
         angle += 0.001;
-	}
+    }
     render();
 }
 
@@ -1370,7 +1370,7 @@ void displaySprite(const char *fname)
         frames++;
     }
 
-    setDrawBuffer(oldBuffer, oldWidth, oldHeight);
+    changeDrawBuffer(oldBuffer, oldWidth, oldHeight);
     freeImage(&img1);
     freeImage(&img2);
     freeImage(&spr);
@@ -1411,7 +1411,7 @@ void displayPlasma()
     GFX_IMAGE src = { 0 }, dst = { 0 };
 
     int32_t ypos = 0, endPos = 0;
-	int32_t x = 0, y = 0, decx = 0, decy = 0;
+    int32_t x = 0, y = 0, decx = 0, decy = 0;
     const int32_t size = sizeof(str) / sizeof(str[0]);
 
     uint32_t frames = 0;
@@ -1526,7 +1526,7 @@ void gfxDemoMix()
     showBMP("assets/1lan32.bmp");
     sleepFor(2000);
     fadeCircle(3, 0);
-
+    
     handleMouseButton();
     displaySprite("assets/smile32.png");
 

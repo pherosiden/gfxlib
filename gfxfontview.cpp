@@ -8,7 +8,7 @@
 void showFontsDir(const char* path, const char* ext)
 {
     char buff[256] = { 0 };
-    int32_t i, height, y = 10;
+    int32_t i = 0, height = 0, y = 10;
 
 #ifdef __APPLE__
     DIR* dir;
@@ -59,12 +59,12 @@ void showFontsDir(const char* path, const char* ext)
         waitKeyPressed();
     }
 #else
-    intptr_t hfile;
-    _finddata_t fileInfo;
-
-    //open font directory
+    //build file path
     sprintf(buff, "%s/*%s", path, ext);
-    hfile = _findfirst(buff, &fileInfo);
+
+    //search font directory
+    _finddata_t fileInfo;
+    intptr_t hfile = _findfirst(buff, &fileInfo);
     if (hfile == -1) return;
 
     do

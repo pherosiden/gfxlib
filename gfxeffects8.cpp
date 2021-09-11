@@ -11075,7 +11075,7 @@ namespace mazeGeneration {
             keyCode = waitKeyPressed();
         } while (keyCode != SDL_SCANCODE_RETURN);
 
-        setDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
+        changeDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
         writeText(20, 15, 28, 0, "Write maze to maze.dat file (Y/N)?");
         restoreDrawBuffer();
         renderBuffer(vmem, IMAGE_SIZE);
@@ -11096,7 +11096,7 @@ namespace mazeGeneration {
                 fwrite(dbuff, sizeof(dbuff), 1, fp);
                 fclose(fp);
                 memset(vmem, 0, 320 * 30);
-                setDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
+                changeDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
                 writeText(5, 17, 28, 0, "Writting complete. Any key to exit ...");
                 restoreDrawBuffer();
                 renderBuffer(vmem, IMAGE_SIZE);

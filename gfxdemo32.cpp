@@ -136,7 +136,7 @@ void runIntro()
     prepareTunnel(&trn, buff1, buff2);
 
     //redirect draw buffer to image buffer
-    setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
+    changeDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
     int32_t i0 = 30;
     int32_t i1 = 25;
@@ -294,7 +294,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
     while (!finished(SDL_SCANCODE_RETURN))
     {
         //redirect render buffer to image buffer
-        setDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
+        changeDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
 
         //put some random pixel and GFX message
         for (int32_t i = 0; i < 400; i++) putPixel(random(img1.mWidth - 4) + 2, random(img1.mHeight - 4) + 2, rgb(0, 255, 200));
@@ -361,7 +361,7 @@ void runAddImage(int32_t sx, int32_t sy)
     {
         //put lens image with adding background pixel
         step -= 4;
-        setDrawBuffer(img.mData, img.mWidth, img.mHeight);
+        changeDrawBuffer(img.mData, img.mWidth, img.mHeight);
         putImage(0, 0, &fade1);
         putImage(int32_t((320 - cos(step / 160.0) * 320)), 0, &flare, BLEND_MODE_ADD);
         restoreDrawBuffer();
@@ -456,7 +456,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
     while (!finished(SDL_SCANCODE_RETURN)) 
     {
         //redirect drawing to image buffer
-        setDrawBuffer(dst.mData, dst.mWidth, dst.mHeight);
+        changeDrawBuffer(dst.mData, dst.mWidth, dst.mHeight);
 
         //draw anti-alias (smooth pixel) circle, line and ellipse
         for (int32_t i = 0; i < 3; i++)
@@ -513,7 +513,7 @@ void runLensFlare(GFX_IMAGE* outImg)
     const int32_t ty = scr.mHeight - getFontHeight(str) - 4;
 
     //redirect to image buffer
-    setDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
+    changeDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
     //time for record FPS
     uint32_t time = 0, oldTime = 0;
