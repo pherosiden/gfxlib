@@ -839,8 +839,8 @@ void gfxDemo()
     showText(10, yc, &txt, "interpolation. You can reach on a INTEL MMX-133 up");
     showText(10, yc, &txt, "to 20 fps at 640x480x32 bit. You can see another");
     showText(10, yc, &txt, "version of rotate image is so fast if only rotate");
-    showText(10, yc, &txt, "and show image, check my source code for details.");
-    showText(10, yc, &txt, "Enter...");
+    showText(10, yc, &txt, "and show image, check my source code for optimize");
+    showText(10, yc, &txt, "version using hardware acceleration SSE2. Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runScaleUpImage(20, 20);
     
@@ -868,7 +868,7 @@ void gfxDemo()
     showText(10, yc, &txt, "scale up image with bilinear interpolation to");
     showText(10, yc, &txt, "process image with hight quality. This version is");
     showText(10, yc, &txt, "optimized using integer number but not really fast");
-    showText(10, yc, &txt, "here. You can still optimized.");
+    showText(10, yc, &txt, "here. See SSE2 hardware version in my source code.");
     showText(10, yc, &txt, "Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
     fillRect(20, 20, xc - 39, yc - 39, 0);
@@ -902,8 +902,8 @@ void gfxDemo()
     showText(10, yc, &txt, "Yeah! Lens effect, this effect also combined many");
     showText(10, yc, &txt, "images too and other pixel manipulation such as");
     showText(10, yc, &txt, "substract, adding for each to render buffer. This");
-    showText(10, yc, &txt, "also use bilinear algorithm with hight quality for");
-    showText(10, yc, &txt, "scale down image. Using mouse hardware interrupts");
+    showText(10, yc, &txt, "also use bicubic interpolation with best quality");
+    showText(10, yc, &txt, "for scale image. Using mouse hardware interrupts");
     showText(10, yc, &txt, "to tracking mouse event. Enter to continue...");
     while (!finished(SDL_SCANCODE_RETURN));
     

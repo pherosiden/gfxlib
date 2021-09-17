@@ -5,8 +5,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.1                                   //
-//          Last Update: 2021-09-11                              //
+//              Version: 1.2.2                                   //
+//          Last Update: 2021-09-17                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -14,7 +14,7 @@
 //                       https://permadi.com                     //
 //                       https://sources.ru                      //
 //                       http://eyecandyarchive.com              //
-//              License: MIT                                     //
+//              License: GNU GPL                                 //
 //===============================================================//
 
 #include <map>
@@ -7046,6 +7046,43 @@ void bicubicRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     }
 }
 
+//bicubic rotate image using FIXED-POINT
+void bicubicRotateImageFIXED(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+{
+    //only works with rgb mode
+    if (bitsPerPixel <= 8) return;
+
+    //cast to image data
+    uint32_t* pdst = (uint32_t*)dst->mData;
+    const uint32_t* psrc = (const uint32_t*)src->mData;
+
+    //calculate haft dimension
+    const int32_t width = src->mWidth;
+    const int32_t height = src->mHeight;
+    const int32_t tx = (width >> 1) - 1;
+    const int32_t ty = (height >> 1) - 1;
+
+    //convert to radian
+    const float alpha = float(angle * M_PI) / 180;
+    const float sina = sinf(-alpha);
+    const float cosa = cosf(-alpha);
+
+    //start pixel mapmulation
+    int32_t cy = -ty;
+    for (int32_t y = 0; y < height; y++, cy++)
+    {
+        int32_t cx = -tx;
+        for (int32_t x = 0; x < width; x++, cx++)
+        {
+            //calculate rotate point
+            const float sx = cx * cosa - cy * sina + tx;
+            const float sy = cx * sina + cy * cosa + ty;
+            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bicubicGetPixelFIXED(psrc, width, height, sx, sy);
+            pdst++;
+        }
+    }
+}
+
 //scale image buffer (export function)
 void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */)
 {
@@ -8116,7 +8153,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
             addx = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos];
             addy = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 4];
 
-            //Update position for animation font
+            //update position for animation font
             if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
             {
                 addx += gfxBuff[i << 1];

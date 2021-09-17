@@ -1419,7 +1419,7 @@ static const double filter[FILTER_HEIGHT][FILTER_WIDTH] = {
     0,  1,  1
 };
 
-static const double fact = 1.0;
+static const double fract = 1.0;
 static const double bias = 128.0;
 
 void imageFillter()
@@ -1470,9 +1470,9 @@ void imageFillter()
             uint8_t* pdst = (uint8_t*)&pixels[y][x];
 
             //truncate values smaller than zero and larger than 255
-            pdst[2] = min(max(int32_t(fact * red + bias), 0), 255);
-            pdst[1] = min(max(int32_t(fact * green + bias), 0), 255);
-            pdst[0] = min(max(int32_t(fact * blue + bias), 0), 255);
+            pdst[2] = min(max(int32_t(fract * red + bias), 0), 255);
+            pdst[1] = min(max(int32_t(fract * green + bias), 0), 255);
+            pdst[0] = min(max(int32_t(fract * blue + bias), 0), 255);
 
             //take absolute value and truncate to 255
             //pdst[2] = min(abs(int32_t(fact * red + bias)), 255);
@@ -1548,17 +1548,17 @@ double stepTableX[ANGLE360 + 1] = { 0 };
 double stepTableY[ANGLE360 + 1] = { 0 };
 
 //player's attributes
-int32_t playerX         = PROJECTION_PLANE_WIDTH >> 1;
-int32_t playerY         = PROJECTION_PLANE_HEIGHT >> 1;
-int32_t playerArc       = ANGLE60;
-int32_t playerHeight    = WALL_HEIGHT >> 1;
+int32_t playerX                 = PROJECTION_PLANE_WIDTH >> 1;
+int32_t playerY                 = PROJECTION_PLANE_HEIGHT >> 1;
+int32_t playerArc               = ANGLE60;
+int32_t playerHeight            = WALL_HEIGHT >> 1;
 
 //half of the screen height
-int32_t projectionPlaneCenterY = PROJECTION_PLANE_HEIGHT >> 1;
+int32_t projectionPlaneCenterY  = PROJECTION_PLANE_HEIGHT >> 1;
 
 //the following variables are used to keep the player coordinate in the overhead map
-int32_t playerMapX = 0;
-int32_t playerMapY = 0;
+int32_t playerMapX              = 0;
+int32_t playerMapY              = 0;
 
 //build-in world map
 uint8_t worldMap[WORLD_MAP_HEIGHT][WORLD_MAP_WIDTH] = {
@@ -1585,7 +1585,7 @@ uint8_t worldMap[WORLD_MAP_HEIGHT][WORLD_MAP_WIDTH] = {
 };
 
 //some textures raw pixels data
-static uint32_t**   rdrBuff = NULL;
+static uint32_t**   rawPixels = NULL;
 static uint32_t**   wallTexture = NULL;
 static uint32_t**   floorTexture = NULL;
 static uint32_t**   ceilingTexture = NULL;
@@ -1608,69 +1608,69 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     //validate range
     if (x1 < 0 || x1 > cwidth - 1 || x2 < 0 || x2 > cwidth - 1 || y1 < 0 || y1 > cheight - 1 || y2 < 0 || y2 > cheight - 1) return;
 
-    const int32_t deltaX = abs(x2 - x1); //the difference between the x's
-    const int32_t deltaY = abs(y2 - y1); //the difference between the y's
+    const int32_t dx = abs(x2 - x1); //the difference between the x's
+    const int32_t dy = abs(y2 - y1); //the difference between the y's
 
     int32_t x = x1; //start x off at the first pixel
     int32_t y = y1; //start y off at the first pixel
 
-    int32_t incX1 = 0, incX2 = 0, incY1 = 0, incY2 = 0;
-    int32_t den = 0, num = 0, numAdd = 0, numPixels = 0, currPixel = 0;
+    int32_t addx1 = 0, addx2 = 0, addy1 = 0, addy2 = 0;
+    int32_t den = 0, num = 0, addNum = 0, numPixels = 0;
 
     if (x2 >= x1) //the x-values are increasing
     {
-        incX1 = 1;
-        incX2 = 1;
+        addx1 = 1;
+        addx2 = 1;
     }
     else //the x-values are decreasing
     {
-        incX1 = -1;
-        incX2 = -1;
+        addx1 = -1;
+        addx2 = -1;
     }
     if (y2 >= y1) //the y-values are increasing
     {
-        incY1 = 1;
-        incY2 = 1;
+        addy1 = 1;
+        addy2 = 1;
     }
     else //the y-values are decreasing
     {
-        incY1 = -1;
-        incY2 = -1;
+        addy1 = -1;
+        addy2 = -1;
     }
-    if (deltaX >= deltaY) //there is at least one x-value for every y-value
+    if (dx >= dy) //there is at least one x-value for every y-value
     {
-        incX1 = 0; //don't change the x when numerator >= denominator
-        incY2 = 0; //don't change the y for every iteration
-        den = deltaX;
-        num = deltaX / 2;
-        numAdd = deltaY;
-        numPixels = deltaX; //there are more x-values than y-values
+        addx1 = 0; //don't change the x when numerator >= denominator
+        addy2 = 0; //don't change the y for every iteration
+        den = dx;
+        num = dx / 2;
+        addNum = dy;
+        numPixels = dx; //there are more x-values than y-values
     }
     else //there is at least one y-value for every x-value
     {
-        incX2 = 0; //don't change the x for every iteration
-        incY1 = 0; //don't change the y when numerator >= denominator
-        den = deltaY;
-        num = deltaY / 2;
-        numAdd = deltaX;
-        numPixels = deltaY; //there are more y-values than x-values
+        addx2 = 0; //don't change the x for every iteration
+        addy1 = 0; //don't change the y when numerator >= denominator
+        den = dy;
+        num = dy / 2;
+        addNum = dx;
+        numPixels = dy; //there are more y-values than x-values
     }
 
-    for (currPixel = 0; currPixel < numPixels; currPixel++)
+    for (int32_t currPixel = 0; currPixel < numPixels; currPixel++)
     {
         //draw the current pixel to screen buffer
-        rdrBuff[y % cheight][x % cwidth] = color;
-        num += numAdd;  //increase the numerator by the top of the fraction
+        rawPixels[y % cheight][x % cwidth] = color;
+        num += addNum;  //increase the numerator by the top of the fraction
 
         if (num >= den) //check if numerator >= denominator
         {
             num -= den; //calculate the new numerator value
-            x += incX1; //change the x as appropriate
-            y += incY1; //change the y as appropriate
+            x += addx1; //change the x as appropriate
+            y += addy1; //change the y as appropriate
         }
 
-        x += incX2; //change the x as appropriate
-        y += incY2; //change the y as appropriate
+        x += addx2; //change the x as appropriate
+        y += addy2; //change the y as appropriate
     }
 }
 
@@ -1679,7 +1679,6 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
     //range check
     if (x > cwidth - 1) x = cwidth - 1;
     if (y > cheight - 1) y = cheight - 1;
-    if (brightnessLevel < 0) brightnessLevel = 0;
     if (brightnessLevel > 1) brightnessLevel = 1;
 
     int32_t heightToDraw = height;
@@ -1730,7 +1729,7 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
             if (y >= 0)
             {
                 //modify the pixel
-                uint8_t* pixel = (uint8_t*)&rdrBuff[y][x];
+                uint8_t* pixel = (uint8_t*)&rawPixels[y][x];
                 pixel[2] = uint8_t(color[2] * brightnessLevel);
                 pixel[1] = uint8_t(color[1] * brightnessLevel);
                 pixel[0] = uint8_t(color[0] * brightnessLevel);
@@ -1752,7 +1751,7 @@ void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint
 {
     for (int32_t h = 0; h < height; h++)
     {
-        for (int32_t w = 0; w < width; w++) rdrBuff[y + h][x + w] = color;
+        for (int32_t w = 0; w < width; w++) rawPixels[y + h][x + w] = color;
     }
 }
 
@@ -1765,12 +1764,12 @@ int32_t initData()
     uint32_t* pBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
     //setup draw buffer as maxtrix to easy access data
-    rdrBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
-    if (!rdrBuff) return 0;
+    rawPixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
+    if (!rawPixels) return 0;
 
     //assign offset data
-    rdrBuff[0] = pBuff;
-    for (i = 1; i < cheight; i++) rdrBuff[i] = rdrBuff[0] + intptr_t(i) * cwidth;
+    rawPixels[0] = pBuff;
+    for (i = 1; i < cheight; i++) rawPixels[i] = rawPixels[0] + intptr_t(i) * cwidth;
 
     //load texture data
     uint32_t *pWall = NULL, *pFloor = NULL, *pCeiling = NULL;
@@ -2120,7 +2119,7 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&rdrBuff[nextLine++][castColumn];
+                    uint8_t* pixel = (uint8_t*)&rawPixels[nextLine++][castColumn];
 
                     //find offset of tile and column in texture                    
                     const uint8_t* color = (uint8_t*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
@@ -2163,7 +2162,7 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&rdrBuff[nextLine--][castColumn];
+                    uint8_t* pixel = (uint8_t*)&rawPixels[nextLine--][castColumn];
 
                     //find offset of tile and column in texture
                     const uint8_t* color = (uint8_t*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];
@@ -2209,7 +2208,7 @@ void runRayCasting()
         render();
         
         //clear background
-        memset(rdrBuff[0], RGB_WHITE, sizeof(uint32_t) * cwidth * cheight);
+        memset(rawPixels[0], RGB_WHITE, sizeof(uint32_t) * cwidth * cheight);
         
         //fetch user input
         readKeys();
@@ -2325,7 +2324,7 @@ void runRayCasting()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
-    free(rdrBuff);
+    free(rawPixels);
     free(wallTexture[0]);
     free(floorTexture[0]);
     free(ceilingTexture[0]);
