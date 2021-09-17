@@ -1293,11 +1293,7 @@ void displaySprite(const char *fname)
 
     //load sprite bitmap
     if (!loadImage(fname, &spr)) return;
-    if (!loadImage(fbkg[(bitsPerPixel >> 3) - 1], &bkg)) return;
-
-    //create buffer for sprite data
-    memset(&img1, 0, sizeof(GFX_IMAGE));
-    memset(&img2, 0, sizeof(GFX_IMAGE));
+    if (!loadImage(fbkg[bytesPerPixel - 1], &bkg)) return;
 
     //create screen buffers
     if (!newImage(bkg.mWidth, bkg.mHeight, &page1)) return;
@@ -1308,7 +1304,7 @@ void displaySprite(const char *fname)
     memcpy(page2.mData, bkg.mData, bkg.mSize);
 
     //save current render buffer
-    int32_t oldWidth, oldHeight;
+    int32_t oldWidth = 0, oldHeight = 0;
     void* oldBuffer = getDrawBuffer(&oldWidth, &oldHeight);
 
     while (frames < 220 && !finished(SDL_SCANCODE_RETURN))
@@ -1317,7 +1313,7 @@ void displaySprite(const char *fname)
         setActivePage(&page1);
         setVisualPage(&page2);
         if (v1) putImage(lx, ly, &img1);
-
+        
         lx = x;
         ly = y;
         v1 = 1;
@@ -1344,7 +1340,7 @@ void displaySprite(const char *fname)
         setActivePage(&page2);
         setVisualPage(&page1);
         if (v2) putImage(lx, ly, &img2);
-
+        
         lx = x;
         ly = y;
         v2 = 1;
@@ -1461,7 +1457,7 @@ void displayPlasma()
     //display scale image and scroll text
     do {
         createPlasma(&dx, &dy, sint, cost, &src);
-        scaleImage(&dst, &src, 0);
+        scaleImage(&dst, &src, INTERPOLATION_TYPE_NEARST);
         putImage(0, 0, &dst);
         endPos = drawText(ypos--, size, str);
         if (endPos <= 98) fadeDown(pal);
@@ -1528,7 +1524,7 @@ void gfxDemoMix()
     fadeCircle(3, 0);
     
     handleMouseButton();
-    displaySprite("assets/smile32.png");
+    displaySprite("assets/smile24.png");
 
     freeFont(0);
     cleanup();

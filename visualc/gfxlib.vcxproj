@@ -157,6 +157,7 @@ xcopy /Y /Q /S /I ..\assets .\assets</Command>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../sdl2/include;../sdl2_image/include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -223,6 +224,11 @@ xcopy /Y /Q /S /I ..\assets .\assets</Command>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../sdl2/include;../sdl2_image/include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <Optimization>MaxSpeed</Optimization>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

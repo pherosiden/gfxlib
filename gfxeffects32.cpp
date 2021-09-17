@@ -1585,7 +1585,7 @@ uint8_t worldMap[WORLD_MAP_HEIGHT][WORLD_MAP_WIDTH] = {
 };
 
 //some textures raw pixels data
-static uint32_t**   drawBuff = NULL;
+static uint32_t**   rdrBuff = NULL;
 static uint32_t**   wallTexture = NULL;
 static uint32_t**   floorTexture = NULL;
 static uint32_t**   ceilingTexture = NULL;
@@ -1659,7 +1659,7 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     for (currPixel = 0; currPixel < numPixels; currPixel++)
     {
         //draw the current pixel to screen buffer
-        drawBuff[y % cheight][x % cwidth] = color;
+        rdrBuff[y % cheight][x % cwidth] = color;
         num += numAdd;  //increase the numerator by the top of the fraction
 
         if (num >= den) //check if numerator >= denominator
@@ -1730,7 +1730,7 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
             if (y >= 0)
             {
                 //modify the pixel
-                uint8_t* pixel = (uint8_t*)&drawBuff[y][x];
+                uint8_t* pixel = (uint8_t*)&rdrBuff[y][x];
                 pixel[2] = uint8_t(color[2] * brightnessLevel);
                 pixel[1] = uint8_t(color[1] * brightnessLevel);
                 pixel[0] = uint8_t(color[0] * brightnessLevel);
@@ -1752,7 +1752,7 @@ void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint
 {
     for (int32_t h = 0; h < height; h++)
     {
-        for (int32_t w = 0; w < width; w++) drawBuff[y + h][x + w] = color;
+        for (int32_t w = 0; w < width; w++) rdrBuff[y + h][x + w] = color;
     }
 }
 
@@ -1765,12 +1765,12 @@ int32_t initData()
     uint32_t* pBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
     //setup draw buffer as maxtrix to easy access data
-    drawBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
-    if (!drawBuff) return 0;
+    rdrBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
+    if (!rdrBuff) return 0;
 
     //assign offset data
-    drawBuff[0] = pBuff;
-    for (i = 1; i < cheight; i++) drawBuff[i] = drawBuff[0] + intptr_t(i) * cwidth;
+    rdrBuff[0] = pBuff;
+    for (i = 1; i < cheight; i++) rdrBuff[i] = rdrBuff[0] + intptr_t(i) * cwidth;
 
     //load texture data
     uint32_t *pWall = NULL, *pFloor = NULL, *pCeiling = NULL;
@@ -2120,7 +2120,7 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&drawBuff[nextLine++][castColumn];
+                    uint8_t* pixel = (uint8_t*)&rdrBuff[nextLine++][castColumn];
 
                     //find offset of tile and column in texture                    
                     const uint8_t* color = (uint8_t*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
@@ -2163,7 +2163,7 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&drawBuff[nextLine--][castColumn];
+                    uint8_t* pixel = (uint8_t*)&rdrBuff[nextLine--][castColumn];
 
                     //find offset of tile and column in texture
                     const uint8_t* color = (uint8_t*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];
@@ -2209,7 +2209,7 @@ void runRayCasting()
         render();
         
         //clear background
-        memset(drawBuff[0], RGB_WHITE, sizeof(uint32_t) * cwidth * cheight);
+        memset(rdrBuff[0], RGB_WHITE, sizeof(uint32_t) * cwidth * cheight);
         
         //fetch user input
         readKeys();
@@ -2325,7 +2325,7 @@ void runRayCasting()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
-    free(drawBuff);
+    free(rdrBuff);
     free(wallTexture[0]);
     free(floorTexture[0]);
     free(ceilingTexture[0]);

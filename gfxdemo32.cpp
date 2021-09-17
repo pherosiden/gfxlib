@@ -417,21 +417,21 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
     GFX_IMAGE img = { 0 };
     if (!newImage(fade2.mWidth, fade2.mHeight, &img)) return;
     if (!img.mData) return;
-
+    
     //start angle
-    int32_t angle = 0;
+    uint32_t degree = 0;
 
     //loop until return
     while (!finished(SDL_SCANCODE_RETURN))
     {
         //first step
-        angle++;
+        degree++;
 
         //copy background
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
         //rotate buffer
-        bilinearRotateImage(&img, &fade2, angle % 360);
+        rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BILINEAR);
         putImage(sx, sy, &img);
         render();
         delay(FPS_60);
@@ -628,7 +628,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             uint16_t cg = sinx[(b >> 6) & 0xFF];
             uint16_t cb = sinx[(c >> 6) & 0xFF];
 #ifdef _USE_ASM
-            _asm {
+            __asm {
                 xor     ax, ax
                 mov     edi, data
                 add     edi, ofs
@@ -708,7 +708,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         }
 
         //bilinear scale plasma buffer
-        bilinearScaleImage(&screen, &plasma);
+        scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BILINEAR);
         putImage(sx, sy, &screen);
         render();
         delay(FPS_60);
@@ -753,10 +753,10 @@ void gfxDemo()
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
     
-    fillRectPattern(10, 10, xc - 20, yc - 20, RGB_GREY32, ptnHatchX, BLEND_MODE_ADD);
-    fillRect(10, yc, xc - 20, cmaxY - yc - 10, RGB_GREY32, BLEND_MODE_SUB);
-    fillRect(20, 20, xc - 40, yc - 40, 0);
-    getImage(10, yc, xc - 20, cmaxY - yc - 10, &txt);
+    fillRectPattern(10, 10, xc - 19, yc - 19, RGB_GREY32, ptnHatchX, BLEND_MODE_ADD);
+    fillRect(10, yc, xc - 19, cmaxY - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
+    fillRect(20, 20, xc - 39, yc - 39, 0);
+    getImage(10, yc, xc - 19, cmaxY - yc - 9, &txt);
 
     writeText(xc + 10,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
     writeText(xc + 10, 90, RGB_GREY127, 2, "A short show of some abilities");
@@ -871,7 +871,7 @@ void gfxDemo()
     showText(10, yc, &txt, "here. You can still optimized.");
     showText(10, yc, &txt, "Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
-    fillRect(20, 20, xc - 40, yc - 40, 0);
+    fillRect(20, 20, xc - 39, yc - 39, 0);
 
     GFX_IMAGE scr = { 0 };
     getImage(0, 0, texWidth, texHeight, &scr);
@@ -893,7 +893,7 @@ void gfxDemo()
     showText(10, yc, &txt, "of image interpolation. Enter for next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runLensFlare(&old);
-    bilinearScaleImage(&im, &old);
+    scaleImage(&im, &old, INTERPOLATION_TYPE_BICUBIC);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);
     
