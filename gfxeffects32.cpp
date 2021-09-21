@@ -1,5 +1,6 @@
 #include <vector>
 #include <algorithm>
+#include <complex.h>
 #include "gfxlib.h"
 
 #define SCR_WIDTH	640
@@ -9,16 +10,6 @@ void juliaSet()
 {
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Julia-Set")) return;
 
-    //after how much iterations the function should stop
-    const int32_t maxIterations = 300;
-
-    //default zoom and position
-    const double zoom = 1, moveX = 0, moveY = 0;
-
-    //pick some values for the constant c, this determines the shape of the Julia Set
-    const double cRe = -0.7;
-    const double cIm = 0.27015;
-    
     //get raw pixels data
     int32_t i = 0, cwidth = 0, cheight = 0;
     uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
@@ -30,35 +21,35 @@ void juliaSet()
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
-    const int32_t mwidth = cwidth >> 1;
-    const int32_t mheight = cheight >> 1;
+    const int32_t iter = 255;
+    const double cre = -0.7, cim = 0.27015;
+    
+    const double xscale = 3.0 / cwidth;
+    const double yscale = 2.0 / cheight;
 
-    //loop through every pixel
+    const double scale = max(xscale, yscale);
+    const double mx = -0.5 * cwidth * scale;
+    const double my = -0.5 * cheight * scale;
+
     for (int32_t y = 0; y < cheight; y++)
     {
+        const double y0 = y * scale + my;
         for (int32_t x = 0; x < cwidth; x++)
         {
-            //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-            double newRe = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-            double newIm = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
-
-            //i will represent the number of iterations, start the iteration process
-            for (i = 1; i <= maxIterations; i++)
+            const double x0 = x * scale + mx;
+            double x1 = x0;
+            double y1 = y0;
+            for (i = 0; i < iter; i++)
             {
-                //remember value of previous iteration
-                const double oldRe = newRe;
-                const double oldIm = newIm;
-
-                //the actual iteration, the real and imaginary part are calculated
-                newRe = oldRe * oldRe - oldIm * oldIm + cRe;
-                newIm = 2 * oldRe * oldIm + cIm;
-
-                //if the point is outside the circle with radius 2: stop
-                if ((newRe * newRe + newIm * newIm) > 4) break;
+                const double x2 = x1 * x1;
+                const double y2 = y1 * y1;
+                if (x2 + y2 >= 4.0) break;
+                y1 = 2 * x1 * y1 + cim;
+                x1 = x2 - y2 + cre;
             }
 
-            //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            pixels[y][x] = hsv(i & 255, 255, 255 * (i < maxIterations));
+            //use color model conversion to get rainbow palette
+            pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
         }
     }
 
@@ -892,85 +883,125 @@ void juliaExplorer()
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Julia-Explorer")) return;
 
+    //windows title buffer (add FPS)
+    char sbuff[200] = { 0 };
+
     //use to show/hide text
     int32_t showText = 0;
 
-    //after how much iterations the function should stop
-    int32_t maxIterations = 128;
-
-    //you can change these to zoom and change position
-    double zoom = 1, moveX = 0, moveY = 0;
-
     //current and old time, and their difference (for input)
     uint32_t time = 0, oldTime = 0, frameTime = 0;
-    
-    //pick some values for the constant c, this determines the shape of the Julia Set
-    double cRe = -0.7;
-    double cIm = 0.27015;
 
     //retrive the current pixel buffer
     int32_t i = 0, cwidth = 0, cheight = 0;
     uint32_t* pbuff= (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!pbuff) return;
-
+    
+    //make memory access pixels
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
-    const int32_t mwidth = cwidth >> 1;
-    const int32_t mheight = cheight >> 1;
+    //user input key
+    int32_t input = 0;
 
-    //begin the program loop
+    //interations
+    int32_t iter = 255;
+    double cre = -0.7, cim = 0.27015;
+
+    //scale unit
+    const double xscale = 3.0 / cwidth;
+    const double yscale = 2.0 / cheight;
+
+    //calculate scale and current position
+    double scale = max(xscale, yscale);
+    double mx = -0.5 * cwidth * scale;
+    double my = -0.5 * cheight * scale;
+
     do
     {
-        //draw the fractal
+        //scan-y
         for (int32_t y = 0; y < cheight; y++)
         {
+            //scan-x
+            const double y0 = y * scale + my;
             for (int32_t x = 0; x < cwidth; x++)
             {
-                //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-                double newRe = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-                double newIm = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
-
-                //start the iteration process
-                for (i = 0; i < maxIterations; i++)
+                const double x0 = x * scale + mx;
+                double x1 = x0;
+                double y1 = y0;
+                for (i = 0; i < iter; i++)
                 {
-                    //remember value of previous iteration
-                    const double oldRe = newRe;
-                    const double oldIm = newIm;
-
-                    //the actual iteration, the real and imaginary part are calculated
-                    newRe = oldRe * oldRe - oldIm * oldIm + cRe;
-                    newIm = 2 * oldRe * oldIm + cIm;
-
-                    //if the point is outside the circle with radius 2: stop
-                    if ((newRe * newRe + newIm * newIm) > 4) break;
+                    const double x2 = x1 * x1;
+                    const double y2 = y1 * y1;
+                    if (x2 + y2 >= 4.0) break;
+                    y1 = 2 * x1 * y1 + cim;
+                    x1 = x2 - y2 + cre;
                 }
 
-                //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                pixels[y][x] = hsv(i % 256, 255, 255 * (i < maxIterations));
+                //use color model conversion to get rainbow palette
+                pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
             }
         }
+        
+        /*const __m256d xim = _mm256_set1_pd(cim);
+        const __m256d xre = _mm256_set1_pd(cre);
+        const __m256d dd = _mm256_set1_pd(scale);
+        const __m256d tx = _mm256_set1_pd(mx);
+
+        for (int32_t y = 0; y < cheight; y++)
+        {
+            const __m256d y0 = _mm256_set1_pd(y * scale + my);
+            for (int32_t x = 0; x < cwidth; x++)
+            {
+                const __m128i ind = _mm_setr_epi32(x, x + 1, x + 2, x + 3);
+                const __m256d x0 = _mm256_fmadd_pd(dd, _mm256_cvtepi32_pd(ind), tx);
+                __m256d x1 = x0;
+                __m256d y1 = y0;
+                __m256i counts = _mm256_setzero_si256();
+                __m256i cmask = _mm256_set1_epi32(0xffffffffu);
+
+                for (i = 0; i < iter; i++)
+                {
+                    const __m256d x2 = _mm256_mul_pd(x1, x1);
+                    const __m256d y2 = _mm256_mul_pd(y1, y1);
+                    const __m256d abs = _mm256_add_pd(x2, y2);
+                    const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 1));
+
+                    cmask = _mm256_and_si256(cmask, cmp);
+                    if (_mm256_testz_si256(cmask, cmask)) break;
+
+                    counts = _mm256_sub_epi64(counts, cmask);
+                    const __m256d t = _mm256_add_pd(x1, x1);
+                    y1 = _mm256_fmadd_pd(t, y1, xim);
+                    x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
+                }
+
+                const __m256i result = _mm256_shuffle_epi8(counts, _mm256_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
+                const uint32_t rgb = _mm_extract_epi16(_mm256_extracti128_si256(result, 0), 0) | (_mm_extract_epi16(_mm256_extracti128_si256(result, 1), 0) << 16);
+                pixels[y][x] = hsv(rgb & 0xFF, 0xFF, 0xFF * (i < iter));
+            }
+        }*/
 
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", moveX);
-            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", moveY);
-            writeText(1, 19, RGB_WHITE, 0, "Z:%.16lf", zoom);
-            writeText(1, 27, RGB_WHITE, 0, "R:%.16lf", cRe);
-            writeText(1, 35, RGB_WHITE, 0, "I:%.16lf", cIm);
-            writeText(1, 43, RGB_WHITE, 0, "N:%d", maxIterations);
+            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", mx);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", my);
+            writeText(1, 21, RGB_WHITE, 0, "Z:%.16lf", scale);
+            writeText(1, 31, RGB_WHITE, 0, "R:%.16lf", cre);
+            writeText(1, 41, RGB_WHITE, 0, "I:%.16lf", cim);
+            writeText(1, 51, RGB_WHITE, 0, "N:%d", iter);
         }
 
         //print the help text on screen if that option is enabled
         if (showText == 0)
         {
-            writeText(1, cheight - 35, RGB_WHITE, 0, "Arrows move, I/O zooms");
-            writeText(1, cheight - 27, RGB_WHITE, 0, "Key 1,2,3,4 change shape");
-            writeText(1, cheight - 19, RGB_WHITE, 0, "Keypad z,x changes iterations");
-            writeText(1, cheight - 11, RGB_WHITE, 0, "H cycle texts");
+            writeText(1, cheight - 41, RGB_WHITE, 0, "Arrows move, I/O zooms");
+            writeText(1, cheight - 31, RGB_WHITE, 0, "1,2,3,4 change shape");
+            writeText(1, cheight - 21, RGB_WHITE, 0, "z,x changes iterations");
+            writeText(1, cheight - 11, RGB_WHITE, 0, "h cycle texts");
         }
 
         render();
@@ -978,37 +1009,69 @@ void juliaExplorer()
         //get the time and old time for time dependent input
         oldTime = time;
         time = getTime();
-        frameTime = time - oldTime;
+        frameTime = (time - oldTime);
+        sprintf(sbuff, "Julia-Explorer [FPS: %.2f]", 1000.0 / frameTime);
+        setWindowTitle(sbuff);
 
-        readKeys();
+        //read user input key
+        input = waitUserInput();
         
         //ZOOM keys
-        if (keyDown(SDL_SCANCODE_I)) { zoom *= pow(1.001, frameTime); }
-        if (keyDown(SDL_SCANCODE_O)) { zoom /= pow(1.001, frameTime); }
+        if (input == SDL_SCANCODE_I)
+        {
+            const double newScale = scale / 1.08;
+            mx += cwidth * (scale - newScale) * 0.5;
+            my += cheight * (scale - newScale) * 0.5;
+            scale = newScale;
+        }
+        
+        if (input == SDL_SCANCODE_O)
+        {
+            const double newScale = scale * 1.08;
+            mx += cwidth * (scale - newScale) * 0.5;
+            my += cheight * (scale - newScale) * 0.5;
+            scale = newScale;
+        }
         
         //MOVE keys
-        if (keyDown(SDL_SCANCODE_DOWN)) { moveY += 0.0003 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_UP)) { moveY -= 0.0003 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_RIGHT)) { moveX += 0.0003 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_LEFT)) { moveX -= 0.0003 * frameTime / zoom; }
+        if (input == SDL_SCANCODE_UP)
+        {
+            const double sy = -(cheight / 100.0);
+            my += sy * scale;
+        }
 
+        if (input == SDL_SCANCODE_DOWN)
+        {
+            const double sy = (cheight / 100.0);
+            my += sy * scale;
+        }
+
+        if (input == SDL_SCANCODE_LEFT)
+        {
+            const double sx = -(cwidth / 100.0);
+            mx += sx * scale;
+        }
+
+        if (input == SDL_SCANCODE_RIGHT)
+        {
+            const double sx = (cwidth / 100.0);
+            mx += sx * scale;
+        }
+        
         //CHANGE SHAPE keys
-        if (keyDown(SDL_SCANCODE_1)) { cIm += 0.0002 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_2)) { cIm -= 0.0002 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_3)) { cRe += 0.0002 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_4)) { cRe -= 0.0002 * frameTime / zoom; }
+        if (input == SDL_SCANCODE_1) { cim += 0.0002; }
+        if (input == SDL_SCANCODE_2) { cim -= 0.0002; }
+        if (input == SDL_SCANCODE_3) { cre += 0.0002; }
+        if (input == SDL_SCANCODE_4) { cre -= 0.0002; }
 
         //keys to change number of iterations
-        if (keyPressed(SDL_SCANCODE_Z)) { maxIterations *= 2; }
-        if (keyPressed(SDL_SCANCODE_X)) { if (maxIterations > 2) maxIterations /= 2; }
+        if (input == SDL_SCANCODE_Z) { iter *= 2; }
+        if (input == SDL_SCANCODE_X) { if (iter > 2) iter /= 2; }
 
         //key to change the text options
-        if (keyPressed(SDL_SCANCODE_H)) { showText++; showText %= 3; }
-        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
-        //reduce CPU time
-        delay(1);
-    } while (!keyDown(SDL_SCANCODE_RETURN));
+        if (input == SDL_SCANCODE_H) { showText++; showText %= 3; }
+        if (input == SDL_SCANCODE_ESCAPE) quit();
+    } while (input != SDL_SCANCODE_RETURN);
 
     freeFont(0);
     free(pixels);
@@ -1020,12 +1083,6 @@ void mandelbrotSet()
     //make larger to see more detail!
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Mandelbrot-Set")) return;
 
-    //after how much iterations the function should stop
-    const int32_t maxIterations = 300;
-
-    //you can change these to zoom and change position
-    const double zoom = 1, moveX = -0.5, moveY = 0;
-
     int32_t i = 0, cwidth = 0, cheight = 0;
     uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!pbuff) return;
@@ -1035,37 +1092,34 @@ void mandelbrotSet()
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
-    const int32_t mwidth = cwidth >> 1;
-    const int32_t mheight = cheight >> 1;
+    const int32_t iter = 255;
+    const double xscale = 3.0 / cwidth;
+    const double yscale = 2.0 / cheight;
+
+    const double scale = max(xscale, yscale);
+    const double mx = -0.5 * cwidth * scale - 0.5;
+    const double my = -0.5 * cheight * scale;
 
     //loop through every pixel
     for (int32_t y = 0; y < cheight; y++)
     {
+        const double y0 = y * scale + my;
         for (int32_t x = 0; x < cwidth; x++)
         {
-            double newRe = 0, newIm = 0;
-
-            //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-            const double pr = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-            const double pi = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
-            
-            //start the iteration process
-            for (i = 1; i <= maxIterations; i++)
+            const double x0 = x * scale + mx;
+            double x1 = x0;
+            double y1 = y0;
+            for (i = 0; i < iter; i++)
             {
-                //remember value of previous iteration
-                const double oldRe = newRe;
-                const double oldIm = newIm;
-                
-                //the actual iteration, the real and imaginary part are calculated
-                newRe = oldRe * oldRe - oldIm * oldIm + pr;
-                newIm = 2 * oldRe * oldIm + pi;
-            
-                //if the point is outside the circle with radius 2: stop
-                if ((newRe * newRe + newIm * newIm) > 4) break;
+                const double x2 = x1 * x1;
+                const double y2 = y1 * y1;
+                if (x2 + y2 >= 4.0) break;
+                y1 = 2 * x1 * y1 + y0;
+                x1 = x2 - y2 + x0;
             }
 
-            //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-            pixels[y][x] = hsv(i % 256, 255, 255 * (i < maxIterations));
+            //use color model conversion to get rainbow palette
+            pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
         }
     }
 
@@ -1081,11 +1135,11 @@ void mandelbrotExporer()
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Mandelbrot-Explorer")) return;
 
-    //after how much iterations the function should stop
-    int32_t maxIterations = 128;
+    //windows title buffer (add FPS)
+    char sbuff[200] = { 0 };
 
-    //you can change these to zoom and change position
-    double zoom = 1, moveX = -0.5, moveY = 0;
+    //after how much iterations the function should stop
+    int32_t maxIterations = 255;
 
     //show hint text
     int32_t showText = 0;
@@ -1102,58 +1156,100 @@ void mandelbrotExporer()
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
 
-    const int32_t mwidth = cwidth >> 1;
-    const int32_t mheight = cheight >> 1;
+    //user input key
+    int32_t input = 0;
+
+    //interations
+    int32_t iter = 255;
+
+    //scale unit
+    const double xscale = 3.0 / cwidth;
+    const double yscale = 2.0 / cheight;
+
+    //calculate scale and current position
+    double scale = max(xscale, yscale);
+    double mx = -0.5 * cwidth * scale - 0.5;
+    double my = -0.5 * cheight * scale;
 
     //begin main program loop
     do
     {
-        //draw the fractal
+        //scan-y
         for (int32_t y = 0; y < cheight; y++)
         {
+            //scan-x
+            const double y0 = y * scale + my;
             for (int32_t x = 0; x < cwidth; x++)
             {
-                double newRe = 0, newIm = 0;
-
-                //calculate the initial real and imaginary part of z, based on the pixel location and zoom and position values
-                const double pr = 1.5 * (intmax_t(x) - mwidth) / (0.5 * zoom * cwidth) + moveX;
-                const double pi = (intmax_t(y) - mheight) / (0.5 * zoom * cheight) + moveY;
-                
-                //start the iteration process
-                for (i = 1; i <= maxIterations; i++)
+                const double x0 = x * scale + mx;
+                double x1 = x0;
+                double y1 = y0;
+                for (i = 0; i < iter; i++)
                 {
-                    //remember value of previous iteration
-                    const double oldRe = newRe;
-                    const double oldIm = newIm;
-
-                    //the actual iteration, the real and imaginary part are calculated
-                    newRe = oldRe * oldRe - oldIm * oldIm + pr;
-                    newIm = 2 * oldRe * oldIm + pi;
-
-                    //if the point is outside the circle with radius 2: stop
-                    if ((newRe * newRe + newIm * newIm) > 4) break;
+                    const double x2 = x1 * x1;
+                    const double y2 = y1 * y1;
+                    if (x2 + y2 >= 4.0) break;
+                    y1 = 2 * x1 * y1 + y0;
+                    x1 = x2 - y2 + x0;
                 }
 
-                //use color model conversion to get rainbow palette, make brightness black if maxIterations reached
-                pixels[y][x] = hsv(i % 256, 255, 255 * (i < maxIterations));
+                //use color model conversion to get rainbow palette
+                pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
             }
         }
+
+        /*const __m256d dd = _mm256_set1_pd(scale);
+        const __m256d tx = _mm256_set1_pd(mx);
+
+        for (int32_t y = 0; y < cheight; y++)
+        {
+            const __m256d y0 = _mm256_set1_pd(y * scale + my);
+            for (int32_t x = 0; x < cwidth; x++)
+            {
+                const __m128i ind = _mm_setr_epi32(x, x + 1, x + 2, x + 3);
+                const __m256d x0 = _mm256_fmadd_pd(dd, _mm256_cvtepi32_pd(ind), tx);
+                __m256d x1 = x0;
+                __m256d y1 = y0;
+                __m256i counts = _mm256_setzero_si256();
+                __m256i cmask = _mm256_set1_epi32(0xffffffffu);
+
+                for (i = 0; i < iter; i++)
+                {
+                    const __m256d x2 = _mm256_mul_pd(x1, x1);
+                    const __m256d y2 = _mm256_mul_pd(y1, y1);
+                    const __m256d abs = _mm256_add_pd(x2, y2);
+                    const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 1));
+
+                    cmask = _mm256_and_si256(cmask, cmp);
+                    if (_mm256_testz_si256(cmask, cmask)) break;
+
+                    counts = _mm256_sub_epi64(counts, cmask);
+                    const __m256d t = _mm256_add_pd(x1, x1);
+                    y1 = _mm256_fmadd_pd(t, y1, y0);
+                    x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
+                }
+
+                const __m256i result = _mm256_shuffle_epi8(counts, _mm256_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
+                const uint32_t rgb = _mm_extract_epi16(_mm256_extracti128_si256(result, 0), 0) | (_mm_extract_epi16(_mm256_extracti128_si256(result, 1), 0) << 16);
+                pixels[y][x] = hsv(rgb & 0xFF, 0xFF, 0xFF * (i < iter));
+            }
+        }*/
 
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", moveX);
-            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", moveY);
-            writeText(1, 19, RGB_WHITE, 0, "Z:%.16lf", zoom);
-            writeText(1, 27, RGB_WHITE, 0, "N:%d", maxIterations);
+            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", mx);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", my);
+            writeText(1, 21, RGB_WHITE, 0, "Z:%.16lf", scale);
+            writeText(1, 31, RGB_WHITE, 0, "N:%d", iter);
         }
 
         //print the help text on screen if that option is enabled
         if (showText == 0)
         {
-            writeText(1, cheight - 35, RGB_WHITE, 0, "Arrows move, I/O zooms");
-            writeText(1, cheight - 27, RGB_WHITE, 0, "Keypad z,x changes iterations");
-            writeText(1, cheight - 19, RGB_WHITE, 0, "H cycle texts");
+            writeText(1, cheight - 31, RGB_WHITE, 0, "Arrows move, I/O zooms");
+            writeText(1, cheight - 21, RGB_WHITE, 0, "z,x changes iterations");
+            writeText(1, cheight - 11, RGB_WHITE, 0, "h cycle texts");
         }
 
         render();
@@ -1161,31 +1257,63 @@ void mandelbrotExporer()
         //get the time and old time for time dependent input
         oldTime = time;
         time = getTime();
-        frameTime = time - oldTime;
+        frameTime = (time - oldTime);
+        sprintf(sbuff, "Mandelbrot-Explorer [FPS: %.2f]", 1000.0 / frameTime);
+        setWindowTitle(sbuff);
 
-        readKeys();
+        //read user input key
+        input = waitUserInput();
 
         //ZOOM keys
-        if (keyDown(SDL_SCANCODE_I)) { zoom *= pow(1.001, frameTime); }
-        if (keyDown(SDL_SCANCODE_O)) { zoom /= pow(1.001, frameTime); }
+        if (input == SDL_SCANCODE_I)
+        {
+            const double newScale = scale / 1.1;
+            mx += cwidth * (scale - newScale) * 0.5;
+            my += cheight * (scale - newScale) * 0.5;
+            scale = newScale;
+        }
+
+        if (input == SDL_SCANCODE_O)
+        {
+            const double newScale = scale * 1.1;
+            mx += cwidth * (scale - newScale) * 0.5;
+            my += cheight * (scale - newScale) * 0.5;
+            scale = newScale;
+        }
 
         //MOVE keys
-        if (keyDown(SDL_SCANCODE_DOWN)) { moveY += 0.0003 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_UP)) { moveY -= 0.0003 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_RIGHT)) { moveX += 0.0003 * frameTime / zoom; }
-        if (keyDown(SDL_SCANCODE_LEFT)) { moveX -= 0.0003 * frameTime / zoom; }
+        if (input == SDL_SCANCODE_UP)
+        {
+            const double sy = -(cheight / 10.0);
+            my += sy * scale;
+        }
+
+        if (input == SDL_SCANCODE_DOWN)
+        {
+            const double sy = (cheight / 10.0);
+            my += sy * scale;
+        }
+
+        if (input == SDL_SCANCODE_LEFT)
+        {
+            const double sx = -(cwidth / 10.0);
+            mx += sx * scale;
+        }
+
+        if (input == SDL_SCANCODE_RIGHT)
+        {
+            const double sx = (cwidth / 10.0);
+            mx += sx * scale;
+        }
 
         //keys to change number of iterations
-        if (keyPressed(SDL_SCANCODE_Z)) { maxIterations *= 2; }
-        if (keyPressed(SDL_SCANCODE_X)) { if (maxIterations > 2) maxIterations /= 2; }
+        if (input == SDL_SCANCODE_Z) { iter *= 2; }
+        if (input == SDL_SCANCODE_X) { if (iter > 2) iter /= 2; }
 
         //key to change the text options
-        if (keyPressed(SDL_SCANCODE_H)) { showText++; showText %= 3; }
-        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
-        //reduce CPU time
-        delay(1);
-    } while (!keyDown(SDL_SCANCODE_RETURN));
+        if (input == SDL_SCANCODE_H) { showText++; showText %= 3; }
+        if (input == SDL_SCANCODE_ESCAPE) quit();
+    } while (input != SDL_SCANCODE_RETURN);
 
     freeFont(0);
     free(pixels);

@@ -118,6 +118,13 @@
 //fill poly constant
 #define MAX_POLY_CORNERS        200     //max polygon corners
 
+//user input filter type
+#define INPUT_KEY_PRESSED       0x01    //filter keyboard pressed
+#define INPUT_MOUSE_CLICK       0x02    //filter mouse click
+#define INPUT_MOUSE_MOTION      0x04    //filter mouse move
+#define INPUT_MOUSE_WHEEL       0x08    //filter mouse wheel
+#define INPUT_WIN_RESIZED       0x10    //filter windows resize
+
 //re-defined, some compiler does not define yet
 #define sqr(a)                  ((a) * (a))
 #define max(a, b)               ((a) > (b) ? (a) : (b))
@@ -305,6 +312,7 @@ enum INTERPOLATION_TYPE
 };
 
 #pragma pack(pop)
+
 extern int32_t  texWidth;                       //current texture width
 extern int32_t  texHeight;                      //current texture height
 extern int32_t  bitsPerPixel;                   //bits per pixel (8/15/16/24/32)
@@ -347,6 +355,15 @@ extern uint8_t  ptnCloseDot[];                  //closed dot style
 //benchmart record time
 extern clock_t  startClock;                     //recording start clock time
 
+//mouse wheel
+extern int32_t  mouseWheelX, mouseWheelY;       //current mouse wheel x, y
+
+//current mouse motion x, y
+extern int32_t  mousePosX, mousePosY;           //current mouse wheel x, y
+
+//windows size
+extern int32_t winSizeX, winSizeY;              //current windows size when size is changed
+
 //load texture and image functions
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);
 int32_t     loadPNG(uint8_t* raw, RGB* pal, const char* fname);
@@ -368,7 +385,7 @@ void        readKeys();
 void        delay(uint32_t miliseconds);
 int32_t     keyDown(int32_t key);
 int32_t     keyPressed(int32_t key);
-int32_t     waitKeyPressed();
+int32_t     waitUserInput(int32_t inputMask = INPUT_KEY_PRESSED);
 int32_t     finished(int32_t key);
 
 //some customize random functions
@@ -410,7 +427,7 @@ void        changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
 void        render();
 void        cleanup();
-void        renderBuffer(const void* buffer, uint32_t size);
+void        renderBuffer(const void* buffer, int32_t width, int32_t height);
 void*       getDrawBuffer(int32_t* width = NULL, int32_t* height = NULL);
 void        changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
 void        restoreDrawBuffer();
@@ -523,6 +540,7 @@ void        createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost,
 void        showPNG(const char* fname);
 void        showBMP(const char* fname);
 void        handleMouseButton();
+void        setWindowTitle(const char* title);
 
 //other pixels fx effects
 void        putPixelBob(int32_t x, int32_t y);
@@ -534,6 +552,7 @@ void        gfxDemo();
 void        gfxEffectsMix();
 void        gfxEffects();
 void        gfxFontView();
+void        gfxFractals();
 
 /*=============================================================================*/
 /*                             INLINE FUNCTIONS                                */

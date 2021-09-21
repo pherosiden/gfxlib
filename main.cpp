@@ -1,4 +1,5 @@
 #include "gfxlib.h"
+#include <complex.h>
 
 int main(int argc, char* args[])
 {
@@ -11,5 +12,6 @@ int main(int argc, char* args[])
     gfxDemo();
     gfxFontView();
     gfxEffectsMix();
+    gfxFractals();
     return 0;
 }

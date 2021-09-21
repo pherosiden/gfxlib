@@ -39,7 +39,7 @@ void showFontsDir(const char* path, const char* ext)
                 //have limit line
                 if (y > cmaxY - height)
                 {
-                    waitKeyPressed();
+                    waitUserInput();
                     clearScreen(0);
                     y = 10;
                 }
@@ -56,7 +56,7 @@ void showFontsDir(const char* path, const char* ext)
         }
 
         closedir(dir);
-        waitKeyPressed();
+        waitUserInput();
     }
 #else
     //build file path
@@ -82,7 +82,7 @@ void showFontsDir(const char* path, const char* ext)
             //have limit line
             if (y > cmaxY - height)
             {
-                waitKeyPressed();
+                waitUserInput();
                 clearScreen(0);
                 y = 10;
             }
@@ -99,7 +99,7 @@ void showFontsDir(const char* path, const char* ext)
     } while (!_findnext(hfile, &fileInfo));
 
     _findclose(hfile);
-    waitKeyPressed();
+    waitUserInput();
 #endif
 }
 

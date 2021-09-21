@@ -154,6 +154,15 @@ RGB basePalette[256] = {
     {11,16,11,255},{11,16,12,255},{11,16,13,255},{11,16,15,255},{11,16,16,255},{11,15,16,255},{11,13,16,255},{11,12,16,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},
 };
 
+//current mouse wheel x,y
+int32_t mouseWheelX = 0, mouseWheelY = 0;
+
+//current mouse motion x, y
+int32_t  mousePosX = 0, mousePosY = 0;
+
+//windows size when size changed
+int32_t winSizeX = 0, winSizeY = 0;
+
 //read current keyboard state
 void readKeys()
 {
@@ -191,27 +200,76 @@ int32_t keyPressed(int32_t key)
     return 0;
 }
 
-//read input key from user
-int32_t waitKeyPressed()
+//read input from user
+int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
 {
-    SDL_Event event;
-    int32_t done = 0;
-    int32_t pressedKey = 0;
+    SDL_Event event = { 0 };
 
-    while (!done)
+    while (1)
     {
         if (SDL_WaitEvent(&event))
         {
-            if (event.type == SDL_QUIT || event.type == SDL_KEYDOWN)
+            switch (event.type)
             {
-                done = 1;
-                pressedKey = event.key.keysym.scancode;
+            case SDL_QUIT:
+                quit();
+                break;
+
+            case SDL_KEYDOWN:
+                if (inputMask & INPUT_KEY_PRESSED)
+                {
+                    return event.key.keysym.scancode;
+                }
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                if (inputMask & INPUT_MOUSE_CLICK)
+                {
+                    return SDL_MOUSEBUTTONDOWN;
+                }
+                break;
+
+            case SDL_MOUSEBUTTONUP:
+                if (inputMask & INPUT_MOUSE_CLICK)
+                {
+                    return SDL_MOUSEBUTTONUP;
+                }
+                break;
+
+            case SDL_MOUSEMOTION:
+                if (inputMask & INPUT_MOUSE_MOTION)
+                {
+                    SDL_GetMouseState(&mousePosX, &mousePosY);
+                    return SDL_MOUSEMOTION;
+                }
+                break;
+
+            case SDL_MOUSEWHEEL:
+                if (inputMask & INPUT_MOUSE_WHEEL)
+                {
+                    mouseWheelX = event.wheel.x;
+                    mouseWheelY = event.wheel.y;
+                    return SDL_MOUSEWHEEL;
+                }
+                break;
+
+            case SDL_WINDOWEVENT:
+                if (inputMask & INPUT_WIN_RESIZED && event.window.event == SDL_WINDOWEVENT_RESIZED)
+                {
+                    winSizeX = event.window.data1;
+                    winSizeY = event.window.data2;
+                    return SDL_WINDOWEVENT_RESIZED;
+                }
+                break;
+
+            default:
+                break;
             }
         }
+
+        //reduce CPU time
         SDL_Delay(1);
     }
-
-    return pressedKey;
 }
 
 //returns the time in milliseconds since the program started
@@ -343,7 +401,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, SDL_WINDOW_SHOWN);
+    sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
@@ -413,7 +471,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
 
         //set default palette
         shiftPalette(basePalette);
-        setPalette(basePalette);
+        SDL_SetPaletteColors(sdlSurface->format->palette, basePalette, 0, 256);
     }
     else
     {
@@ -543,7 +601,6 @@ void messageBox(int32_t type, const char* fmt, ...)
     {
     case GFX_ERROR:
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "GFX Error!", buffer, NULL);
-        quit();
         break;
 
     case GFX_WARNING:
@@ -581,10 +638,96 @@ void restoreDrawBuffer()
     restoreViewPort();
 }
 
-//render user-buffer to current drawing buffer
-void renderBuffer(const void* buffer, uint32_t size)
+//render from user-defined buffer
+void renderBuffer(const void* buffer, int32_t width, int32_t height)
 {
-    memcpy(drawBuff, buffer, size);
+    //calculate amount of bytes transfer
+    const uint32_t bytesCopy = width * height * bytesPerPixel;
+
+    //detect texture size has changed?
+    if (texWidth != width || texHeight != height)
+    {
+        //create new texture with new size
+        if (sdlTexture) SDL_DestroyTexture(sdlTexture);
+        sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+        if (!sdlTexture)
+        {
+            messageBox(GFX_ERROR, "Failed to create new texture: %s", SDL_GetError());
+            return;
+        }
+
+        //8 bits
+        if (bytesPerPixel == 1)
+        {
+            //save current palette
+            RGB pal[256] = { 0 };
+            getPalette(pal);
+
+            //create new 32bits surface
+            if (sdlScreen) SDL_FreeSurface(sdlScreen);
+            sdlScreen = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+            if (!sdlScreen)
+            {
+                messageBox(GFX_ERROR, "Failed to create new 32bits surface: %s", SDL_GetError());
+                return;
+            }
+
+            //create new 8bits surface
+            if (sdlSurface) SDL_FreeSurface(sdlSurface);
+            sdlSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+            if (!sdlSurface)
+            {
+                messageBox(GFX_ERROR, "Failed to create new 8bits surface: %s", SDL_GetError());
+                return;
+            }
+
+            //initialize new drawing buffer
+            if (!sdlSurface->pixels)
+            {
+                messageBox(GFX_ERROR, "Failed to create render buffer!");
+                return;
+            }
+
+            drawBuff = sdlSurface->pixels;
+
+            //restore palette on new surface
+            SDL_SetPaletteColors(sdlSurface->format->palette, pal, 0, 256);
+        }
+        else
+        {
+            void* pbuff = NULL;
+
+            //adjust render buffer
+            if (drawBuff) pbuff = realloc(drawBuff, bytesCopy);
+            else pbuff = calloc(bytesCopy, 1);
+
+            if (!pbuff)
+            {
+                messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
+                return;
+            }
+
+            drawBuff = pbuff;
+        }
+
+        //update new screen buffer size
+        texWidth    = width;
+        texHeight   = height;
+        centerX     = (texWidth >> 1) - 1;
+        centerY     = (texHeight >> 1) - 1;
+
+        //update new view port size
+        cminX   = 0;
+        cminY   = 0;
+        cmaxX   = texWidth - 1;
+        cmaxY   = texHeight - 1;
+
+        //update bytes per scanline
+        bytesPerScanline = width * bytesPerPixel;
+    }
+
+    //done adjustment render buffer
+    memcpy(drawBuff, buffer, bytesCopy);
     render();
 }
 
@@ -4185,7 +4328,11 @@ void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t 
     int32_t point[500] = { 0 };
 
     //range limited
-    if (radius > 499) messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
+    if (radius > 499)
+    {
+        messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
+        return;
+    }
 
     int32_t mc = yc - radius;
     calcCircle(radius, point);
@@ -4210,7 +4357,11 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color,
     int32_t point[500] = { 0 };
 
     //range limited
-    if (ra > 499 || rb > 499) messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
+    if (ra > 499 || rb > 499)
+    {
+        messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
+        return;
+    }
 
     int32_t mc = yc - rb;
 
@@ -8756,7 +8907,7 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
     const int32_t msWidth = msPointer.mWidth / 9;
 
     //allocate memory for mouse under background
-    mi->msUnder = (uint8_t*)calloc(msWidth * msHeight, bytesPerPixel);
+    mi->msUnder = (uint8_t*)calloc(intptr_t(msWidth) * msHeight, bytesPerPixel);
     if (!mi->msUnder)
     {
         messageBox(GFX_ERROR, "Error alloc memory!");
@@ -8815,7 +8966,7 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
     //create button
     for (int32_t i = 0; i < BUTTON_STATE_COUNT; i++)
     {
-        btn->btData[i] = (uint8_t*)calloc(btnWidth * btnHeight, bytesPerPixel);
+        btn->btData[i] = (uint8_t*)calloc(intptr_t(btnWidth) * btnHeight, bytesPerPixel);
         if (!btn->btData[i])
         {
             messageBox(GFX_ERROR, "Error create button:%d!", i);
@@ -9776,7 +9927,11 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     uint32_t* psrc = (uint32_t*)src->mData;
 
     //check color mode
-    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8)
+    {
+        messageBox(GFX_ERROR, "Wrong pixel format!");
+        return;
+    }
 
     //init lookup table
     for (i = 0; i < src->mWidth; i++) tables[i] = roundf(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1))) + xfact;
@@ -9793,7 +9948,11 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
 //FX-effect: blur image buffer
 void blurImage(GFX_IMAGE* img)
 {
-    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8)
+    {
+        messageBox(GFX_ERROR, "Wrong pixel format!");
+        return;
+    }
 
     const uint32_t width = img->mWidth;
     const uint32_t* data = (const uint32_t*)img->mData;
@@ -9908,7 +10067,11 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     uint32_t* psrc1 = (uint32_t*)src1->mData;
     uint32_t* psrc2 = (uint32_t*)src2->mData;
     
-    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8)
+    {
+        messageBox(GFX_ERROR, "Wrong pixel format!");
+        return;
+    }
 
 #ifdef _USE_ASM
     __asm {
@@ -10093,7 +10256,11 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
     uint32_t* psrc = (uint32_t*)src->mData;
     uint32_t* pdst = (uint32_t*)dst->mData;
 
-    if (bitsPerPixel <= 8) messageBox(GFX_ERROR, "Wrong pixel format!");
+    if (bitsPerPixel <= 8)
+    {
+        messageBox(GFX_ERROR, "Wrong pixel format!");
+        return;
+    }
 
     //recalculate axisx, axisy
     axisx = dst->mWidth - axisx;
@@ -10804,6 +10971,11 @@ void initSystemInfo()
     initCpuInfo();
     initVideoInfo();
     initMemoryInfo();
+}
+
+void setWindowTitle(const char* title)
+{
+    SDL_SetWindowTitle(sdlWindow, title);
 }
 
 //return current video memory in GB
