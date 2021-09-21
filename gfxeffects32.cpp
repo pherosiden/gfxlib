@@ -987,11 +987,11 @@ void juliaExplorer()
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", mx);
-            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", my);
-            writeText(1, 21, RGB_WHITE, 0, "Z:%.16lf", scale);
-            writeText(1, 31, RGB_WHITE, 0, "R:%.16lf", cre);
-            writeText(1, 41, RGB_WHITE, 0, "I:%.16lf", cim);
+            writeText(1,  1, RGB_WHITE, 0, "X:%.18lf", mx);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%.18lf", my);
+            writeText(1, 21, RGB_WHITE, 0, "Z:%.18lf", scale);
+            writeText(1, 31, RGB_WHITE, 0, "R:%.18lf", cre);
+            writeText(1, 41, RGB_WHITE, 0, "I:%.18lf", cim);
             writeText(1, 51, RGB_WHITE, 0, "N:%d", iter);
         }
 
@@ -1238,9 +1238,9 @@ void mandelbrotExporer()
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1,  1, RGB_WHITE, 0, "X:%.16lf", mx);
-            writeText(1, 11, RGB_WHITE, 0, "Y:%.16lf", my);
-            writeText(1, 21, RGB_WHITE, 0, "Z:%.16lf", scale);
+            writeText(1,  1, RGB_WHITE, 0, "X:%.18lf", mx);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%.18lf", my);
+            writeText(1, 21, RGB_WHITE, 0, "Z:%.18lf", scale);
             writeText(1, 31, RGB_WHITE, 0, "N:%d", iter);
         }
 
