@@ -1,6 +1,5 @@
 #include <vector>
 #include <algorithm>
-#include <complex.h>
 #include "gfxlib.h"
 
 #define SCR_WIDTH	640
@@ -19,7 +18,7 @@ void juliaSet()
     if (!pixels) return;
     
     pixels[0] = pbuff;
-    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     const int32_t iter = 255;
     const double cre = -0.7, cim = 0.27015;
@@ -49,7 +48,7 @@ void juliaSet()
             }
 
             //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
+            pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
         }
     }
 
@@ -173,7 +172,7 @@ void fireDemo2()
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (int32_t i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (int32_t i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     //validation screen height
     if (cheight < 1) return;
@@ -192,7 +191,7 @@ void fireDemo2()
         //saturation is always the maximum: 255
         //lightness is 0..255 for x=0..128, and 255 for x=128..255
         //set the palette to the calculated RGB value
-        palette[x] = hsl(x / 3, 255, min(255, x * 2));
+        palette[x] = hsl2rgb(x / 3, 255, min(255, x * 2));
     }
 
     //start the loop (one frame per loop)
@@ -373,7 +372,7 @@ void rayCasting()
         textures[i] = (uint32_t**)calloc(th, sizeof(uint32_t*));
         if (!textures[i]) return;
         textures[i][0] = pbuffs[i];
-        for (int32_t j = 1; j < th; j++) textures[i][j] = textures[i][0] + intptr_t(j) * tw;
+        for (int32_t j = 1; j < th; j++) textures[i][j] = &textures[i][0][j * tw];
     }
 
     //get the drawing buffer
@@ -383,7 +382,7 @@ void rayCasting()
     uint32_t** renderBuff = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!renderBuff) return;
     renderBuff[0] = pBuff;
-    for (i = 0; i < cheight; i++) renderBuff[i] = renderBuff[0] + intptr_t(i) * cwidth;
+    for (i = 0; i < cheight; i++) renderBuff[i] = &renderBuff[0][i * cwidth];
 
     //start the main loop
     do {
@@ -901,7 +900,7 @@ void juliaExplorer()
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     //user input key
     int32_t input = 0;
@@ -941,7 +940,7 @@ void juliaExplorer()
                 }
 
                 //use color model conversion to get rainbow palette
-                pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
+                pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
             }
         }
         
@@ -1090,7 +1089,7 @@ void mandelbrotSet()
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     const int32_t iter = 255;
     const double xscale = 3.0 / cwidth;
@@ -1119,7 +1118,7 @@ void mandelbrotSet()
             }
 
             //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
+            pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
         }
     }
 
@@ -1154,7 +1153,7 @@ void mandelbrotExporer()
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     //user input key
     int32_t input = 0;
@@ -1174,7 +1173,7 @@ void mandelbrotExporer()
     //begin main program loop
     do
     {
-        //scan-y
+        /*//scan-y
         for (int32_t y = 0; y < cheight; y++)
         {
             //scan-x
@@ -1194,11 +1193,11 @@ void mandelbrotExporer()
                 }
 
                 //use color model conversion to get rainbow palette
-                pixels[y][x] = hsv(i & 0xFF, 0xFF, (i < iter) ? 0xFF : 0);
+                pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
             }
-        }
+        }*/
 
-        /*const __m256d dd = _mm256_set1_pd(scale);
+        const __m256d dd = _mm256_set1_pd(scale);
         const __m256d tx = _mm256_set1_pd(mx);
 
         for (int32_t y = 0; y < cheight; y++)
@@ -1231,9 +1230,9 @@ void mandelbrotExporer()
 
                 const __m256i result = _mm256_shuffle_epi8(counts, _mm256_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
                 const uint32_t rgb = _mm_extract_epi16(_mm256_extracti128_si256(result, 0), 0) | (_mm_extract_epi16(_mm256_extracti128_si256(result, 1), 0) << 16);
-                pixels[y][x] = hsv(rgb & 0xFF, 0xFF, 0xFF * (i < iter));
+                pixels[y][x] = hsv2rgb(rgb & 0xFF, 0xFF, 0xFF * (i < iter));
             }
-        }*/
+        }
 
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
@@ -1334,10 +1333,10 @@ void plasmaDemo()
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (int32_t i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (int32_t i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     //use HSV2RGB to vary the Hue of the color through the palette
-    for (int32_t x = 0; x < 256; x++) colors[x] = hsv(x, 255, 255);
+    for (int32_t x = 0; x < 256; x++) colors[x] = hsv2rgb(x, 255, 255);
 
     const int32_t mwidth = cwidth >> 1;
     const int32_t mheight = cheight >> 1;
@@ -1406,7 +1405,7 @@ void tunnelDemo()
     uint32_t** texture = (uint32_t**)calloc(th, sizeof(uint32_t*));
     if (!texture) return;
     texture[0] = ptext;
-    for (i = 1; i < th; i++) texture[i] = texture[0] + intptr_t(i) * tw;
+    for (i = 1; i < th; i++) texture[i] = &texture[0][i * tw];
 
     int32_t cwidth = 0, cheight = 0;
     uint32_t* pbuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
@@ -1415,7 +1414,7 @@ void tunnelDemo()
     uint32_t** pixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (i = 1; i < cheight; i++) pixels[i] = pixels[0] + intptr_t(i) * cwidth;
+    for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
     const double ratio = 128;
     const double scale = 1.5;
@@ -1564,14 +1563,14 @@ void imageFillter()
     uint32_t** image = (uint32_t**)calloc(th, sizeof(uint32_t*));
     if (!image) return;
     image[0] = ptex;
-    for (i = 1; i < th; i++) image[i] = image[0] + intptr_t(i) * tw;
+    for (i = 1; i < th; i++) image[i] = &image[0][i * tw];
 
     uint32_t* pbuff = (uint32_t*)getDrawBuffer();
     if (!pbuff) return;
     uint32_t** pixels = (uint32_t**)calloc(th, sizeof(uint32_t*));
     if (!pixels) return;
     pixels[0] = pbuff;
-    for (i = 1; i < th; i++) pixels[i] = pixels[0] + intptr_t(i) * tw;
+    for (i = 1; i < th; i++) pixels[i] = &pixels[0][i * tw];
 
     //apply the filter
     for (int32_t y = 0; y < th; y++)
@@ -1897,7 +1896,7 @@ int32_t initData()
 
     //assign offset data
     rawPixels[0] = pBuff;
-    for (i = 1; i < cheight; i++) rawPixels[i] = rawPixels[0] + intptr_t(i) * cwidth;
+    for (i = 1; i < cheight; i++) rawPixels[i] = &rawPixels[0][i * cwidth];
 
     //load texture data
     uint32_t *pWall = NULL, *pFloor = NULL, *pCeiling = NULL;
@@ -1909,17 +1908,17 @@ int32_t initData()
     wallTexture = (uint32_t**)calloc(wallHeight, sizeof(uint32_t*));
     if (!wallTexture) return 0;
     wallTexture[0] = pWall;
-    for (i = 1; i < wallHeight; i++) wallTexture[i] = wallTexture[0] + intptr_t(i) * wallWidth;
+    for (i = 1; i < wallHeight; i++) wallTexture[i] = &wallTexture[0][i * wallWidth];
 
     floorTexture = (uint32_t**)calloc(floorHeight, sizeof(uint32_t*));
     if (!floorTexture) return 0;
     floorTexture[0] = pFloor;
-    for (i = 1; i < floorHeight; i++) floorTexture[i] = floorTexture[0] + intptr_t(i) * floorWidth;
+    for (i = 1; i < floorHeight; i++) floorTexture[i] = &floorTexture[0][i * floorWidth];
 
     ceilingTexture = (uint32_t**)calloc(ceilingHeight, sizeof(uint32_t*));
     if (!ceilingTexture) return 0;
     ceilingTexture[0] = pCeiling;
-    for (i = 1; i < ceilingHeight; i++) ceilingTexture[i] = ceilingTexture[0] + intptr_t(i) * ceilingWidth;
+    for (i = 1; i < ceilingHeight; i++) ceilingTexture[i] = &ceilingTexture[0][i * ceilingWidth];
 
     //setup lookup table
     for (i = 0; i <= ANGLE360; i++)

@@ -106,9 +106,7 @@ void julia_double(uint8_t* out, double mx, double my, double scale, int32_t ys, 
                 y1 = 2 * x1 * y1 + cim;
                 x1 = x2 - y2 + cre;
             }
-            //*out++ = n;
-            *(uint32_t*)out = n;
-            out += 4;
+            *out++ = n;
         }
     }
 }
@@ -132,10 +130,10 @@ void mandelbrot_sse_float(uint8_t* out, double mx, double my, double scale, int3
 
             for (int32_t n = 0; n < iterations; n++)
             {
-                __m128 x2 = _mm_mul_ps(x, x);
-                __m128 y2 = _mm_mul_ps(y, y);
-                __m128 abs = _mm_add_ps(x2, y2);
-                __m128i cmp = _mm_castps_si128(_mm_cmplt_ps(abs, _mm_set1_ps(4)));
+                const __m128 x2 = _mm_mul_ps(x, x);
+                const __m128 y2 = _mm_mul_ps(y, y);
+                const __m128 abs = _mm_add_ps(x2, y2);
+                const __m128i cmp = _mm_castps_si128(_mm_cmplt_ps(abs, _mm_set1_ps(4)));
 
                 cmp_mask = _mm_and_si128(cmp_mask, cmp);
                 if (_mm_testz_si128(cmp_mask, cmp_mask)) break; //SSE4.1 instruction
@@ -173,10 +171,10 @@ void mandelbrot_sse_double(uint8_t* out, double mx, double my, double scale, int
 
             for (int32_t n = 0; n < iterations; n++)
             {
-                __m128d x2 = _mm_mul_pd(x, x);
-                __m128d y2 = _mm_mul_pd(y, y);
-                __m128d abs = _mm_add_pd(x2, y2);
-                __m128i cmp = _mm_castpd_si128(_mm_cmplt_pd(abs, _mm_set1_pd(4)));
+                const __m128d x2 = _mm_mul_pd(x, x);
+                const __m128d y2 = _mm_mul_pd(y, y);
+                const __m128d abs = _mm_add_pd(x2, y2);
+                const __m128i cmp = _mm_castpd_si128(_mm_cmplt_pd(abs, _mm_set1_pd(4)));
 
                 cmp_mask = _mm_and_si128(cmp_mask, cmp);
                 if (_mm_testz_si128(cmp_mask, cmp_mask)) break;
@@ -189,7 +187,7 @@ void mandelbrot_sse_double(uint8_t* out, double mx, double my, double scale, int
                 x = _mm_add_pd(_mm_sub_pd(x2, y2), x0);
             }
 
-            __m128i result = _mm_shuffle_epi8(counts, _mm_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
+            const __m128i result = _mm_shuffle_epi8(counts, _mm_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
             *(uint16_t*)out = _mm_extract_epi16(result, 0);
             out += 2;
         }
@@ -218,10 +216,10 @@ void julia_sse_float(uint8_t* out, double mx, double my, double scale, int32_t y
 
             for (int32_t n = 0; n < iterations; n++)
             {
-                __m128 x2 = _mm_mul_ps(x, x);
-                __m128 y2 = _mm_mul_ps(y, y);
-                __m128 abs = _mm_add_ps(x2, y2);
-                __m128i cmp = _mm_castps_si128(_mm_cmplt_ps(abs, _mm_set1_ps(4)));
+                const __m128 x2 = _mm_mul_ps(x, x);
+                const __m128 y2 = _mm_mul_ps(y, y);
+                const __m128 abs = _mm_add_ps(x2, y2);
+                const __m128i cmp = _mm_castps_si128(_mm_cmplt_ps(abs, _mm_set1_ps(4)));
 
                 cmp_mask = _mm_and_si128(cmp_mask, cmp);
                 if (_mm_testz_si128(cmp_mask, cmp_mask)) break; //SSE4.1 instruction
@@ -262,10 +260,10 @@ void julia_sse_double(uint8_t* out, double mx, double my, double scale, int32_t 
 
             for (int32_t n = 0; n < iterations; n++)
             {
-                __m128d x2 = _mm_mul_pd(x, x);
-                __m128d y2 = _mm_mul_pd(y, y);
-                __m128d abs = _mm_add_pd(x2, y2);
-                __m128i cmp = _mm_castpd_si128(_mm_cmplt_pd(abs, _mm_set1_pd(4)));
+                const __m128d x2 = _mm_mul_pd(x, x);
+                const __m128d y2 = _mm_mul_pd(y, y);
+                const __m128d abs = _mm_add_pd(x2, y2);
+                const __m128i cmp = _mm_castpd_si128(_mm_cmplt_pd(abs, _mm_set1_pd(4)));
 
                 cmp_mask = _mm_and_si128(cmp_mask, cmp);
                 if (_mm_testz_si128(cmp_mask, cmp_mask)) break;
@@ -278,7 +276,7 @@ void julia_sse_double(uint8_t* out, double mx, double my, double scale, int32_t 
                 x = _mm_add_pd(_mm_sub_pd(x2, y2), xre);
             }
 
-            __m128i result = _mm_shuffle_epi8(counts, _mm_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
+            const __m128i result = _mm_shuffle_epi8(counts, _mm_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
             *(uint16_t*)out = _mm_extract_epi16(result, 0);
             out += 2;
         }
@@ -1110,17 +1108,17 @@ void allocData()
     }
 }
 
-volatile long ycurrent = 0;
-const int32_t nlines = 64;
+volatile long yprocessed = 0;
+const int32_t yadd = 32;
 
 DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 {
     int32_t acx = align(cx);
     while (true)
     {
-        int32_t y0 = InterlockedAdd(&ycurrent, nlines) - nlines;
+        int32_t y0 = InterlockedAdd(&yprocessed, yadd) - yadd;
         if (y0 >= cy) return 0;
-        int32_t y1 = min(y0 + nlines, cy);
+        int32_t y1 = min(y0 + yadd, cy);
         calculateFunc[fractType](&data[y0 * acx], xx, yy, scale, y0, acx, y1);
     }
 }
@@ -1129,7 +1127,7 @@ void calculateMultiThread()
 {
     HANDLE threads[64] = { 0 };
 
-    ycurrent = 0;
+    yprocessed = 0;
     for (uint32_t i = 0; i < cpuCores; i++) threads[i] = CreateThread(NULL, 0, &threadProc, NULL, 0, NULL);
     WaitForMultipleObjects(cpuCores, threads, TRUE, INFINITE);
     for (uint32_t i = 0; i < cpuCores; i++)
@@ -1366,7 +1364,7 @@ void gfxFractals()
     } while (input != SDL_SCANCODE_RETURN);
 
     //cleanup
-    free(data);
+    _aligned_free(data);
     SDL_FreeCursor(handCursor);
     cleanup();
 }

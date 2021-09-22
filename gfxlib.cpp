@@ -254,7 +254,7 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
                 break;
 
             case SDL_WINDOWEVENT:
-                if (inputMask & INPUT_WIN_RESIZED && event.window.event == SDL_WINDOWEVENT_RESIZED)
+                if ((inputMask & INPUT_WIN_RESIZED) && (event.window.event == SDL_WINDOWEVENT_RESIZED))
                 {
                     winSizeX = event.window.data1;
                     winSizeY = event.window.data2;

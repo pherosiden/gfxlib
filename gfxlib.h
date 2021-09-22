@@ -686,7 +686,7 @@ static inline uint32_t rgba(uint32_t col, uint8_t alpha)
 }
 
 //HSL to RGB convert
-static inline uint32_t hsl(int32_t hi, int32_t si, int32_t li)
+static inline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
 {
     double r = 0.0, g = 0.0, b = 0.0;
     double temp1 = 0.0, temp2 = 0.0;
@@ -735,11 +735,11 @@ static inline uint32_t hsl(int32_t hi, int32_t si, int32_t li)
         else b = temp1;
     }
 
-    return rgb(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
+    return rgb(uint8_t(r * 255), uint8_t(g * 255), uint8_t(b * 255));
 }
 
 //HSV to RGB convert
-static inline uint32_t hsv(int32_t hi, int32_t si, int32_t vi)
+static inline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
 {
     double h = hi / 256.0;
     const double s = si / 256.0;
@@ -775,7 +775,79 @@ static inline uint32_t hsv(int32_t hi, int32_t si, int32_t vi)
         }
     }
 
-    return rgb(int32_t(r * 255), int32_t(g * 255), int32_t(b * 255));
+    return rgb(uint8_t(r * 255), uint8_t(g * 255), uint8_t(b * 255));
+}
+
+//converts an RGB color to HSV color
+static inline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
+{
+    double r = ri / 256.0;
+    double g = gi / 256.0;
+    double b = bi / 256.0;
+
+    double dmax = max(r, max(g, b));
+    double dmin = min(r, min(g, b));
+
+    double v = dmax;
+    double h = 0, s = 0;
+
+    if (dmax != 0.0)
+    {
+        s = (dmax - dmin) / dmax;
+    }
+
+    if (s == 0.0)
+    {
+        h = 0.0;
+    }
+    else
+    {
+        if (r == dmax) h = (g - b) / (dmax - dmin);
+        if (g == dmax) h = 2.0 + (b - r) / (dmax - dmin);
+        if (b == dmax) h = 4.0 + (r - g) / (dmax - dmin);
+        h /= 6.0;
+        if (h < 0.0) h++;
+    }
+
+    HSV col = { 0 };
+    col.h = uint32_t(h * 255.0);
+    col.s = uint32_t(s * 255.0);
+    col.v = uint32_t(v * 255.0);
+    return col;
+}
+
+//convert an RGB color to HSL color
+static inline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
+{
+    double r = ri / 255.0;
+    double g = gi / 255.0;
+    double b = bi / 255.0;
+
+    double dmax = max(r, max(g, b));
+    double dmin = min(r, min(g, b));
+    double l = (dmax + dmin) / 2;
+
+    double h = 0, s = 0;
+
+    if (dmax == dmin)
+    {
+        h = s = 0;
+    }
+    else
+    {
+        double d = dmax - dmin;
+        s = (l > 0.5) ? d / (2 - dmax - dmin) : d / (dmax + dmin);
+        if (r == dmax) h = (g - b) / d + (g < b ? 6 : 0);
+        if (g == dmax) h = (b - r) / d + 2;
+        if (b == dmax) h = (r - g) / d + 4;
+        h /= 6;
+    }
+
+    HSL col = { 0 };
+    col.h = int32_t(h * 360);
+    col.s = int32_t(s * 100);
+    col.l = int32_t(l * 100);
+    return col;
 }
 
 //generate random value from number
