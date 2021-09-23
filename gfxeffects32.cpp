@@ -20,7 +20,7 @@ void juliaSet()
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
-    const int32_t iter = 255;
+    const int32_t iterations = 255;
     const double cre = -0.7, cim = 0.27015;
     
     const double xscale = 3.0 / cwidth;
@@ -30,6 +30,7 @@ void juliaSet()
     const double mx = -0.5 * cwidth * scale;
     const double my = -0.5 * cheight * scale;
 
+    /*============== use FMA version below ==========
     for (int32_t y = 0; y < cheight; y++)
     {
         const double y0 = y * scale + my;
@@ -38,7 +39,7 @@ void juliaSet()
             const double x0 = x * scale + mx;
             double x1 = x0;
             double y1 = y0;
-            for (i = 0; i < iter; i++)
+            for (i = 0; i < iterations; i++)
             {
                 const double x2 = x1 * x1;
                 const double y2 = y1 * y1;
@@ -48,7 +49,56 @@ void juliaSet()
             }
 
             //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
+            pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
+        }
+    }
+    ================================================*/
+
+    const __m256d xim = _mm256_set1_pd(cim);
+    const __m256d xre = _mm256_set1_pd(cre);
+
+    const __m256d dd = _mm256_set1_pd(scale);
+    const __m256d tx = _mm256_set1_pd(mx);
+
+    for (int32_t y = 0; y < cheight; y++)
+    {
+        const __m256d y0 = _mm256_set1_pd(y * scale + my);
+        for (int32_t x = 0; x < cwidth; x += 4)
+        {
+            const __m128i ind = _mm_setr_epi32(x, x + 1, x + 2, x + 3);
+            const __m256d x0 = _mm256_fmadd_pd(dd, _mm256_cvtepi32_pd(ind), tx);
+            __m256d x1 = x0;
+            __m256d y1 = y0;
+            __m256i iters = _mm256_setzero_si256();
+            __m256i masks = _mm256_setzero_si256();
+
+            for (int32_t n = 0; n < iterations; n++)
+            {
+                const __m256d x2 = _mm256_mul_pd(x1, x1);
+                const __m256d y2 = _mm256_mul_pd(y1, y1);
+                const __m256d abs = _mm256_add_pd(x2, y2);
+                const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 13));
+
+                masks = _mm256_or_si256(cmp, masks);
+                if (_mm256_test_all_ones(masks)) break;
+
+                iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
+
+                const __m256d t = _mm256_add_pd(x1, x1);
+                y1 = _mm256_fmadd_pd(t, y1, xim);
+                x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
+            }
+
+            //extract iteration position for each pixel
+            int32_t it[8] = { 0 };
+            _mm256_storeu_epi32(it, iters);
+
+            //use HSV convert to get full rainbow palette
+            uint32_t* pdst = &pixels[y][x];
+            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
         }
     }
 
@@ -906,7 +956,7 @@ void juliaExplorer()
     int32_t input = 0;
 
     //interations
-    int32_t iter = 255;
+    int32_t iterations = 255;
     double cre = -0.7, cim = 0.27015;
 
     //scale unit
@@ -920,7 +970,7 @@ void juliaExplorer()
 
     do
     {
-        //scan-y
+        /*=================== use fma version below ===============
         for (int32_t y = 0; y < cheight; y++)
         {
             //scan-x
@@ -930,7 +980,7 @@ void juliaExplorer()
                 const double x0 = x * scale + mx;
                 double x1 = x0;
                 double y1 = y0;
-                for (i = 0; i < iter; i++)
+                for (i = 0; i < iterations; i++)
                 {
                     const double x2 = x1 * x1;
                     const double y2 = y1 * y1;
@@ -940,48 +990,58 @@ void juliaExplorer()
                 }
 
                 //use color model conversion to get rainbow palette
-                pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
+                pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
             }
         }
-        
-        /*const __m256d xim = _mm256_set1_pd(cim);
+        ===========================================================*/
+
+        const __m256d xim = _mm256_set1_pd(cim);
         const __m256d xre = _mm256_set1_pd(cre);
+
         const __m256d dd = _mm256_set1_pd(scale);
         const __m256d tx = _mm256_set1_pd(mx);
 
         for (int32_t y = 0; y < cheight; y++)
         {
             const __m256d y0 = _mm256_set1_pd(y * scale + my);
-            for (int32_t x = 0; x < cwidth; x++)
+            for (int32_t x = 0; x < cwidth; x += 4)
             {
                 const __m128i ind = _mm_setr_epi32(x, x + 1, x + 2, x + 3);
                 const __m256d x0 = _mm256_fmadd_pd(dd, _mm256_cvtepi32_pd(ind), tx);
                 __m256d x1 = x0;
                 __m256d y1 = y0;
-                __m256i counts = _mm256_setzero_si256();
-                __m256i cmask = _mm256_set1_epi32(0xffffffffu);
+                __m256i iters = _mm256_setzero_si256();
+                __m256i masks = _mm256_setzero_si256();
 
-                for (i = 0; i < iter; i++)
+                for (int32_t n = 0; n < iterations; n++)
                 {
                     const __m256d x2 = _mm256_mul_pd(x1, x1);
                     const __m256d y2 = _mm256_mul_pd(y1, y1);
                     const __m256d abs = _mm256_add_pd(x2, y2);
-                    const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 1));
+                    const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 13));
 
-                    cmask = _mm256_and_si256(cmask, cmp);
-                    if (_mm256_testz_si256(cmask, cmask)) break;
+                    masks = _mm256_or_si256(cmp, masks);
+                    if (_mm256_test_all_ones(masks)) break;
 
-                    counts = _mm256_sub_epi64(counts, cmask);
+                    iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
+
                     const __m256d t = _mm256_add_pd(x1, x1);
                     y1 = _mm256_fmadd_pd(t, y1, xim);
                     x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
                 }
 
-                const __m256i result = _mm256_shuffle_epi8(counts, _mm256_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
-                const uint32_t rgb = _mm_extract_epi16(_mm256_extracti128_si256(result, 0), 0) | (_mm_extract_epi16(_mm256_extracti128_si256(result, 1), 0) << 16);
-                pixels[y][x] = hsv(rgb & 0xFF, 0xFF, 0xFF * (i < iter));
+                //extract iteration position for each pixel
+                int32_t it[8] = { 0 };
+                _mm256_storeu_epi32(it, iters);
+
+                //use HSV convert to get full rainbow palette
+                uint32_t* pdst = &pixels[y][x];
+                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
             }
-        }*/
+        }
 
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
@@ -991,7 +1051,7 @@ void juliaExplorer()
             writeText(1, 21, RGB_WHITE, 0, "Z:%.18lf", scale);
             writeText(1, 31, RGB_WHITE, 0, "R:%.18lf", cre);
             writeText(1, 41, RGB_WHITE, 0, "I:%.18lf", cim);
-            writeText(1, 51, RGB_WHITE, 0, "N:%d", iter);
+            writeText(1, 51, RGB_WHITE, 0, "N:%d", iterations);
         }
 
         //print the help text on screen if that option is enabled
@@ -1064,8 +1124,8 @@ void juliaExplorer()
         if (input == SDL_SCANCODE_4) { cre -= 0.0002; }
 
         //keys to change number of iterations
-        if (input == SDL_SCANCODE_Z) { iter *= 2; }
-        if (input == SDL_SCANCODE_X) { if (iter > 2) iter /= 2; }
+        if (input == SDL_SCANCODE_Z) { iterations <<= 1; }
+        if (input == SDL_SCANCODE_X) { if (iterations > 2) iterations >>= 1; }
 
         //key to change the text options
         if (input == SDL_SCANCODE_H) { showText++; showText %= 3; }
@@ -1091,7 +1151,7 @@ void mandelbrotSet()
     pixels[0] = pbuff;
     for (i = 1; i < cheight; i++) pixels[i] = &pixels[0][i * cwidth];
 
-    const int32_t iter = 255;
+    const int32_t iterations = 255;
     const double xscale = 3.0 / cwidth;
     const double yscale = 2.0 / cheight;
 
@@ -1099,7 +1159,7 @@ void mandelbrotSet()
     const double mx = -0.5 * cwidth * scale - 0.5;
     const double my = -0.5 * cheight * scale;
 
-    //loop through every pixel
+    /*============== use fma version below ===============
     for (int32_t y = 0; y < cheight; y++)
     {
         const double y0 = y * scale + my;
@@ -1108,7 +1168,7 @@ void mandelbrotSet()
             const double x0 = x * scale + mx;
             double x1 = x0;
             double y1 = y0;
-            for (i = 0; i < iter; i++)
+            for (i = 0; i < iterations; i++)
             {
                 const double x2 = x1 * x1;
                 const double y2 = y1 * y1;
@@ -1118,7 +1178,52 @@ void mandelbrotSet()
             }
 
             //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
+            pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
+        }
+    }
+    ====================================================*/
+    
+    const __m256d dd = _mm256_set1_pd(scale);
+    const __m256d tx = _mm256_set1_pd(mx);
+
+    for (int32_t y = 0; y < cheight; y++)
+    {
+        const __m256d y0 = _mm256_set1_pd(y * scale + my);
+        for (int32_t x = 0; x < cwidth; x += 4)
+        {
+            const __m128i ind = _mm_setr_epi32(x, x + 1, x + 2, x + 3);
+            const __m256d x0 = _mm256_fmadd_pd(dd, _mm256_cvtepi32_pd(ind), tx);
+            __m256d x1 = x0;
+            __m256d y1 = y0;
+            __m256i iters = _mm256_setzero_si256();
+            __m256i masks = _mm256_setzero_si256();
+
+            for (int32_t n = 0; n < iterations; n++)
+            {
+                const __m256d x2 = _mm256_mul_pd(x1, x1);
+                const __m256d y2 = _mm256_mul_pd(y1, y1);
+                const __m256d abs = _mm256_add_pd(x2, y2);
+                const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 13));
+
+                masks = _mm256_or_si256(cmp, masks);
+                if (_mm256_test_all_ones(masks)) break;
+                iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
+
+                const __m256d t = _mm256_add_pd(x1, x1);
+                y1 = _mm256_fmadd_pd(t, y1, y0);
+                x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
+            }
+
+            //extract iteration position for each pixel
+            int32_t it[8] = { 0 };
+            _mm256_storeu_epi32(it, iters);
+
+            //use HSV convert to get full rainbow palette
+            uint32_t* pdst = &pixels[y][x];
+            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
         }
     }
 
@@ -1159,7 +1264,7 @@ void mandelbrotExporer()
     int32_t input = 0;
 
     //interations
-    int32_t iter = 255;
+    int32_t iterations = 255;
 
     //scale unit
     const double xscale = 3.0 / cwidth;
@@ -1173,7 +1278,7 @@ void mandelbrotExporer()
     //begin main program loop
     do
     {
-        /*//scan-y
+        /*=================== use fma version below =====================
         for (int32_t y = 0; y < cheight; y++)
         {
             //scan-x
@@ -1183,7 +1288,7 @@ void mandelbrotExporer()
                 const double x0 = x * scale + mx;
                 double x1 = x0;
                 double y1 = y0;
-                for (i = 0; i < iter; i++)
+                for (i = 0; i < iterations; i++)
                 {
                     const double x2 = x1 * x1;
                     const double y2 = y1 * y1;
@@ -1193,9 +1298,10 @@ void mandelbrotExporer()
                 }
 
                 //use color model conversion to get rainbow palette
-                pixels[y][x] = hsv2rgb(0xFF * i / iter, 0xFF, (i < iter) ? 0xFF : 0);
+                pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
             }
-        }*/
+        }
+        ===============================================================*/
 
         const __m256d dd = _mm256_set1_pd(scale);
         const __m256d tx = _mm256_set1_pd(mx);
@@ -1203,34 +1309,42 @@ void mandelbrotExporer()
         for (int32_t y = 0; y < cheight; y++)
         {
             const __m256d y0 = _mm256_set1_pd(y * scale + my);
-            for (int32_t x = 0; x < cwidth; x++)
+            for (int32_t x = 0; x < cwidth; x += 4)
             {
                 const __m128i ind = _mm_setr_epi32(x, x + 1, x + 2, x + 3);
                 const __m256d x0 = _mm256_fmadd_pd(dd, _mm256_cvtepi32_pd(ind), tx);
                 __m256d x1 = x0;
                 __m256d y1 = y0;
-                __m256i counts = _mm256_setzero_si256();
-                __m256i cmask = _mm256_set1_epi32(0xffffffffu);
+                __m256i iters = _mm256_setzero_si256();
+                __m256i masks = _mm256_setzero_si256();
 
-                for (i = 0; i < iter; i++)
+                for (int32_t n = 0; n < iterations; n++)
                 {
                     const __m256d x2 = _mm256_mul_pd(x1, x1);
                     const __m256d y2 = _mm256_mul_pd(y1, y1);
                     const __m256d abs = _mm256_add_pd(x2, y2);
-                    const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 1));
+                    const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), 13));
 
-                    cmask = _mm256_and_si256(cmask, cmp);
-                    if (_mm256_testz_si256(cmask, cmask)) break;
+                    masks = _mm256_or_si256(cmp, masks);
+                    if (_mm256_test_all_ones(masks)) break;
 
-                    counts = _mm256_sub_epi64(counts, cmask);
+                    iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
+
                     const __m256d t = _mm256_add_pd(x1, x1);
                     y1 = _mm256_fmadd_pd(t, y1, y0);
                     x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
                 }
 
-                const __m256i result = _mm256_shuffle_epi8(counts, _mm256_setr_epi8(0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8));
-                const uint32_t rgb = _mm_extract_epi16(_mm256_extracti128_si256(result, 0), 0) | (_mm_extract_epi16(_mm256_extracti128_si256(result, 1), 0) << 16);
-                pixels[y][x] = hsv2rgb(rgb & 0xFF, 0xFF, 0xFF * (i < iter));
+                //extract iteration position for each pixel
+                int32_t it[8] = { 0 };
+                _mm256_storeu_epi32(it, iters);
+
+                //use HSV convert to get full rainbow palette
+                uint32_t* pdst = &pixels[y][x];
+                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
             }
         }
 
@@ -1240,7 +1354,7 @@ void mandelbrotExporer()
             writeText(1,  1, RGB_WHITE, 0, "X:%.18lf", mx);
             writeText(1, 11, RGB_WHITE, 0, "Y:%.18lf", my);
             writeText(1, 21, RGB_WHITE, 0, "Z:%.18lf", scale);
-            writeText(1, 31, RGB_WHITE, 0, "N:%d", iter);
+            writeText(1, 31, RGB_WHITE, 0, "N:%d", iterations);
         }
 
         //print the help text on screen if that option is enabled
@@ -1306,8 +1420,8 @@ void mandelbrotExporer()
         }
 
         //keys to change number of iterations
-        if (input == SDL_SCANCODE_Z) { iter *= 2; }
-        if (input == SDL_SCANCODE_X) { if (iter > 2) iter /= 2; }
+        if (input == SDL_SCANCODE_Z) { iterations <<= 1; }
+        if (input == SDL_SCANCODE_X) { if (iterations > 2) iterations >>= 1; }
 
         //key to change the text options
         if (input == SDL_SCANCODE_H) { showText++; showText %= 3; }

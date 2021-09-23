@@ -1,5 +1,4 @@
 #include "gfxlib.h"
-#include <complex.h>
 
 int main(int argc, char* args[])
 {
@@ -7,11 +6,11 @@ int main(int argc, char* args[])
     chdir(dirname(args[0]));
     chdir("../Resources");
 #endif
-    gfxEffects();
-    gfxDemoMix();
-    gfxDemo();
-    gfxFontView();
-    gfxEffectsMix();
+    //gfxEffects();
+    //gfxDemoMix();
+    //gfxDemo();
+    //gfxFontView();
+    //gfxEffectsMix();
     gfxFractals();
     return 0;
 }
