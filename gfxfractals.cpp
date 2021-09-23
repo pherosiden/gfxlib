@@ -1060,54 +1060,6 @@ int32_t align(int32_t num)
     return (num + 7) & ~7;
 }
 
-void initPalette()
-{
-    RGB pal[256] = { 0 };
-
-    for (int32_t i = 0; i < 16; i++)
-    {
-        pal[i].r = 63;
-        pal[i].g = 0;
-        pal[i].b = 63;
-    }
-    
-    for (int32_t i = 0; i < 32; i++)
-    {
-        int32_t j = 16 + i;
-        pal[j].r = 63;
-        pal[j].g = 0;
-        pal[j].b = 63 - (i << 1);
-
-        j = 48 + i;
-        pal[j].r = 63;
-        pal[j].g = i << 1;
-        pal[j].b = 0;
-
-        j = 80 + i;
-        pal[j].r = 63 - (i << 1);
-        pal[j].g = 63;
-        pal[j].b = 0;
-
-        j = 112 + i;
-        pal[j].r = 0;
-        pal[j].g = 63;
-        pal[j].b = i << 1;
-
-        j = 144 + i;
-        pal[j].r = 0;
-        pal[j].g = 63 - (i << 1);
-        pal[j].b = 63;
-
-        j = 176 + i;
-        pal[j].r = i << 1;
-        pal[j].g = 0;
-        pal[j].b = 63;
-    }
-
-    shiftPalette(pal);
-    setPalette(pal);
-}
-
 void initBorders(int32_t sx, int32_t sy)
 {
     double added = 0;
@@ -1191,7 +1143,7 @@ void shift(double sx, double sy)
 
 void gfxFractals()
 {
-    if (!initScreen(MAXX, MAXY, 32, 0, "DEMO")) return;
+    if (!initScreen(MAXX, MAXY, 32, 0, "Fractals Explorer")) return;
 
     initThreads();
     initFunctions(fractType);
