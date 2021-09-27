@@ -10,6 +10,9 @@ void showFontsDir(const char* path, const char* ext)
     char buff[256] = { 0 };
     int32_t i = 0, height = 0, y = 10;
 
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
+
 #ifdef __APPLE__
     DIR* dir;
     struct dirent* ent;

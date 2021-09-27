@@ -173,7 +173,7 @@
 //redefine RGB color
 typedef SDL_Color RGB;
 
-//2D point struct
+//double point struct
 typedef struct
 {
     double x, y;
@@ -313,16 +313,6 @@ enum INTERPOLATION_TYPE
 
 #pragma pack(pop)
 
-extern int32_t  texWidth;                       //current texture width
-extern int32_t  texHeight;                      //current texture height
-extern int32_t  bitsPerPixel;                   //bits per pixel (8/15/16/24/32)
-extern int32_t  bytesPerPixel;                  //bytes per pixel (1/2/3/4)
-extern int32_t  bytesPerScanline;               //bytes per scanline
-
-//clip cordinate handle
-extern int32_t  centerX, centerY;               //center screen points
-extern int32_t  cminX, cminY, cmaxX, cmaxY;     //view port clip points
-
 //3D projection
 enum PROJ_TYPE { PERSPECTIVE, PARALLELE };      //projection type values
 extern double   DE, rho, theta, phi;            //projection angles
@@ -332,13 +322,8 @@ extern double   obsX, obsY, obsZ;               //X,Y,Z coordinate
 extern double   projX, projY;                   //projection X,Y
 extern uint8_t  projection;                     //projection type
 
-extern GFX_FONT gfxFonts[GFX_MAX_FONT];         //GFX font loadable at the same time
-extern uint8_t* fontPalette[GFX_MAX_FONT];      //GFX font palette data (BMP8 type)
-extern uint8_t* gfxBuff;                        //GFX buffer
-extern uint32_t subFonts;                       //GFX sub-fonts
 extern uint32_t fontType;                       //current selected font (use for multiple loaded font)
-extern uint32_t randSeed;                       //global random seed
-extern uint32_t factor;                         //global factor
+extern GFX_FONT gfxFonts[GFX_MAX_FONT];         //GFX font loadable at the same time
 
 //pattern filled styles
 extern uint8_t  ptnLine[];                      //line fill style
@@ -354,15 +339,6 @@ extern uint8_t  ptnCloseDot[];                  //closed dot style
 
 //benchmart record time
 extern clock_t  startClock;                     //recording start clock time
-
-//mouse wheel
-extern int32_t  mouseWheelX, mouseWheelY;       //current mouse wheel x, y
-
-//current mouse motion x, y
-extern int32_t  mousePosX, mousePosY;           //current mouse wheel x, y
-
-//windows size
-extern int32_t winSizeX, winSizeY;              //current windows size when size is changed
 
 //load texture and image functions
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);
@@ -387,6 +363,8 @@ int32_t     keyDown(int32_t key);
 int32_t     keyPressed(int32_t key);
 int32_t     waitUserInput(int32_t inputMask = INPUT_KEY_PRESSED);
 int32_t     finished(int32_t key);
+int32_t     getInputDataX();
+int32_t     getInputDataY();
 
 //some customize random functions
 void        randomBuffer(void* buff, int32_t count, int32_t range);
@@ -423,14 +401,27 @@ void        sleepFor(uint32_t ms);
 
 //video and render functions
 int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
+int32_t     getCenterX();
+int32_t     getCenterY();
+int32_t     getMaxX();
+int32_t     getMaxY();
+int32_t     getMinX();
+int32_t     getMinY();
+int32_t     getBitsPerPixel();
+int32_t     getBytesPerPixel();
+int32_t     getBytesPerScanline();
+
+void        getViewPort(int32_t* x1, int32_t* y1, int32_t* x2, int32_t* y2);
 void        changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
-void        render();
 void        cleanup();
+void        render();
 void        renderBuffer(const void* buffer, int32_t width, int32_t height);
 void*       getDrawBuffer(int32_t* width = NULL, int32_t* height = NULL);
 void        changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
 void        restoreDrawBuffer();
+int32_t     getDrawBufferWidth();
+int32_t     getDrawBufferHeight();
 
 //handle program message
 void        messageBox(int32_t type, const char* fmt, ...);
@@ -554,139 +545,20 @@ void        gfxEffects();
 void        gfxFontView();
 void        gfxFractals();
 
-/*=============================================================================*/
-/*                             INLINE FUNCTIONS                                */
-/*=============================================================================*/
-
-//fixed-point math utility (signed 19.12)
-//largest positive value: 524287.999755859375
-//smallest positive value: 0.000244140625
-
-#define FRAC_BITS       12           //number of fraction bits
-#define FRAC_MASK       0x00000FFF   //(1 << FRAC_BITS) - 1
-#define INT_MASK        0x7FFFF000   //20 bits
-#define FIXED_1         0x00001000   //(1 << FRAC_BITS)
-#define FIXED_255       0x000FF000   //(255 << FRAC_BITS)
-#define FIXED_HALF      0x00000800   //fixed_t(0.5 * float(1L << FRAC_BITS) + 0.5)
-#define FIXED_EPSILON   1            //epsilon value
-#define FIXED_TO_INT(x) (int32_t(x < 0 ? 0 : (x > FIXED_255) ? 255 : fixedtoi(x + FIXED_HALF)))
-
-//new fixed data type
-typedef int32_t fixed_t;
-
-//convert integer to fixed
-static inline fixed_t itofixed(int32_t x)
-{
-    return (x << FRAC_BITS);
-}
-
-//convert fixed to integer
-static inline int32_t fixedtoi(fixed_t x)
-{
-    return (x >> FRAC_BITS);
-}
-
-//convert float to fixed
-static inline fixed_t ftofixed(float x)
-{
-    return fixed_t(x * FIXED_1 + 0.5);
-}
-
-//convert fixed to float
-static inline float fixedtof(fixed_t x)
-{
-    return float(x / FIXED_1);
-}
-
-//fixed multiply
-#if defined(__APPLE__)
-#if defined(__arm__)
-static inline fixed_t fixedmul(fixed_t x, fixed_t y)
-{
-    fixed_t __hi, __lo, __result;
-
-    __asm__ __volatile__(
-        "smull %0, %1, %3, %4\n\t"
-        "movs %0, %0, lsr %5\n\t"
-        "add %2, %0, %1, lsl %6"
-        : "=&r" (__lo), "=&r" (__hi), "=r" (__result)
-        : "%r" (x), "r" (y), "M" (FRAC_BITS), "M" (32 - (FRAC_BITS))
-        : "cc"
-    );
-
-    return __result;
-}
-#elif defined(__i386__) || defined(__x86_64__)
-//this improves fixed-point performance about 15-20% on x86
-static inline fixed_t fixedmul(fixed_t x, fixed_t y)
-{
-    fixed_t __hi, __lo;
-
-    __asm__ __volatile__(
-        "imull %3\n"
-        "shrdl %4, %1, %0"
-        : "=a"(__lo), "=d"(__hi)
-        : "%a"(x), "rm"(y), "I"(FRAC_BITS)
-        : "cc"
-    );
-
-    return __lo;
-}
-#else
-static inline fixed_t fixedmul(fixed_t x, fixed_t y)
-{
-    return fixed_t((int64_t(x) * y) >> FRAC_BITS);
-}
-#endif
-#elif defined(_WIN64) //x64 Windows
-static inline fixed_t fixedmul(fixed_t x, fixed_t y)
-{
-    return fixed_t((int64_t(x) * y) >> FRAC_BITS);
-}
-#else //inline assembly only support on x32 build
-static inline fixed_t fixedmul(fixed_t x, fixed_t y)
-{
-    __asm {
-        mov     eax, x
-        imul    y
-        shrd    eax, edx, FRAC_BITS
-    }
-    //eax is returned automatically
-}
-#endif
-
-//fixed divisor
-static inline fixed_t fixeddiv(fixed_t x, fixed_t y)
-{
-    return fixed_t((int64_t(x) << FRAC_BITS) / y);
-}
-
-//fixed round down
-static inline fixed_t fixedfloor(fixed_t x)
-{
-    return (x & INT_MASK);
-}
-
-//fixed round up
-static inline fixed_t fixedceil(fixed_t x)
-{
-    return (x & INT_MASK) + ((x & FRAC_MASK) ? FIXED_1 : 0);
-}
-
 //convert r,g,b values to 32bits integer value
-static inline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
+static __forceinline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
 {
     return (r << 16) | (g << 8) | b;
 }
 
 //merge rgb and alpha channel to packed color
-static inline uint32_t rgba(uint32_t col, uint8_t alpha)
+static __forceinline uint32_t rgba(uint32_t col, uint8_t alpha)
 {
     return (uint32_t(alpha) << 24) | col;
 }
 
 //HSL to RGB convert
-static inline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
+static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
 {
     double r = 0.0, g = 0.0, b = 0.0;
     double temp1 = 0.0, temp2 = 0.0;
@@ -735,11 +607,16 @@ static inline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
         else b = temp1;
     }
 
-    return rgb(uint8_t(r * 255), uint8_t(g * 255), uint8_t(b * 255));
+    uint32_t col = 0;
+    uint8_t* pcol = (uint8_t*)&col;
+    pcol[2] = uint8_t(r * 255);
+    pcol[1] = uint8_t(g * 255);
+    pcol[0] = uint8_t(b * 255);
+    return col;
 }
 
 //HSV to RGB convert
-static inline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
+static __forceinline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
 {
     double h = hi / 256.0;
     const double s = si / 256.0;
@@ -775,11 +652,16 @@ static inline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
         }
     }
 
-    return rgb(uint8_t(r * 255), uint8_t(g * 255), uint8_t(b * 255));
+    uint32_t col = 0;
+    uint8_t* pcol = (uint8_t*)&col;
+    pcol[2] = uint8_t(r * 255);
+    pcol[1] = uint8_t(g * 255);
+    pcol[0] = uint8_t(b * 255);
+    return col;
 }
 
 //converts an RGB color to HSV color
-static inline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
+static __forceinline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
 {
     double r = ri / 256.0;
     double g = gi / 256.0;
@@ -817,7 +699,7 @@ static inline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
 }
 
 //convert an RGB color to HSL color
-static inline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
+static __forceinline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
 {
     double r = ri / 255.0;
     double g = gi / 255.0;
@@ -851,43 +733,59 @@ static inline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
 }
 
 //generate random value from number
-static inline int32_t random(int32_t a)
+static __forceinline int32_t random(int32_t a)
 {
     return a ? rand() % a : 0;
 }
 
 //generate random value in range
-static inline int32_t random(int32_t a, int32_t b)
+static __forceinline int32_t random(int32_t a, int32_t b)
 {
     return (a < b) ? (a + (rand() % (b - a + 1))) : (b + (rand() % (a - b + 1)));
 }
 
 //generate double random in ranage
-static inline double frand(double fmin, double fmax)
+static __forceinline double frand(double fmin, double fmax)
 {
     const double fn = double(rand()) / RAND_MAX;
     return fmin + fn * (fmax - fmin);
 }
 
 //round-up function
-static inline int32_t roundf(double x)
+static __forceinline int32_t fround(double x)
 {
     return (x > 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
 //get source pixel
-static inline uint32_t clampOffset(const int32_t width, const int32_t height, int32_t x, int32_t y)
+static __forceinline uint32_t clampOffset(const int32_t width, const int32_t height, const int32_t x, const int32_t y)
 {
     //x-range check
-    x = clamp(x, 0, width - 1);
-    y = clamp(y, 0, height - 1);
+    const int32_t xx = clamp(x, 0, width - 1);
+    const int32_t yy = clamp(y, 0, height - 1);
 
-    //return image offset at (x,y)
-    return y * width + x;
+    //return offset at (x,y)
+    return yy * width + xx;
+}
+
+//smooth get pixel
+static __forceinline uint32_t smoothGetPixel(const uint32_t *psrc, const int32_t width, const int32_t height, const int32_t sx, const int32_t sy)
+{
+    int32_t lx = sx >> 16;
+    int32_t ly = sy >> 16;
+    const uint8_t* p0 = (const uint8_t*)&psrc[clampOffset(width, height, lx, ly)];
+    const uint8_t* p1 = (const uint8_t*)&psrc[clampOffset(width, height, lx + 1, ly)];
+
+    uint32_t col = 0;
+    uint8_t* pcol = (uint8_t*)&col;
+    pcol[2] = (p0[2] + p1[2]) >> 1;
+    pcol[1] = (p0[1] + p1[1]) >> 1;
+    pcol[0] = (p0[0] + p1[0]) >> 1;
+    return col;
 }
 
 //bicubic helper
-static inline float cubicHermite(float a, float b, float c, float d, float fract)
+static __forceinline float cubicHermite(const float a, const float b, const float c, const float d, const float fract)
 {
     const float aa = -a / 2.0f + 1.5f * b - 1.5f * c + d / 2.0f;
     const float bb = a - 2.5f * b + 2.0f * c - d / 2.0f;
@@ -896,7 +794,7 @@ static inline float cubicHermite(float a, float b, float c, float d, float fract
 }
 
 //calculate pixel by bicubic interpolation
-static inline uint32_t bicubicGetPixel(const uint32_t* psrc, const int32_t width, const int32_t height, const float sx, const float sy)
+static __forceinline uint32_t bicubicGetPixel(const uint32_t* psrc, const int32_t width, const int32_t height, const float sx, const float sy)
 {
     const int32_t px = int32_t(sx);
     const float fx = sx - int32_t(sx);
@@ -904,25 +802,18 @@ static inline uint32_t bicubicGetPixel(const uint32_t* psrc, const int32_t width
     const int32_t py = int32_t(sy);
     const float fy = sy - int32_t(sy);
 
-    //1st row
     const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
     const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
     const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
     const uint8_t* p30 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-
-    //2nd row
-    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py)];
-    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py)];
-    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py)];
-    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py)];
-
-    //2th row
+    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
+    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
     const uint8_t* p02 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
     const uint8_t* p12 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
     const uint8_t* p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
     const uint8_t* p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-
-    //4th row
     const uint8_t* p03 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
     const uint8_t* p13 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
     const uint8_t* p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
@@ -939,114 +830,106 @@ static inline uint32_t bicubicGetPixel(const uint32_t* psrc, const int32_t width
         const float col1 = cubicHermite(p01[i], p11[i], p21[i], p31[i], fx);
         const float col2 = cubicHermite(p02[i], p12[i], p22[i], p32[i], fx);
         const float col3 = cubicHermite(p03[i], p13[i], p23[i], p33[i], fx);
-        const uint8_t pcol = uint8_t(cubicHermite(col0, col1, col2, col3, fy));
+        const float pcol = cubicHermite(col0, col1, col2, col3, fy);
 
         //saturation check
-        pdst[i] = clamp(pcol, 0, 255);
+        pdst[i] = uint8_t(clamp(pcol, 0.0, 255.0));
     }
 
     return dst;
 }
 
-//bicubic helper FIXED-POINT mode (very slow)
-static inline fixed_t cubicHermiteFIXED(fixed_t a, fixed_t b, fixed_t c, fixed_t d, fixed_t fract)
+//bilinear get pixel with FIXED-POINT (signed 16.16)
+static __forceinline uint32_t bilinearGetPixelCenter(const uint32_t* col1, const uint32_t* col2, const uint32_t u, const uint32_t v)
 {
-    const fixed_t aa = fixeddiv(-a, ftofixed(2.0f)) + fixedmul(ftofixed(1.5f), b) - fixedmul(ftofixed(1.5f), c) + fixeddiv(d, ftofixed(2.0f));
-    const fixed_t bb = a - fixedmul(ftofixed(2.5f), b) + fixedmul(ftofixed(2.0f), c) - fixeddiv(d, ftofixed(2.0f));
-    const fixed_t cc = fixeddiv(-a, ftofixed(2.0f)) + fixeddiv(c, ftofixed(2.0f));
-    return fixedmul(fixedmul(fixedmul(aa, fract), fract), fract) + fixedmul(fixedmul(bb, fract), fract) + fixedmul(cc, fract) + b;
+    const uint32_t w3 = (u * v) >> 8;
+    const uint32_t w2 = u - w3;
+    const uint32_t w1 = v - w3;
+    const uint32_t w0 = 256 - w1 - w2 - w3;
+
+    //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
+    __m128i p12 = _mm_loadl_epi64((const __m128i*)col1);
+    __m128i p34 = _mm_loadl_epi64((const __m128i*)col2);
+
+    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
+    p12 = _mm_unpacklo_epi8(p12, p34);
+    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
+    p12 = _mm_unpacklo_epi8(p12, p34);
+
+    //extend to 16bits
+    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
+    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
+
+    //convert floating point weights to 16bits integer w4 w3 w2 w1
+    __m128i weight = _mm_set_epi32(w3, w1, w2, w0);
+
+    //make 32bit -> 2 x 16bits
+    weight = _mm_packs_epi32(weight, weight);
+
+    //rg = [w1*r1 + w2*r2 | w3*r3 + w4*r4 | w1*g1 + w2*g2 | w3*g3 + w4*g4]
+    rg = _mm_madd_epi16(rg, weight);
+
+    //ba = [w1*b1 + w2*b2 | w3*b3 + w4*b4 | w1*a1 + w2*a2 | w3*a3 + w4*a4]
+    ba = _mm_madd_epi16(ba, weight);
+
+    //horizontal add that will produce the output values (in 32bit)
+    weight = _mm_hadd_epi32(rg, ba);
+    weight = _mm_srli_epi32(weight, 8);
+
+    //convert 32bit->8bit
+    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
+    weight = _mm_packus_epi16(weight, _mm_setzero_si128());
+    return _mm_cvtsi128_si32(weight);
 }
 
-//calculate pixel by bicubic interpolation FIXED-POINT mode (very slow)
-static inline uint32_t bicubicGetPixelFIXED(const uint32_t* psrc, const int32_t width, const int32_t height, const float sx, const float sy)
-{
-    const int32_t px = int32_t(sx);
-    const fixed_t fx = ftofixed(sx) - itofixed(int32_t(sx));
-
-    const int32_t py = int32_t(sy);
-    const fixed_t fy = ftofixed(sy) - itofixed(int32_t(sy));
-
-    //1st row
-    const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
-    const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
-    const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
-    const uint8_t* p30 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-
-    //2nd row
-    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py)];
-    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py)];
-    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py)];
-    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py)];
-
-    //2th row
-    const uint8_t* p02 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
-    const uint8_t* p12 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
-    const uint8_t* p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
-    const uint8_t* p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-
-    //4th row
-    const uint8_t* p03 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
-    const uint8_t* p13 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
-    const uint8_t* p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
-    const uint8_t* p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
-
-    //mapping destination pointer
-    uint32_t dst = 0;
-    uint8_t* pdst = (uint8_t*)&dst;
-
-    //start interpolate bicubically
-    for (int32_t i = 0; i < 3; i++)
-    {
-        const fixed_t col0 = cubicHermiteFIXED(itofixed(p00[i]), itofixed(p10[i]), itofixed(p20[i]), itofixed(p30[i]), fx);
-        const fixed_t col1 = cubicHermiteFIXED(itofixed(p01[i]), itofixed(p11[i]), itofixed(p21[i]), itofixed(p31[i]), fx);
-        const fixed_t col2 = cubicHermiteFIXED(itofixed(p02[i]), itofixed(p12[i]), itofixed(p22[i]), itofixed(p32[i]), fx);
-        const fixed_t col3 = cubicHermiteFIXED(itofixed(p03[i]), itofixed(p13[i]), itofixed(p23[i]), itofixed(p33[i]), fx);
-        const int32_t val  = fixedtoi(cubicHermiteFIXED(col0, col1, col2, col3, fy));
-
-        //saturation check
-        pdst[i] = uint8_t(clamp(val, 0, 255));
-    }
-
-    return dst;
-}
-
-//bilinear get pixel with FIXED-POINT (optimize with FIXED-8)
-static inline uint32_t bilinearGetPixelFIXED(const uint32_t* psrc, const int32_t width, const float sx, const float sy)
+//bilinear get pixel with FIXED-POINT (signed 16.16)
+static __forceinline uint32_t bilinearGetPixelBorder(const uint32_t* psrc, const int32_t width, const int32_t height, const int32_t sx, const int32_t sy)
 {
     //convert to fixed point
-    const int32_t dx = int32_t(sx * 256);
-    const int32_t dy = int32_t(sy * 256);
-
-    //calculate fraction
-    const int32_t fx  = dx & 0xff;
-    const int32_t fy  = dy & 0xff;
-    const int32_t fx1 = 256 - fx;
-    const int32_t fy1 = 256 - fy;
-
-    //calculate the weights for each pixel
-    const int32_t w1 = (fx1 * fy1) >> 8;
-    const int32_t w2 = (fx  * fy1) >> 8;
-    const int32_t w3 = (fx1 *  fy) >> 8;
-    const int32_t w4 = (fx  *  fy) >> 8;
-
-    //pointer to first pixel
-    const uint32_t* p0 = &psrc[intptr_t(sy) * width + intptr_t(sx)];
+    const int32_t lx = sx >> 16;
+    const int32_t ly = sy >> 16;
+    const uint32_t u = uint16_t(sx) >> 8;
+    const uint32_t v = uint16_t(sy) >> 8;
 
     //load the 4 neighboring pixels
-    const uint8_t* p1 = (const uint8_t*)&p0[0];
-    const uint8_t* p2 = (const uint8_t*)&p0[1];
-    const uint8_t* p3 = (const uint8_t*)&p0[width];
-    const uint8_t* p4 = (const uint8_t*)&p0[width + 1];
+    uint32_t cols[4] = { 0 };
+    cols[0] = psrc[clampOffset(width, height, lx    , ly    )];
+    cols[1] = psrc[clampOffset(width, height, lx + 1, ly    )];
+    cols[2] = psrc[clampOffset(width, height, lx    , ly + 1)];
+    cols[3] = psrc[clampOffset(width, height, lx + 1, ly + 1)];
+    return bilinearGetPixelCenter(&cols[0], &cols[2], u, v);
+}
 
-    //mapping destination pointer
-    uint32_t col = 0;
-    uint8_t* pdst = (uint8_t*)&col;
+//bilinear get pixel with FIXED-POINT (signed 16.16)
+static __forceinline uint32_t bilinearGetPixelFixed(const uint32_t* psrc, const int32_t width, const int32_t height, const int32_t sx, const int32_t sy)
+{
+    //convert to fixed point
+    const int32_t lx = sx >> 16;
+    const int32_t ly = sy >> 16;
+    const uint32_t u = uint16_t(sx) >> 8;
+    const uint32_t v = uint16_t(sy) >> 8;
 
-    //sum of pixels with weighted (for each channel)
-    pdst[2] = (p1[2] * w1 + p2[2] * w2 + p3[2] * w3 + p4[2] * w4) >> 8;
-    pdst[1] = (p1[1] * w1 + p2[1] * w2 + p3[1] * w3 + p4[1] * w4) >> 8;
-    pdst[0] = (p1[0] * w1 + p2[0] * w2 + p3[0] * w3 + p4[0] * w4) >> 8;
-    return col;
+    //load the 4 neighboring pixels
+    const uint32_t p0 = psrc[clampOffset(width, height, lx    , ly    )];
+    const uint32_t p1 = psrc[clampOffset(width, height, lx + 1, ly    )];
+    const uint32_t p2 = psrc[clampOffset(width, height, lx    , ly + 1)];
+    const uint32_t p3 = psrc[clampOffset(width, height, lx + 1, ly + 1)];
+
+    //calculate the weights for each pixel
+    const uint32_t w3 = (u * v) >> 8;
+    const uint32_t w2 = u - w3;
+    const uint32_t w1 = v - w3;
+    const uint32_t w0 = 256 - w1 - w2 - w3;
+
+    uint32_t rb = (p0 & 0x00ff00ff) * w0;
+    uint32_t ga = ((p0 & 0xff00ff00) >> 8) * w0;
+    rb += (p1 & 0x00ff00ff) * w2;
+    ga += ((p1 & 0xff00ff00) >> 8) * w2;
+    rb += (p2 & 0x00ff00ff) * w1;
+    ga += ((p2 & 0xff00ff00) >> 8) * w1;
+    rb += (p3 & 0x00ff00ff) * w3;
+    ga += ((p3 & 0xff00ff00) >> 8) * w3;
+    return (ga & 0xff00ff00) | ((rb & 0xff00ff00) >> 8);
 }
 
 //constant values that will be needed
@@ -1054,13 +937,13 @@ static const __m128 CONST_1 = _mm_set_ps1(1);
 static const __m128 CONST_256 = _mm_set_ps1(256);
 
 //calculate weight of pixel at (x,y)
-static inline __m128 calcWeights(const float x, const float y)
+static __forceinline __m128 calcWeights(const float x, const float y)
 {
     __m128 xmm0 = _mm_set_ps1(x);
     __m128 xmm1 = _mm_set_ps1(y);
     __m128 xmm2 = _mm_unpacklo_ps(xmm0, xmm1);
 
-    xmm0 = _mm_cvtepi32_ps(_mm_cvttps_epi32(xmm2));
+    xmm0 = _mm_floor_ps(xmm2);
     xmm1 = _mm_sub_ps(xmm2, xmm0);
     xmm2 = _mm_sub_ps(CONST_1, xmm1);
 
@@ -1074,44 +957,166 @@ static inline __m128 calcWeights(const float x, const float y)
 }
 
 //get pixels bilinear with SSE2
-static inline uint32_t bilinearGetPixelSSE2(const uint32_t* img, const int32_t width, const float x, const float y)
+static __forceinline uint32_t bilinearGetPixelSSE2(const uint32_t* img, const int32_t width, const int32_t height, const float x, const float y)
 {
     //calculate offset at (x,y)
-    const uint32_t* p0 = &img[intptr_t(y) * width + intptr_t(x)];
+    const int32_t lx = int32_t(x);
+    const int32_t ly = int32_t(y);
+
+    //clamp 4 neighboring pixels
+    uint32_t pixels[4] = { 0 };
+    pixels[0] = img[clampOffset(width, height, lx    , ly    )];
+    pixels[1] = img[clampOffset(width, height, lx + 1, ly    )];
+    pixels[2] = img[clampOffset(width, height, lx    , ly + 1)];
+    pixels[3] = img[clampOffset(width, height, lx + 1, ly + 1)];
 
     //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
-    __m128i p12 = _mm_loadl_epi64((const __m128i*)&p0[0]);
-    __m128i p34 = _mm_loadl_epi64((const __m128i*)&p0[width]);
+    __m128i p12 = _mm_loadl_epi64((const __m128i*)&pixels[0]);
+    __m128i p34 = _mm_loadl_epi64((const __m128i*)&pixels[2]);
+
+    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
+    p12 = _mm_unpacklo_epi8(p12, p34);
+    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
+    p12 = _mm_unpacklo_epi8(p12, p34);
 
     //extend to 16bits
-    p12 = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
-    p34 = _mm_unpacklo_epi8(p34, _mm_setzero_si128());
+    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
+    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
 
-    //convert floating point weights to 16bits integer
+    //convert floating point weights to 16bits integer w4 w3 w2 w1
     __m128i weight = _mm_cvtps_epi32(calcWeights(x, y));
-    weight = _mm_packs_epi32(weight, _mm_setzero_si128());
 
-    //prepare the weights
-    __m128i w12 = _mm_shufflelo_epi16(weight, _MM_SHUFFLE(1, 1, 0, 0));
-    __m128i w34 = _mm_shufflelo_epi16(weight, _MM_SHUFFLE(3, 3, 2, 2));
+    //make 32bit -> 2 x 16bits
+    weight = _mm_packs_epi32(weight, weight);
 
-    //extend to 32bits
-    w12 = _mm_unpacklo_epi16(w12, w12);
-    w34 = _mm_unpacklo_epi16(w34, w34);
+    //rg = [w1*r1 + w2*r2 | w3*r3 + w4*r4 | w1*g1 + w2*g2 | w3*g3 + w4*g4]
+    rg = _mm_madd_epi16(rg, weight);
 
-    //multiply each pixel with its weight (2 pixel per SSE mul)
-    p12 = _mm_mullo_epi16(p12, w12);
-    p34 = _mm_mullo_epi16(p34, w34);
+    //ba = [w1*b1 + w2*b2 | w3*b3 + w4*b4 | w1*a1 + w2*a2 | w3*a3 + w4*a4]
+    ba = _mm_madd_epi16(ba, weight);
 
-    //sum the results
-    w12 = _mm_add_epi16(p12, p34);
-    w34 = _mm_shuffle_epi32(w12, _MM_SHUFFLE(3, 2, 3, 2));
-    weight = _mm_add_epi16(w12, w34);
+    //horizontal add that will produce the output values (in 32bit)
+    weight = _mm_hadd_epi32(rg, ba);
+    weight = _mm_srli_epi32(weight, 8);
 
-    //convert back to 8bits
-    weight = _mm_srli_epi16(weight, 8);
+    //convert 32bit->8bit
+    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
     weight = _mm_packus_epi16(weight, _mm_setzero_si128());
-
-    //return this pixels
     return _mm_cvtsi128_si32(weight);
+}
+
+//calculate function sin(x)/x replace for cubicHermite
+//so this will add to lookup table for speedup improvement
+static __forceinline double sinXDivX(const double b)
+{
+    const double a = -1;
+    const double x = (b < 0) ? -b : b;
+    const double x2 = x * x, x3 = x2 * x;
+
+    if (x <= 1) return (a + 2) * x3 - (a + 3) * x2 + 1;
+    else if (x <= 2) return a * x3 - (5 * a) * x2 + (8 * a) * x - (4 * a);
+    return 0;
+}
+
+//4 signed 32bits sum of bits of data (simulation for _mm_madd_epi32)
+static __forceinline int32_t _mm_hsum_epi32(const __m128i val)
+{
+    //_mm_extract_epi32 is slower
+    __m128i tmp = _mm_add_epi32(val, _mm_srli_si128(val, 8));
+    tmp = _mm_add_epi32(tmp, _mm_srli_si128(tmp, 4));
+    return _mm_cvtsi128_si32(tmp);
+}
+
+//this calculate pixel with boundary so quite slowly
+static __forceinline uint32_t bicubicGetPixelBorder(const uint32_t *psrc, const int32_t width, const int32_t height, const int16_t *sintab, const int32_t sx, const int32_t sy)
+{
+    //peek offset at (px,py)
+    const int32_t px = sx >> 16, py = sy >> 16;
+
+    //calculate around pixels
+    const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
+    const uint8_t *p01 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
+    const uint8_t *p02 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
+    const uint8_t *p03 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
+    const uint8_t *p10 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const uint8_t *p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
+    const uint8_t *p12 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const uint8_t *p13 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
+    const uint8_t *p20 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
+    const uint8_t *p21 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
+    const uint8_t *p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
+    const uint8_t *p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
+    const uint8_t *p30 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
+    const uint8_t *p31 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
+    const uint8_t *p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
+    const uint8_t *p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
+
+    //4 pixels weigths
+    const uint8_t u = sx >> 8, v = sy >> 8;
+    const int32_t u0 = sintab[255 + u], u1 = sintab[u];
+    const int32_t u2 = sintab[255 - u], u3 = sintab[511 - u];
+    const int32_t v0 = sintab[255 + v], v1 = sintab[v];
+    const int32_t v2 = sintab[255 - v], v3 = sintab[511 - v];
+
+    uint32_t dst = 0;
+    uint8_t* pdst = (uint8_t*)&dst;
+
+    //skip alpha channel
+    for (int32_t i = 0; i < 3; i++)
+    {
+        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
+        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
+        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
+        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p22[i] * u2 + p33[i] * u3) * v3;
+        pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+    }
+
+    return dst;
+}
+
+//fast calculate pixel at center, don't care boundary
+static __forceinline uint32_t bicubicGetPixelCenter(const uint32_t* psrc, const int32_t width, const int32_t stride, const int16_t* stable, const int32_t sx, const int32_t sy)
+{
+    //peek center pixel
+    const int32_t px = (sx >> 16) - 1, py = (sy >> 16) - 1;
+    const uint8_t *p00 = (const uint8_t*)&psrc[py * width + px];
+
+    //calculate around pixels
+    const uint8_t *p01 = p00 + 4;
+    const uint8_t *p02 = p01 + 4;
+    const uint8_t *p03 = p02 + 4;
+    const uint8_t *p10 = p00 + stride;
+    const uint8_t *p11 = p10 + 4;
+    const uint8_t *p12 = p11 + 4;
+    const uint8_t *p13 = p12 + 4;
+    const uint8_t *p20 = p10 + stride;
+    const uint8_t *p21 = p20 + 4;
+    const uint8_t *p22 = p21 + 4;
+    const uint8_t *p23 = p22 + 4;
+    const uint8_t *p30 = p20 + stride;
+    const uint8_t *p31 = p30 + 4;
+    const uint8_t *p32 = p31 + 4;
+    const uint8_t *p33 = p32 + 4;
+
+    //4 pixels weigths
+    const uint8_t u = sx >> 8, v = sy >> 8;
+    const int32_t u0 = stable[255 + u], u1 = stable[u];
+    const int32_t u2 = stable[255 - u], u3 = stable[511 - u];
+    const int32_t v0 = stable[255 + v], v1 = stable[v];
+    const int32_t v2 = stable[255 - v], v3 = stable[511 - v];
+
+    uint32_t dst = 0;
+    uint8_t* pdst = (uint8_t*)&dst;
+
+    //skip alpha channel
+    for (int32_t i = 0; i < 3; i++)
+    {
+        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
+        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
+        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
+        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p22[i] * u2 + p33[i] * u3) * v3;
+        pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+    }
+
+    return dst;
 }

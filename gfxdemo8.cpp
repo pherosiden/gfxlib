@@ -637,8 +637,8 @@ void graphDemo11()
 
     while (frames < 200 && !finished(SDL_SCANCODE_RETURN))
     {
-        const int32_t x = rand() % cmaxX;
-        const int32_t y = rand() % cmaxY;
+        const int32_t x = rand() % getMaxX();
+        const int32_t y = rand() % getMaxY();
         const int32_t col = (rand() % 4) << 6;
         for (int32_t i = 0; i < 64; i++) fillCircle(x + (64 - i) / 2, y + (64 - i) / 2, (64 - i) * 2, i + col);
         render();
@@ -657,17 +657,22 @@ void checkBounds(int32_t a, int32_t c, int32_t *b)
 void lineBob()
 {
     uint32_t frames = 0;
-    
-    int32_t x1 = rand() % texWidth;
-    int32_t x2 = rand() % texWidth;
-    int32_t y1 = rand() % texHeight;
-    int32_t y2 = rand() % texHeight;
+    const int32_t cwidth = getDrawBufferWidth();
+    const int32_t cheight = getDrawBufferHeight();
+
+    int32_t x1 = rand() % cwidth;
+    int32_t x2 = rand() % cwidth;
+    int32_t y1 = rand() % cheight;
+    int32_t y2 = rand() % cheight;
     
     int32_t dx1 = 1;
     int32_t dx2 = -1;
     int32_t dy1 = 1;
     int32_t dy2 = -1;
     
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
+
     while (frames < 5000 && !finished(SDL_SCANCODE_RETURN))
     {
         x1 += dx1;
@@ -698,6 +703,9 @@ void graphDemo13()
 
     makeLinearPalette();
     fillPolygon(points, 19, 50);
+
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
 
     for (int32_t j = 50; j < cmaxY - 50; j++)
     {
@@ -1192,7 +1200,11 @@ void affichage(int32_t range)
 
     char buff[80] = { 0 };
     const char *strTitle = "Shapes 3D Transform";
-    
+    const int32_t centerX = getCenterX();
+    const int32_t centerY = getCenterY();
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
+
     setFontType(1);
     const int32_t width = getFontWidth(strTitle);
     const int32_t height = getFontHeight(strTitle);
@@ -1246,7 +1258,7 @@ void scrollLed(const char *msg)
     int32_t i = 0, j = 0, k = 0, m = 0;
     const int32_t zx = 5, zy = 3, sy = 50;
 
-    drawRoundRect(0, sy, cmaxX - 1, gfxFonts[fontType].header.subData.height << 2, 50, 10);
+    drawRoundRect(0, sy, getMaxX() - 1, gfxFonts[fontType].header.subData.height << 2, 50, 10);
     
     while (!finished(SDL_SCANCODE_RETURN))
     {
@@ -1293,7 +1305,7 @@ void displaySprite(const char *fname)
 
     //load sprite bitmap
     if (!loadImage(fname, &spr)) return;
-    if (!loadImage(fbkg[bytesPerPixel - 1], &bkg)) return;
+    if (!loadImage(fbkg[getBytesPerPixel() - 1], &bkg)) return;
 
     //create screen buffers
     if (!newImage(bkg.mWidth, bkg.mHeight, &page1)) return;
@@ -1306,6 +1318,8 @@ void displaySprite(const char *fname)
     //save current render buffer
     int32_t oldWidth = 0, oldHeight = 0;
     void* oldBuffer = getDrawBuffer(&oldWidth, &oldHeight);
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
 
     while (frames < 220 && !finished(SDL_SCANCODE_RETURN))
     {
@@ -1422,8 +1436,11 @@ void displayPlasma()
     if (!newImage(160, 120, &src)) return;
 
     //scale palsma image buffer
-    if (!newImage(texWidth, texHeight, &dst)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
     initPlasma(sint, cost);
+
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
 
     //display plasma
     while (frames < 880 && !finished(SDL_SCANCODE_RETURN))
@@ -1452,7 +1469,7 @@ void displayPlasma()
     }
     setPalette(pal);
 
-    ypos = texHeight;
+    ypos = getDrawBufferHeight();
 
     //display scale image and scroll text
     do {
@@ -1512,6 +1529,11 @@ void gfxDemoMix()
     if (!initScreen(800, 600, 32, 0, "GFX-Demo8")) return;
     if (!loadFont("assets/fontvn.xfn", 0)) return;
 
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
+    const int32_t centerX = getCenterX();
+    const int32_t centerY = getCenterY();
+
     makeFont(msgLoading);
     writeText(centerX - (getFontWidth(msgLoading) >> 1), centerY - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
     render();
@@ -1531,8 +1553,8 @@ void gfxDemoMix()
 
     if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
     const int32_t introY = centerY - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
-    
-    switch (texWidth)
+
+    switch (getDrawBufferWidth())
     {
         case  640: ratio = 1.0;	 break;
         case  800: ratio = 1.25; break;

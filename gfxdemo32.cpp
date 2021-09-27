@@ -27,7 +27,7 @@ void runExit()
 {
     //capture current screen buffer
     GFX_IMAGE img = { 0 };
-    getImage(0, 0, texWidth, texHeight, &img);
+    getImage(0, 0, getDrawBufferWidth(), getDrawBufferHeight(), &img);
 
     //decrease rgb and push back to screen
     for (int32_t i = 0; i < 32; i++)
@@ -115,8 +115,8 @@ void runIntro()
     //initialize buffer
     GFX_IMAGE scr = { 0 }, wci = { 0 };
     GFX_IMAGE gxb = { 0 }, utb = { 0 }, trn = { 0 };
-    if (!newImage(texWidth, texHeight, &scr)) return;
-    if (!newImage(texWidth >> 1, texHeight >> 1, &trn)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &scr)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &trn)) return;
     if (!newImage(wcb.mWidth, wcb.mHeight, &wci)) return;
     if (!newImage(gfx.mWidth, gfx.mHeight, &gxb)) return;
     if (!newImage(ult.mWidth, ult.mHeight, &utb)) return;
@@ -144,12 +144,15 @@ void runIntro()
     uint8_t mov = 0;
 
     //start record time
-    uint32_t startTime = getTime();
+    const uint32_t startTime = getTime();
+    const int32_t centerX = getCenterX();
+    const int32_t centerY = getCenterY();
+
     do {
         //draw and scale buffer
-        uint32_t waitTime = getTime();
+        const uint32_t waitTime = getTime();
         drawTunnel(&trn, &map, buff1, buff2, &mov, 1);
-        scaleImage(&scr, &trn, 1);
+        scaleImage(&scr, &trn, INTERPOLATION_TYPE_NORMAL);
         
         //welcome message
         if ((getElapsedTime(startTime) / 1000 >= tw) && (i0 >= 0))
@@ -279,8 +282,8 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
     //initialize buffer
     if (!loadImage("assets/gfxspr.png", &img3)) return;
-    if (!newImage(texWidth >> 1, texHeight >> 1, &img1)) return;
-    if (!newImage(texWidth >> 1, texHeight >> 1, &img2)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &img1)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &img2)) return;
        
     //setup lookup table
     int32_t* tables = (int32_t*)calloc(img2.mWidth, sizeof(int32_t));
@@ -444,8 +447,8 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
 void runAntiAliased(int32_t sx, int32_t sy)
 {
     //save current midx, midy
-    const int32_t midx = texWidth >> 1;
-    const int32_t midy = texHeight >> 1;
+    const int32_t midx = getDrawBufferWidth() >> 1;
+    const int32_t midy = getDrawBufferHeight() >> 1;
 
     //initialize image buffer
     GFX_IMAGE img = { 0 }, dst = { 0 };
@@ -497,7 +500,10 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //load source image
     GFX_IMAGE scr = { 0 };
-    if (!newImage(texWidth, texHeight, &scr)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &scr)) return;
+    
+    const int32_t centerX = getCenterX();
+    const int32_t centerY = getCenterY();
 
     //current mouse pos and left button
     int32_t lmb = 0;
@@ -514,6 +520,11 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //redirect to image buffer
     changeDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
+
+    const int32_t cmaxX = getMaxX();
+    const int32_t cmaxY = getMaxY();
+    const int32_t cwidth = getDrawBufferWidth();
+
 
     //time for record FPS
     uint32_t time = 0, oldTime = 0;
@@ -537,7 +548,7 @@ void runLensFlare(GFX_IMAGE* outImg)
         }
 
         //put logo and draw text message
-        putImage(texWidth - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
+        putImage(cwidth - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
         writeText(tx, ty, rgb(255, 255, 255), 2, str);
 
         //timing for input and FPS counter
@@ -566,7 +577,10 @@ void runBumpImage()
 {
     //loading source image
     GFX_IMAGE dst = { 0 };
-    if (!newImage(texWidth, texHeight, &dst)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
+
+    const int32_t centerX = getCenterX();
+    const int32_t centerY = getCenterY();
 
     //loop until return
     int32_t cnt = 0;
@@ -599,8 +613,8 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     for (int32_t y = 0; y < 256; y++) sinx[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
     GFX_IMAGE plasma = { 0 }, screen = { 0 };
-    if (!newImage(texWidth >> 2, texHeight >> 2, &plasma)) return;
-    if (!newImage(texWidth >> 1, texHeight >> 1, &screen)) return;
+    if (!newImage(getDrawBufferWidth() >> 2, getDrawBufferHeight() >> 2, &plasma)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &screen)) return;
 
     uint32_t frames = 0;
     uint32_t* data = (uint32_t*)plasma.mData;
@@ -708,7 +722,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         }
 
         //bilinear scale plasma buffer
-        scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BILINEAR);
+        scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BICUBIC);
         putImage(sx, sy, &screen);
         render();
         delay(FPS_60);
@@ -727,6 +741,12 @@ void gfxDemo()
 
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(800, 600, 32, 0, "GFXLIB-Demo32")) return;
+
+    const int32_t centerX = getCenterX();
+    const int32_t centerY = getCenterY();
+    const int32_t cwidth = getDrawBufferWidth();
+    const int32_t cheight = getDrawBufferHeight();
+
     writeText(centerX - 8 * (int32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY127, 2, initMsg);
     render();
 
@@ -747,16 +767,16 @@ void gfxDemo()
 
     runIntro();
     putImage(0, 0, &bg);
-    putImage(texWidth - gfxlogo.mWidth + 1, texHeight - gfxlogo.mHeight + 1, &gfxlogo, BLEND_MODE_ALPHA);
+    putImage(cwidth - gfxlogo.mWidth + 1, cheight - gfxlogo.mHeight + 1, &gfxlogo, BLEND_MODE_ALPHA);
 
     GFX_IMAGE txt = { 0 };
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
     
     fillRectPattern(10, 10, xc - 19, yc - 19, RGB_GREY32, ptnHatchX, BLEND_MODE_ADD);
-    fillRect(10, yc, xc - 19, cmaxY - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
+    fillRect(10, yc, xc - 19, getMaxY() - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
     fillRect(20, 20, xc - 39, yc - 39, 0);
-    getImage(10, yc, xc - 19, cmaxY - yc - 9, &txt);
+    getImage(10, yc, xc - 19, getMaxY() - yc - 9, &txt);
 
     writeText(xc + 10,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
     writeText(xc + 10, 90, RGB_GREY127, 2, "A short show of some abilities");
@@ -874,12 +894,12 @@ void gfxDemo()
     fillRect(20, 20, xc - 39, yc - 39, 0);
 
     GFX_IMAGE scr = { 0 };
-    getImage(0, 0, texWidth, texHeight, &scr);
+    getImage(0, 0, cwidth, cheight, &scr);
     runBumpImage();
 
     GFX_IMAGE old = { 0 }, im = { 0 };
-    getImage(0, 0, texWidth, texHeight, &old);
-    newImage(texWidth >> 1, texHeight >> 1, &im);
+    getImage(0, 0, cwidth, cheight, &old);
+    newImage(cwidth >> 1, cheight >> 1, &im);
     scaleImage(&im, &old, 0);
     putImage(0, 0, &scr);
     putImage(20, 20, &im);

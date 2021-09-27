@@ -34,18 +34,23 @@ namespace juliaSet {
     {
         if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Julia-Set Demo")) return;
 
-        const int32_t mwidth = texWidth >> 1;
-        const int32_t mheight = texHeight >> 1;
-        uint8_t* pixels = (uint8_t*)getDrawBuffer();
+        int32_t mwidth = 0, mheight = 0;
+        uint8_t* pixels = (uint8_t*)getDrawBuffer(&mwidth, &mheight);
         if (!pixels) return;
 
-        for (int32_t y = 0; y < texHeight; y++)
+        mwidth >>= 1;
+        mheight >>= 1;
+
+        const int32_t cwidth = getDrawBufferWidth();
+        const int32_t cheight = getDrawBufferHeight();
+
+        for (int32_t y = 0; y < cheight; y++)
         {
-            for (int32_t x = 0; x < texWidth; x++)
+            for (int32_t x = 0; x < cwidth; x++)
             {
                 int32_t i = 0;
-                double newre = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
-                double newim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
+                double newre = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + mx;
+                double newim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -72,22 +77,26 @@ namespace juliaSet {
     {
         if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Mandelbrot-Set")) return;
 
-        uint8_t* pixels = (uint8_t*)getDrawBuffer();
+        int32_t mwidth = 0, mheight = 0;
+        uint8_t* pixels = (uint8_t*)getDrawBuffer(&mwidth, &mheight);
         if (!pixels) return;
 
-        const int32_t mwidth = texWidth >> 1;
-        const int32_t mheight = texHeight >> 1;
+        mwidth >>= 1;
+        mheight >>= 1;
 
-        for (int32_t y = 0; y < texHeight; y++)
+        const int32_t cwidth = getDrawBufferWidth();
+        const int32_t cheight = getDrawBufferHeight();
+
+        for (int32_t y = 0; y < cheight; y++)
         {
-            for (int32_t x = 0; x < texWidth; x++)
+            for (int32_t x = 0; x < cwidth; x++)
             {
                 int32_t i = 0;
                 double newre = 0;
                 double newim = 0;
 
-                const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * texWidth) + mx;
-                const double pi = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * texHeight) + my;
+                const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + mx;
+                const double pi = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -9364,8 +9373,8 @@ namespace kaleidoScope {
     {
         if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope")) return;
 
-        const int16_t cx = texWidth >> 1;
-        const int16_t cy = texHeight >> 1;
+        const int16_t cx = getDrawBufferWidth() >> 1;
+        const int16_t cy = getDrawBufferHeight() >> 1;
         const int16_t md = cy;
 
         int16_t hc = random(END_COLOR - START_COLOR);
@@ -9528,8 +9537,8 @@ namespace kaleidoScope2 {
 
         if (mode) makeRainbowPalette();
 
-        const int32_t cx = centerX;
-        const int32_t cy = centerY;
+        const int32_t cx = getCenterX();
+        const int32_t cy = getCenterY();
         const int32_t md = cy;
 
         do
@@ -9629,6 +9638,9 @@ namespace fastCircleFill {
         makePalette(128, 16, 16, 63);
         makePalette(128 + 64, 63, 16, 16);
         setPalette(pal);
+        
+        const int32_t cmaxX = getMaxX();
+        const int32_t cmaxY = getMaxY();
 
         do {
             const uint32_t x = rand() % cmaxX;
@@ -10452,10 +10464,15 @@ namespace lineBobEffect {
 
     void lineBob(uint32_t cnt)
     {
-        int32_t x1 = rand() % texWidth;
-        int32_t x2 = rand() % texWidth;
-        int32_t y1 = rand() % texHeight;
-        int32_t y2 = rand() % texHeight;
+        const int32_t cmaxX = getMaxX();
+        const int32_t cmaxY = getMaxY();
+        const int32_t cwidth = getDrawBufferWidth();
+        const int32_t cheight = getDrawBufferHeight();
+
+        int32_t x1 = rand() % cwidth;
+        int32_t x2 = rand() % cwidth;
+        int32_t y1 = rand() % cheight;
+        int32_t y2 = rand() % cheight;
 
         int32_t dx1 = 1;
         int32_t dx2 = -1;

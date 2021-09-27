@@ -15,7 +15,7 @@ double cre = 0;
 //max iterations (default value should be 255)
 int32_t iterations = 255;
 
-void mandelbrot_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotFloat(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     for (int32_t y = ys; y < py; y++)
     {
@@ -39,7 +39,7 @@ void mandelbrot_float(uint32_t* out, double mx, double my, double scale, int32_t
     }
 }
 
-void mandelbrot_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotDouble(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     for (int32_t y = ys; y < py; y++)
     {
@@ -63,7 +63,7 @@ void mandelbrot_double(uint32_t* out, double mx, double my, double scale, int32_
     }
 }
 
-void julia_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaFloat(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     for (int32_t y = ys; y < py; y++)
     {
@@ -87,7 +87,7 @@ void julia_float(uint32_t* out, double mx, double my, double scale, int32_t ys, 
     }
 }
 
-void julia_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaDouble(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     for (int32_t y = ys; y < py; y++)
     {
@@ -111,7 +111,7 @@ void julia_double(uint32_t* out, double mx, double my, double scale, int32_t ys,
     }
 }
 
-void mandelbrot_sse_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotFloatSSE(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m128 dd = _mm_set1_ps(float(scale));
     const __m128 tx = _mm_set1_ps(float(mx));
@@ -155,7 +155,7 @@ void mandelbrot_sse_float(uint32_t* out, double mx, double my, double scale, int
     }
 }
 
-void mandelbrot_sse_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotDoubleSSE2(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m128d dd = _mm_set1_pd(scale);
     const __m128d tx = _mm_set1_pd(mx);
@@ -197,7 +197,7 @@ void mandelbrot_sse_double(uint32_t* out, double mx, double my, double scale, in
     }
 }
 
-void julia_sse_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaFloatSSE(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m128 xim = _mm_set1_ps(float(cim));
     const __m128 xre = _mm_set1_ps(float(cre));
@@ -244,7 +244,7 @@ void julia_sse_float(uint32_t* out, double mx, double my, double scale, int32_t 
     }
 }
 
-void julia_sse_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaDoubleSSE2(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m128d xim = _mm_set1_pd(cim);
     const __m128d xre = _mm_set1_pd(cre);
@@ -289,7 +289,7 @@ void julia_sse_double(uint32_t* out, double mx, double my, double scale, int32_t
     }
 }
 
-void mandelbrot_avx_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotFloatAVX(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256 dd = _mm256_set1_ps(float(scale));
     const __m256 tx = _mm256_set1_ps(float(mx));
@@ -337,7 +337,7 @@ void mandelbrot_avx_float(uint32_t* out, double mx, double my, double scale, int
     }
 }
 
-void mandelbrot_avx_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotDoubleAVX(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256d dd = _mm256_set1_pd(scale);
     const __m256d tx = _mm256_set1_pd(mx);
@@ -381,7 +381,7 @@ void mandelbrot_avx_double(uint32_t* out, double mx, double my, double scale, in
     }
 }
 
-void julia_avx_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaFloatAVX(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256 xim = _mm256_set1_ps(float(cim));
     const __m256 xre = _mm256_set1_ps(float(cre));
@@ -432,7 +432,7 @@ void julia_avx_float(uint32_t* out, double mx, double my, double scale, int32_t 
     }
 }
 
-void julia_avx_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaDoubleAVX(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256d xim = _mm256_set1_pd(cim);
     const __m256d xre = _mm256_set1_pd(cre);
@@ -479,7 +479,7 @@ void julia_avx_double(uint32_t* out, double mx, double my, double scale, int32_t
     }
 }
 
-void mandelbrot_avx2_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotFloatAVX2(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256 dd = _mm256_set1_ps(float(scale));
     const __m256 tx = _mm256_set1_ps(float(mx));
@@ -527,7 +527,7 @@ void mandelbrot_avx2_float(uint32_t* out, double mx, double my, double scale, in
     }
 }
 
-void mandelbrot_avx2_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotDoubleAVX2(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256d dd = _mm256_set1_pd(scale);
     const __m256d tx = _mm256_set1_pd(mx);
@@ -571,7 +571,7 @@ void mandelbrot_avx2_double(uint32_t* out, double mx, double my, double scale, i
     }
 }
 
-void julia_avx2_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaFloatAVX2(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256 xim = _mm256_set1_ps(float(cim));
     const __m256 xre = _mm256_set1_ps(float(cre));
@@ -622,7 +622,7 @@ void julia_avx2_float(uint32_t* out, double mx, double my, double scale, int32_t
     }
 }
 
-void julia_avx2_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaDoubleAVX2(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256d xim = _mm256_set1_pd(cim);
     const __m256d xre = _mm256_set1_pd(cre);
@@ -669,7 +669,7 @@ void julia_avx2_double(uint32_t* out, double mx, double my, double scale, int32_
     }
 }
 
-void mandelbrot_fma_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotFloatFMA(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256 dd = _mm256_set1_ps(float(scale));
     const __m256 tx = _mm256_set1_ps(float(mx));
@@ -716,7 +716,7 @@ void mandelbrot_fma_float(uint32_t* out, double mx, double my, double scale, int
     }
 }
 
-void mandelbrot_fma_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void mandelbrotDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256d dd = _mm256_set1_pd(scale);
     const __m256d tx = _mm256_set1_pd(mx);
@@ -759,7 +759,7 @@ void mandelbrot_fma_double(uint32_t* out, double mx, double my, double scale, in
     }
 }
 
-void julia_fma_float(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaFloatFMA(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256 xim = _mm256_set1_ps(float(cim));
     const __m256 xre = _mm256_set1_ps(float(cre));
@@ -809,7 +809,7 @@ void julia_fma_float(uint32_t* out, double mx, double my, double scale, int32_t 
     }
 }
 
-void julia_fma_double(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
+void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     const __m256d xim = _mm256_set1_pd(cim);
     const __m256d xre = _mm256_set1_pd(cre);
@@ -864,13 +864,13 @@ const char* methodNames[20] = { 0 };
 int32_t funcCounts[2] = { 0 };
 int32_t funcIndexs[2] = { 0 };
 
+bool fractType = true;
 bool fullModes[2] = { 0 };
 
-bool fractType = true;
+double scale = 0;
 
 double xx = 0;
 double yy = 0;
-double scale = 0;
 
 int32_t cx = 0;
 int32_t cy = 0;
@@ -906,68 +906,68 @@ void initFunctions(int32_t type)
     if (type)
     {
         int32_t i = 0;
-        funcs[type][i] = julia_float;
+        funcs[type][i] = juliaFloat;
         methodNames[i] = "float";
         if (fullModes[type]) i++;
 
         if (sse42)
         {
-            funcs[1][i] = julia_sse_float;
+            funcs[1][i] = juliaFloatSSE;
             methodNames[i] = "float SSE";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx)
         {
-            funcs[type][i] = julia_avx_float;
+            funcs[type][i] = juliaFloatAVX;
             methodNames[i] = "float AVX";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
-            funcs[type][i] = julia_avx2_float;
+            funcs[type][i] = juliaFloatAVX2;
             methodNames[i] = "float AVX2";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
-            funcs[type][i] = julia_fma_float;
+            funcs[type][i] = juliaFloatFMA;
             methodNames[i] = "float FMA";
             if (fullModes[type]) i++;
         }
 
         if (!fullModes[type]) i++;
 
-        funcs[type][i] = julia_double;
+        funcs[type][i] = juliaDouble;
         methodNames[i] = "double";
         if (fullModes[type]) i++;
 
         if (sse42)
         {
-            funcs[type][i] = julia_sse_double;
+            funcs[type][i] = juliaDoubleSSE2;
             methodNames[i] = "double SSE";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx)
         {
-            funcs[type][i] = julia_avx_double;
+            funcs[type][i] = juliaDoubleAVX;
             methodNames[i] = "double AVX";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
-            funcs[type][i] = julia_avx2_double;
+            funcs[type][i] = juliaDoubleAVX2;
             methodNames[i] = "double AVX2";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
-            funcs[type][i] = julia_fma_double;
+            funcs[type][i] = juliaDoubleFMA;
             methodNames[i] = "double FMA";
             if (fullModes[type]) i++;
         }
@@ -981,68 +981,68 @@ void initFunctions(int32_t type)
     else
     {
         int32_t i = 0;
-        funcs[type][i] = mandelbrot_float;
+        funcs[type][i] = mandelbrotFloat;
         methodNames[i] = "float";
         if (fullModes[type]) i++;
 
         if (sse42)
         {
-            funcs[1][i] = mandelbrot_sse_float;
+            funcs[1][i] = mandelbrotFloatSSE;
             methodNames[i] = "float SSE";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx)
         {
-            funcs[type][i] = mandelbrot_avx_float;
+            funcs[type][i] = mandelbrotFloatAVX;
             methodNames[i] = "float AVX";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
-            funcs[type][i] = mandelbrot_avx2_float;
+            funcs[type][i] = mandelbrotFloatAVX2;
             methodNames[i] = "float AVX2";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
-            funcs[type][i] = mandelbrot_fma_float;
+            funcs[type][i] = mandelbrotFloatFMA;
             methodNames[i] = "float FMA";
             if (fullModes[type]) i++;
         }
 
         if (!fullModes[type]) i++;
 
-        funcs[type][i] = mandelbrot_double;
+        funcs[type][i] = mandelbrotDouble;
         methodNames[i] = "double";
         if (fullModes[type]) i++;
 
         if (sse42)
         {
-            funcs[type][i] = mandelbrot_sse_double;
+            funcs[type][i] = mandelbrotDoubleSSE2;
             methodNames[i] = "double SSE";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx)
         {
-            funcs[type][i] = mandelbrot_avx_double;
+            funcs[type][i] = mandelbrotDoubleAVX;
             methodNames[i] = "double AVX";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
-            funcs[type][i] = mandelbrot_avx2_double;
+            funcs[type][i] = mandelbrotDoubleAVX2;
             methodNames[i] = "double AVX2";
             if (fullModes[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
-            funcs[type][i] = mandelbrot_fma_double;
+            funcs[type][i] = mandelbrotDoubleFMA;
             methodNames[i] = "double FMA";
             if (fullModes[type]) i++;
         }
@@ -1055,12 +1055,12 @@ void initFunctions(int32_t type)
     }
 }
 
-int32_t align(int32_t num)
+int32_t alignSize(int32_t num)
 {
     return (num + 7) & ~7;
 }
 
-void initBorders(int32_t sx, int32_t sy)
+void initFractals(int32_t sx, int32_t sy)
 {
     double added = 0;
     const double xscale = 3.0 / sx;
@@ -1083,11 +1083,9 @@ void initBorders(int32_t sx, int32_t sy)
     iterations = 255;
 }
 
-void allocData()
+void allocBuffer()
 {
-    const uint32_t MB = 1024 * 1024;
-    uint32_t size = align(cx) * cy * bytesPerPixel;
-    size = (size + MB - 1) & ~(MB - 1);
+    const uint32_t size = alignSize(cx) * cy * getBytesPerPixel();
     if (size > dataSize)
     {
         uint32_t* pdata = NULL;
@@ -1100,12 +1098,12 @@ void allocData()
     }
 }
 
-volatile long yprocessed = 0;
 const int32_t yadd = 32;
+volatile long yprocessed = 0;
 
 DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 {
-    int32_t acx = align(cx);
+    int32_t acx = alignSize(cx);
     while (true)
     {
         int32_t y0 = InterlockedAdd(&yprocessed, yadd) - yadd;
@@ -1147,30 +1145,31 @@ void gfxFractals()
 
     initThreads();
     initFunctions(fractType);
-    initBorders(texWidth, texHeight);
-    
-    clock_t t1 = 0, t2 = 0;
-    int32_t input = 0;
-    uint32_t acx = 0;
+    initFractals(getDrawBufferWidth(), getDrawBufferHeight());
 
     bool redraw = true;
     bool mouseDown = false;
+
     int32_t msx = 0, msy = 0;
-    int32_t wheelm = 0;
+    int32_t input = 0, dataY = 0;
 
     SDL_Cursor* oldCursor = SDL_GetCursor();
     SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    if (!handCursor)
+    {
+        messageBox(GFX_ERROR, "Error create hand cursor:%s!", SDL_GetError());
+        return;
+    }
 
     do {
-
         //only draw when needed
         if (redraw)
         {
-            acx = align(cx);
-            allocData();
-            t1 = clock();
+            uint32_t acx = alignSize(cx);
+            allocBuffer();
+            clock_t t1 = clock();
             calculateMultiThread();
-            t2 = clock();
+            clock_t t2 = clock();
 
             //we use render user-defined buffer
             renderBuffer(data, acx, cy);
@@ -1268,7 +1267,7 @@ void gfxFractals()
 
         case SDL_SCANCODE_S:
             fractType = !fractType;
-            initBorders(texWidth, texHeight);
+            initFractals(getDrawBufferWidth(), getDrawBufferHeight());
             initFunctions(fractType);
             redraw = true;
             break;
@@ -1284,49 +1283,50 @@ void gfxFractals()
             break;
 
         case SDL_SCANCODE_1:
-            if (fractType) cim += 0.00002;
+            if (fractType) cim += 0.0002;
             redraw = true;
             break;
 
         case SDL_SCANCODE_2:
-            if (fractType) cim -= 0.00002;
+            if (fractType) cim -= 0.0002;
             redraw = true;
             break;
 
         case SDL_SCANCODE_3:
-            if (fractType) cre += 0.00002;
+            if (fractType) cre += 0.0002;
             redraw = true;
             break;
 
         case SDL_SCANCODE_4:
-            if (fractType) cre -= 0.00002;
+            if (fractType) cre -= 0.0002;
             redraw = true;
             break;
         
         case SDL_WINDOWEVENT_RESIZED:
-            cx = winSizeX;
-            cy = winSizeY;
+            cx = getInputDataX();
+            cy = getInputDataY();
             redraw = true;
             break;
 
         case SDL_MOUSEWHEEL:
-            wheelm = mouseWheelY;
-            while (wheelm > 0)
+            dataY = getInputDataY();
+            while (dataY > 0)
             {
                 setScale(scale / 1.1);
-                wheelm--;
+                dataY--;
             }
-            while (wheelm < 0)
+            while (dataY < 0)
             {
                 setScale(scale * 1.1);
-                wheelm++;
+                dataY++;
             }
             redraw = true;
             break;
 
         case SDL_MOUSEBUTTONDOWN:
             mouseDown = true;
-            getMouseState(&msx, &msy);
+            msx = getInputDataX();
+            msy = getInputDataY();
             SDL_SetCursor(handCursor);
             break;
 
@@ -1338,9 +1338,11 @@ void gfxFractals()
         case SDL_MOUSEMOTION:
             if (mouseDown)
             {
-                shift(double(msx) - mousePosX, double(msy) - mousePosY);
-                msx = mousePosX;
-                msy = mousePosY;
+                const int32_t ptx = getInputDataX();
+                const int32_t pty = getInputDataY();
+                shift(double(msx) - ptx, double(msy) - pty);
+                msx = ptx;
+                msy = pty;
                 redraw = true;
             }
             break;
