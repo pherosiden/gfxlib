@@ -424,6 +424,10 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
     //start angle
     uint32_t degree = 0;
 
+    int16_t *stable = (int16_t*)calloc(512, sizeof(int16_t));
+    if (!stable) return;
+    for (int32_t i = 0; i < 512; i++) stable[i] = fround(256.0f * sinXDivX(i / 256.0f));
+
     //loop until return
     while (!finished(SDL_SCANCODE_RETURN))
     {
@@ -434,13 +438,14 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
         //rotate buffer
-        rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BILINEAR);
+        rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BICUBIC, stable);
         putImage(sx, sy, &img);
         render();
         delay(FPS_60);
     }
-
+    
     //cleanup...
+    free(stable);
     freeImage(&img);
 }
 
@@ -746,12 +751,15 @@ void gfxDemo()
     const int32_t centerY = getCenterY();
     const int32_t cwidth = getDrawBufferWidth();
     const int32_t cheight = getDrawBufferHeight();
-
-    writeText(centerX - 8 * (int32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY127, 2, initMsg);
+    
+    writeText(centerX - 8 * (int32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY191, 2, initMsg);
     render();
-
-    initSystemInfo();
-
+    if (!initSystemInfo())
+    {
+        cleanup();
+        return;
+    }
+    
     GFX_IMAGE bg = { 0 };
     if (!loadImage("assets/gfxbg5.png", &bg)) return;
     if (!loadImage("assets/gfxbumpchn.png", &bumpchn)) return;
@@ -853,7 +861,7 @@ void gfxDemo()
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "This is an image rotation. The responsible routine");
-    showText(10, yc, &txt, "for this is called BilinearRotateImage. It doesn't");
+    showText(10, yc, &txt, "for this is called BicubicRotateImage. It doesn't");
     showText(10, yc, &txt, "seem to be very fast here, but in this demo the");
     showText(10, yc, &txt, "rotation is an optimize version of bilinear image");
     showText(10, yc, &txt, "interpolation. You can reach on a INTEL MMX-133 up");

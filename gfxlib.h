@@ -370,7 +370,7 @@ int32_t     getInputDataY();
 void        randomBuffer(void* buff, int32_t count, int32_t range);
 
 //system info
-void        initSystemInfo();
+int32_t     initSystemInfo();
 uint32_t    getTotalMemory();
 uint32_t    getAvailableMemory();
 
@@ -483,7 +483,7 @@ void        putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, i
 
 //image interpolation
 void        scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type = INTERPOLATION_TYPE_SMOOTH);
-void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type = INTERPOLATION_TYPE_SMOOTH);
+void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type = INTERPOLATION_TYPE_SMOOTH, int16_t* stable = NULL);
 
 //palette function (use for mixed mode - 256 colors)
 void        getPalette(RGB* pal);

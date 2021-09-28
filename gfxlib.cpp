@@ -1303,7 +1303,6 @@ void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
         shl         eax, 2
         mov         edi, drawBuff
         add         edi, eax
-        
         movd        mm0, color
         mov         ecx, sx
         shr         ecx, 1
@@ -7065,10 +7064,10 @@ void bicubicScaleImageSSE2(GFX_IMAGE* dst, GFX_IMAGE* src)
     const int32_t dsth = dst->mHeight;
     uint32_t* pdst = (uint32_t*)dst->mData;
 
-    int16_t *stable = (int16_t*)malloc(512 * sizeof(int16_t));
+    int16_t *stable = (int16_t*)calloc(512, sizeof(int16_t));
     if (!stable) return;
 
-    int16_t *wtable = (int16_t*)malloc(4 * sizeof(int16_t) * dstw);
+    int16_t *wtable = (int16_t*)calloc(4, sizeof(int16_t) * dstw);
     if (!wtable)
     {
         free(stable);
@@ -7254,37 +7253,40 @@ void rotateImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     uint8_t* pdst = dst->mData;
     const uint8_t* psrc = src->mData;
 
-    //calculate haft dimension
-    const int32_t width = src->mWidth;
-    const int32_t height = src->mHeight;
-    const int32_t tx = width >> 1;
-    const int32_t ty = height >> 1;
+    const int32_t dstW = dst->mWidth;
+    const int32_t dstX = dstW >> 1;
+    const int32_t dstH = dst->mHeight;
+    const int32_t dstY = dstH >> 1;
 
-    //convert to radian
-    const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
+    const int32_t srcW = src->mWidth;
+    const int32_t srcX = srcW << 15;
+    const int32_t srcH = src->mHeight;
+    const int32_t srcY = srcH << 15;
+    const int32_t srcCW = (srcW - 1) << 16;
+    const int32_t srcCH = (srcH - 1) << 16;
 
-    //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
+    const double alpha = (angle * M_PI) / 180;
+    const int32_t duCol = fround(sin(alpha) * 65536);
+    const int32_t dvCol = fround(cos(alpha) * 65536);
+    const int32_t duRow = dvCol;
+    const int32_t dvRow = -duCol;
+
+    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
+    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+
+    int32_t rowU = startU;
+    int32_t rowV = startV;
+
+    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
     {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
+        int32_t su = rowU, sv = rowV;
+        uint8_t* pline = pdst;
+        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
         {
-            //calculate bilinear pixel, using FIXED-POINT (fixed value 256)
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1)
-            {
-                const int32_t dx = int32_t(sx * 256); //convert to fixed point
-                const int32_t dy = int32_t(sy * 256); //convert to fixed point
-                const int32_t px = (dx & -256) >> 8;  //floor of x
-                const int32_t py = (dy & -256) >> 8;  //floor of y
-                *pdst = psrc[py * width + px];
-            }
-            pdst++;
+            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = psrc[(sv >> 16) * srcW + (su >> 16)];
+            pline++;
         }
+        pdst += dstW;
     }
 }
 
@@ -7298,37 +7300,45 @@ void nearestRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    //calculate haft dimension
-    const int32_t width = src->mWidth;
-    const int32_t height = src->mHeight;
-    const int32_t tx = width >> 1;
-    const int32_t ty = height >> 1;
+    const int32_t dstW = dst->mWidth;
+    const int32_t dstX = dstW >> 1;
+    const int32_t dstH = dst->mHeight;
+    const int32_t dstY = dstH >> 1;
 
-    //convert to radian
-    const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
+    const int32_t srcW = src->mWidth;
+    const int32_t srcX = srcW << 15;
+    const int32_t srcH = src->mHeight;
+    const int32_t srcY = srcH << 15;
+    const int32_t srcCW = (srcW - 1) << 16;
+    const int32_t srcCH = (srcH - 1) << 16;
 
-    //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
+    const double alpha = (angle * M_PI) / 180;
+    const int32_t duCol = fround(sin(alpha) * 65536);
+    const int32_t dvCol = fround(cos(alpha) * 65536);
+    const int32_t duRow = dvCol;
+    const int32_t dvRow = -duCol;
+
+    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
+    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+
+    int32_t rowU = startU;
+    int32_t rowV = startV;
+
+    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
     {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
+        int32_t su = rowU, sv = rowV;
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
         {
-            //calculate bilinear pixel, using FIXED-POINT (fixed value 256)
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1)
+            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH)
             {
-                const int32_t dx = int32_t(sx * 256); //convert to fixed point
-                const int32_t dy = int32_t(sy * 256); //convert to fixed point
-                const int32_t px = (dx & -256) >> 8;  //floor of x
-                const int32_t py = (dy & -256) >> 8;  //floor of y
-                *pdst = psrc[py * width + px];
+                const int32_t sx = su >> 16;
+                const int32_t sy = sv >> 16;
+                *pline = psrc[srcW * sy + sx];
             }
-            pdst++;
+            pline++;
         }
+        pdst += dstW;
     }
 }
 
@@ -7339,86 +7349,43 @@ void smoothRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     if (bitsPerPixel <= 8) return;
 
     //cast to image data
-    uint8_t* pdst = (uint8_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
-
-    //calculate haft dimension
-    const int32_t width = src->mWidth;
-    const int32_t height = src->mHeight;
-    const int32_t tx = width >> 1;
-    const int32_t ty = height >> 1;
-
-    //convert to radian
-    const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
-
-    //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
-    {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
-        {
-            //calculate bilinear pixel, using FIXED-POINT (fixed value 256)
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1)
-            {
-                const int32_t dx = int32_t(sx * 256); //convert to fixed point
-                const int32_t dy = int32_t(sy * 256); //convert to fixed point
-                const int32_t px = (dx & -256) >> 8;  //floor of x
-                const int32_t py = (dy & -256) >> 8;  //floor of y
-
-                //calculate pixel offset
-                const uint8_t* pa = (const uint8_t*)&psrc[clampOffset(width, height, px, py)];
-                const uint8_t* pb = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py)];
-
-                //calcualte average pixel
-                pdst[2] = (pa[2] + pb[2]) >> 1;
-                pdst[1] = (pa[1] + pb[1]) >> 1;
-                pdst[0] = (pa[0] + pb[0]) >> 1;
-            }
-            pdst += 4;
-        }
-    }
-}
-
-//bilinear image rotation (optimize version using FIXED-POINT)
-//this version will faster than SSE2 version, in modern CPU, operating
-//on integer will always give lower cost because it aligned memory
-void bilinearRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
-{
-    //only works with rgb mode
-    if (bitsPerPixel <= 8) return;
-
-    //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    //calculate haft dimension
-    const int32_t width = src->mWidth;
-    const int32_t height = src->mHeight;
-    const int32_t tx = width >> 1;
-    const int32_t ty = height >> 1;
+    const int32_t dstW = dst->mWidth;
+    const int32_t dstX = dstW >> 1;
+    const int32_t dstH = dst->mHeight;
+    const int32_t dstY = dstH >> 1;
 
-    //convert to radian
-    const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
+    const int32_t srcW = src->mWidth;
+    const int32_t srcX = srcW << 15;
+    const int32_t srcH = src->mHeight;
+    const int32_t srcY = srcH << 15;
+    const int32_t srcCW = (srcW - 1) << 16;
+    const int32_t srcCH = (srcH - 1) << 16;
 
-    //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
+    const double alpha = (angle * M_PI) / 180;
+    const int32_t duCol = fround(sin(alpha) * 65536);
+    const int32_t dvCol = fround(cos(alpha) * 65536);
+    const int32_t duRow = dvCol;
+    const int32_t dvRow = -duCol;
+
+    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
+    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+
+    int32_t rowU = startU;
+    int32_t rowV = startV;
+
+    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
     {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
+        int32_t su = rowU, sv = rowV;
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
         {
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bilinearGetPixelBorder(psrc, width, height, int32_t(sx * 65536), int32_t(sy * 65536));
-            *pdst++;
+            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = smoothGetPixel(psrc, srcW, srcH, su, sv);
+            pline++;
         }
+        pdst += dstW;
     }
 }
 
@@ -7443,35 +7410,94 @@ void bilinearRotateImageSSE2(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
-    uint32_t* psrc = (uint32_t*)src->mData;
+    const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    //calculate haft dimension
-    const int32_t width = src->mWidth;
-    const int32_t height = src->mHeight;
-    const int32_t tx = (width >> 1) - 1;
-    const int32_t ty = (height >> 1) - 1;
+    const int32_t dstW = dst->mWidth;
+    const int32_t dstX = dstW >> 1;
+    const int32_t dstH = dst->mHeight;
+    const int32_t dstY = dstH >> 1;
 
-    //convert to radian
+    const int32_t srcW = src->mWidth;
+    const int32_t srcX = srcW >> 1;
+    const int32_t srcH = src->mHeight;
+    const int32_t srcY = srcH >> 1;
+
     const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
+    const float duCol = sinf(alpha);
+    const float dvCol = cosf(alpha);
+    const float duRow = dvCol;
+    const float dvRow = -duCol;
 
-    //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
+    const float startU = srcX - (dstX * dvCol + dstY * duCol);
+    const float startV = srcY - (dstX * dvRow + dstY * duRow);
+
+    float rowU = startU;
+    float rowV = startV;
+
+    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
     {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
+        float su = rowU, sv = rowV;
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
         {
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bilinearGetPixelSSE2(psrc, width, height, sx, sy);
-            *pdst++;
+            if (su >= 0 && sv >= 0 && su < srcW && sv < srcH) *pline = bilinearGetPixelSSE2(psrc, srcW, srcH, su, sv);
+            pline++;
         }
+        pdst += dstW;
     }
 }
 
-//bicubic rotate image (original version)
+//bilinear image rotation (optimize version using FIXED-POINT)
+//this version will faster than SSE2 version, in modern CPU, operating
+//on integer will always give lower cost because it aligned memory
+void bilinearRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+{
+    //only works with rgb mode
+    if (bitsPerPixel <= 8) return;
+
+    //cast to image data
+    uint32_t* pdst = (uint32_t*)dst->mData;
+    const uint32_t* psrc = (const uint32_t*)src->mData;
+
+    const int32_t dstW = dst->mWidth;
+    const int32_t dstX = dstW >> 1;
+    const int32_t dstH = dst->mHeight;
+    const int32_t dstY = dstH >> 1;
+
+    const int32_t srcW = src->mWidth;
+    const int32_t srcX = srcW << 15;
+    const int32_t srcH = src->mHeight;
+    const int32_t srcY = srcH << 15;
+    const int32_t srcCW = (srcW - 1) << 16;
+    const int32_t srcCH = (srcH - 1) << 16;
+
+    const double alpha = (angle * M_PI) / 180;
+    const int32_t duCol = fround(sin(alpha) * 65536);
+    const int32_t dvCol = fround(cos(alpha) * 65536);
+    const int32_t duRow = dvCol;
+    const int32_t dvRow = -duCol;
+
+    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
+    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+
+    int32_t rowU = startU;
+    int32_t rowV = startV;
+    
+    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    {
+        int32_t su = rowU, sv = rowV;
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        {
+            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = bilinearGetPixelFixed(psrc, srcW, srcH, su, sv);
+            pline++;
+        }
+        pdst += dstW;
+    }
+}
+
+//bicubic rotate image (original version, very slow)
+//use maximize optimize version below
 void bicubicRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
 {
     //only works with rgb mode
@@ -7508,7 +7534,7 @@ void bicubicRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
 }
 
 //bicubic rotate image using FIXED-POINT
-void bicubicRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void bicubicRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int16_t* stable, int32_t angle)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -7517,38 +7543,42 @@ void bicubicRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    //calculate haft dimension
+    const int32_t dstW = dst->mWidth;
+    const int32_t dstX = dstW >> 1;
+    const int32_t dstH = dst->mHeight;
+    const int32_t dstY = dstH >> 1;
+
+    const int32_t srcW = src->mWidth;
+    const int32_t srcX = srcW << 15;
+    const int32_t srcH = src->mHeight;
+    const int32_t srcY = srcH << 15;
+    const int32_t srcCW = (srcW - 1) << 16;
+    const int32_t srcCH = (srcH - 1) << 16;
     const int32_t stride = src->mRowBytes;
-    const int32_t width = src->mWidth;
-    const int32_t height = src->mHeight;
-    const int32_t tx = (width >> 1) - 1;
-    const int32_t ty = (height >> 1) - 1;
 
-    //convert to radian
-    const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
+    const double alpha = (angle * M_PI) / 180;
+    const int32_t duCol = fround(sin(alpha) * 65536);
+    const int32_t dvCol = fround(cos(alpha) * 65536);
+    const int32_t duRow = dvCol;
+    const int32_t dvRow = -duCol;
 
-    int16_t *stable = (int16_t*)malloc(512 * sizeof(int16_t));
-    if (!stable) return;
+    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
+    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
 
-    for (int32_t i = 0; i < 512; i++) stable[i] = fround(256.0f * sinXDivX(i / 256.0f));
+    int32_t rowU = startU;
+    int32_t rowV = startV;
 
-    //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
+    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
     {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
+        int32_t su = rowU, sv = rowV;
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
         {
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bicubicGetPixelCenter(psrc, width, stride, stable, int32_t(sx * 65536), int32_t(sy * 65536));
-            pdst++;
+            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = bicubicGetPixelBorder(psrc, srcW, stride, stable, su, sv);
+            pline++;
         }
+        pdst += dstW;
     }
-
-    free(stable);
 }
 
 //scale image buffer (export function)
@@ -7590,7 +7620,7 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_
 }
 
 //rotate image buffer (export function)
-void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */)
+void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */, int16_t* stable /* = NULL */)
 {
     //mixed mode
     if (bitsPerPixel == 8)
@@ -7611,11 +7641,11 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /*
         break;
 
     case INTERPOLATION_TYPE_BILINEAR:
-        bilinearRotateImageSSE2(dst, src, degree);
+        bilinearRotateImageFixed(dst, src, degree);
         break;
 
     case INTERPOLATION_TYPE_BICUBIC:
-        bicubicRotateImageFixed(dst, src, degree);
+        bicubicRotateImageFixed(dst, src, stable, degree);
         break;
 
     default:
@@ -7626,8 +7656,8 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /*
 //initialize 3D projection params
 void initProjection()
 {
-    const double ph = M_PI * phi / 180;
-    const double th = M_PI * theta / 180;
+    const double ph = (M_PI * phi) / 180;
+    const double th = (M_PI * theta) / 180;
 
     aux1 = sin(th);
     aux2 = sin(ph);
@@ -7649,8 +7679,8 @@ void projette(double x, double y, double z)
     {
     case PROJ_TYPE::PERSPECTIVE:
         obsZ = -x * aux7 - y * aux8 - z * aux2 + rho;
-        projX = DE * obsX / obsZ;
-        projY = DE * obsY / obsZ;
+        projX = (DE * obsX) / obsZ;
+        projY = (DE * obsY) / obsZ;
         break;
 
     case PROJ_TYPE::PARALLELE:
@@ -10251,12 +10281,12 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     }
 
     //init lookup table
-    for (i = 0; i < src->mWidth; i++) tables[i] = fround(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1))) + xfact;
+    for (i = 0; i < src->mWidth; i++) tables[i] = fround(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1)) + xfact);
 
     //scaleup line by line
     for (i = 0; i < src->mHeight; i++)
     {
-        y = fround(double(i) / (intmax_t(src->mHeight) - 1) * ((intmax_t(src->mHeight) - 1) - (intmax_t(yfact) << 1))) + yfact;
+        y = fround(double(i) / (intmax_t(src->mHeight) - 1) * ((intmax_t(src->mHeight) - 1) - (intmax_t(yfact) << 1)) + yfact);
         scaleUpLine(pdst, psrc, tables, src->mWidth, y * src->mWidth);
         pdst += dst->mWidth;
     }
@@ -11280,7 +11310,7 @@ void initVideoInfo()
 }
 
 //initialize some system info
-void initSystemInfo()
+int32_t initSystemInfo()
 {
     SDL_DisplayMode mode;
     SDL_GetWindowDisplayMode(sdlWindow, &mode);
@@ -11288,6 +11318,36 @@ void initSystemInfo()
     initCpuInfo();
     initVideoInfo();
     initMemoryInfo();
+
+    //check CPU extension
+    if (!strstr(cpuFeatures, "MMX") && !strstr(cpuFeatures, "SSE2"))
+    {
+        messageBox(GFX_ERROR, "GFXLIB require modern CPU with MMX and SSE2 extension!");
+        return 0;
+    }
+
+    //check CPU speed
+    if (cpuSpeed < 266)
+    {
+        messageBox(GFX_ERROR, "GFXLIB require CPU speed more than 266 MHz!");
+        return 0;
+    }
+
+    //check free memory
+    if (availableMemory < 50)
+    {
+        messageBox(GFX_ERROR, "GFXLIB require system RAM more than 50 MB!");
+        return 0;
+    }
+
+    //check for video RAM
+    if (videoMemory < 32)
+    {
+        messageBox(GFX_ERROR, "GFXLIB require video RAM more than 32 MB!");
+        return 0;
+    }
+
+    return 1;
 }
 
 void setWindowTitle(const char* title)
