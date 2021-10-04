@@ -32,11 +32,13 @@ void showFontsDir(const char* path, const char* ext)
             //try to load this font file
             loadFont(buff, 0);
             sprintf(buff, "%s - The quick brown fox jumps over the lazy dog", ent->d_name);
+            
+            const GFX_FONT* font = getFont();
 
             //view all size of font
-            for (i = 0; i <= gfxFonts[fontType].header.subFonts; i++)
+            for (i = 0; i <= font->header.subFonts; i++)
             {
-                if (gfxFonts[fontType].header.subFonts > 0) setFontSize(i);
+                if (font->header.subFonts > 0) setFontSize(i);
                 height = getFontHeight(buff);
 
                 //have limit line
@@ -75,11 +77,13 @@ void showFontsDir(const char* path, const char* ext)
         sprintf(buff, "%s/%s", path, fileInfo.name);
         loadFont(buff, 0);
         sprintf(buff, "%s - The quick brown fox jumps over the lazy dog", fileInfo.name);
+        
+        const GFX_FONT* font = getFont();
 
         //view all size of font
-        for (i = 0; i <= gfxFonts[fontType].header.subFonts; i++)
+        for (i = 0; i <= font->header.subFonts; i++)
         {
-            if (gfxFonts[fontType].header.subFonts > 0) setFontSize(i);
+            if (font->header.subFonts > 0) setFontSize(i);
             height = getFontHeight(buff);
 
             //have limit line

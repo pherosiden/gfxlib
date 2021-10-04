@@ -5,8 +5,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.2                                   //
-//          Last Update: 2021-09-17                              //
+//              Version: 1.2.3                                   //
+//          Last Update: 2021-09-29                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -59,26 +59,20 @@ int32_t         oldMaxX = 0, oldMaxY = 0;           //saved right-bottom
 int32_t         currX = 0, currY = 0;               //current cursor x, y
 
 //3D projection
-double          DE = 0.0;
+double          DE = 0.0;                           //deplace end for projection
 
 //trigonometric angle
-double          rho = 0.0, theta = 0.0, phi = 0.0;
+double          RHO = 0.0;                          //RHO perspective projection
 
 //saved transform values
 double          aux1 = 0.0, aux2 = 0.0, aux3 = 0.0, aux4 = 0.0;
 double          aux5 = 0.0, aux6 = 0.0, aux7 = 0.0, aux8 = 0.0;
 
-//3D coordinator (x,y,z)
-double          obsX = 0.0, obsY = 0.0, obsZ = 0.0;
-
-//projection points
-double          projX = 0.0, projY = 0.0;           //x, y projection (current x,y of projection)
-
 //current draw cursor (3D)
 int32_t         cranX = 0, cranY = 0;               //current x, y cursor (3d mode)
 
 //3D projection type
-uint8_t         projection = 0;                     //current projection type
+uint8_t         projectionType = 0;                 //current projection type
 
 //GFX font data
 GFX_FONT        gfxFonts[GFX_MAX_FONT] = { 0 };     //GFX font loadable at the same time
@@ -1123,11 +1117,11 @@ void putPixelAdd(int32_t x, int32_t y, uint32_t color)
         emms
     }
 #else
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[0] = min(pixels[0] + rgb[0], 255);
-    pixels[1] = min(pixels[1] + rgb[1], 255);
-    pixels[2] = min(pixels[2] + rgb[2], 255);
+    ARGB* rgb = (ARGB*)&color;
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    pixels->r = min(pixels->r + rgb->r, 255);
+    pixels->g = min(pixels->g + rgb->g, 255);
+    pixels->b = min(pixels->b + rgb->b, 255);
 #endif
 }
 
@@ -1148,11 +1142,11 @@ void putPixelSub(int32_t x, int32_t y, uint32_t color)
         emms
     }
 #else
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
-    pixels[0] = max(pixels[0] - rgb[0], 0);
-    pixels[1] = max(pixels[1] - rgb[1], 0);
-    pixels[2] = max(pixels[2] - rgb[2], 0);
+    ARGB* rgb = (ARGB*)&color;
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    pixels->r = max(pixels->r - rgb->r, 0);
+    pixels->g = max(pixels->g - rgb->g, 0);
+    pixels->b = max(pixels->b - rgb->b, 0);
 #endif
 }
 
@@ -1393,12 +1387,12 @@ void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
     const int32_t remainder = sx % 4;
     if (remainder > 0)
     {
-        const uint8_t* rgb = (const uint8_t*)&color;
+        const ARGB* rgb = (const ARGB*)&color;
         for (int32_t i = 0; i < remainder; i++)
         {
-            pixels[0] = min(pixels[0] + rgb[0], 255);
-            pixels[1] = min(pixels[1] + rgb[1], 255);
-            pixels[2] = min(pixels[2] + rgb[2], 255);
+            pixels[0] = min(pixels[0] + rgb->b, 255);
+            pixels[1] = min(pixels[1] + rgb->g, 255);
+            pixels[2] = min(pixels[2] + rgb->r, 255);
             pixels += 4;
         }
     }
@@ -1456,12 +1450,12 @@ void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
     const int32_t remainder = sx % 4;
     if (remainder > 0)
     {
-        const uint8_t* rgb = (const uint8_t*)&color;
+        const ARGB* rgb = (const ARGB*)&color;
         for (int32_t i = 0; i < remainder; i++)
         {
-            pixels[0] = max(pixels[0] - rgb[0], 0);
-            pixels[1] = max(pixels[1] - rgb[1], 0);
-            pixels[2] = max(pixels[2] - rgb[2], 0);
+            pixels[0] = max(pixels[0] - rgb->b, 0);
+            pixels[1] = max(pixels[1] - rgb->g, 0);
+            pixels[2] = max(pixels[2] - rgb->r, 0);
             pixels += 4;
         }
     }
@@ -1710,15 +1704,15 @@ void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* rgb = (ARGB*)&color;
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
 
     for (int32_t i = 0; i < sy; i++)
     {
-        pixels[0] = min(pixels[0] + rgb[0], 255);
-        pixels[1] = min(pixels[1] + rgb[1], 255);
-        pixels[2] = min(pixels[2] + rgb[2], 255);
-        pixels += intptr_t(texWidth) << 2;
+        pixels->r = min(pixels->r + rgb->r, 255);
+        pixels->g = min(pixels->g + rgb->g, 255);
+        pixels->b = min(pixels->b + rgb->b, 255);
+        pixels += intptr_t(texWidth);
     }
 #endif
 }
@@ -1748,15 +1742,15 @@ void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* rgb = (uint8_t*)&color;
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* rgb = (ARGB*)&color;
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
 
     for (int32_t i = 0; i < sy; i++)
     {
-        pixels[0] = max(pixels[0] - rgb[0], 0);
-        pixels[1] = max(pixels[1] - rgb[1], 0);
-        pixels[2] = max(pixels[2] - rgb[2], 0);
-        pixels += intptr_t(texWidth) << 2;
+        pixels->r = max(pixels->r - rgb->r, 0);
+        pixels->g = max(pixels->g - rgb->g, 0);
+        pixels->b = max(pixels->b - rgb->b, 0);
+        pixels += intptr_t(texWidth);
     }
 #endif
 }
@@ -2068,12 +2062,12 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         const int32_t remainder = width % 4;
         if (remainder > 0)
         {
-            const uint8_t* pcol = (const uint8_t*)&color;
+            const ARGB* pcol = (const ARGB*)&color;
             for (int32_t j = 0; j < remainder; j++)
             {
-                pixels[0] = min(pixels[0] + pcol[0], 255);
-                pixels[1] = min(pixels[1] + pcol[1], 255);
-                pixels[2] = min(pixels[2] + pcol[2], 255);
+                pixels[0] = min(pixels[0] + pcol->b, 255);
+                pixels[1] = min(pixels[1] + pcol->g, 255);
+                pixels[2] = min(pixels[2] + pcol->r, 255);
                 pixels += 4;
             }
         }
@@ -2150,12 +2144,12 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         const int32_t remainder = width % 4;
         if (remainder > 0)
         {
-            const uint8_t* pcol = (const uint8_t*)&color;
+            const ARGB* pcol = (const ARGB*)&color;
             for (int32_t j = 0; j < remainder; j++)
             {
-                pixels[0] = max(pixels[0] - pcol[0], 0);
-                pixels[1] = max(pixels[1] - pcol[1], 0);
-                pixels[2] = max(pixels[2] - pcol[2], 0);
+                pixels[0] = max(pixels[0] - pcol->b, 0);
+                pixels[1] = max(pixels[1] - pcol->g, 0);
+                pixels[2] = max(pixels[2] - pcol->r, 0);
                 pixels += 4;
             }
         }
@@ -2545,12 +2539,13 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     }
 #else
     //convert to byte color
-    uint8_t* pcol = (uint8_t*)&col;
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const ARGB* pcol = (const ARGB*)&col;
+    const uint32_t addOfs = texWidth - width;
 
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     
+    //start scanline
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -2559,12 +2554,12 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
         {
             if (al & 1)
             {
-                pixels[0] = min(pixels[0] + pcol[0], 255);
-                pixels[1] = min(pixels[1] + pcol[1], 255);
-                pixels[2] = min(pixels[2] + pcol[2], 255);
+                pixels->r = min(pixels->r + pcol->r, 255);
+                pixels->g = min(pixels->g + pcol->g, 255);
+                pixels->b = min(pixels->b + pcol->b, 255);
             }
             al = _rotl8(al, 1);
-            pixels += 4;
+            pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
     }
@@ -2641,12 +2636,13 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     }
 #else
     //convert to byte color
-    uint8_t* pcol = (uint8_t*)&col;
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const ARGB* pcol = (const ARGB*)&col;
+    const uint32_t addOfs = texWidth - width;
 
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     
+    //start scanline
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -2655,12 +2651,12 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
         {
             if (al & 1)
             {
-                pixels[0] = max(pixels[0] - pcol[0], 0);
-                pixels[1] = max(pixels[1] - pcol[1], 0);
-                pixels[2] = max(pixels[2] - pcol[2], 0);
+                pixels->r = max(pixels->r - pcol->r, 0);
+                pixels->g = max(pixels->g - pcol->g, 0);
+                pixels->b = max(pixels->b - pcol->b, 0);
             }
             al = _rotl8(al, 1);
-            pixels += 4;
+            pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
     }
@@ -2804,6 +2800,48 @@ void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32
         break;
 
     default:
+        break;
+    }
+}
+
+//get current pattern type
+uint8_t* getPattern(int32_t type)
+{
+    switch (type)
+    {
+    case PATTERN_TYPE_LINE:
+        return ptnLine;
+
+    case PATTERN_TYPE_LITE_SLASH:
+        return ptnLiteSlash;
+
+    case PATTERN_TYPE_SLASH:
+        return ptnSlash;
+
+    case PATTERN_TYPE_BACK_SLASH:
+        return ptnBackSlash;
+
+    case PATTERN_TYPE_LITE_BACK_SLASH:
+        return ptnLiteBackSlash;
+
+    case PATTERN_TYPE_HATCH:
+        return ptnHatch;
+
+    case PATTERN_TYPE_HATCH_X:
+        return ptnHatchX;
+
+    case PATTERN_TYPE_INTER_LEAVE:
+        return ptnInterLeave;
+
+    case PATTERN_TYPE_WIDE_DOT:
+        return ptnWideDot;
+
+    case PATTERN_TYPE_CLOSE_DOT:
+        return ptnCloseDot;
+
+    default:
+        messageBox(GFX_ERROR, "Unknown pattern type:%d", type);
+        return NULL;
         break;
     }
 }
@@ -5131,12 +5169,12 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t aligned = width >> 2;
 
     //calculate next offset
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5152,8 +5190,8 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
             _mm_store_si128((__m128i*)dstPixels, res);
 
             //next 4 pixels
-            dstPixels += 16;
-            imgPixels += 16;
+            dstPixels += 4;
+            imgPixels += 4;
         }
         
         //have unaligned bytes
@@ -5162,11 +5200,11 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                dstPixels[0] = min(imgPixels[0] + dstPixels[0], 255);
-                dstPixels[1] = min(imgPixels[1] + dstPixels[1], 255);
-                dstPixels[2] = min(imgPixels[2] + dstPixels[2], 255);
-                dstPixels += 4;
-                imgPixels += 4;
+                dstPixels->r = min(imgPixels->r + dstPixels->r, 255);
+                dstPixels->g = min(imgPixels->g + dstPixels->g, 255);
+                dstPixels->b = min(imgPixels->b + dstPixels->b, 255);
+                dstPixels++;
+                imgPixels++;
             }
         }
         
@@ -5260,12 +5298,12 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t aligned = width >> 2;
 
     //calculate next offset
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5281,8 +5319,8 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
             _mm_store_si128((__m128i*)dstPixels, res);
 
             //next 4 pixels
-            dstPixels += 16;
-            imgPixels += 16;
+            dstPixels += 4;
+            imgPixels += 4;
         }
 
         //have unaligned bytes
@@ -5291,11 +5329,11 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                dstPixels[0] = max(imgPixels[0] - dstPixels[0], 0);
-                dstPixels[1] = max(imgPixels[1] - dstPixels[1], 0);
-                dstPixels[2] = max(imgPixels[2] - dstPixels[2], 0);
-                dstPixels += 4;
-                imgPixels += 4;
+                dstPixels->r = max(imgPixels->r - dstPixels->r, 0);
+                dstPixels->g = max(imgPixels->g - dstPixels->g, 0);
+                dstPixels->b = max(imgPixels->b - dstPixels->b, 0);
+                dstPixels++;
+                imgPixels++;
             }
         }
 
@@ -5860,12 +5898,12 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
 
     //calculate next offsets
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5894,9 +5932,9 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //store backto background
             _mm_store_si128((__m128i*)dstPixels, xmm1);
 
-            //next pixels
-            dstPixels += 16;
-            imgPixels += 16;
+            //next 4 pixels
+            dstPixels += 4;
+            imgPixels += 4;
         }
 
         //have unaligned bytes?
@@ -5905,14 +5943,14 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                if ((*imgPixels & 0x00FFFFFF) != keyColor)
+                if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
                 {
-                    dstPixels[0] = min(imgPixels[0] + dstPixels[0], 255);
-                    dstPixels[1] = min(imgPixels[1] + dstPixels[1], 255);
-                    dstPixels[2] = min(imgPixels[2] + dstPixels[2], 255);
+                    dstPixels->r = min(imgPixels->r + dstPixels->r, 255);
+                    dstPixels->g = min(imgPixels->g + dstPixels->g, 255);
+                    dstPixels->b = min(imgPixels->b + dstPixels->b, 255);
                 }
-                dstPixels += 4;
-                imgPixels += 4;
+                dstPixels++;
+                imgPixels++;
             }
         }
 
@@ -6027,12 +6065,12 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
 
     //calculate next offsets
-    const uint32_t addDstOffs = (texWidth - width) << 2;
-    const uint32_t addImgOffs = (img->mWidth - width) << 2;
+    const uint32_t addDstOffs = texWidth - width;
+    const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    uint8_t* imgPixels = (uint8_t*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
+    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6067,9 +6105,9 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //store backto background
             _mm_store_si128((__m128i*)dstPixels, xmm3);
 
-            //next pixels
-            dstPixels += 16;
-            imgPixels += 16;
+            //next 4 pixels
+            dstPixels += 4;
+            imgPixels += 4;
         }
 
         //have unaligned bytes?
@@ -6078,14 +6116,14 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                if ((*imgPixels & 0x00FFFFFF) != keyColor)
+                if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
                 {
-                    dstPixels[0] = max(imgPixels[0] - dstPixels[0], 0);
-                    dstPixels[1] = max(imgPixels[1] - dstPixels[1], 0);
-                    dstPixels[2] = max(imgPixels[2] - dstPixels[2], 0);
+                    dstPixels->r = max(imgPixels->r - dstPixels->r, 0);
+                    dstPixels->g = max(imgPixels->g - dstPixels->g, 0);
+                    dstPixels->b = max(imgPixels->b - dstPixels->b, 0);
                 }
-                dstPixels += 4;
-                imgPixels += 4;
+                dstPixels++;
+                imgPixels++;
             }
         }
 
@@ -6821,97 +6859,97 @@ void scaleImageNormal(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t mode)
 }
 
 //nearest neighbor image scaling (using fixed-point)
-void nearestScaleImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src)
+void nearestScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
-    const int32_t dwidth = dst->mWidth;
-    const int32_t dheight = dst->mHeight;
-    const int32_t swidth = src->mWidth;
-    const int32_t sheight = src->mHeight;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dsth = dst->mHeight;
+    const int32_t srcw = src->mWidth;
+    const int32_t srch = src->mHeight;
 
     //calculate sacle ratio
-    const int32_t xratio = (swidth << 16) / dwidth + 1;
-    const int32_t yratio = (sheight << 16) / dheight + 1;
+    const int32_t scalex = (srcw << 16) / dstw + 1;
+    const int32_t scaley = (srch << 16) / dsth + 1;
     
     //very slow loop
     int32_t sy = 0;
-    for (int32_t y = 0; y < dheight; y++, sy += yratio)
+    for (int32_t y = 0; y < dsth; y++, sy += scaley)
     {
         int32_t sx = 0;
-        const uint32_t* msrc = &psrc[(sy >> 16) * swidth];
-        for (int32_t x = 0; x < dwidth; x++, sx += xratio) *pdst++ = msrc[sx >> 16];
+        const uint32_t* msrc = &psrc[(sy >> 16) * srcw];
+        for (int32_t x = 0; x < dstw; x++, sx += scalex) *pdst++ = msrc[sx >> 16];
     }
 }
 
 //average pixels (smooth) image scaling (using fixed-point)
-void smoothScaleImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src)
+void smoothScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
-    uint8_t* pdst = (uint8_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
-    const int32_t dwidth = dst->mWidth;
-    const int32_t dheight = dst->mHeight;
-    const int32_t swidth = src->mWidth;
-    const int32_t sheight = src->mHeight;
+    ARGB* pdst = (ARGB*)dst->mData;
+    const ARGB* psrc = (const ARGB*)src->mData;
+
+    const int32_t dstw = dst->mWidth;
+    const int32_t dsth = dst->mHeight;
+    const int32_t srcw = src->mWidth;
+    const int32_t srch = src->mHeight;
 
     //calculate scale ratio
-    const int32_t xratio = (swidth << 16) / dwidth + 1;
-    const int32_t yratio = (sheight << 16) / dheight + 1;
-    const int32_t errorx = (xratio >> 1) - 32768;
-    const int32_t errory = (yratio >> 1) - 32768;
+    const int32_t scalex = (srcw << 16) / dstw + 1;
+    const int32_t scaley = (srch << 16) / dsth + 1;
+    const int32_t errorx = (scalex >> 1) - 32768;
+    const int32_t errory = (scaley >> 1) - 32768;
 
     //very slow loop
-    for (int32_t y = 0, sy = errory; y < dheight; y++, sy += yratio)
+    for (int32_t y = 0, sy = errory; y < dsth; y++, sy += scaley)
     {
         const int32_t ly = sy >> 16;
-        for (int32_t x = 0, sx = errorx; x < dwidth; x++, sx += xratio)
+        for (int32_t x = 0, sx = errorx; x < dstw; x++, sx += scalex)
         {
             const int32_t lx = sx >> 16;
 
             //calculate offset to index 2 pixels
-            const uint8_t* pa = (const uint8_t*)&psrc[clampOffset(swidth, sheight, lx, ly)];
-            const uint8_t* pb = (const uint8_t*)&psrc[clampOffset(swidth, sheight, lx + 1, ly)];
+            const ARGB* pa = (const ARGB*)&psrc[clampOffset(srcw, srch, lx, ly)];
+            const ARGB* pb = (const ARGB*)&psrc[clampOffset(srcw, srch, lx + 1, ly)];
 
             //calcualte average pixel
-            pdst[2] = (pa[2] + pb[2]) >> 1;
-            pdst[1] = (pa[1] + pb[1]) >> 1;
-            pdst[0] = (pa[0] + pb[0]) >> 1;
-            pdst += 4;
+            pdst->r = (pa->r + pb->r) >> 1;
+            pdst->g = (pa->g + pb->g) >> 1;
+            pdst->b = (pa->b + pb->b) >> 1;
+            pdst++;
         }
     }
 }
 
 //bilinear scale image with fixed-point
-void bilinearScaleImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src)
+void bilinearScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
-    const int32_t dwidth = dst->mWidth;
-    const int32_t dheight = dst->mHeight;
-    const int32_t swidth = src->mWidth;
-    const int32_t sheight = src->mHeight;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dsth = dst->mHeight;
+    const int32_t srcw = src->mWidth;
+    const int32_t srch = src->mHeight;
 
     //calculate scale ratio
-    const int32_t xratio = (swidth << 16) / dwidth + 1;
-    const int32_t yratio = (sheight << 16) / dheight + 1;
-    const int32_t errorx = (xratio >> 1) - 32768;
-    const int32_t errory = (yratio >> 1) - 32768;
+    const int32_t scalex = (srcw << 16) / dstw + 1;
+    const int32_t scaley = (srch << 16) / dsth + 1;
+    const int32_t errorx = (scalex >> 1) - 32768;
+    const int32_t errory = (scaley >> 1) - 32768;
 
     //very slow loop
-    for (int32_t y = 0, sy = errory; y < dheight; y++, sy += yratio)
+    for (int32_t y = 0, sy = errory; y < dsth; y++, sy += scaley)
     {
-        for (int32_t x = 0, sx = errorx; x < dwidth; x++, sx += xratio) *pdst++ = bilinearGetPixelFixed(psrc, swidth, sheight, sx, sy);
+        for (int32_t x = 0, sx = errorx; x < dstw; x++, sx += scalex) *pdst++ = bilinearGetPixelFixed(src, sx, sy);
     }
 }
 
-//strick 1 (maximize optimize)
+//strick 1 (maximize optimize -> maximize speed)
 //1. FIXED-POINT
-//2. seperate center and border pixels calculation
-//3. SSE3 instrin
-void bilinearScaleImageMax(GFX_IMAGE* dst, GFX_IMAGE* src)
+//2. seperate inbound and outbound pixels calculation
+//3. SSE3 instructions
+void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -6919,54 +6957,49 @@ void bilinearScaleImageMax(GFX_IMAGE* dst, GFX_IMAGE* src)
     //cache local data pointer
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
+
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
     const int32_t dstw = dst->mWidth;
     const int32_t dsth = dst->mHeight;
-    const int32_t xscale = (srcw << 16) / dstw + 1;
-    const int32_t yscale = (srch << 16) / dsth + 1;
-    const int32_t errorx = (xscale >> 1) - 32768;
-    const int32_t errory = (yscale >> 1) - 32768;
+    const int32_t scalex = (srcw << 16) / dstw + 1;
+    const int32_t scaley = (srch << 16) / dsth + 1;
+    const int32_t errorx = (scalex >> 1) - 32768;
+    const int32_t errory = (scaley >> 1) - 32768;
 
-    int32_t startx = (65536 - errorx) / xscale + 1;
+    int32_t startx = (65536 - errorx) / scalex + 1;
     if (startx >= dstw) startx = dstw;
 
-    int32_t starty = (65536 - errory) / yscale + 1;
+    int32_t starty = (65536 - errory) / scaley + 1;
     if (starty >= dsth) starty = dsth;
 
-    int32_t endx = (((srcw - 2) << 16) - errorx) / xscale + 1;
+    int32_t endx = (((srcw - 2) << 16) - errorx) / scalex + 1;
     if (endx < startx) endx = startx;
 
-    int32_t endy = (((srch - 2) << 16) - errory) / yscale + 1;
+    int32_t endy = (((srch - 2) << 16) - errory) / scaley + 1;
     if (endy < starty) endy = starty;
 
     int32_t srcy = errory;
-    for (int32_t y = 0; y < starty; y++, srcy += yscale)
+    for (int32_t y = 0; y < starty; y++, srcy += scaley)
     {
-        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += xscale) *pdst++ = bilinearGetPixelBorder(psrc, srcw, srch, srcx, srcy);
+        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += scalex) *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
     }
 
-    for (int32_t y = starty; y < endy; y++, srcy += yscale)
+    for (int32_t y = starty; y < endy; y++, srcy += scaley)
     {
         int32_t srcx = errorx;
-        for (int32_t x = 0; x < startx; x++, srcx += xscale) *pdst++ = bilinearGetPixelBorder(psrc, srcw, srch, srcx, srcy);
-        const uint32_t v = (srcy & 0xffff) >> 8;
-        const uint32_t* yline = &psrc[((srcy >> 16) - 1) * srcw];
-        for (int32_t x = startx; x < endx; x++, srcx += xscale)
-        {
-            const uint32_t* pixels = &yline[(srcx >> 16) - 1];
-            *pdst++ = bilinearGetPixelCenter(&pixels[0], &pixels[srcw], (srcx & 0xffff) >> 8, v);
-        }
-        for (int32_t x = endx; x < dstw; x++, srcx += xscale) *pdst++ = bilinearGetPixelBorder(psrc, srcw, srch, srcx, srcy);
+        for (int32_t x = 0; x < startx; x++, srcx += scalex) *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
+        for (int32_t x = startx; x < endx; x++, srcx += scalex) *pdst++ = bilinearGetPixelCenter(src, srcx, srcy);
+        for (int32_t x = endx; x < dstw; x++, srcx += scalex) *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
     }
 
-    for (int32_t y = endy; y < dsth; y++, srcy += yscale)
+    for (int32_t y = endy; y < dsth; y++, srcy += scaley)
     {
-        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += xscale) *pdst++ = bilinearGetPixelBorder(psrc, srcw, srch, srcx, srcy);
+        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += scalex) *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
     }
 }
 
-//strick 2: SSE3
+//strick 2: SSE2
 //use hardware acceleration with SSE2, seem no faster than FIXED-POINT
 //benchmark for 5000 interation
 //CPU: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz
@@ -6981,40 +7014,39 @@ void bilinearScaleImageMax(GFX_IMAGE* dst, GFX_IMAGE* src)
 //SSE2: about 9.043s --> seem faster than FIXED-POINT
 //use hardware acceleration will get constantly speed
 //in modern system (64bits) integer will be operated fastest
-void bilinearScaleImageSSE2(GFX_IMAGE* dst, GFX_IMAGE* src)
+void bilinearScaleImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
 
     //cache local data pointer
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     //cache local dimension
-    const int32_t swidth = src->mWidth;
-    const int32_t sheight = src->mHeight;
-    const int32_t dwidth = dst->mWidth;
-    const int32_t dheight = dst->mHeight;
+    const int32_t srcw = src->mWidth;
+    const int32_t srch = src->mHeight;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dsth = dst->mHeight;
 
     //calculate ratio
-    const float xratio = float(swidth - 1) / dwidth;
-    const float yratio = float(sheight - 1) / dheight;
+    const double xratio = double(intmax_t(srcw) - 1) / dstw;
+    const double yratio = double(intmax_t(srch) - 1) / dsth;
 
     //very slow loop
-    for (int32_t y = 0; y < dheight; y++)
+    for (int32_t y = 0; y < dsth; y++)
     {
-        const float sy = y * yratio;
-        for (int32_t x = 0; x < dwidth; x++)
+        const double sy = y * yratio;
+        for (int32_t x = 0; x < dstw; x++)
         {
-            const float sx = x * xratio;
-            *pdst++ = bilinearGetPixelSSE2(psrc, swidth, sheight, sx, sy);
+            const double sx = x * xratio;
+            *pdst++ = bilinearGetPixelSSE2(src, sx, sy);
         }
     }
 }
 
 //bicubic scale image
 //original version, very slow
-void bicubicScaleImage(GFX_IMAGE* dst, GFX_IMAGE* src)
+void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -7030,17 +7062,17 @@ void bicubicScaleImage(GFX_IMAGE* dst, GFX_IMAGE* src)
     const int32_t dheight = dst->mHeight;
 
     //calculate ratio
-    const float xratio = float(swidth - 1) / dwidth;
-    const float yratio = float(sheight - 1) / dheight;
+    const double xratio = double(intmax_t(swidth) - 1) / dwidth;
+    const double yratio = double(intmax_t(sheight) - 1) / dheight;
 
     //very slow loop
     for (int32_t y = 0; y < dheight; y++)
     {
-        const float sy = y * yratio;
+        const double sy = y * yratio;
         for (int32_t x = 0; x < dwidth; x++)
         {
-            const float sx = x * xratio;
-            *pdst++ = bicubicGetPixel(psrc, swidth, sheight, sx, sy);
+            const double sx = x * xratio;
+            *pdst++ = bicubicGetPixel(src, sx, sy);
         }
     }
 }
@@ -7051,200 +7083,57 @@ void bicubicScaleImage(GFX_IMAGE* dst, GFX_IMAGE* src)
 //2. fixed-point
 //3. SSE2 instructions
 //4. seperate calculate pixels (boundary and center)
-void bicubicScaleImageSSE2(GFX_IMAGE* dst, GFX_IMAGE* src)
+void bicubicScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
+
+    uint32_t* pdst = (uint32_t*)dst->mData;
     
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
-
     const int32_t dstw = dst->mWidth;
     const int32_t dsth = dst->mHeight;
-    uint32_t* pdst = (uint32_t*)dst->mData;
+    
+    const int32_t addx = (srcw << 16) / dstw + 1;
+    const int32_t addy = (srch << 16) / dsth + 1;
+    const int32_t errorx = (addx >> 1) - 32768;
+    const int32_t errory = (addy >> 1) - 32768;
 
-    int16_t *stable = (int16_t*)calloc(512, sizeof(int16_t));
-    if (!stable) return;
-
-    int16_t *wtable = (int16_t*)calloc(4, sizeof(int16_t) * dstw);
-    if (!wtable)
-    {
-        free(stable);
-        return;
-    }
-
-    //generate sin(x)/x lookup table
-    for (int32_t i = 0; i < 512; i++) stable[i] = fround(256.0f * sinXDivX(i / 256.0f));
-
-    const int32_t xscale = (srcw << 16) / dstw + 1;
-    const int32_t yscale = (srch << 16) / dsth + 1;
-    const int32_t xerror = (xscale >> 1) - 32768;
-    const int32_t yerror = (yscale >> 1) - 32768;
-
-    //calculate start and end points
-    int32_t xstart = (65536 - xerror) / xscale + 1;
-    if (xstart >= dstw) xstart = dstw;
-
-    int32_t ystart = (65536 - yerror) / yscale + 1;
-    if (ystart >= dsth) ystart = dsth;
-
-    int32_t xend = (((srcw - 3) << 16) - xerror) / xscale + 1;
-    if (xend < xstart) xend = xstart;
-
-    int32_t yend = (((srch - 3) << 16) - yerror) / yscale + 1;
-    if (yend < ystart) yend = ystart;
-
-    //generate line width lookup table, this use to load 4 pixels with SSE2 instrin
-    for (int32_t x = xstart, srcx = xerror + xstart * xscale; x < xend; x++, srcx += xscale)
-    {
-        const uint8_t u = srcx >> 8;
-        int16_t* pval = &wtable[x << 2];
-        *pval++ = stable[255 + u];
-        *pval++ = stable[u];
-        *pval++ = stable[255 - u];
-        *pval++ = stable[511 - u];
-    }
-
-    //plot border pixels
-    int32_t srcy = yerror;
-    for (int32_t y = 0; y < ystart; y++, srcy += yscale)
-    {
-        for (int32_t x = 0, srcx = xerror; x < dstw; x++, srcx += xscale) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
-    }
-
-    //plot center pixels
-    for (int32_t y = ystart; y < yend; y++, srcy += yscale)
-    {
-        int32_t srcx = xerror;
-        for (int32_t x = 0; x < xstart; x++, srcx += xscale) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
-
-        const uint8_t v = srcy >> 8;
-        const uint32_t *yline = &psrc[((srcy >> 16) - 1) * srcw];
-
-        const __m128i ypart = _mm_setr_epi32(stable[255 + v], stable[v], stable[255 - v], stable[511 - v]);
-
-        for (int32_t x = xstart; x < xend; x++, srcx += xscale)
-        {
-            __m128i xpart = _mm_loadl_epi64((const __m128i *)&wtable[x << 2]);
-            xpart = _mm_unpacklo_epi64(xpart, xpart);
-
-            const uint32_t *pixel0 = &yline[(srcx >> 16) - 1];
-            const uint32_t *pixel1 = &pixel0[srcw];
-            const uint32_t *pixel2 = &pixel1[srcw];
-            const uint32_t *pixel3 = &pixel2[srcw];
-
-            __m128i p0 = _mm_load_si128((const __m128i *)pixel0), p1 = _mm_load_si128((const __m128i *)pixel1);
-            __m128i p2 = _mm_load_si128((const __m128i *)pixel2), p3 = _mm_load_si128((const __m128i *)pixel3);
-
-            p0 = _mm_shuffle_epi8(p0, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15));
-            p1 = _mm_shuffle_epi8(p1, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15));
-            p2 = _mm_shuffle_epi8(p2, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15));
-            p3 = _mm_shuffle_epi8(p3, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15));
-
-            const __m128i bg01 = _mm_unpacklo_epi32(p0, p1);
-            const __m128i ra01 = _mm_unpackhi_epi32(p0, p1);
-            const __m128i bg23 = _mm_unpacklo_epi32(p2, p3);
-            const __m128i ra23 = _mm_unpackhi_epi32(p2, p3);
-
-            const __m128i b01 = _mm_unpacklo_epi8(bg01, _mm_setzero_si128());
-            const __m128i b23 = _mm_unpacklo_epi8(bg23, _mm_setzero_si128());
-            const __m128i sb = _mm_hadd_epi32(_mm_madd_epi16(b01, xpart), _mm_madd_epi16(b23, xpart));
-
-            const __m128i g01 = _mm_unpackhi_epi8(bg01, _mm_setzero_si128());
-            const __m128i g23 = _mm_unpackhi_epi8(bg23, _mm_setzero_si128());
-            const __m128i sg = _mm_hadd_epi32(_mm_madd_epi16(g01, xpart), _mm_madd_epi16(g23, xpart));
-
-            const __m128i r01 = _mm_unpacklo_epi8(ra01, _mm_setzero_si128());
-            const __m128i r23 = _mm_unpacklo_epi8(ra23, _mm_setzero_si128());
-            const __m128i sr = _mm_hadd_epi32(_mm_madd_epi16(r01, xpart), _mm_madd_epi16(r23, xpart));
-
-            const __m128i a01 = _mm_unpackhi_epi8(ra01, _mm_setzero_si128());
-            const __m128i a23 = _mm_unpackhi_epi8(ra23, _mm_setzero_si128());
-            const __m128i sumA = _mm_hadd_epi32(_mm_madd_epi16(a01, xpart), _mm_madd_epi16(a23, xpart));
-
-            __m128i result = _mm_setr_epi32(
-                _mm_hsum_epi32(_mm_mullo_epi32(sb, ypart)),
-                _mm_hsum_epi32(_mm_mullo_epi32(sg, ypart)),
-                _mm_hsum_epi32(_mm_mullo_epi32(sr, ypart)),
-                _mm_hsum_epi32(_mm_mullo_epi32(sumA, ypart))
-            );
-
-            result = _mm_srai_epi32(result, 16);
-            *pdst++ = _mm_cvtsi128_si32(_mm_packus_epi16(_mm_packus_epi32(result, result), result));
-        }
-
-        for (int32_t x = xend; x < dstw; x++, srcx += xscale) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
-    }
-
-    //for the rest pixels
-    for (int32_t y = yend; y < dsth; y++, srcy += yscale)
-    {
-        for (int32_t x = 0, srcx = xerror; x < dstw; x++, srcx += xscale) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
-    }
-
-    //cleanup...
-    free(wtable);
-    free(stable);
-}
-
-//bicubic scale image FIXED-POINT (signed 16.16)
-void bicubicScaleImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src)
-{
-    //only works with rgb mode
-    if (bitsPerPixel <= 8) return;
-
-    const int32_t stride = src->mRowBytes;
-    const int32_t srcw = src->mWidth;
-    const int32_t srch = src->mHeight;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
-        
-    const int32_t dstw = dst->mWidth;
-    const int32_t dsth = dst->mHeight;
-    uint32_t* pdst = (uint32_t*)dst->mData;
-
-    int16_t *stable = (int16_t*)malloc(512 * sizeof(int16_t));
-    if (!stable) return;
-
-    for (int32_t i = 0; i < 512; i++) stable[i] = fround(256.0f * sinXDivX(i / 256.0f));
-
-    const int32_t addx = (srcw << 16) / dstw, addy = (srch << 16) / dsth;
-    const int32_t errorx = (addx >> 1) - 32768, errory = (addy >> 1) - 32768;
+    int16_t stable[513] = { 0 };
+    for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
 
     int32_t sx = (65536 - errorx) / addx + 1;
-    int32_t sy = (65536 - errory) / addy + 1;
-    int32_t ex = (((srcw - 3) << 16) - errorx) / addx + 1;
-    int32_t ey = (((srch - 3) << 16) - errory) / addy + 1;
-
-    if (sy >= dsth) sy = dsth;
     if (sx >= dstw) sx = dstw;
+    int32_t sy = (65536 - errory) / addy + 1;
+    if (sy >= dsth) sy = dsth;
+    int32_t ex = (((srcw - 3) << 16) - errorx) / addx + 1;
     if (ex < sx) ex = sx;
+    int32_t ey = (((srch - 3) << 16) - errory) / addy + 1;
     if (ey < sy) ey = sy;
 
     int32_t srcy = errory;
     for (int32_t y = 0; y < sy; y++, srcy += addy)
     {
-        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
+        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
     }
 
     for (int32_t y = sy; y < ey; y++, srcy += addy)
     {
         int32_t srcx = errorx;
-        for (int32_t x = 0; x < sx; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
-        for (int32_t x = sx; x < ex; x++, srcx += addx) *pdst++ = bicubicGetPixelCenter(psrc, srcw, stride, stable, srcx, srcy);
-        for (int32_t x = ex; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
+        for (int32_t x = 0; x < sx; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
+        for (int32_t x = sx; x < ex; x++, srcx += addx) *pdst++ = bicubicGetPixelCenter(src, stable, srcx, srcy);
+        for (int32_t x = ex; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
     }
 
     for (int32_t y = ey; y < dsth; y++, srcy += addy)
     {
-        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(psrc, srcw, srch, stable, srcx, srcy);
+        for (int32_t x = 0, srcx = errorx; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
     }
-
-    free(stable);
 }
 
 //smooth pixel image rotation for mixed mode (optimize version using FIXED-POINT)
-void rotateImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void rotateImageMix(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel != 8) return;
@@ -7253,45 +7142,39 @@ void rotateImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     uint8_t* pdst = dst->mData;
     const uint8_t* psrc = src->mData;
 
-    const int32_t dstW = dst->mWidth;
-    const int32_t dstX = dstW >> 1;
-    const int32_t dstH = dst->mHeight;
-    const int32_t dstY = dstH >> 1;
+    const int32_t dw = dst->mWidth;
+    const int32_t dcx = dw >> 1;
+    const int32_t dh = dst->mHeight;
+    const int32_t dcy = dh >> 1;
 
-    const int32_t srcW = src->mWidth;
-    const int32_t srcX = srcW << 15;
-    const int32_t srcH = src->mHeight;
-    const int32_t srcY = srcH << 15;
-    const int32_t srcCW = (srcW - 1) << 16;
-    const int32_t srcCH = (srcH - 1) << 16;
+    const int32_t sw = src->mWidth;
+    const int32_t scx = sw << 15;
+    const int32_t sh = src->mHeight;
+    const int32_t scy = sh << 15;
+    const int32_t scw = (sw - 1) << 16;
+    const int32_t sch = (sh - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
-    const int32_t duCol = fround(sin(alpha) * 65536);
-    const int32_t dvCol = fround(cos(alpha) * 65536);
-    const int32_t duRow = dvCol;
-    const int32_t dvRow = -duCol;
+    const int32_t dx = fround((sin(alpha) / scalex) * 65536);
+    const int32_t dy = fround((cos(alpha) / scaley) * 65536);
 
-    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
-    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+    int32_t xs = scx - (dcx * dy + dcy * dx);
+    int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    int32_t rowU = startU;
-    int32_t rowV = startV;
-
-    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
     {
-        int32_t su = rowU, sv = rowV;
-        uint8_t* pline = pdst;
-        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        int32_t sx = xs, sy = ys;
+        uint8_t* pline = &pdst[y * dw];
+        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
         {
-            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = psrc[(sv >> 16) * srcW + (su >> 16)];
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * sw + (sx >> 16)];
             pline++;
         }
-        pdst += dstW;
     }
 }
 
 //nearest neighbor pixel image rotation (optimize version using FIXED-POINT)
-void nearestRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void nearestRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -7300,92 +7183,74 @@ void nearestRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    const int32_t dstW = dst->mWidth;
-    const int32_t dstX = dstW >> 1;
-    const int32_t dstH = dst->mHeight;
-    const int32_t dstY = dstH >> 1;
+    const int32_t dw = dst->mWidth;
+    const int32_t dcx = dw >> 1;
+    const int32_t dh = dst->mHeight;
+    const int32_t dcy = dh >> 1;
 
-    const int32_t srcW = src->mWidth;
-    const int32_t srcX = srcW << 15;
-    const int32_t srcH = src->mHeight;
-    const int32_t srcY = srcH << 15;
-    const int32_t srcCW = (srcW - 1) << 16;
-    const int32_t srcCH = (srcH - 1) << 16;
+    const int32_t sw = src->mWidth;
+    const int32_t scx = sw << 15;
+    const int32_t sh = src->mHeight;
+    const int32_t scy = sh << 15;
+    const int32_t scw = (sw - 1) << 16;
+    const int32_t sch = (sh - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
-    const int32_t duCol = fround(sin(alpha) * 65536);
-    const int32_t dvCol = fround(cos(alpha) * 65536);
-    const int32_t duRow = dvCol;
-    const int32_t dvRow = -duCol;
+    const int32_t dx = fround((sin(alpha) / scalex) * 65536);
+    const int32_t dy = fround((cos(alpha) / scaley) * 65536);
 
-    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
-    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+    int32_t xs = scx - (dcx * dy + dcy * dx);
+    int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    int32_t rowU = startU;
-    int32_t rowV = startV;
-
-    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
     {
-        int32_t su = rowU, sv = rowV;
-        uint32_t* pline = pdst;
-        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        int32_t sx = xs, sy = ys;
+        uint32_t* pline = &pdst[y * dw];
+        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
         {
-            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH)
-            {
-                const int32_t sx = su >> 16;
-                const int32_t sy = sv >> 16;
-                *pline = psrc[srcW * sy + sx];
-            }
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * sw + (sx >> 16)];
             pline++;
         }
-        pdst += dstW;
     }
 }
 
 //average (smooth) pixel image rotation (optimize version using FIXED-POINT)
-void smoothRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void smoothRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    const int32_t dstW = dst->mWidth;
-    const int32_t dstX = dstW >> 1;
-    const int32_t dstH = dst->mHeight;
-    const int32_t dstY = dstH >> 1;
+    const int32_t dw = dst->mWidth;
+    const int32_t dcx = dw >> 1;
+    const int32_t dh = dst->mHeight;
+    const int32_t dcy = dh >> 1;
 
-    const int32_t srcW = src->mWidth;
-    const int32_t srcX = srcW << 15;
-    const int32_t srcH = src->mHeight;
-    const int32_t srcY = srcH << 15;
-    const int32_t srcCW = (srcW - 1) << 16;
-    const int32_t srcCH = (srcH - 1) << 16;
+    const int32_t sw = src->mWidth;
+    const int32_t scx = sw << 15;
+    const int32_t sh = src->mHeight;
+    const int32_t scy = sh << 15;
+    const int32_t scw = (sw - 1) << 16;
+    const int32_t sch = (sh - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
-    const int32_t duCol = fround(sin(alpha) * 65536);
-    const int32_t dvCol = fround(cos(alpha) * 65536);
-    const int32_t duRow = dvCol;
-    const int32_t dvRow = -duCol;
+    const int32_t dx = fround((sin(alpha) / scalex) * 65536);
+    const int32_t dy = fround((cos(alpha) / scaley) * 65536);
 
-    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
-    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+    int32_t xs = scx - (dcx * dy + dcy * dx);
+    int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    int32_t rowU = startU;
-    int32_t rowV = startV;
-
-    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
     {
-        int32_t su = rowU, sv = rowV;
-        uint32_t* pline = pdst;
-        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        int32_t sx = xs, sy = ys;
+        uint32_t* pline = &pdst[y * dw];
+        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
         {
-            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = smoothGetPixel(psrc, srcW, srcH, su, sv);
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = smoothGetPixel(src, sx, sy);
             pline++;
         }
-        pdst += dstW;
     }
 }
 
@@ -7403,7 +7268,7 @@ void smoothRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
 //SSE2: about 10.422s --> seem faster than FIXED-POINT
 //use hardware acceleration will get constantly speed
 //in modern system (64bits) integer will be operated fastest
-void bilinearRotateImageSSE2(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void bilinearRotateImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -7412,172 +7277,338 @@ void bilinearRotateImageSSE2(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    const int32_t dstW = dst->mWidth;
-    const int32_t dstX = dstW >> 1;
-    const int32_t dstH = dst->mHeight;
-    const int32_t dstY = dstH >> 1;
+    const int32_t dw = dst->mWidth;
+    const int32_t dcx = dw >> 1;
+    const int32_t dh = dst->mHeight;
+    const int32_t dcy = dh >> 1;
 
-    const int32_t srcW = src->mWidth;
-    const int32_t srcX = srcW >> 1;
-    const int32_t srcH = src->mHeight;
-    const int32_t srcY = srcH >> 1;
+    const int32_t sw = src->mWidth;
+    const int32_t scx = sw >> 1;
+    const int32_t sh = src->mHeight;
+    const int32_t scy = sh >> 1;
 
-    const float alpha = float(angle * M_PI) / 180;
-    const float duCol = sinf(alpha);
-    const float dvCol = cosf(alpha);
-    const float duRow = dvCol;
-    const float dvRow = -duCol;
+    const double alpha = (angle * M_PI) / 180;
+    const double dx = sin(alpha) / scalex;
+    const double dy = cos(alpha) / scaley;
 
-    const float startU = srcX - (dstX * dvCol + dstY * duCol);
-    const float startV = srcY - (dstX * dvRow + dstY * duRow);
+    double xs = scx - (dcx * dy + dcy * dx);
+    double ys = scy - (dcy * dy - dcx * dx);
 
-    float rowU = startU;
-    float rowV = startV;
-
-    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
     {
-        float su = rowU, sv = rowV;
-        uint32_t* pline = pdst;
-        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        double sx = xs, sy = ys;
+        uint32_t* pline = &pdst[y * dw];
+        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
         {
-            if (su >= 0 && sv >= 0 && su < srcW && sv < srcH) *pline = bilinearGetPixelSSE2(psrc, srcW, srcH, su, sv);
+            if (sx >= 0 && sy >= 0 && sx < sw && sy < sh) *pline = bilinearGetPixelSSE2(src, sx, sy);
             pline++;
         }
-        pdst += dstW;
     }
 }
 
-//bilinear image rotation (optimize version using FIXED-POINT)
+
+//bilinear image rotation (single optimize version)
 //this version will faster than SSE2 version, in modern CPU, operating
 //on integer will always give lower cost because it aligned memory
-void bilinearRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void bilinearRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    const int32_t dstW = dst->mWidth;
-    const int32_t dstX = dstW >> 1;
-    const int32_t dstH = dst->mHeight;
-    const int32_t dstY = dstH >> 1;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dcx = dstw >> 1;
+    const int32_t dsth = dst->mHeight;
+    const int32_t dcy = dsth >> 1;
 
-    const int32_t srcW = src->mWidth;
-    const int32_t srcX = srcW << 15;
-    const int32_t srcH = src->mHeight;
-    const int32_t srcY = srcH << 15;
-    const int32_t srcCW = (srcW - 1) << 16;
-    const int32_t srcCH = (srcH - 1) << 16;
+    const int32_t srcw = src->mWidth;
+    const int32_t scx = srcw << 15;
+    const int32_t srch = src->mHeight;
+    const int32_t scy = srch << 15;
+
+    const int32_t scw = (srcw - 1) << 16;
+    const int32_t sch = (srch - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
-    const int32_t duCol = fround(sin(alpha) * 65536);
-    const int32_t dvCol = fround(cos(alpha) * 65536);
-    const int32_t duRow = dvCol;
-    const int32_t dvRow = -duCol;
+    const int32_t dx = fround((sin(alpha) / scalex) * 65536);
+    const int32_t dy = fround((cos(alpha) / scaley) * 65536);
 
-    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
-    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+    int32_t xs = scx - (dcx * dy + dcy * dx);
+    int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    int32_t rowU = startU;
-    int32_t rowV = startV;
-    
-    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy)
     {
-        int32_t su = rowU, sv = rowV;
-        uint32_t* pline = pdst;
-        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        int32_t sx = xs, sy = ys;
+        uint32_t* pline = &pdst[y * dstw];
+        for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
-            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = bilinearGetPixelFixed(psrc, srcW, srcH, su, sv);
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = bilinearGetPixelFixed(src, sx, sy);
             pline++;
         }
-        pdst += dstW;
+    }
+}
+
+//bilinear rotate scanline (full optimize version)
+void bilinearRotateLine(uint32_t* pdst, int32_t boundx0, int32_t inx0, int32_t inx1, int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, int32_t addx, int32_t addy)
+{
+    int32_t x = 0;
+
+    //left border proccess
+    for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)
+    {
+        const uint32_t color = bilinearGetPixelBorder(psrc, sx, sy);
+        pdst[x] = alphaBlend(pdst[x], color);
+    }
+
+    //center process
+    for (x = inx0; x < inx1; x++, sx += addx, sy += addy) pdst[x] = bilinearGetPixelCenter(psrc, sx, sy);
+
+    //right border process
+    for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)
+    {
+        const uint32_t color = bilinearGetPixelBorder(psrc, sx, sy);
+        pdst[x] = alphaBlend(pdst[x], color);
+    }
+}
+
+//bilinear rotate image (full optimize version)
+//use stricks:
+//1. fixed-point
+//2. seperate inbound and outbound pixel calculation
+//3. SSE2 instrin
+void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
+{
+    const double scalexy = 1.0 / (scalex * scaley);  
+    const double rscalex = scalexy * scaley;
+    const double rscaley = scalexy * scalex;
+
+    double sina = 0, cosa = 0;
+    sincos(-(angle * M_PI) / 180, &sina, &cosa);
+    const int32_t sini = fround(sina * 65536);
+    const int32_t cosi = fround(cosa * 65536);
+
+    const int32_t srcw = src->mWidth;
+    const int32_t srch = src->mHeight;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dsth = dst->mHeight;
+
+    uint32_t* pdst = (uint32_t*)dst->mData;
+    
+    const int32_t ax = int32_t(rscalex * cosi);
+    const int32_t ay = int32_t(rscalex * sini);
+    const int32_t bx = int32_t(-rscaley * sini);
+    const int32_t by = int32_t(rscaley * cosi);
+
+    const int32_t dcx = dstw >> 1;
+    const int32_t dcy = dsth >> 1;
+    const int32_t scx = srcw << 15;
+    const int32_t scy = srch << 15;
+
+    const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
+    const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
+
+    TClipData clip;
+    clip.ax = ax;
+    clip.bx = bx;
+    clip.ay = ay;
+    clip.by = by;
+    clip.cx = cx;
+    clip.cy = cy;
+    clip.dstw = dstw;
+    clip.dsth = dsth;
+    clip.srcw = srcw;
+    clip.srch = srch;
+    
+    if (!clip.intiClip(dcx, dcy, 1)) return;
+
+    uint32_t* pline = &pdst[dstw * clip.dstDownY];
+    while (true)
+    {
+        if (clip.dstDownY >= dsth) break;
+        if (clip.dstDownY >= 0) bilinearRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay);
+        if (!clip.nextLineDown()) break;
+        pline += dstw;
+    }
+
+    pline = &pdst[dstw * clip.dstUpY];
+    while (clip.nextLineUp())
+    {
+        if (clip.dstUpY < 0) break;
+        pline -= dstw;
+        if (clip.dstUpY < dsth) bilinearRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay);
     }
 }
 
 //bicubic rotate image (original version, very slow)
 //use maximize optimize version below
-void bicubicRotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t angle)
+void bicubicRotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     //calculate haft dimension
     const int32_t width = src->mWidth;
     const int32_t height = src->mHeight;
-    const int32_t tx = (width >> 1) - 1;
-    const int32_t ty = (height >> 1) - 1;
+    const int32_t cx = (width >> 1) - 1;
+    const int32_t cy = (height >> 1) - 1;
 
     //convert to radian
-    const float alpha = float(angle * M_PI) / 180;
-    const float sina = sinf(-alpha);
-    const float cosa = cosf(-alpha);
-
+    const double alpha = double(angle * M_PI) / 180;
+    const double sina = sin(-alpha) / scalex;
+    const double cosa = cos(-alpha) / scaley;
+    const double mx = -cx * cosa + cx;
+    const double my = -cx * sina + cy;
+    double px = -cy * sina;
+    double py = -cy * cosa;
+    
     //start pixel mapmulation
-    int32_t cy = -ty;
-    for (int32_t y = 0; y < height; y++, cy++)
+    for (int32_t y = 0; y < height; y++, px += sina, py += cosa)
     {
-        int32_t cx = -tx;
-        float sx = cx * cosa - cy * sina + tx;
-        float sy = cx * sina + cy * cosa + ty;
-        for (int32_t x = 0; x < width; x++, cx++, sx += cosa, sy += sina)
+        double sx = mx - px;
+        double sy = my + py;
+        for (int32_t x = 0; x < width; x++, sx += cosa, sy += sina)
         {
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bicubicGetPixel(psrc, width, height, sx, sy);
+            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bicubicGetPixel(src, sx, sy);
             pdst++;
         }
     }
 }
 
-//bicubic rotate image using FIXED-POINT
-void bicubicRotateImageFixed(GFX_IMAGE* dst, GFX_IMAGE* src, int16_t* stable, int32_t angle)
+//bicubic rotate image using FIXED-POINT (normal optimize)
+void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    const int32_t dstW = dst->mWidth;
-    const int32_t dstX = dstW >> 1;
-    const int32_t dstH = dst->mHeight;
-    const int32_t dstY = dstH >> 1;
+    const int32_t dw = dst->mWidth;
+    const int32_t dcx = dw >> 1;
+    const int32_t dh = dst->mHeight;
+    const int32_t dcy = dh >> 1;
 
-    const int32_t srcW = src->mWidth;
-    const int32_t srcX = srcW << 15;
-    const int32_t srcH = src->mHeight;
-    const int32_t srcY = srcH << 15;
-    const int32_t srcCW = (srcW - 1) << 16;
-    const int32_t srcCH = (srcH - 1) << 16;
-    const int32_t stride = src->mRowBytes;
+    const int32_t sw = src->mWidth;
+    const int32_t scx = sw << 15;
+    const int32_t sh = src->mHeight;
+    const int32_t scy = sh << 15;
+    const int32_t scw = (sw - 1) << 16;
+    const int32_t sch = (sh - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
-    const int32_t duCol = fround(sin(alpha) * 65536);
-    const int32_t dvCol = fround(cos(alpha) * 65536);
-    const int32_t duRow = dvCol;
-    const int32_t dvRow = -duCol;
+    const int32_t dx = fround((sin(alpha) / scalex) * 65536);
+    const int32_t dy = fround((cos(alpha) / scaley) * 65536);
 
-    const int32_t startU = srcX - (dstX * dvCol + dstY * duCol);
-    const int32_t startV = srcY - (dstX * dvRow + dstY * duRow);
+    int16_t stable[513] = { 0 };
+    for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
 
-    int32_t rowU = startU;
-    int32_t rowV = startV;
+    int32_t xs = scx - (dcx * dy + dcy * dx);
+    int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dstH; y++, rowU += duCol, rowV += dvCol)
+    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
     {
-        int32_t su = rowU, sv = rowV;
-        uint32_t* pline = pdst;
-        for (int32_t x = 0; x < dstW; x++, su += duRow, sv += dvRow)
+        int32_t sx = xs, sy = ys;
+        uint32_t* pline = &pdst[y * dw];
+        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
         {
-            if (su >= 0 && sv >= 0 && su <= srcCW && sv <= srcCH) *pline = bicubicGetPixelBorder(psrc, srcW, stride, stable, su, sv);
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = bicubicGetPixelFixed(src, stable, sx, sy);
             pline++;
         }
-        pdst += dstW;
+    }
+}
+
+//bicubic rotate scanline (full optimize version)
+void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0, const int32_t inx1, const int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, const int32_t addx, const int32_t addy, const int16_t* stable)
+{
+    int32_t x = 0;
+    for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)
+    {
+        const uint32_t color = bicubicGetPixelBorder(psrc, stable, sx, sy);
+        pdst[x] = alphaBlend(pdst[x], color);
+    }
+
+    for (x = inx0; x < inx1; x++, sx += addx, sy += addy) pdst[x] = bicubicGetPixelCenter(psrc, stable, sx, sy);
+
+    for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)
+    {
+        const uint32_t color = bicubicGetPixelBorder(psrc, stable, sx, sy);
+        pdst[x] = alphaBlend(pdst[x], color);
+    }
+}
+
+//bicubic rotate image (full optimize version)
+//use stricks:
+//1. fixed-point
+//2. seperate get pixel inbound and outbound of source image
+//3. SSE2 instruction
+void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
+{
+    const double scalexy = 1.0 / (scalex * scaley);  
+    const double rscalex = scalexy * scaley;
+    const double rscaley = scalexy * scalex;
+
+    double sina = 0, cosa = 0;
+    sincos(-(angle * M_PI) / 180, &sina, &cosa);
+    const int32_t sini = fround(sina * 65536);
+    const int32_t cosi = fround(cosa * 65536);
+
+    const int32_t srcw = src->mWidth;
+    const int32_t srch = src->mHeight;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dsth = dst->mHeight;
+
+    uint32_t* pdst = (uint32_t*)dst->mData;
+
+    const int32_t ax = int32_t(rscalex * cosi);
+    const int32_t ay = int32_t(rscalex * sini);
+    const int32_t bx = -int32_t(rscaley * sini);
+    const int32_t by = int32_t(rscaley * cosi);
+
+    const int32_t dcx = dstw >> 1;
+    const int32_t dcy = dsth >> 1;
+    const int32_t scx = srcw << 15;
+    const int32_t scy = srch << 15;
+
+    const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
+    const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
+
+    TClipData clip;
+    clip.ax = ax;
+    clip.bx = bx;
+    clip.ay = ay;
+    clip.by = by;
+    clip.cx = cx;
+    clip.cy = cy;
+    clip.dstw = dstw;
+    clip.dsth = dsth;
+    clip.srcw = srcw;
+    clip.srch = srch;
+
+    if (!clip.intiClip(dcx, dcy, 2)) return;
+
+    int16_t stable[513] = { 0 };
+    for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
+
+    uint32_t* pline = &pdst[dstw * clip.dstDownY];
+    while (true)
+    {
+        if (clip.dstDownY >= dsth) break;
+        if (clip.dstDownY >= 0) bicubicRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        if (!clip.nextLineDown()) break;
+        pline += dstw;
+    }
+
+    pline = &pdst[dstw * clip.dstUpY];
+    while (clip.nextLineUp())
+    {
+        if (clip.dstUpY < 0) break;
+        pline -= dstw;
+        if (clip.dstUpY < dsth) bicubicRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
     }
 }
 
@@ -7611,7 +7642,7 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_
         break;
 
     case INTERPOLATION_TYPE_BICUBIC:
-        bicubicScaleImageSSE2(dst, src);
+        bicubicScaleImageMax(dst, src);
         break;
 
     default:
@@ -7620,12 +7651,12 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_
 }
 
 //rotate image buffer (export function)
-void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */, int16_t* stable /* = NULL */)
+void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */)
 {
     //mixed mode
     if (bitsPerPixel == 8)
     {
-        rotateImageMix(dst, src, degree);
+        rotateImageMix(dst, src, degree, 1, 1);
         return;
     }
 
@@ -7633,19 +7664,19 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /*
     switch (type)
     {
     case INTERPOLATION_TYPE_NEARST:
-        nearestRotateImageFixed(dst, src, degree);
+        nearestRotateImageFixed(dst, src, degree, 1, 1);
         break;
 
     case INTERPOLATION_TYPE_SMOOTH:
-        smoothRotateImageFixed(dst, src, degree);
+        smoothRotateImageFixed(dst, src, degree, 1, 1);
         break;
 
     case INTERPOLATION_TYPE_BILINEAR:
-        bilinearRotateImageFixed(dst, src, degree);
+        bilinearRotateImageMax(dst, src, degree, 1, 1);
         break;
 
     case INTERPOLATION_TYPE_BICUBIC:
-        bicubicRotateImageFixed(dst, src, stable, degree);
+        bicubicRotateImageMax(dst, src, degree, 1, 1);
         break;
 
     default:
@@ -7654,7 +7685,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type /*
 }
 
 //initialize 3D projection params
-void initProjection()
+void initProjection(double theta, double phi, double de, double rho /* = 0 */)
 {
     const double ph = (M_PI * phi) / 180;
     const double th = (M_PI * theta) / 180;
@@ -7663,52 +7694,80 @@ void initProjection()
     aux2 = sin(ph);
     aux3 = cos(th);
     aux4 = cos(ph);
+
     aux5 = aux3 * aux2;
     aux6 = aux1 * aux2;
     aux7 = aux3 * aux4;
     aux8 = aux1 * aux4;
+
+    DE = de;
+    RHO = rho;
 }
 
 //projection point (x,y,z)
-void projette(double x, double y, double z)
+void projette(double x, double y, double z, double *px, double *py)
 {
-    obsX = -x * aux1 + y * aux3;
-    obsY = -x * aux5 - y * aux6 + z * aux4;
+    const double obsX = -x * aux1 + y * aux3;
+    const double obsY = -x * aux5 - y * aux6 + z * aux4;
 
-    switch (projection)
+    if (projectionType == PROJECTION_TYPE_PERSPECTIVE)
     {
-    case PROJ_TYPE::PERSPECTIVE:
-        obsZ = -x * aux7 - y * aux8 - z * aux2 + rho;
-        projX = (DE * obsX) / obsZ;
-        projY = (DE * obsY) / obsZ;
-        break;
-
-    case PROJ_TYPE::PARALLELE:
-        projX = DE * obsX;
-        projY = DE * obsY;
-        break;
-
-    default:
-        messageBox(GFX_WARNING, "Warning unknown projection type!");
-        break;
+        const double obsZ = -x * aux7 - y * aux8 - z * aux2 + RHO;
+        if (obsZ != 0.0)
+        {
+            *px = (DE * obsX) / obsZ;
+            *py = (DE * obsY) / obsZ;
+        }
+        else
+        {
+            *px = (DE * obsX) / DBL_MIN;
+            *py = (DE * obsY) / DBL_MIN;
+        }
     }
+    else if (projectionType == PROJECTION_TYPE_PARALLELE)
+    {
+        *px = DE * obsX;
+        *py = DE * obsY;
+    }
+    else
+    {
+        *px = 0;
+        *py = 0;
+        messageBox(GFX_WARNING, "Warning unknown projection type!");
+    }
+}
+
+//reset projection parameters
+void resetProjectionParams()
+{
+    RHO = DE = 0;
+    aux1 = aux2 = aux3 = aux4 = 0;
+    aux5 = aux6 = aux7 = aux8 = 0;
+}
+
+//set current projection type
+void setProjection(PROJECTION_TYPE type)
+{
+    projectionType = type;
 }
 
 //move current cursor in 3D mode
 void deplaceEn(double x, double y, double z)
 {
-    projette(x, y, z);
-    cranX = int32_t(centerX + projX * ECHE);
-    cranY = int32_t(centerY - projY);
+    double px = 0, py = 0;
+    projette(x, y, z, &px, &py);
+    cranX = int32_t(centerX + px * ECHE);
+    cranY = int32_t(centerY - py);
     moveTo(cranX, cranY);
 }
 
 //draw line from current cursor in 3D mode
 void traceVers(double x, double y, double z, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
-    projette(x, y, z);
-    cranX = int32_t(centerX + projX * ECHE);
-    cranY = int32_t(centerY - projY);
+    double px = 0, py = 0;
+    projette(x, y, z, &px, &py);
+    cranX = int32_t(centerX + px * ECHE);
+    cranY = int32_t(centerY - py);
     lineTo(cranX, cranY, col, mode);
 }
 
@@ -8251,11 +8310,27 @@ void randomBuffer(void* buff, int32_t count, int32_t range)
 #endif
 }
 
+//get current GFX font
+GFX_FONT* getFont(int32_t type /* = 0 */)
+{
+    if (type >= GFX_MAX_FONT) type = GFX_MAX_FONT - 1;
+    if (type < 0) type = 0;
+    if (!type) return &gfxFonts[fontType];
+    return &gfxFonts[type];
+}
+
+//get current font type
+int32_t getFontType()
+{
+    return fontType;
+}
+
 //set current selected font
 void setFontType(int32_t type)
 {
     //check current range
     if (type >= GFX_MAX_FONT) type = GFX_MAX_FONT - 1;
+    if (type < 0) type = 0;
     fontType = type;
 }
 
@@ -8801,20 +8876,21 @@ void showPNG(const char* fname)
     freeImage(&png);
 }
 
-//load 8bits PNG image as raw data
+//load image as 8bits texture to output buffer
 int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 {
-    if (bitsPerPixel != 8)
-    {
-        messageBox(GFX_ERROR, "Only 8 bits video mode support!");
-        return 0;
-    }
-
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
         messageBox(GFX_ERROR, "Load image error: %s", IMG_GetError());
+        return 0;
+    }
+
+    //check image format type
+    if (image->format->BitsPerPixel != 8)
+    {
+        messageBox(GFX_ERROR, "Only 8 bits image format is supported! %s", fname);
         return 0;
     }
 
@@ -8828,13 +8904,6 @@ int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 //load image as GFXLIB texture format
 int32_t loadImage(const char* fname, GFX_IMAGE* im)
 {
-    //only work with rgb mode
-    if (bitsPerPixel <= 8)
-    {
-        messageBox(GFX_ERROR, "Only video with rgb mode supported!");
-        return 0;
-    }
-
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
@@ -8877,16 +8946,9 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     return 1;
 }
 
-//load image as 32bits texture buffer
+//load image as 32bits texture to output buffer
 int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fname)
 {
-    //only rgb mode
-    if (bitsPerPixel <= 8)
-    {
-        messageBox(GFX_ERROR, "Only video with rgb mode supported!");
-        return 0;
-    }
-
     //simple load image from file
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
@@ -10046,10 +10108,10 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 #else
     for (uint32_t i = 0; i < nsize; i++)
     {
-        uint8_t* col = (uint8_t*)psrc;
-        col[0] = (col[0] * bright) >> 8;
-        col[1] = (col[1] * bright) >> 8;
-        col[2] = (col[2] * bright) >> 8;
+        ARGB* col = (ARGB*)psrc;
+        col->r = (col->r * bright) >> 8;
+        col->g = (col->g * bright) >> 8;
+        col->b = (col->b * bright) >> 8;
         psrc++;
     }
 #endif
@@ -10136,8 +10198,8 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
 #else
     for (uint32_t i = 0; i < nsize; i++)
     {
-        uint8_t *alpha = (uint8_t*)data;
-        alpha[3] = uint16_t(alpha[3] * bright) >> 8;
+        ARGB *col = (ARGB*)data;
+        col->a = uint16_t(col->a * bright) >> 8;
         data++;
     }
 #endif
@@ -10394,14 +10456,14 @@ void blurImage(GFX_IMAGE* img)
     const uint32_t offset = (img->mSize >> 2) - (width << 1);
     for (uint32_t i = width; i < offset; i++)
     {
-        uint8_t* col0 = (uint8_t*)&data[i];
-        uint8_t* col1 = (uint8_t*)&data[i - 1];
-        uint8_t* col2 = (uint8_t*)&data[i + 1];
-        uint8_t* col3 = (uint8_t*)&data[i - width];
-        uint8_t* col4 = (uint8_t*)&data[i + width];
-        col0[0] = (col1[0] + col2[0] + col3[0] + col4[0]) >> 2;
-        col0[1] = (col1[1] + col2[1] + col3[1] + col4[1]) >> 2;
-        col0[2] = (col1[2] + col2[2] + col3[2] + col4[2]) >> 2;
+        ARGB* col0 = (ARGB*)&data[i];
+        ARGB* col1 = (ARGB*)&data[i - 1];
+        ARGB* col2 = (ARGB*)&data[i + 1];
+        ARGB* col3 = (ARGB*)&data[i - width];
+        ARGB* col4 = (ARGB*)&data[i + width];
+        col0->r = (col1->r + col2->r + col3->r + col4->r) >> 2;
+        col0->g = (col1->g + col2->g + col3->g + col4->g) >> 2;
+        col0->b = (col1->b + col2->b + col3->b + col4->b) >> 2;
     }
 #endif
 }
@@ -10843,11 +10905,11 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
                 if (col > 128)
                 {
                     col -= 128;
-                    uint8_t* pdst = (uint8_t*)&dstdata[odst];
-                    uint8_t* psrc = (uint8_t*)&src2data[osrc2];
-                    pdst[0] = min((col * psrc[0]) >> 5, 255);
-                    pdst[1] = min((col * psrc[1]) >> 5, 255);
-                    pdst[2] = min((col * psrc[2]) >> 5, 255);
+                    ARGB* pdst = (ARGB*)&dstdata[odst];
+                    ARGB* psrc = (ARGB*)&src2data[osrc2];
+                    pdst->r = min((col * psrc->r) >> 5, 255);
+                    pdst->g = min((col * psrc->g) >> 5, 255);
+                    pdst->b = min((col * psrc->b) >> 5, 255);
                 }
             }
 
@@ -10865,7 +10927,7 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
 {
     if (bitsPerPixel <= 8) return;
 
-    uint8_t* pixels = img->mData;
+    ARGB* pixels = (ARGB*)img->mData;
     const uint32_t msize = img->mSize >> 2;
 
 #ifdef _USE_ASM
@@ -10918,8 +10980,8 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
         //store data
         _mm_store_si128(xmm1, xmm2);
         
-        //next-to 16-bytes align
-        pixels += 16;
+        //next-to 16-bytes align (4 pixels)
+        pixels += 4;
     }
 
     //have unaligned bytes?
@@ -10929,10 +10991,10 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
         //process remainder bytes
         for (int32_t i = 0; i < remainder; i++)
         {
-            pixels[0] = max(pixels[0] - step, 0);
-            pixels[1] = max(pixels[1] - step, 0);
-            pixels[2] = max(pixels[2] - step, 0);
-            pixels += 4;
+            pixels->r = max(pixels->r - step, 0);
+            pixels->g = max(pixels->g - step, 0);
+            pixels->b = max(pixels->b - step, 0);
+            pixels++;
         }
     }
 #endif

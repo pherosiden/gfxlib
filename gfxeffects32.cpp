@@ -434,10 +434,12 @@ void rayCasting()
     renderBuff[0] = pBuff;
     for (i = 0; i < cheight; i++) renderBuff[i] = &renderBuff[0][i * cwidth];
 
+    const int32_t mheight = cheight >> 1;
+
     //start the main loop
     do {
         //FLOOR CASTING
-        for (int32_t y = cheight / 2 + 1; y < cheight; y++)
+        for (int32_t y = mheight + 1; y < cheight; y++)
         {
             //rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
             const double rayDirX0 = dirX - planeX;
@@ -446,7 +448,7 @@ void rayCasting()
             const double rayDirY1 = dirY + planeY;
 
             //current y position compared to the center of the screen (the horizon)
-            const int32_t p = y - cheight / 2;
+            const int32_t p = y - mheight;
 
             //vertical position of the camera.
             const double posZ = 0.5 * cheight;
@@ -464,7 +466,7 @@ void rayCasting()
             double floorX = posX + rowDistance * rayDirX0;
             double floorY = posY + rowDistance * rayDirY0;
 
-            for (int32_t x = 0; x < cwidth; ++x)
+            for (int32_t x = 0; x < cwidth; x++)
             {
                 //the cell coord is simply got from the integer parts of floorX and floorY
                 const int32_t cellX = int32_t(floorX);
@@ -573,12 +575,13 @@ void rayCasting()
 
             //calculate height of line to draw on screen
             const int32_t lineHeight = int32_t(cheight / perpWallDist);
+            const int32_t mlineHeight = lineHeight >> 1;
 
             //calculate lowest and highest pixel to fill in current stripe
-            int32_t drawStart = -lineHeight / 2 + cheight / 2;
+            int32_t drawStart = -mlineHeight + mheight;
             if (drawStart < 0) drawStart = 0;
-            int32_t drawEnd = lineHeight / 2 + cheight / 2;
-            if (drawEnd >= cheight) drawEnd = cheight - 1;
+            int32_t drawEnd = mlineHeight + mheight;
+            if (drawEnd > cheight) drawEnd = cheight;
 
             //texturing calculations
             const int32_t texNum = miniMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
@@ -599,7 +602,7 @@ void rayCasting()
             const double step = double(TEXTURE_HEIGHT) / lineHeight;
 
             //starting texture coordinate
-            double texPos = (drawStart - cheight / 2.0 + lineHeight / 2.0) * step;
+            double texPos = (intmax_t(drawStart) - mheight + mlineHeight) * step;
 
             for (int32_t y = drawStart; y < drawEnd; y++)
             {
@@ -641,35 +644,35 @@ void rayCasting()
             //[               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
             //[ planeY   dirY ]                                          [ -planeY  planeX ]
 
-            const double invDet = 1.0 / (planeX * dirY - dirX * planeY); //required for correct matrix multiplication
+            const double invDet = 1.0 / (planeX * dirY - dirX * planeY);
             const double transformX = invDet * (dirY * spriteX - dirX * spriteY);
-            const double transformY = invDet * (-planeY * spriteX + planeX * spriteY); //this is actually the depth inside the screen, that what Z is in 3D
+            const double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
 
             const int32_t spriteScreenX = int32_t((cwidth >> 1) * (1 + transformX / transformY));
 
             //calculate height of the sprite on screen
-            const int32_t spriteHeight = abs(int32_t(cheight / transformY)); //using 'transformY' instead of the real distance prevents fisheye
+            const int32_t spriteHeight = abs(int32_t(cheight / transformY));
+            const int32_t mspriteHeight = spriteHeight >> 1;
 
             //calculate lowest and highest pixel to fill in current stripe
-            int32_t drawStartY = -(spriteHeight >> 1) + (cheight >> 1);
+            int32_t drawStartY = -mspriteHeight + mheight;
             if (drawStartY < 0) drawStartY = 0;
-
-            int32_t drawEndY = (spriteHeight >> 1) + (cheight >> 1);
-            if (drawEndY >= cheight) drawEndY = cheight - 1;
+            int32_t drawEndY = mspriteHeight + mheight;
+            if (drawEndY > cheight) drawEndY = cheight;
 
             //calculate width of the sprite
             const int32_t spriteWidth = abs(int32_t(cheight / transformY));
-            
-            int32_t drawStartX = -(spriteWidth >> 1) + spriteScreenX;
+            const int32_t mspriteWidth = spriteWidth >> 1;
+
+            int32_t drawStartX = -mspriteWidth + spriteScreenX;
             if (drawStartX < 0) drawStartX = 0;
-            
-            int32_t drawEndX = (spriteWidth >> 1) + spriteScreenX;
-            if (drawEndX >= cwidth) drawEndX = cwidth - 1;
+            int32_t drawEndX = mspriteWidth + spriteScreenX;
+            if (drawEndX > cwidth) drawEndX = cwidth;
 
             //loop through every vertical stripe of the sprite on screen
             for (int32_t stripe = drawStartX; stripe < drawEndX; stripe++)
             {
-                const int32_t texX = int32_t(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
+                const int32_t texX = (((stripe - (-mspriteWidth + spriteScreenX)) << 8) * TEXTURE_WIDTH / spriteWidth) >> 8;
                 //the conditions in the if are:
                 //1) it's in front of camera plane so you don't see things behind you
                 //2) it's on the screen (left)
@@ -677,12 +680,13 @@ void rayCasting()
                 //4) ZBuffer, with perpendicular distance
                 if (transformY > 0 && stripe > 0 && stripe < cwidth && transformY < zBuffer[stripe])
                 {
-                    for (int32_t y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+                    //for every pixel of the current stripe
+                    for (int32_t y = drawStartY; y < drawEndY; y++)
                     {
-                        const int32_t d = y * 256 - cheight * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
-                        const int32_t texY = ((d * TEXTURE_HEIGHT) / spriteHeight) / 256;
-                        const uint32_t color = textures[sprite[spriteOrder[i]].data][texY][texX]; //get current color from the texture
-                        if (color & 0x00FFFFFF) renderBuff[y][stripe] = color; //paint pixel if it isn't black, black is the invisible color
+                        const int32_t d = (y << 8) - (cheight << 7) + (spriteHeight << 7);
+                        const int32_t texY = ((d * TEXTURE_HEIGHT) / spriteHeight) >> 8;
+                        const uint32_t color = textures[sprite[spriteOrder[i]].data][texY][texX];
+                        if (color & 0x00FFFFFF) renderBuff[y][stripe] = color;
                     }
                 }
             }
@@ -1046,11 +1050,11 @@ void juliaExplorer()
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1,  1, RGB_WHITE, 0, "X:%.18lf", mx);
-            writeText(1, 11, RGB_WHITE, 0, "Y:%.18lf", my);
-            writeText(1, 21, RGB_WHITE, 0, "Z:%.18lf", scale);
-            writeText(1, 31, RGB_WHITE, 0, "R:%.18lf", cre);
-            writeText(1, 41, RGB_WHITE, 0, "I:%.18lf", cim);
+            writeText(1,  1, RGB_WHITE, 0, "X:%g", mx);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%g", my);
+            writeText(1, 21, RGB_WHITE, 0, "Z:%g", scale);
+            writeText(1, 31, RGB_WHITE, 0, "R:%g", cre);
+            writeText(1, 41, RGB_WHITE, 0, "I:%g", cim);
             writeText(1, 51, RGB_WHITE, 0, "N:%d", iterations);
         }
 
@@ -1351,9 +1355,9 @@ void mandelbrotExporer()
         //print the values of all variables on screen if that option is enabled
         if (showText <= 1)
         {
-            writeText(1,  1, RGB_WHITE, 0, "X:%.18lf", mx);
-            writeText(1, 11, RGB_WHITE, 0, "Y:%.18lf", my);
-            writeText(1, 21, RGB_WHITE, 0, "Z:%.18lf", scale);
+            writeText(1,  1, RGB_WHITE, 0, "X:%g", mx);
+            writeText(1, 11, RGB_WHITE, 0, "Y:%g", my);
+            writeText(1, 21, RGB_WHITE, 0, "Z:%g", scale);
             writeText(1, 31, RGB_WHITE, 0, "N:%d", iterations);
         }
 
@@ -1578,90 +1582,135 @@ void tunnelDemo()
 
 /*
 //blur
-#define filterWidth 5
-#define filterHeight 5
+#define FILTER_WIDTH    5
+#define FILTER_HEIGHT   5
 
-double filter[filterHeight][filterWidth] =
+const double filter[][FILTER_WIDTH] =
 {
-    0, 0, 1, 0, 0,
-    0, 1, 1, 1, 0,
-    1, 1, 1, 1, 1,
-    0, 1, 1, 1, 0,
-    0, 0, 1, 0, 0,
+    {0, 0, 1, 0, 0},
+    {0, 1, 1, 1, 0},
+    {1, 1, 1, 1, 1},
+    {0, 1, 1, 1, 0},
+    {0, 0, 1, 0, 0},
 };
 
-double factor = 1.0 / 13.0;
-double bias = 0.0;
+const double bias = 0.0;
+const double factor = 1.0 / 13.0;
 */
 
-/*
-//Motion Blur
-#define filterWidth 9
-#define filterHeight 9
+/*//Gaussian Blur (3 x 3)
+#define FILTER_WIDTH    3
+#define FILTER_HEIGHT   3
 
-double filter[filterHeight][filterWidth] =
+const double filter[][FILTER_WIDTH] =
 {
-    1, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 1, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 1, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 1, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 1,
+    {1, 2, 1},
+    {2, 4, 2},
+    {1, 2, 1},
 };
 
-double factor = 1.0 / 9.0;
-double bias = 0.0;
+const double bias = 0.0;
+const double factor = 1.0 / 16.0;
 */
 
+/*//Gaussian Blur (5 x 5)
+#define FILTER_WIDTH    5
+#define FILTER_HEIGHT   5
+
+const double filter[][FILTER_WIDTH] =
+{
+    {1,  4,  6,  4,  1},
+    {4, 16, 24, 16,  4},
+    {6, 24, 36, 24,  6},
+    {4, 16, 24, 16,  4},
+    {1,  4,  6,  4,  1},
+};
+
+const double bias = 0.0;
+const double factor = 1.0 / 256.0;
+*/
+
+/*//Gaussian Blur (3f x 3f)
+#define FILTER_WIDTH    3
+#define FILTER_HEIGHT   3
+
+const double filter[][FILTER_WIDTH] =
+{
+    {0.077847, 0.123317, 0.077847},
+    {0.123317, 0.195346, 0.123317},
+    {0.077847, 0.123317, 0.077847},
+};
+
+const double bias = 0.0;
+const double factor = 1.0;
+*/
+
+/*//Motion Blur
+#define FILTER_WIDTH    9
+#define FILTER_HEIGHT   9
+
+const double filter[][FILTER_WIDTH] =
+{
+    {1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 1, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 1, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 1, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 1, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 1, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 1},
+};
+
+const double bias = 0.0;
+const double factor = 1.0 / 9.0;
+*/
 /*
 //Find Edges
-#define filterWidth 5
-#define filterHeight 5
+#define FILTER_WIDTH    5
+#define FILTER_HEIGHT   5
 
-double filter[filterHeight][filterWidth] =
+const double filter[][FILTER_WIDTH] =
 {
-  -1,  0,  0,  0,  0,
-   0, -2,  0,  0,  0,
-   0,  0,  6,  0,  0,
-   0,  0,  0, -2,  0,
-   0,  0,  0,  0, -1,
+    {-1,  0,  0,  0,  0},
+    { 0, -2,  0,  0,  0},
+    { 0,  0,  6,  0,  0},
+    { 0,  0,  0, -2,  0},
+    { 0,  0,  0,  0, -1},
 };
 
-double factor = 1.0;
-double bias = 0.0;
+const double bias = 0.0;
+const double factor = 1.0;
 */
 
 /*
 //Sharpen
-#define filterWidth 3
-#define filterHeight 3
+#define FILTER_WIDTH    3
+#define FILTER_HEIGHT   3
 
-double filter[filterHeight][filterWidth] =
+const double filter[][FILTER_WIDTH] =
 {
-  -1, -1, -1,
-  -1,  9, -1,
-  -1, -1, -1
+    {-1, -1, -1},
+    {-1,  9, -1},
+    {-1, -1, -1},
 };
 
-double factor = 1.0;
-double bias = 0.0;
+const double bias = 0.0;
+const double factor = 1.0;
 */
 
 //Emboss (3 x 3)
 #define FILTER_WIDTH    3
 #define FILTER_HEIGHT   3
 
-static const double filter[FILTER_HEIGHT][FILTER_WIDTH] = {
-    -1, -1,  0,
-    -1,  0,  1,
-    0,  1,  1
+const double filter[][FILTER_WIDTH] = {
+    {-1, -1,  0},
+    {-1,  0,  1},
+    { 0,  1,  1},
 };
 
-static const double fract = 1.0;
-static const double bias = 128.0;
+const double factor = 1.0;
+const double bias = 128.0;
 
 void imageFillter()
 {
@@ -1711,9 +1760,12 @@ void imageFillter()
             uint8_t* pdst = (uint8_t*)&pixels[y][x];
 
             //truncate values smaller than zero and larger than 255
-            pdst[2] = min(max(int32_t(fract * red + bias), 0), 255);
-            pdst[1] = min(max(int32_t(fract * green + bias), 0), 255);
-            pdst[0] = min(max(int32_t(fract * blue + bias), 0), 255);
+            pdst[2] = clamp(int32_t(factor * red + bias), 0, 255);
+            pdst[1] = clamp(int32_t(factor * green + bias), 0, 255);
+            pdst[0] = clamp(int32_t(factor * blue + bias), 0, 255);
+
+            //make grey
+            pdst[2] = pdst[1] = pdst[0] = uint8_t(0.2126 * pdst[2] + 0.7152 * pdst[1] + 0.0722 * pdst[0]);
 
             //take absolute value and truncate to 255
             //pdst[2] = min(abs(int32_t(fact * red + bias)), 255);
@@ -1918,8 +1970,8 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
 void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t offset, double brightnessLevel)
 {
     //range check
-    if (x > cwidth - 1) x = cwidth - 1;
-    if (y > cheight - 1) y = cheight - 1;
+    if (x >= cwidth) x = cwidth - 1;
+    if (y >= cheight) y = cheight - 1;
     if (brightnessLevel > 1) brightnessLevel = 1;
 
     int32_t heightToDraw = height;
@@ -1979,12 +2031,12 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
 
             //clip bottom (just return if we reach bottom)
             heightToDraw--;
-            if (heightToDraw < 1) return;
+            if (heightToDraw <= 0) return;
         }
 
         //goto next line
         offsetY++;
-        if (offsetY > wallHeight - 1) offsetY = wallHeight - 1;
+        if (offsetY >= wallHeight) offsetY = wallHeight - 1;
     }
 }
 
@@ -2324,17 +2376,10 @@ void doRayCasting()
         //trick to give different shades between vertical and horizontal (you could also use different textures for each if you wish to)
         drawWallSliceRectangleTinted(castColumn, topOfWall, bottomOfWall - topOfWall + 1, offset, BASE_LIGHT_VALUE / floor(distance));
     
-        //validate range
-        if (topOfWall < 0) topOfWall = 0;
-        if (bottomOfWall < 0) bottomOfWall = 0;
-        if (topOfWall > cheight - 1) topOfWall = cheight - 1;
-        if (bottomOfWall > cheight - 1) bottomOfWall = cheight - 1;
-
         //FLOOR CASTING at the simplest! Try to find ways to optimize this, you can do it!
         if (floorTexture)
         {
             //find the first bit so we can just add the width to get the next row (of the same column)
-            uint32_t nextLine = bottomOfWall;
             for (int32_t row = bottomOfWall; row < PROJECTION_PLANE_HEIGHT; row++)
             {
                 const double straightDistance = double(playerHeight) / (intmax_t(row) - projectionPlaneCenterY) * PLAYER_PROJECTION_PLAN;
@@ -2360,7 +2405,7 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&rawPixels[nextLine++][castColumn];
+                    uint8_t* pixel = (uint8_t*)&rawPixels[row][castColumn];
 
                     //find offset of tile and column in texture                    
                     const uint8_t* color = (uint8_t*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
@@ -2377,7 +2422,6 @@ void doRayCasting()
         if (ceilingTexture)
         {
             //find the first bit so we can just add the width to get the next row (of the same column)
-            uint32_t nextLine = topOfWall;
             for (int32_t row = topOfWall; row >= 0; row--)
             {
                 const double zoom = (double(WALL_HEIGHT) - playerHeight) / (double(projectionPlaneCenterY) - row);
@@ -2403,7 +2447,7 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&rawPixels[nextLine--][castColumn];
+                    uint8_t* pixel = (uint8_t*)&rawPixels[row][castColumn];
 
                     //find offset of tile and column in texture
                     const uint8_t* color = (uint8_t*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];

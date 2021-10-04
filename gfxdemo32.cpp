@@ -414,7 +414,7 @@ void runRotateImage(int32_t sx, int32_t sy)
     free(tables);
 }
 
-void runBilinearRotateImage(int32_t sx, int32_t sy)
+void runFastRotateImage(int32_t sx, int32_t sy)
 {
     //initialize render buffer
     GFX_IMAGE img = { 0 };
@@ -422,11 +422,7 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
     if (!img.mData) return;
     
     //start angle
-    uint32_t degree = 0;
-
-    int16_t *stable = (int16_t*)calloc(512, sizeof(int16_t));
-    if (!stable) return;
-    for (int32_t i = 0; i < 512; i++) stable[i] = fround(256.0f * sinXDivX(i / 256.0f));
+    double degree = 0;
 
     //loop until return
     while (!finished(SDL_SCANCODE_RETURN))
@@ -438,14 +434,16 @@ void runBilinearRotateImage(int32_t sx, int32_t sy)
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
         //rotate buffer
-        rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BICUBIC, stable);
+        rotateImage(&img, &fade2, degree, INTERPOLATION_TYPE_BICUBIC);
         putImage(sx, sy, &img);
         render();
         delay(FPS_60);
+        
+        //range check
+        if (degree > 360) degree = 0;
     }
     
     //cleanup...
-    free(stable);
     freeImage(&img);
 }
 
@@ -781,7 +779,7 @@ void gfxDemo()
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
     
-    fillRectPattern(10, 10, xc - 19, yc - 19, RGB_GREY32, ptnHatchX, BLEND_MODE_ADD);
+    fillRectPattern(10, 10, xc - 19, yc - 19, RGB_GREY32, getPattern(PATTERN_TYPE_HATCH_X), BLEND_MODE_ADD);
     fillRect(10, yc, xc - 19, getMaxY() - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
     fillRect(20, 20, xc - 39, yc - 39, 0);
     getImage(10, yc, xc - 19, getMaxY() - yc - 9, &txt);
@@ -856,7 +854,7 @@ void gfxDemo()
     showText(10, yc, &txt, "you can decide which image covers more the other.");
     showText(10, yc, &txt, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
-    runBilinearRotateImage(20, 20);
+    runFastRotateImage(20, 20);
     
     fullSpeed = 0;
     showText(10, yc, &txt, "----");

@@ -1,5 +1,4 @@
 #include "gfxlib.h"
-#include <float.h>
 
 //CHR font information
 #define CHR_WIDTH   8           //character width
@@ -33,6 +32,7 @@ int32_t     c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 int32_t     lines = 0, points = 0;
 int32_t     visiPrec = 0, visiCour = 0;
 
+double      theta = 0, phi = 0;
 double      gx1 = 0, gx2 = 0, gy1 = 0, gy2 = 0;
 double      f1 = 0, f2 = 0, f3 = 0, f4 = 0;
 double      incX = 0, incY = 0, echX = 0, echY = 0;
@@ -861,142 +861,11 @@ void familleDesCourbesEnV()
     }
 }
 
-void initParameter1()
-{
-    projection = PARALLELE;
-    gx1 = -9.2;
-    gx2 = 9.2;
-    gy1 = -9.2;
-    gy2 = 9.2;
-    lines = 90;
-    vue = 'r';
-    points = 120;
-    DE = 1;
-    theta = 45;
-    phi = 22;
-}
-
-void initParameter2()
-{
-    projection = PARALLELE;
-    gx1 = -9.2;
-    gx2 = 9.2;
-    gy1 = -14.8;
-    gy2 = 14.8;
-    lines = 90;
-    vue = 'r';
-    points = 200;
-    DE = 1;
-    theta = 45;
-    phi = 20;
-}
-
-void initParameter3()
-{
-    projection = PARALLELE;
-    gx1 = -9.5;
-    gx2 = 9.5;
-    gy1 = -9.5;
-    gy2 = 9.5;
-    lines = 90;
-    vue = 'r';
-    points = 200;
-    DE = 1;
-    theta = 40;
-    phi = 20;
-}
-
-void initParameter4()
-{
-    projection = PARALLELE;
-    gx1 = -9.8;
-    gx2 = 9.8;
-    gy1 = -10.2;
-    gy2 = 10.2;
-    lines = 80;
-    vue = 'r';
-    points = 200;
-    DE = 1;
-    theta = 45;
-    phi = 32;
-}
-
-void initParameter5()
-{
-    projection = PARALLELE;
-    gx1 = -4.0;
-    gx2 = 4.0;
-    gy1 = -2.8;
-    gy2 = 2.8;
-    lines = 50;
-    vue = 'r';
-    points = 200;
-    DE = 1;
-    theta = 40;
-    phi = 15;
-}
-
-void initParameter11()
-{
-    projection = PARALLELE;
-    DE = 55;
-    theta = 60;
-    phi = 30;
-    debutU = -M_PI / 2;
-    finU = M_PI / 2;
-    du = 0.2;
-    debutV = -M_PI;
-    finV = M_PI;
-    dv = 0.2;
-}
-
-void initParameter21()
-{
-    projection = PARALLELE;
-    DE = 30;
-    theta = 30;
-    phi = 30;
-    debutU = -M_PI;
-    finU = M_PI;
-    du = 0.4;
-    debutV = -M_PI;
-    finV = M_PI;
-    dv = 0.2;
-}
-
-void initParameter31()
-{
-    projection = PARALLELE;
-    DE = 40;
-    theta = 40;
-    phi = 30;
-    debutU = -M_PI;
-    finU = M_PI;
-    du = 0.4;
-    debutV = -M_PI;
-    finV = M_PI;
-    dv = 0.2;
-}
-
-void initParameter41()
-{
-    projection = PARALLELE;
-    DE = 155;
-    theta = 60;
-    phi = 30;
-    debutU = -1;
-    finU = 1;
-    du = 0.1;
-    debutV = -1;
-    finV = 1;
-    dv = 0.1;
-}
-
-void initDiverses()
+void initDiverses(double theta)
 {
     incX = (gx2 - gx1) / points;
     incY = (gy2 - gy1) / lines;
-    
+
     c1 = 70;
     c2 = 710;
     c3 = 57;
@@ -1004,15 +873,152 @@ void initDiverses()
     f1 = f2 = f3 = f4 = 0;
 
     memset(maxHeight, 0, sizeof(maxHeight));
-    
+
     for (int32_t i = 0; i < LIMITX; i++) minHeight[i] = LIMITY;
 
-    double aux = 0;
     if (theta < 0 || theta > 180)
     {
-        aux = gx1; gx1 = gx2; gx2 = aux; incX = -incX;
-        aux = gy1; gy1 = gy2; gy2 = aux; incY = -incY;
+        swapf(gx1, gx2);
+        swapf(gy1, gy2);
+        incX = -incX;
+        incY = -incY;
     }
+}
+
+void initParameter1()
+{
+    gx1 = -9.2;
+    gx2 = 9.2;
+    gy1 = -9.2;
+    gy2 = 9.2;
+    lines = 90;
+    vue = 'r';
+    points = 120;
+    theta = 45;
+    phi = 22;
+    initDiverses(theta);
+    initProjection(theta, phi, 1);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter2()
+{
+    gx1 = -9.2;
+    gx2 = 9.2;
+    gy1 = -14.8;
+    gy2 = 14.8;
+    lines = 90;
+    vue = 'r';
+    points = 200;
+    theta = 45;
+    phi = 20;
+    initDiverses(theta);
+    initProjection(theta, phi, 1);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter3()
+{
+    gx1 = -9.5;
+    gx2 = 9.5;
+    gy1 = -9.5;
+    gy2 = 9.5;
+    lines = 90;
+    vue = 'r';
+    points = 200;
+    theta = 40;
+    phi = 20;
+    initDiverses(theta);
+    initProjection(theta, phi, 1);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter4()
+{
+    gx1 = -9.8;
+    gx2 = 9.8;
+    gy1 = -10.2;
+    gy2 = 10.2;
+    lines = 80;
+    vue = 'r';
+    points = 200;
+    theta = 45;
+    phi = 32;
+    initDiverses(theta);
+    initProjection(theta, phi, 1);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter5()
+{
+    gx1 = -4.0;
+    gx2 = 4.0;
+    gy1 = -2.8;
+    gy2 = 2.8;
+    lines = 50;
+    vue = 'r';
+    points = 200;
+    theta = 40;
+    phi = 15;
+    initDiverses(theta);
+    initProjection(theta, phi, 1);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter11()
+{
+    debutU = -M_PI / 2;
+    finU = M_PI / 2;
+    du = 0.2;
+    debutV = -M_PI;
+    finV = M_PI;
+    dv = 0.2;
+    theta = 60;
+    phi = 30;
+    initProjection(theta, phi, 55);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter21()
+{
+    debutU = -M_PI;
+    finU = M_PI;
+    du = 0.4;
+    debutV = -M_PI;
+    finV = M_PI;
+    dv = 0.2;
+    theta = 30;
+    phi = 30;
+    initProjection(theta, phi, 30);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter31()
+{
+    debutU = -M_PI;
+    finU = M_PI;
+    du = 0.4;
+    debutV = -M_PI;
+    finV = M_PI;
+    dv = 0.2;
+    theta = 40;
+    phi = 30;
+    initProjection(theta, phi, 40);
+    setProjection(PROJECTION_TYPE_PARALLELE);
+}
+
+void initParameter41()
+{
+    debutU = -1;
+    finU = 1;
+    du = 0.1;
+    debutV = -1;
+    finV = 1;
+    dv = 0.1;
+    theta = 60;
+    phi = 30;
+    initProjection(theta, phi, 155);
+    setProjection(PROJECTION_TYPE_PARALLELE);
 }
 
 void rechercheFenetre()
@@ -1024,7 +1030,10 @@ void rechercheFenetre()
         {
             const double x = gx1 + j * incX;
             const double z = FX(x, y);
-            projette(x, y, z);
+
+            double projX = 0, projY = 0;
+            projette(x, y, z, &projX, &projY);
+
             if (projX < f1) f1 = projX;
             if (projX > f2) f2 = projX;
             if (projX < f3) f3 = projY;
@@ -1104,12 +1113,13 @@ void dessineFonction()
 
     for (int32_t i = 0; i < lines; i++)
     {
+        double projX = 0, projY = 0;
         const double y = gy2 - i * incY;
         double x = gx1;
         double z = FX(x, y);
-        
-        projette (x, y, z);
-        
+                
+        projette(x, y, z, &projX, &projY);
+
         int32_t precX = int32_t((projX - f1) * echX + c1);
         int32_t precY = int32_t((projY - f3) * echY + c3);
 
@@ -1119,7 +1129,8 @@ void dessineFonction()
         {
             x = gx1 + j * incX;
             z = FX(x, y);
-            projette(x, y, z);
+
+            projette(x, y, z, &projX, &projY);
             
             int32_t courX = int32_t((projX - f1) * echX + c1);
             int32_t courY = int32_t((projY - f3) * echY + c3);
@@ -1196,7 +1207,7 @@ void dessineFonction()
 void affichage(int32_t range)
 {
     int32_t i = 0, j = 0;
-    uint8_t oldFont = fontType;
+    uint8_t oldFont = getFontType();
 
     char buff[80] = { 0 };
     const char *strTitle = "Shapes 3D Transform";
@@ -1226,30 +1237,31 @@ void affichage(int32_t range)
         for (j = 50; j < cmaxX - 50; j++) if (getPixel(i, j) == 50) putPixel(i, j, 32 + ((i + j) / range) % 72);
     }
     
-    fontType = oldFont;
+    setFontType(oldFont);
     render();
 }
 
 void resetParameters()
 {
     c1 = c2 = c3 = c4 = lines = points = 0;
-    gx1 = gx2 = gy1 = gy2 = incX = incY = rho = f1 = f2 = f3 = f4 = echX = 0;
-    echY = DE = theta = phi = aux1 = aux2 = aux3 = aux4 = 0;
-    aux5 = aux6 = aux7 = aux8 = obsX = obsY = obsZ = projX = projY = 0;
+    gx1 = gx2 = gy1 = gy2 = incX = incY = 0;
+    f1 = f2 = f3 = f4 = echX = echY = 0;
+    resetProjectionParams();
 }
 
 void getPixelChar()
 {
+    const GFX_FONT* font = getFont();
     memset(chrPixels, 0, sizeof(chrPixels));
 
     for (int32_t i = 32; i < CHR_MAX; i++)
     {
         writeText(0, 0, 31, 0, "%c", i);
-        for (int32_t j = 0; j < gfxFonts[fontType].header.subData.width; j++)
+        for (int32_t j = 0; j < font->header.subData.width; j++)
         {
-            for (int32_t k = 0; k < gfxFonts[fontType].header.subData.height; k++) if (getPixel(j, k) == 31) chrPixels[i][j][k] = 1;
+            for (int32_t k = 0; k < font->header.subData.height; k++) if (getPixel(j, k) == 31) chrPixels[i][j][k] = 1;
         }
-        fillRect(0, 0, gfxFonts[fontType].header.subData.width, gfxFonts[fontType].header.subData.height, 0);
+        fillRect(0, 0, font->header.subData.width, font->header.subData.height, 0);
     }
 }
 
@@ -1257,27 +1269,28 @@ void scrollLed(const char *msg)
 {
     int32_t i = 0, j = 0, k = 0, m = 0;
     const int32_t zx = 5, zy = 3, sy = 50;
+    const GFX_FONT* font = getFont();
 
-    drawRoundRect(0, sy, getMaxX() - 1, gfxFonts[fontType].header.subData.height << 2, 50, 10);
+    drawRoundRect(0, sy, getMaxX() - 1, font->header.subData.height << 2, 50, 10);
     
     while (!finished(SDL_SCANCODE_RETURN))
     {
         const uint8_t chr = msg[m];
-        for (k = 0; k < gfxFonts[fontType].header.subData.width; k++)
+        for (k = 0; k < font->header.subData.width; k++)
         {
-            for (i = 0; i < CHR_NUM * gfxFonts[fontType].header.subData.width - 1; i++)
+            for (i = 0; i < CHR_NUM * font->header.subData.width - 1; i++)
             {
-                for (j = 0; j < gfxFonts[fontType].header.subData.height; j++) chrBuff[i][j] = chrBuff[i + 1][j];
+                for (j = 0; j < font->header.subData.height; j++) chrBuff[i][j] = chrBuff[i + 1][j];
             }
 
-            for (j = 0; j < gfxFonts[fontType].header.subData.height; j++) chrBuff[CHR_NUM * gfxFonts[fontType].header.subData.width - 1][j] = chrPixels[chr][k][j];
+            for (j = 0; j < font->header.subData.height; j++) chrBuff[CHR_NUM * font->header.subData.width - 1][j] = chrPixels[chr][k][j];
             
-            for (i = 0; i < CHR_NUM * gfxFonts[fontType].header.subData.width; i++)
+            for (i = 0; i < CHR_NUM * font->header.subData.width; i++)
             {
-                for (j = 0; j < gfxFonts[fontType].header.subData.height; j++)
+                for (j = 0; j < font->header.subData.height; j++)
                 {
-                    if (chrBuff[i][j]) putPixel(gfxFonts[fontType].header.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 14);
-                    else putPixel(gfxFonts[fontType].header.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 0);
+                    if (chrBuff[i][j]) putPixel(font->header.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 14);
+                    else putPixel(font->header.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 0);
                 }
             }
             delay(10);
@@ -1737,8 +1750,6 @@ void gfxDemoMix()
     FX = FX1;
 
     initParameter1();
-    initDiverses();
-    initProjection();
     rechercheFenetre();
     calculeEchelles();
     dessineFonction();
@@ -1754,8 +1765,6 @@ void gfxDemoMix()
     FX = FX2;
 
     initParameter2();
-    initDiverses();
-    initProjection();
     rechercheFenetre();
     calculeEchelles();
     dessineFonction();
@@ -1771,8 +1780,6 @@ void gfxDemoMix()
     FX = FX3;
 
     initParameter3();
-    initDiverses();
-    initProjection();
     rechercheFenetre();
     calculeEchelles();
     dessineFonction();
@@ -1788,8 +1795,6 @@ void gfxDemoMix()
     FX = FX4;
 
     initParameter4();
-    initDiverses();
-    initProjection();
     rechercheFenetre();
     calculeEchelles();
     dessineFonction();
@@ -1805,8 +1810,6 @@ void gfxDemoMix()
     FX = FX5;
 
     initParameter5();
-    initDiverses();
-    initProjection();
     rechercheFenetre();
     calculeEchelles();
     dessineFonction();
@@ -1822,7 +1825,6 @@ void gfxDemoMix()
     
     clearScreen(0);
     initParameter11();
-    initProjection();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
     affichage(14);
@@ -1837,7 +1839,6 @@ void gfxDemoMix()
     
     clearScreen(0);
     initParameter21();
-    initProjection();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
     affichage(14);
@@ -1852,7 +1853,6 @@ void gfxDemoMix()
 
     clearScreen(0);
     initParameter31();
-    initProjection();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
     affichage(14);
@@ -1867,7 +1867,6 @@ void gfxDemoMix()
 
     clearScreen(0);
     initParameter41();
-    initProjection();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
     affichage(14);

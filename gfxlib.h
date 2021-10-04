@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 //===============================================================//
 //                 GFXLIB Graphics Library                       //
@@ -7,8 +7,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.2                                   //
-//          Last Update: 2021-09-17                              //
+//              Version: 1.2.3                                   //
+//          Last Update: 2021-09-29                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#include <float.h>
 #ifdef __APPLE__
 #include <libgen.h>
 #include <x86intrin.h>
@@ -45,8 +46,8 @@
 #endif
 
 //GFX version string
-#define GFX_VERSION             "v21.09.11"
-#define GFX_BUILD_ID            20210911
+#define GFX_VERSION             "v21.09.29"
+#define GFX_BUILD_ID            20210929
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
@@ -131,6 +132,7 @@
 #define min(a, b)               ((a) < (b) ? (a) : (b))
 #define sign(x)                 (((x) >= 0) ? (1) : (-1))
 #define swap(a, b)              {a ^= b; b ^= a; a ^= b;}
+#define swapf(a, b)             {double t = a; a = b; b = t;}
 #define clamp(x, lo, hi)        (min(max(x, lo), hi))
 
 //common routines
@@ -292,6 +294,17 @@ typedef struct
     int32_t         v;
 } HSV;
 
+//memory mapping color structure
+typedef struct
+{
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+    uint8_t a;
+} ARGB;
+
+#pragma pack(pop)
+
 //pixel blending mode
 enum BLEND_MODE {
     BLEND_MODE_NORMAL,                          //this's a normal mode
@@ -304,40 +317,48 @@ enum BLEND_MODE {
 //image interpolation type (apply for scale, rotate, ...)
 enum INTERPOLATION_TYPE
 {
-    INTERPOLATION_TYPE_NORMAL,                  //Bresenham scale (nearest and smooth, very fast)
-    INTERPOLATION_TYPE_NEARST,                  //nearest neighbor (fastest, but low quality)
-    INTERPOLATION_TYPE_SMOOTH,                  //use average to smooth image (fast, still low quality)
-    INTERPOLATION_TYPE_BILINEAR,                //bi-linear interpolation (slow, good quality)
-    INTERPOLATION_TYPE_BICUBIC                  //bi-cubic interpolation (very slow, best quality)
+    INTERPOLATION_TYPE_NORMAL,                  //Bresenham interpolcation (nearest and smooth)
+    INTERPOLATION_TYPE_NEARST,                  //nearest neighbor (low quality)
+    INTERPOLATION_TYPE_SMOOTH,                  //use average to smooth image (still low quality)
+    INTERPOLATION_TYPE_BILINEAR,                //bi-linear interpolation (good quality)
+    INTERPOLATION_TYPE_BICUBIC,                 //bi-cubic interpolation (best quality)
+    INTERPOLATION_TYPE_UNKNOWN                  //error type
 };
 
-#pragma pack(pop)
+//3D projection type
+enum PROJECTION_TYPE
+{
+    PROJECTION_TYPE_PERSPECTIVE,                //perspective projection
+    PROJECTION_TYPE_PARALLELE,                  //parallele perjection
+    PROJECTION_TYPE_UNKNOWN,                    //error perjection
+};
 
-//3D projection
-enum PROJ_TYPE { PERSPECTIVE, PARALLELE };      //projection type values
-extern double   DE, rho, theta, phi;            //projection angles
-extern double   aux1, aux2, aux3, aux4;         //temponary values
-extern double   aux5, aux6, aux7, aux8;         //temponary values
-extern double   obsX, obsY, obsZ;               //X,Y,Z coordinate
-extern double   projX, projY;                   //projection X,Y
-extern uint8_t  projection;                     //projection type
+//projection parameters
+enum PROJECTION_PARAMS
+{
+    PROJECTION_PARAMS_THETA,                    //theta angle
+    PROJECTION_PARAMS_PHI,                      //phi angle
+    PROJECTION_PARAMS_DE,                       //deplace ending
+    PROJECTION_PARAMS_UNKNOWN,                  //error params
+};
 
-extern uint32_t fontType;                       //current selected font (use for multiple loaded font)
-extern GFX_FONT gfxFonts[GFX_MAX_FONT];         //GFX font loadable at the same time
+//filled pattern type
+enum PATTERN_TYPE
+{
+    PATTERN_TYPE_LINE,                          //line fill style
+    PATTERN_TYPE_LITE_SLASH,                    //line with slash style
+    PATTERN_TYPE_SLASH,                         //slash style
+    PATTERN_TYPE_BACK_SLASH,                    //back slash
+    PATTERN_TYPE_LITE_BACK_SLASH,               //lite back slash
+    PATTERN_TYPE_HATCH,                         //hatch style
+    PATTERN_TYPE_HATCH_X,                       //hatch x style
+    PATTERN_TYPE_INTER_LEAVE,                   //inter leaving style
+    PATTERN_TYPE_WIDE_DOT,                      //wide dot style
+    PATTERN_TYPE_CLOSE_DOT,                     //closed dot style
+    PATTERN_TYPE_UNKNOWN,                       //error type
+};
 
-//pattern filled styles
-extern uint8_t  ptnLine[];                      //line fill style
-extern uint8_t  ptnLiteSlash[];                 //line with slash style
-extern uint8_t  ptnSlash[];                     //slash style
-extern uint8_t  ptnBackSlash[];                 //back slash
-extern uint8_t  ptnLiteBackSlash[];             //lite back slash
-extern uint8_t  ptnHatch[];                     //hatch style
-extern uint8_t  ptnHatchX[];                    //hatch x style
-extern uint8_t  ptnInterLeave[];                //inter leaving style
-extern uint8_t  ptnWideDot[];                   //wide dot style
-extern uint8_t  ptnCloseDot[];                  //closed dot style
-
-//benchmart record time
+//benchmarks record time
 extern clock_t  startClock;                     //recording start clock time
 
 //load texture and image functions
@@ -347,13 +368,16 @@ int32_t     loadImage(const char* fname, GFX_IMAGE* im);
 void        freeImage(GFX_IMAGE* im);
 
 //GFXLIB font functions
+GFX_FONT*   getFont(int32_t type = 0);
 int32_t     getFontWidth(const char* str);
 int32_t     getFontHeight(const char* str);
+int32_t     getFontType();
 void        setFontType(int32_t type);
 void        setFontSize(uint32_t size);
 void        makeFont(char* str);
 int32_t     loadFont(const char* fname, int32_t type);
 void        freeFont(int32_t type);
+
 
 //program keyboard input handler
 void        quit();
@@ -457,13 +481,16 @@ void        drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, doub
 void        drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rd, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 void        drawPoly(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
-void        initProjection();
-void        projette(double x, double y, double z);
+void        initProjection(double theta, double phi, double de, double rho = 0);
+void        resetProjectionParams();
+void        setProjection(PROJECTION_TYPE type);
+void        projette(double x, double y, double z, double *px, double *py);
 void        deplaceEn(double x, double y, double z);
 void        traceVers(double x, double y, double z, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
 void        fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 void        fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern, int32_t mode = BLEND_MODE_NORMAL);
+uint8_t*    getPattern(int32_t type);
 
 void        fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 void        fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
@@ -483,7 +510,7 @@ void        putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, i
 
 //image interpolation
 void        scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type = INTERPOLATION_TYPE_SMOOTH);
-void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t degree, int32_t type = INTERPOLATION_TYPE_SMOOTH, int16_t* stable = NULL);
+void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type = INTERPOLATION_TYPE_SMOOTH);
 
 //palette function (use for mixed mode - 256 colors)
 void        getPalette(RGB* pal);
@@ -757,6 +784,36 @@ static __forceinline int32_t fround(double x)
     return (x > 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
+//clip point at (x,y)
+static __forceinline bool clipPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
+{
+    bool ret = true;
+
+    if (*x < 0)
+    { 
+        *x = 0;
+        ret = false;
+    }
+    else if (*x >= width)
+    { 
+        *x = width - 1;
+        ret = false;
+    }
+
+    if (*y < 0)
+    {
+        *y = 0;
+        ret = false;
+    }
+    else if (*y >= height)
+    {
+        *y = height - 1;
+        ret = false;
+    }
+
+    return ret;
+}
+
 //get source pixel
 static __forceinline uint32_t clampOffset(const int32_t width, const int32_t height, const int32_t x, const int32_t y)
 {
@@ -768,13 +825,59 @@ static __forceinline uint32_t clampOffset(const int32_t width, const int32_t hei
     return yy * width + xx;
 }
 
+//clamp pixels at offset (x,y)
+static __forceinline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
+{
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+    bool insrc = clipPoint(img->mWidth, img->mHeight, &x, &y);
+    uint32_t result = psrc[y * img->mWidth + x];
+    if (!insrc)
+    {
+        uint8_t* pcol = (uint8_t*)&result;
+        pcol[3] = 0;
+    }
+    return result;
+}
+
+//alpha-blending pixel
+static __forceinline uint32_t alphaBlend(uint32_t dst, uint32_t src)
+{
+#ifdef _USE_ASM
+    __asm {
+        pxor        mm7, mm7
+        movd        mm0, src
+        movd        mm2, dst
+        punpcklbw   mm0, mm7
+        punpcklbw   mm2, mm7
+        movq        mm1, mm0
+        punpckhwd   mm1, mm1
+        psubw       mm0, mm2
+        punpckhdq   mm1, mm1
+        psllw       mm2, 8
+        pmullw      mm0, mm1
+        paddw       mm2, mm0
+        psrlw       mm2, 8
+        packuswb    mm2, mm7
+        movd        eax, mm2
+        emms
+    }
+#else
+    uint32_t cover = src >> 24;
+    uint32_t rcover = 255 - cover;
+    uint32_t rb = ((dst & 0x00ff00ff) * rcover + (src & 0x00ff00ff) * cover);
+    uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((src & 0xff00ff00) >> 8) * cover);
+    return ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
+#endif
+}
+
 //smooth get pixel
-static __forceinline uint32_t smoothGetPixel(const uint32_t *psrc, const int32_t width, const int32_t height, const int32_t sx, const int32_t sy)
+static __forceinline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, const int32_t sy)
 {
     int32_t lx = sx >> 16;
     int32_t ly = sy >> 16;
-    const uint8_t* p0 = (const uint8_t*)&psrc[clampOffset(width, height, lx, ly)];
-    const uint8_t* p1 = (const uint8_t*)&psrc[clampOffset(width, height, lx + 1, ly)];
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+    const uint8_t* p0 = (const uint8_t*)&psrc[clampOffset(img->mWidth, img->mHeight, lx, ly)];
+    const uint8_t* p1 = (const uint8_t*)&psrc[clampOffset(img->mWidth, img->mHeight, lx + 1, ly)];
 
     uint32_t col = 0;
     uint8_t* pcol = (uint8_t*)&col;
@@ -784,72 +887,23 @@ static __forceinline uint32_t smoothGetPixel(const uint32_t *psrc, const int32_t
     return col;
 }
 
-//bicubic helper
-static __forceinline float cubicHermite(const float a, const float b, const float c, const float d, const float fract)
-{
-    const float aa = -a / 2.0f + 1.5f * b - 1.5f * c + d / 2.0f;
-    const float bb = a - 2.5f * b + 2.0f * c - d / 2.0f;
-    const float cc = -a / 2.0f + c / 2.0f;
-    return aa * fract * fract * fract + bb * fract * fract + cc * fract + b;
-}
-
-//calculate pixel by bicubic interpolation
-static __forceinline uint32_t bicubicGetPixel(const uint32_t* psrc, const int32_t width, const int32_t height, const float sx, const float sy)
-{
-    const int32_t px = int32_t(sx);
-    const float fx = sx - int32_t(sx);
-   
-    const int32_t py = int32_t(sy);
-    const float fy = sy - int32_t(sy);
-
-    const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
-    const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
-    const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
-    const uint8_t* p30 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
-    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
-    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
-    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
-    const uint8_t* p02 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
-    const uint8_t* p12 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
-    const uint8_t* p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
-    const uint8_t* p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-    const uint8_t* p03 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
-    const uint8_t* p13 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
-    const uint8_t* p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
-    const uint8_t* p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
-
-    //mapping destination pointer
-    uint32_t dst = 0;
-    uint8_t* pdst = (uint8_t*)&dst;
-
-    //start interpolate bicubically
-    for (int32_t i = 0; i < 3; i++)
-    {
-        const float col0 = cubicHermite(p00[i], p10[i], p20[i], p30[i], fx);
-        const float col1 = cubicHermite(p01[i], p11[i], p21[i], p31[i], fx);
-        const float col2 = cubicHermite(p02[i], p12[i], p22[i], p32[i], fx);
-        const float col3 = cubicHermite(p03[i], p13[i], p23[i], p33[i], fx);
-        const float pcol = cubicHermite(col0, col1, col2, col3, fy);
-
-        //saturation check
-        pdst[i] = uint8_t(clamp(pcol, 0.0, 255.0));
-    }
-
-    return dst;
-}
-
 //bilinear get pixel with FIXED-POINT (signed 16.16)
-static __forceinline uint32_t bilinearGetPixelCenter(const uint32_t* col1, const uint32_t* col2, const uint32_t u, const uint32_t v)
+static __forceinline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
-    const uint32_t w3 = (u * v) >> 8;
-    const uint32_t w2 = u - w3;
-    const uint32_t w1 = v - w3;
+    const uint32_t* pixel = (uint32_t*)psrc->mData;
+    const uint32_t* pixel0 = &pixel[(sy >> 16) * psrc->mWidth + (sx >> 16)];
+    const uint32_t* pixel1 = pixel0 + psrc->mWidth;
+    
+    const uint8_t pu = sx >> 8;
+    const uint8_t pv = sy >> 8;
+    const uint32_t w3 = (pu * pv) >> 8;
+    const uint32_t w2 = pu - w3;
+    const uint32_t w1 = pv - w3;
     const uint32_t w0 = 256 - w1 - w2 - w3;
 
     //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
-    __m128i p12 = _mm_loadl_epi64((const __m128i*)col1);
-    __m128i p34 = _mm_loadl_epi64((const __m128i*)col2);
+    __m128i p12 = _mm_loadl_epi64((const __m128i*)pixel0);
+    __m128i p34 = _mm_loadl_epi64((const __m128i*)pixel1);
 
     //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
     p12 = _mm_unpacklo_epi8(p12, p34);
@@ -883,37 +937,42 @@ static __forceinline uint32_t bilinearGetPixelCenter(const uint32_t* col1, const
 }
 
 //bilinear get pixel with FIXED-POINT (signed 16.16)
-static __forceinline uint32_t bilinearGetPixelBorder(const uint32_t* psrc, const int32_t width, const int32_t height, const int32_t sx, const int32_t sy)
+static __forceinline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
     //convert to fixed point
     const int32_t lx = sx >> 16;
     const int32_t ly = sy >> 16;
-    const uint32_t u = uint16_t(sx) >> 8;
-    const uint32_t v = uint16_t(sy) >> 8;
 
     //load the 4 neighboring pixels
-    uint32_t cols[4] = { 0 };
-    cols[0] = psrc[clampOffset(width, height, lx    , ly    )];
-    cols[1] = psrc[clampOffset(width, height, lx + 1, ly    )];
-    cols[2] = psrc[clampOffset(width, height, lx    , ly + 1)];
-    cols[3] = psrc[clampOffset(width, height, lx + 1, ly + 1)];
-    return bilinearGetPixelCenter(&cols[0], &cols[2], u, v);
+    uint32_t pixels[4] = { 0 };
+    pixels[0] = clampPixels(psrc, lx    , ly    );
+    pixels[1] = clampPixels(psrc, lx + 1, ly    );
+    pixels[2] = clampPixels(psrc, lx    , ly + 1);
+    pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
+
+    GFX_IMAGE img = { 0 };
+    img.mData = (uint8_t*)pixels;
+    img.mWidth = 2;
+    img.mHeight = 2;
+    img.mRowBytes = 8;
+    return bilinearGetPixelCenter(&img, sx & 0xffff, sy & 0xffff);
 }
 
 //bilinear get pixel with FIXED-POINT (signed 16.16)
-static __forceinline uint32_t bilinearGetPixelFixed(const uint32_t* psrc, const int32_t width, const int32_t height, const int32_t sx, const int32_t sy)
+//general optimize version, fast speed
+static __forceinline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
     //convert to fixed point
     const int32_t lx = sx >> 16;
     const int32_t ly = sy >> 16;
-    const uint32_t u = uint16_t(sx) >> 8;
-    const uint32_t v = uint16_t(sy) >> 8;
+    const uint8_t u = (sx & 0xffff) >> 8;
+    const uint8_t v = (sy & 0xffff) >> 8;
 
     //load the 4 neighboring pixels
-    const uint32_t p0 = psrc[clampOffset(width, height, lx    , ly    )];
-    const uint32_t p1 = psrc[clampOffset(width, height, lx + 1, ly    )];
-    const uint32_t p2 = psrc[clampOffset(width, height, lx    , ly + 1)];
-    const uint32_t p3 = psrc[clampOffset(width, height, lx + 1, ly + 1)];
+    const uint32_t p0 = clampPixels(psrc, lx    , ly    );
+    const uint32_t p1 = clampPixels(psrc, lx + 1, ly    );
+    const uint32_t p2 = clampPixels(psrc, lx    , ly + 1);
+    const uint32_t p3 = clampPixels(psrc, lx + 1, ly + 1);
 
     //calculate the weights for each pixel
     const uint32_t w3 = (u * v) >> 8;
@@ -937,10 +996,10 @@ static const __m128 CONST_1 = _mm_set_ps1(1);
 static const __m128 CONST_256 = _mm_set_ps1(256);
 
 //calculate weight of pixel at (x,y)
-static __forceinline __m128 calcWeights(const float x, const float y)
+static __forceinline __m128 calcWeights(const double x, const double y)
 {
-    __m128 xmm0 = _mm_set_ps1(x);
-    __m128 xmm1 = _mm_set_ps1(y);
+    __m128 xmm0 = _mm_set_ps1(float(x));
+    __m128 xmm1 = _mm_set_ps1(float(y));
     __m128 xmm2 = _mm_unpacklo_ps(xmm0, xmm1);
 
     xmm0 = _mm_floor_ps(xmm2);
@@ -957,7 +1016,7 @@ static __forceinline __m128 calcWeights(const float x, const float y)
 }
 
 //get pixels bilinear with SSE2
-static __forceinline uint32_t bilinearGetPixelSSE2(const uint32_t* img, const int32_t width, const int32_t height, const float x, const float y)
+static __forceinline uint32_t bilinearGetPixelSSE2(const GFX_IMAGE* psrc, const double x, const double y)
 {
     //calculate offset at (x,y)
     const int32_t lx = int32_t(x);
@@ -965,10 +1024,10 @@ static __forceinline uint32_t bilinearGetPixelSSE2(const uint32_t* img, const in
 
     //clamp 4 neighboring pixels
     uint32_t pixels[4] = { 0 };
-    pixels[0] = img[clampOffset(width, height, lx    , ly    )];
-    pixels[1] = img[clampOffset(width, height, lx + 1, ly    )];
-    pixels[2] = img[clampOffset(width, height, lx    , ly + 1)];
-    pixels[3] = img[clampOffset(width, height, lx + 1, ly + 1)];
+    pixels[0] = clampPixels(psrc, lx    , ly    );
+    pixels[1] = clampPixels(psrc, lx + 1, ly    );
+    pixels[2] = clampPixels(psrc, lx    , ly + 1);
+    pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
 
     //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
     __m128i p12 = _mm_loadl_epi64((const __m128i*)&pixels[0]);
@@ -1005,6 +1064,15 @@ static __forceinline uint32_t bilinearGetPixelSSE2(const uint32_t* img, const in
     return _mm_cvtsi128_si32(weight);
 }
 
+//bicubic helper
+static __forceinline double cubicHermite(const double a, const double b, const double c, const double d, const double fract)
+{
+    const double aa = -a / 2.0 + 1.5 * b - 1.5 * c + d / 2.0;
+    const double bb = a - 2.5 * b + 2.0 * c - d / 2.0;
+    const double cc = -a / 2.0 + c / 2.0;
+    return aa * fract * fract * fract + bb * fract * fract + cc * fract + b;
+}
+
 //calculate function sin(x)/x replace for cubicHermite
 //so this will add to lookup table for speedup improvement
 static __forceinline double sinXDivX(const double b)
@@ -1027,11 +1095,65 @@ static __forceinline int32_t _mm_hsum_epi32(const __m128i val)
     return _mm_cvtsi128_si32(tmp);
 }
 
+//calculate pixel by bicubic interpolation
+static __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, const double sy)
+{
+    const int32_t px = int32_t(sx);
+    const double fx = sx - int32_t(sx);
+
+    const int32_t py = int32_t(sy);
+    const double fy = sy - int32_t(sy);
+
+    const uint32_t width = img->mWidth;
+    const uint32_t height = img->mHeight;
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+
+    const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
+    const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
+    const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
+    const uint8_t* p30 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
+    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
+    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
+    const uint8_t* p02 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
+    const uint8_t* p12 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
+    const uint8_t* p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
+    const uint8_t* p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
+    const uint8_t* p03 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
+    const uint8_t* p13 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
+    const uint8_t* p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
+    const uint8_t* p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
+
+    //mapping destination pointer
+    uint32_t dst = 0;
+    uint8_t* pdst = (uint8_t*)&dst;
+
+    //start interpolate bicubically
+    for (int32_t i = 0; i < 4; i++)
+    {
+        const double col0 = cubicHermite(p00[i], p10[i], p20[i], p30[i], fx);
+        const double col1 = cubicHermite(p01[i], p11[i], p21[i], p31[i], fx);
+        const double col2 = cubicHermite(p02[i], p12[i], p22[i], p32[i], fx);
+        const double col3 = cubicHermite(p03[i], p13[i], p23[i], p33[i], fx);
+        const double pcol = cubicHermite(col0, col1, col2, col3, fy);
+
+        //saturation check
+        pdst[i] = uint8_t(clamp(pcol, 0.0, 255.0));
+    }
+
+    return dst;
+}
+
 //this calculate pixel with boundary so quite slowly
-static __forceinline uint32_t bicubicGetPixelBorder(const uint32_t *psrc, const int32_t width, const int32_t height, const int16_t *sintab, const int32_t sx, const int32_t sy)
+static __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
 {
     //peek offset at (px,py)
     const int32_t px = sx >> 16, py = sy >> 16;
+
+    const uint32_t width = img->mWidth;
+    const uint32_t height = img->mHeight;
+    const uint32_t* psrc = (const uint32_t*)img->mData;
 
     //calculate around pixels
     const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
@@ -1053,16 +1175,16 @@ static __forceinline uint32_t bicubicGetPixelBorder(const uint32_t *psrc, const 
 
     //4 pixels weigths
     const uint8_t u = sx >> 8, v = sy >> 8;
-    const int32_t u0 = sintab[255 + u], u1 = sintab[u];
-    const int32_t u2 = sintab[255 - u], u3 = sintab[511 - u];
-    const int32_t v0 = sintab[255 + v], v1 = sintab[v];
-    const int32_t v2 = sintab[255 - v], v3 = sintab[511 - v];
+    const int32_t u0 = sintab[256 + u], u1 = sintab[u];
+    const int32_t u2 = sintab[256 - u], u3 = sintab[512 - u];
+    const int32_t v0 = sintab[256 + v], v1 = sintab[v];
+    const int32_t v2 = sintab[256 - v], v3 = sintab[512 - v];
 
     uint32_t dst = 0;
     uint8_t* pdst = (uint8_t*)&dst;
 
-    //skip alpha channel
-    for (int32_t i = 0; i < 3; i++)
+    //calculate each pixel channel
+    for (int32_t i = 0; i < 4; i++)
     {
         const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
         const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
@@ -1074,49 +1196,357 @@ static __forceinline uint32_t bicubicGetPixelBorder(const uint32_t *psrc, const 
     return dst;
 }
 
-//fast calculate pixel at center, don't care boundary
-static __forceinline uint32_t bicubicGetPixelCenter(const uint32_t* psrc, const int32_t width, const int32_t stride, const int16_t* stable, const int32_t sx, const int32_t sy)
+//calculate sin&cos of an angle
+static __forceinline void sincos(double angle, double* sina, double* cosa)
 {
-    //peek center pixel
-    const int32_t px = (sx >> 16) - 1, py = (sy >> 16) - 1;
-    const uint8_t *p00 = (const uint8_t*)&psrc[py * width + px];
+#ifdef _USE_ASM
+    __asm {
+        fld     angle
+        mov     eax, sina
+        mov     edx, cosa
+        fsincos   
+        fstp    qword ptr [edx]   
+        fstp    qword ptr [eax]  
+    }
+#else
+    *sina = sin(angle);
+    *cosa = cos(angle);
+#endif // _USE_ASM
+}
 
-    //calculate around pixels
-    const uint8_t *p01 = p00 + 4;
-    const uint8_t *p02 = p01 + 4;
-    const uint8_t *p03 = p02 + 4;
-    const uint8_t *p10 = p00 + stride;
-    const uint8_t *p11 = p10 + 4;
-    const uint8_t *p12 = p11 + 4;
-    const uint8_t *p13 = p12 + 4;
-    const uint8_t *p20 = p10 + stride;
-    const uint8_t *p21 = p20 + 4;
-    const uint8_t *p22 = p21 + 4;
-    const uint8_t *p23 = p22 + 4;
-    const uint8_t *p30 = p20 + stride;
-    const uint8_t *p31 = p30 + 4;
-    const uint8_t *p32 = p31 + 4;
-    const uint8_t *p33 = p32 + 4;
+//rotate clip data
+struct TClipData
+{
+public:
+    int32_t srcw;
+    int32_t srch;
+    int32_t dstw;
+    int32_t dsth;
+    int32_t ax; 
+    int32_t ay; 
+    int32_t bx; 
+    int32_t by; 
+    int32_t cx;
+    int32_t cy; 
+    int32_t boundWidth;
 
-    //4 pixels weigths
-    const uint8_t u = sx >> 8, v = sy >> 8;
-    const int32_t u0 = stable[255 + u], u1 = stable[u];
-    const int32_t u2 = stable[255 - u], u3 = stable[511 - u];
-    const int32_t v0 = stable[255 + v], v1 = stable[v];
-    const int32_t v2 = stable[255 - v], v3 = stable[511 - v];
+private:
+    int32_t currUpX0;
+    int32_t currUpX1;
+    int32_t currDownX0;
+    int32_t currDownX1;
 
-    uint32_t dst = 0;
-    uint8_t* pdst = (uint8_t*)&dst;
-
-    //skip alpha channel
-    for (int32_t i = 0; i < 3; i++)
+    __forceinline bool pointInBound(int32_t scx, int32_t scy)
     {
-        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
-        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
-        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
-        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p22[i] * u2 + p33[i] * u3) * v3;
-        pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+        return  (((scx >= (-(boundWidth << 16))) && ((scx >> 16) < (srcw + boundWidth))) &&
+                 ((scy >= (-(boundWidth << 16))) && ((scy >> 16) < (srch + boundWidth))));
     }
 
-    return dst;
+    __forceinline bool pointInSrc(int32_t scx, int32_t scy)
+    {
+        return  (((scx >= (boundWidth << 16)) &&
+                 ((scx >> 16) < (srcw - boundWidth))) &&
+                 ((scy >= (boundWidth << 16)) &&
+                 ((scy >> 16) < (srch - boundWidth))));
+    }
+
+    void findBeginIn(int32_t dsty, int32_t* dstx, int32_t* scx, int32_t* scy)
+    {
+        *scx -= ax;
+        *scy -= ay;
+
+        while (pointInBound(*scx, *scy))
+        {
+            (*dstx)--;
+            *scx -= ax;
+            *scy -= ay;
+        }
+
+        *scx += ax;
+        *scy += ay;
+    }
+
+    bool findBegin(int32_t dsty, int32_t* dstx0, int32_t dstx1)
+    {
+        int32_t testx0 = *dstx0 - 1;
+        int32_t scx = ax * testx0 + bx * dsty + cx;
+        int32_t scy = ay * testx0 + by * dsty + cy;
+
+        for (int32_t i = testx0; i <= dstx1; i++)
+        {
+            if (pointInBound(scx, scy))
+            {
+                *dstx0 = i;
+
+                if (i == testx0) findBeginIn(dsty, dstx0, &scx, &scy);
+
+                if (*dstx0 < 0)
+                {
+                    scx -= ax * (*dstx0);
+                    scy -= ay * (*dstx0);
+                }
+
+                srcx = scx;
+                srcy = scy;
+
+                return true;
+            }
+            else
+            {
+                scx += ax;
+                scy += ay;
+            }
+        }
+
+        return false;
+    }
+
+    void findEnd(int32_t dsty, int32_t dstx0, int32_t* dstx1)
+    {
+        int32_t testx1 = *dstx1;
+        if (testx1 < dstx0) testx1 = dstx0;
+
+        int32_t scx = ax * testx1 + bx * dsty + cx;
+        int32_t scy = ay * testx1 + by * dsty + cy;
+
+        if (pointInBound(scx, scy))
+        {
+            testx1++;
+            scx += ax;
+            scy += ay;
+
+            while (pointInBound(scx, scy))
+            {
+                testx1++;
+                scx += ax;
+                scy += ay;
+            }
+
+            *dstx1 = testx1;
+        }
+        else
+        {
+            scx -= ax;
+            scy -= ay;
+            while (!pointInBound(scx, scy))
+            {
+                testx1--;
+                scx -= ax;
+                scy -= ay;
+            }
+
+            *dstx1 = testx1;
+        }
+    }
+
+    __forceinline void updateInX()
+    {
+        if (!boundWidth || boundx0 >= boundx1)
+        {
+            inx0 = boundx0;
+            inx1 = boundx1;
+        }
+        else
+        {
+            int32_t scx = srcx;
+            int32_t scy = srcy;
+            int32_t i = boundx0;
+
+            while (i < boundx1)
+            {
+                if (pointInSrc(scx, scy)) break;
+                scx += ax;
+                scy += ay;
+                i++;
+            }
+
+            inx0 = i;
+
+            scx = srcx + (boundx1 - boundx0) * ax;
+            scy = srcy + (boundx1 - boundx0) * ay;
+
+            i = boundx1;
+
+            while (i > inx0)
+            {
+                scx -= ax;
+                scy -= ay;
+                if (pointInSrc(scx, scy)) break;
+                i--;
+            }
+
+            inx1 = i;
+        }
+    }
+
+    __forceinline void updateUpX()
+    {
+        if (currUpX0 < 0) boundx0 = 0;
+        else boundx0 = currUpX0;
+        
+        if (currUpX1 >= dstw) boundx1 = dstw;
+        else boundx1 = currUpX1;
+
+        updateInX();
+    }
+
+    __forceinline void updateDownX()
+    {
+        if (currDownX0 < 0) boundx0 = 0;
+        else boundx0 = currDownX0;
+
+        if (currDownX1 >= dstw) boundx1 = dstw;
+        else boundx1 = currDownX1;
+
+        updateInX();
+    }
+
+public:
+    int32_t srcx;
+    int32_t srcy;
+
+    int32_t dstUpY;
+    int32_t dstDownY;
+
+    int32_t boundx0;
+    int32_t inx0;
+    int32_t inx1;
+    int32_t boundx1;
+
+public:
+    bool intiClip(int32_t dcx, int32_t dcy, int32_t bwidth)
+    {
+        boundWidth = bwidth;
+        dstDownY = dcx;
+        currDownX0 = dcy;
+        currDownX1 = currDownX0;
+
+        if (findBegin(dstDownY, &currDownX0, currDownX1)) findEnd(dstDownY, currDownX0, &currDownX1);
+
+        dstUpY = dstDownY;
+        currUpX0 = currDownX0;
+        currUpX1 = currDownX1;
+        
+        updateUpX();
+
+        return currDownX0 < currDownX1;
+    }
+
+    bool nextLineDown()
+    {
+        dstDownY++;
+        if (!findBegin(dstDownY, &currDownX0, currDownX1)) return false;
+        findEnd(dstDownY, currDownX0, &currDownX1);
+        updateDownX();
+        return currDownX0 < currDownX1;
+    }
+
+    bool nextLineUp()
+    {
+        dstUpY--;
+        if (!findBegin(dstUpY, &currUpX0, currUpX1)) return false;
+        findEnd(dstUpY, currUpX0, &currUpX1);
+        updateUpX();
+        return currUpX0 < currUpX1;
+    }
+};
+
+//fast calculate pixel at center, don't care boundary
+static __forceinline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* stable, const int32_t sx, const int32_t sy)
+{
+    const uint8_t px = sx >> 8, py = sy >> 8;
+    const int16_t u0 = stable[256 + px], u1 = stable[px];
+    const int16_t u2 = stable[256 - px], u3 = stable[512 - px];
+
+    const __m128i xpart = _mm_setr_epi16(u0, u1, u2, u3, u0, u1, u2, u3); //U0 U1 U2 U3 U0 U1 U2 U3
+    const __m128i ypart = _mm_setr_epi32(stable[256 + py], stable[py], stable[256 - py], stable[512 - py]);
+    
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+    const uint32_t *pixel0 = (const uint32_t*)&psrc[((sy >> 16) - 1) * img->mWidth + ((sx >> 16) - 1)];
+    const uint32_t *pixel1 = &pixel0[img->mWidth];
+    const uint32_t *pixel2 = &pixel1[img->mWidth];
+    const uint32_t *pixel3 = &pixel2[img->mWidth];
+
+    __m128i p0 = _mm_load_si128((const __m128i *)pixel0), p1 = _mm_load_si128((const __m128i *)pixel1); //P00 P01 P02 P03 P10 P11 P12 P13
+    __m128i p2 = _mm_load_si128((const __m128i *)pixel2), p3 = _mm_load_si128((const __m128i *)pixel3); //P20 P21 P22 P23 P30 P31 P32 P33
+
+    p0 = _mm_shuffle_epi8(p0, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B0 G0 R0 A0
+    p1 = _mm_shuffle_epi8(p1, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B1 G1 R1 A1
+    p2 = _mm_shuffle_epi8(p2, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B2 G2 R2 A2
+    p3 = _mm_shuffle_epi8(p3, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B3 G3 R3 A3
+
+    const __m128i bg01 = _mm_unpacklo_epi32(p0, p1); //B0 B1 G0 G1
+    const __m128i ra01 = _mm_unpackhi_epi32(p0, p1); //R0 R1 A0 A1
+    const __m128i bg23 = _mm_unpacklo_epi32(p2, p3); //B2 B3 G2 G3
+    const __m128i ra23 = _mm_unpackhi_epi32(p2, p3); //R2 R3 A2 A3
+
+    const __m128i b01 = _mm_unpacklo_epi8(bg01, _mm_setzero_si128());
+    const __m128i b23 = _mm_unpacklo_epi8(bg23, _mm_setzero_si128());
+
+    //P00 * U0 + P01 * U1 + P02 * U2 + P03 * U3
+    const __m128i sb = _mm_hadd_epi32(_mm_madd_epi16(b01, xpart), _mm_madd_epi16(b23, xpart));
+
+    const __m128i g01 = _mm_unpackhi_epi8(bg01, _mm_setzero_si128());
+    const __m128i g23 = _mm_unpackhi_epi8(bg23, _mm_setzero_si128());
+
+    //P10 * U0 + P11 * U1 + P12 * U2 + P13 * U3
+    const __m128i sg = _mm_hadd_epi32(_mm_madd_epi16(g01, xpart), _mm_madd_epi16(g23, xpart));
+
+    const __m128i r01 = _mm_unpacklo_epi8(ra01, _mm_setzero_si128());
+    const __m128i r23 = _mm_unpacklo_epi8(ra23, _mm_setzero_si128());
+
+    //P20 * U0 + P21 * U1 + P22 * U2 + P23 * U3
+    const __m128i sr = _mm_hadd_epi32(_mm_madd_epi16(r01, xpart), _mm_madd_epi16(r23, xpart));
+
+    const __m128i a01 = _mm_unpackhi_epi8(ra01, _mm_setzero_si128());
+    const __m128i a23 = _mm_unpackhi_epi8(ra23, _mm_setzero_si128());
+
+    //P30 * U0 + P31 * U1 + P32 * U2 + P33 * U3
+    const __m128i sa = _mm_hadd_epi32(_mm_madd_epi16(a01, xpart), _mm_madd_epi16(a23, xpart));
+
+    //P00 * U0 + P01 * U1 + P02 * U2 + P03 * U3 
+    //P10 * U0 + P11 * U1 + P12 * U2 + P13 * U3 
+    //P20 * U0 + P21 * U1 + P22 * U2 + P23 * U3 
+    //P30 * U0 + P31 * U1 + P32 * U2 + P33 * U3 
+    __m128i result = _mm_setr_epi32(
+        _mm_hsum_epi32(_mm_mullo_epi32(sb, ypart)), //SB * V0
+        _mm_hsum_epi32(_mm_mullo_epi32(sg, ypart)), //SG * V1
+        _mm_hsum_epi32(_mm_mullo_epi32(sr, ypart)), //SR * V2
+        _mm_hsum_epi32(_mm_mullo_epi32(sa, ypart))  //SA * V3
+    );
+
+    //SUM >> 16
+    result = _mm_srai_epi32(result, 16);
+
+    //CLAMP 0, 255
+    return _mm_cvtsi128_si32(_mm_packus_epi16(_mm_packus_epi32(result, result), result));
+}
+
+//this calculate pixel with boundary so quite slowly
+static __forceinline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
+{
+    //peek offset at (px,py)
+    const int32_t px = (sx >> 16) - 1, py = (sy >> 16) - 1;
+
+    //calculate 16 pixels start (px-1, py-1), (px+2, py+2)
+    uint32_t pixels[16] = { 0 };
+    for (int32_t i = 0; i < 4; i++)
+    {
+        const int32_t y = py + i;
+        for (int32_t j = 0; j < 4; j++)
+        {
+            const int32_t x = px + j;
+            pixels[(i << 2) + j] = clampPixels(img, x, y);
+        }
+    }
+
+    //construct matrix 16x16 pixels data
+    GFX_IMAGE mpic;
+    mpic.mData = (uint8_t*)pixels;
+    mpic.mWidth = 4;
+    mpic.mHeight = 4;
+    mpic.mRowBytes = 16;
+
+    //optimize function
+    return bicubicGetPixelCenter(&mpic, sintab, (sx & 0xffff) + 0x10000, (sy & 0xffff) + 0x10000);
 }
