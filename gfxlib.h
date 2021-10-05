@@ -244,7 +244,7 @@ typedef struct
     int32_t         mHeight;                    //image height
     uint32_t        mSize;                      //image size in bytes
     uint32_t        mRowBytes;                  //bytes per scanline
-    uint8_t*        mData;                      //image raw data
+    void*           mData;                      //image raw data
 } GFX_IMAGE;
 
 //the structure for animated mouse pointers
@@ -302,6 +302,38 @@ typedef struct
     uint8_t r;
     uint8_t a;
 } ARGB;
+
+//rotate clip data
+typedef struct
+{
+    int32_t srcw;
+    int32_t srch;
+    int32_t dstw;
+    int32_t dsth;
+    int32_t srcx;
+    int32_t srcy;
+
+    int32_t ax;
+    int32_t ay;
+    int32_t bx;
+    int32_t by;
+    int32_t cx;
+    int32_t cy;
+
+    int32_t boundWidth;
+    int32_t currUpx0;
+    int32_t currUpx1;
+    int32_t currDownx0;
+    int32_t currDownx1;
+
+    int32_t dstUpY;
+    int32_t dstDownY;
+
+    int32_t outBoundx0;
+    int32_t outBoundx1;
+    int32_t inBoundx0;
+    int32_t inBoundx1;
+} ROTATE_CLIP;
 
 #pragma pack(pop)
 
@@ -784,769 +816,203 @@ static __forceinline int32_t fround(double x)
     return (x > 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
-//clip point at (x,y)
-static __forceinline bool clipPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
+__forceinline bool pointInBound(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
 {
-    bool ret = true;
+    return  (((scx >= (-(clip->boundWidth << 16))) && ((scx >> 16) < (clip->srcw + clip->boundWidth))) &&
+             ((scy >= (-(clip->boundWidth << 16))) && ((scy >> 16) < (clip->srch + clip->boundWidth))));
+}
 
-    if (*x < 0)
-    { 
-        *x = 0;
-        ret = false;
-    }
-    else if (*x >= width)
-    { 
-        *x = width - 1;
-        ret = false;
-    }
+__forceinline bool pointInSrc(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
+{
+    return  (((scx >= (clip->boundWidth << 16)) &&
+             ((scx >> 16) < (clip->srcw - clip->boundWidth))) &&
+             ((scy >= (clip->boundWidth << 16)) &&
+             ((scy >> 16) < (clip->srch - clip->boundWidth))));
+}
 
-    if (*y < 0)
+__forceinline void findBeginIn(const ROTATE_CLIP* clip, int32_t* dstx, int32_t* scx, int32_t* scy)
+{
+    *scx -= clip->ax;
+    *scy -= clip->ay;
+
+    while (pointInBound(clip, *scx, *scy))
     {
-        *y = 0;
-        ret = false;
+        (*dstx)--;
+        *scx -= clip->ax;
+        *scy -= clip->ay;
     }
-    else if (*y >= height)
+
+    *scx += clip->ax;
+    *scy += clip->ay;
+}
+
+__forceinline bool findBegin(ROTATE_CLIP* clip, const int32_t dsty, int32_t* dstx0, const int32_t dstx1)
+{
+    const int32_t testx0 = *dstx0 - 1;
+    int32_t scx = clip->ax * testx0 + clip->bx * dsty + clip->cx;
+    int32_t scy = clip->ay * testx0 + clip->by * dsty + clip->cy;
+
+    for (int32_t i = testx0; i <= dstx1; i++)
     {
-        *y = height - 1;
-        ret = false;
-    }
-
-    return ret;
-}
-
-//get source pixel
-static __forceinline uint32_t clampOffset(const int32_t width, const int32_t height, const int32_t x, const int32_t y)
-{
-    //x-range check
-    const int32_t xx = clamp(x, 0, width - 1);
-    const int32_t yy = clamp(y, 0, height - 1);
-
-    //return offset at (x,y)
-    return yy * width + xx;
-}
-
-//clamp pixels at offset (x,y)
-static __forceinline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
-{
-    const uint32_t* psrc = (const uint32_t*)img->mData;
-    bool insrc = clipPoint(img->mWidth, img->mHeight, &x, &y);
-    uint32_t result = psrc[y * img->mWidth + x];
-    if (!insrc)
-    {
-        uint8_t* pcol = (uint8_t*)&result;
-        pcol[3] = 0;
-    }
-    return result;
-}
-
-//alpha-blending pixel
-static __forceinline uint32_t alphaBlend(uint32_t dst, uint32_t src)
-{
-#ifdef _USE_ASM
-    __asm {
-        pxor        mm7, mm7
-        movd        mm0, src
-        movd        mm2, dst
-        punpcklbw   mm0, mm7
-        punpcklbw   mm2, mm7
-        movq        mm1, mm0
-        punpckhwd   mm1, mm1
-        psubw       mm0, mm2
-        punpckhdq   mm1, mm1
-        psllw       mm2, 8
-        pmullw      mm0, mm1
-        paddw       mm2, mm0
-        psrlw       mm2, 8
-        packuswb    mm2, mm7
-        movd        eax, mm2
-        emms
-    }
-#else
-    uint32_t cover = src >> 24;
-    uint32_t rcover = 255 - cover;
-    uint32_t rb = ((dst & 0x00ff00ff) * rcover + (src & 0x00ff00ff) * cover);
-    uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((src & 0xff00ff00) >> 8) * cover);
-    return ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
-#endif
-}
-
-//smooth get pixel
-static __forceinline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, const int32_t sy)
-{
-    int32_t lx = sx >> 16;
-    int32_t ly = sy >> 16;
-    const uint32_t* psrc = (const uint32_t*)img->mData;
-    const uint8_t* p0 = (const uint8_t*)&psrc[clampOffset(img->mWidth, img->mHeight, lx, ly)];
-    const uint8_t* p1 = (const uint8_t*)&psrc[clampOffset(img->mWidth, img->mHeight, lx + 1, ly)];
-
-    uint32_t col = 0;
-    uint8_t* pcol = (uint8_t*)&col;
-    pcol[2] = (p0[2] + p1[2]) >> 1;
-    pcol[1] = (p0[1] + p1[1]) >> 1;
-    pcol[0] = (p0[0] + p1[0]) >> 1;
-    return col;
-}
-
-//bilinear get pixel with FIXED-POINT (signed 16.16)
-static __forceinline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
-{
-    const uint32_t* pixel = (uint32_t*)psrc->mData;
-    const uint32_t* pixel0 = &pixel[(sy >> 16) * psrc->mWidth + (sx >> 16)];
-    const uint32_t* pixel1 = pixel0 + psrc->mWidth;
-    
-    const uint8_t pu = sx >> 8;
-    const uint8_t pv = sy >> 8;
-    const uint32_t w3 = (pu * pv) >> 8;
-    const uint32_t w2 = pu - w3;
-    const uint32_t w1 = pv - w3;
-    const uint32_t w0 = 256 - w1 - w2 - w3;
-
-    //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
-    __m128i p12 = _mm_loadl_epi64((const __m128i*)pixel0);
-    __m128i p34 = _mm_loadl_epi64((const __m128i*)pixel1);
-
-    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
-    p12 = _mm_unpacklo_epi8(p12, p34);
-    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
-    p12 = _mm_unpacklo_epi8(p12, p34);
-
-    //extend to 16bits
-    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
-    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
-
-    //convert floating point weights to 16bits integer w4 w3 w2 w1
-    __m128i weight = _mm_set_epi32(w3, w1, w2, w0);
-
-    //make 32bit -> 2 x 16bits
-    weight = _mm_packs_epi32(weight, weight);
-
-    //rg = [w1*r1 + w2*r2 | w3*r3 + w4*r4 | w1*g1 + w2*g2 | w3*g3 + w4*g4]
-    rg = _mm_madd_epi16(rg, weight);
-
-    //ba = [w1*b1 + w2*b2 | w3*b3 + w4*b4 | w1*a1 + w2*a2 | w3*a3 + w4*a4]
-    ba = _mm_madd_epi16(ba, weight);
-
-    //horizontal add that will produce the output values (in 32bit)
-    weight = _mm_hadd_epi32(rg, ba);
-    weight = _mm_srli_epi32(weight, 8);
-
-    //convert 32bit->8bit
-    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
-    weight = _mm_packus_epi16(weight, _mm_setzero_si128());
-    return _mm_cvtsi128_si32(weight);
-}
-
-//bilinear get pixel with FIXED-POINT (signed 16.16)
-static __forceinline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
-{
-    //convert to fixed point
-    const int32_t lx = sx >> 16;
-    const int32_t ly = sy >> 16;
-
-    //load the 4 neighboring pixels
-    uint32_t pixels[4] = { 0 };
-    pixels[0] = clampPixels(psrc, lx    , ly    );
-    pixels[1] = clampPixels(psrc, lx + 1, ly    );
-    pixels[2] = clampPixels(psrc, lx    , ly + 1);
-    pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
-
-    GFX_IMAGE img = { 0 };
-    img.mData = (uint8_t*)pixels;
-    img.mWidth = 2;
-    img.mHeight = 2;
-    img.mRowBytes = 8;
-    return bilinearGetPixelCenter(&img, sx & 0xffff, sy & 0xffff);
-}
-
-//bilinear get pixel with FIXED-POINT (signed 16.16)
-//general optimize version, fast speed
-static __forceinline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
-{
-    //convert to fixed point
-    const int32_t lx = sx >> 16;
-    const int32_t ly = sy >> 16;
-    const uint8_t u = (sx & 0xffff) >> 8;
-    const uint8_t v = (sy & 0xffff) >> 8;
-
-    //load the 4 neighboring pixels
-    const uint32_t p0 = clampPixels(psrc, lx    , ly    );
-    const uint32_t p1 = clampPixels(psrc, lx + 1, ly    );
-    const uint32_t p2 = clampPixels(psrc, lx    , ly + 1);
-    const uint32_t p3 = clampPixels(psrc, lx + 1, ly + 1);
-
-    //calculate the weights for each pixel
-    const uint32_t w3 = (u * v) >> 8;
-    const uint32_t w2 = u - w3;
-    const uint32_t w1 = v - w3;
-    const uint32_t w0 = 256 - w1 - w2 - w3;
-
-    uint32_t rb = (p0 & 0x00ff00ff) * w0;
-    uint32_t ga = ((p0 & 0xff00ff00) >> 8) * w0;
-    rb += (p1 & 0x00ff00ff) * w2;
-    ga += ((p1 & 0xff00ff00) >> 8) * w2;
-    rb += (p2 & 0x00ff00ff) * w1;
-    ga += ((p2 & 0xff00ff00) >> 8) * w1;
-    rb += (p3 & 0x00ff00ff) * w3;
-    ga += ((p3 & 0xff00ff00) >> 8) * w3;
-    return (ga & 0xff00ff00) | ((rb & 0xff00ff00) >> 8);
-}
-
-//constant values that will be needed
-static const __m128 CONST_1 = _mm_set_ps1(1);
-static const __m128 CONST_256 = _mm_set_ps1(256);
-
-//calculate weight of pixel at (x,y)
-static __forceinline __m128 calcWeights(const double x, const double y)
-{
-    __m128 xmm0 = _mm_set_ps1(float(x));
-    __m128 xmm1 = _mm_set_ps1(float(y));
-    __m128 xmm2 = _mm_unpacklo_ps(xmm0, xmm1);
-
-    xmm0 = _mm_floor_ps(xmm2);
-    xmm1 = _mm_sub_ps(xmm2, xmm0);
-    xmm2 = _mm_sub_ps(CONST_1, xmm1);
-
-    __m128 xmm3 = _mm_unpacklo_ps(xmm2, xmm1);
-    xmm3 = _mm_movelh_ps(xmm3, xmm3);
-
-    __m128 xmm4 = _mm_shuffle_ps(xmm2, xmm1, _MM_SHUFFLE(1, 1, 1, 1));
-    xmm4 = _mm_mul_ps(xmm3, xmm4);
-
-    return _mm_mul_ps(xmm4, CONST_256);
-}
-
-//get pixels bilinear with SSE2
-static __forceinline uint32_t bilinearGetPixelSSE2(const GFX_IMAGE* psrc, const double x, const double y)
-{
-    //calculate offset at (x,y)
-    const int32_t lx = int32_t(x);
-    const int32_t ly = int32_t(y);
-
-    //clamp 4 neighboring pixels
-    uint32_t pixels[4] = { 0 };
-    pixels[0] = clampPixels(psrc, lx    , ly    );
-    pixels[1] = clampPixels(psrc, lx + 1, ly    );
-    pixels[2] = clampPixels(psrc, lx    , ly + 1);
-    pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
-
-    //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
-    __m128i p12 = _mm_loadl_epi64((const __m128i*)&pixels[0]);
-    __m128i p34 = _mm_loadl_epi64((const __m128i*)&pixels[2]);
-
-    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
-    p12 = _mm_unpacklo_epi8(p12, p34);
-    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
-    p12 = _mm_unpacklo_epi8(p12, p34);
-
-    //extend to 16bits
-    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
-    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
-
-    //convert floating point weights to 16bits integer w4 w3 w2 w1
-    __m128i weight = _mm_cvtps_epi32(calcWeights(x, y));
-
-    //make 32bit -> 2 x 16bits
-    weight = _mm_packs_epi32(weight, weight);
-
-    //rg = [w1*r1 + w2*r2 | w3*r3 + w4*r4 | w1*g1 + w2*g2 | w3*g3 + w4*g4]
-    rg = _mm_madd_epi16(rg, weight);
-
-    //ba = [w1*b1 + w2*b2 | w3*b3 + w4*b4 | w1*a1 + w2*a2 | w3*a3 + w4*a4]
-    ba = _mm_madd_epi16(ba, weight);
-
-    //horizontal add that will produce the output values (in 32bit)
-    weight = _mm_hadd_epi32(rg, ba);
-    weight = _mm_srli_epi32(weight, 8);
-
-    //convert 32bit->8bit
-    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
-    weight = _mm_packus_epi16(weight, _mm_setzero_si128());
-    return _mm_cvtsi128_si32(weight);
-}
-
-//bicubic helper
-static __forceinline double cubicHermite(const double a, const double b, const double c, const double d, const double fract)
-{
-    const double aa = -a / 2.0 + 1.5 * b - 1.5 * c + d / 2.0;
-    const double bb = a - 2.5 * b + 2.0 * c - d / 2.0;
-    const double cc = -a / 2.0 + c / 2.0;
-    return aa * fract * fract * fract + bb * fract * fract + cc * fract + b;
-}
-
-//calculate function sin(x)/x replace for cubicHermite
-//so this will add to lookup table for speedup improvement
-static __forceinline double sinXDivX(const double b)
-{
-    const double a = -1;
-    const double x = (b < 0) ? -b : b;
-    const double x2 = x * x, x3 = x2 * x;
-
-    if (x <= 1) return (a + 2) * x3 - (a + 3) * x2 + 1;
-    else if (x <= 2) return a * x3 - (5 * a) * x2 + (8 * a) * x - (4 * a);
-    return 0;
-}
-
-//4 signed 32bits sum of bits of data (simulation for _mm_madd_epi32)
-static __forceinline int32_t _mm_hsum_epi32(const __m128i val)
-{
-    //_mm_extract_epi32 is slower
-    __m128i tmp = _mm_add_epi32(val, _mm_srli_si128(val, 8));
-    tmp = _mm_add_epi32(tmp, _mm_srli_si128(tmp, 4));
-    return _mm_cvtsi128_si32(tmp);
-}
-
-//calculate pixel by bicubic interpolation
-static __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, const double sy)
-{
-    const int32_t px = int32_t(sx);
-    const double fx = sx - int32_t(sx);
-
-    const int32_t py = int32_t(sy);
-    const double fy = sy - int32_t(sy);
-
-    const uint32_t width = img->mWidth;
-    const uint32_t height = img->mHeight;
-    const uint32_t* psrc = (const uint32_t*)img->mData;
-
-    const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
-    const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
-    const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
-    const uint8_t* p30 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
-    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
-    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
-    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
-    const uint8_t* p02 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
-    const uint8_t* p12 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
-    const uint8_t* p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
-    const uint8_t* p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-    const uint8_t* p03 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
-    const uint8_t* p13 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
-    const uint8_t* p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
-    const uint8_t* p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
-
-    //mapping destination pointer
-    uint32_t dst = 0;
-    uint8_t* pdst = (uint8_t*)&dst;
-
-    //start interpolate bicubically
-    for (int32_t i = 0; i < 4; i++)
-    {
-        const double col0 = cubicHermite(p00[i], p10[i], p20[i], p30[i], fx);
-        const double col1 = cubicHermite(p01[i], p11[i], p21[i], p31[i], fx);
-        const double col2 = cubicHermite(p02[i], p12[i], p22[i], p32[i], fx);
-        const double col3 = cubicHermite(p03[i], p13[i], p23[i], p33[i], fx);
-        const double pcol = cubicHermite(col0, col1, col2, col3, fy);
-
-        //saturation check
-        pdst[i] = uint8_t(clamp(pcol, 0.0, 255.0));
-    }
-
-    return dst;
-}
-
-//this calculate pixel with boundary so quite slowly
-static __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
-{
-    //peek offset at (px,py)
-    const int32_t px = sx >> 16, py = sy >> 16;
-
-    const uint32_t width = img->mWidth;
-    const uint32_t height = img->mHeight;
-    const uint32_t* psrc = (const uint32_t*)img->mData;
-
-    //calculate around pixels
-    const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
-    const uint8_t *p01 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
-    const uint8_t *p02 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
-    const uint8_t *p03 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-    const uint8_t *p10 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
-    const uint8_t *p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
-    const uint8_t *p12 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
-    const uint8_t *p13 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
-    const uint8_t *p20 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
-    const uint8_t *p21 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
-    const uint8_t *p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
-    const uint8_t *p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-    const uint8_t *p30 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
-    const uint8_t *p31 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
-    const uint8_t *p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
-    const uint8_t *p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
-
-    //4 pixels weigths
-    const uint8_t u = sx >> 8, v = sy >> 8;
-    const int32_t u0 = sintab[256 + u], u1 = sintab[u];
-    const int32_t u2 = sintab[256 - u], u3 = sintab[512 - u];
-    const int32_t v0 = sintab[256 + v], v1 = sintab[v];
-    const int32_t v2 = sintab[256 - v], v3 = sintab[512 - v];
-
-    uint32_t dst = 0;
-    uint8_t* pdst = (uint8_t*)&dst;
-
-    //calculate each pixel channel
-    for (int32_t i = 0; i < 4; i++)
-    {
-        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
-        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
-        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
-        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p22[i] * u2 + p33[i] * u3) * v3;
-        pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
-    }
-
-    return dst;
-}
-
-//calculate sin&cos of an angle
-static __forceinline void sincos(double angle, double* sina, double* cosa)
-{
-#ifdef _USE_ASM
-    __asm {
-        fld     angle
-        mov     eax, sina
-        mov     edx, cosa
-        fsincos   
-        fstp    qword ptr [edx]   
-        fstp    qword ptr [eax]  
-    }
-#else
-    *sina = sin(angle);
-    *cosa = cos(angle);
-#endif // _USE_ASM
-}
-
-//rotate clip data
-struct TClipData
-{
-public:
-    int32_t srcw;
-    int32_t srch;
-    int32_t dstw;
-    int32_t dsth;
-    int32_t ax; 
-    int32_t ay; 
-    int32_t bx; 
-    int32_t by; 
-    int32_t cx;
-    int32_t cy; 
-    int32_t boundWidth;
-
-private:
-    int32_t currUpX0;
-    int32_t currUpX1;
-    int32_t currDownX0;
-    int32_t currDownX1;
-
-    __forceinline bool pointInBound(int32_t scx, int32_t scy)
-    {
-        return  (((scx >= (-(boundWidth << 16))) && ((scx >> 16) < (srcw + boundWidth))) &&
-                 ((scy >= (-(boundWidth << 16))) && ((scy >> 16) < (srch + boundWidth))));
-    }
-
-    __forceinline bool pointInSrc(int32_t scx, int32_t scy)
-    {
-        return  (((scx >= (boundWidth << 16)) &&
-                 ((scx >> 16) < (srcw - boundWidth))) &&
-                 ((scy >= (boundWidth << 16)) &&
-                 ((scy >> 16) < (srch - boundWidth))));
-    }
-
-    void findBeginIn(int32_t dsty, int32_t* dstx, int32_t* scx, int32_t* scy)
-    {
-        *scx -= ax;
-        *scy -= ay;
-
-        while (pointInBound(*scx, *scy))
+        if (pointInBound(clip, scx, scy))
         {
-            (*dstx)--;
-            *scx -= ax;
-            *scy -= ay;
+            *dstx0 = i;
+
+            if (i == testx0) findBeginIn(clip, dstx0, &scx, &scy);
+
+            if (*dstx0 < 0)
+            {
+                scx -= clip->ax * (*dstx0);
+                scy -= clip->ay * (*dstx0);
+            }
+
+            clip->srcx = scx;
+            clip->srcy = scy;
+
+            return true;
         }
-
-        *scx += ax;
-        *scy += ay;
-    }
-
-    bool findBegin(int32_t dsty, int32_t* dstx0, int32_t dstx1)
-    {
-        int32_t testx0 = *dstx0 - 1;
-        int32_t scx = ax * testx0 + bx * dsty + cx;
-        int32_t scy = ay * testx0 + by * dsty + cy;
-
-        for (int32_t i = testx0; i <= dstx1; i++)
+        else
         {
-            if (pointInBound(scx, scy))
-            {
-                *dstx0 = i;
-
-                if (i == testx0) findBeginIn(dsty, dstx0, &scx, &scy);
-
-                if (*dstx0 < 0)
-                {
-                    scx -= ax * (*dstx0);
-                    scy -= ay * (*dstx0);
-                }
-
-                srcx = scx;
-                srcy = scy;
-
-                return true;
-            }
-            else
-            {
-                scx += ax;
-                scy += ay;
-            }
+            scx += clip->ax;
+            scy += clip->ay;
         }
-
-        return false;
     }
 
-    void findEnd(int32_t dsty, int32_t dstx0, int32_t* dstx1)
+    return false;
+}
+
+__forceinline void findEnd(const ROTATE_CLIP* clip, const int32_t dsty, const int32_t dstx0, int32_t* dstx1)
+{
+    int32_t testx1 = *dstx1;
+    if (testx1 < dstx0) testx1 = dstx0;
+
+    int32_t scx = clip->ax * testx1 + clip->bx * dsty + clip->cx;
+    int32_t scy = clip->ay * testx1 + clip->by * dsty + clip->cy;
+
+    if (pointInBound(clip, scx, scy))
     {
-        int32_t testx1 = *dstx1;
-        if (testx1 < dstx0) testx1 = dstx0;
+        testx1++;
+        scx += clip->ax;
+        scy += clip->ay;
 
-        int32_t scx = ax * testx1 + bx * dsty + cx;
-        int32_t scy = ay * testx1 + by * dsty + cy;
-
-        if (pointInBound(scx, scy))
+        while (pointInBound(clip, scx, scy))
         {
             testx1++;
-            scx += ax;
-            scy += ay;
-
-            while (pointInBound(scx, scy))
-            {
-                testx1++;
-                scx += ax;
-                scy += ay;
-            }
-
-            *dstx1 = testx1;
+            scx += clip->ax;
+            scy += clip->ay;
         }
-        else
+
+        *dstx1 = testx1;
+    }
+    else
+    {
+        scx -= clip->ax;
+        scy -= clip->ay;
+        while (!pointInBound(clip, scx, scy))
         {
-            scx -= ax;
-            scy -= ay;
-            while (!pointInBound(scx, scy))
-            {
-                testx1--;
-                scx -= ax;
-                scy -= ay;
-            }
-
-            *dstx1 = testx1;
+            testx1--;
+            scx -= clip->ax;
+            scy -= clip->ay;
         }
+
+        *dstx1 = testx1;
     }
-
-    __forceinline void updateInX()
-    {
-        if (!boundWidth || boundx0 >= boundx1)
-        {
-            inx0 = boundx0;
-            inx1 = boundx1;
-        }
-        else
-        {
-            int32_t scx = srcx;
-            int32_t scy = srcy;
-            int32_t i = boundx0;
-
-            while (i < boundx1)
-            {
-                if (pointInSrc(scx, scy)) break;
-                scx += ax;
-                scy += ay;
-                i++;
-            }
-
-            inx0 = i;
-
-            scx = srcx + (boundx1 - boundx0) * ax;
-            scy = srcy + (boundx1 - boundx0) * ay;
-
-            i = boundx1;
-
-            while (i > inx0)
-            {
-                scx -= ax;
-                scy -= ay;
-                if (pointInSrc(scx, scy)) break;
-                i--;
-            }
-
-            inx1 = i;
-        }
-    }
-
-    __forceinline void updateUpX()
-    {
-        if (currUpX0 < 0) boundx0 = 0;
-        else boundx0 = currUpX0;
-        
-        if (currUpX1 >= dstw) boundx1 = dstw;
-        else boundx1 = currUpX1;
-
-        updateInX();
-    }
-
-    __forceinline void updateDownX()
-    {
-        if (currDownX0 < 0) boundx0 = 0;
-        else boundx0 = currDownX0;
-
-        if (currDownX1 >= dstw) boundx1 = dstw;
-        else boundx1 = currDownX1;
-
-        updateInX();
-    }
-
-public:
-    int32_t srcx;
-    int32_t srcy;
-
-    int32_t dstUpY;
-    int32_t dstDownY;
-
-    int32_t boundx0;
-    int32_t inx0;
-    int32_t inx1;
-    int32_t boundx1;
-
-public:
-    bool intiClip(int32_t dcx, int32_t dcy, int32_t bwidth)
-    {
-        boundWidth = bwidth;
-        dstDownY = dcx;
-        currDownX0 = dcy;
-        currDownX1 = currDownX0;
-
-        if (findBegin(dstDownY, &currDownX0, currDownX1)) findEnd(dstDownY, currDownX0, &currDownX1);
-
-        dstUpY = dstDownY;
-        currUpX0 = currDownX0;
-        currUpX1 = currDownX1;
-        
-        updateUpX();
-
-        return currDownX0 < currDownX1;
-    }
-
-    bool nextLineDown()
-    {
-        dstDownY++;
-        if (!findBegin(dstDownY, &currDownX0, currDownX1)) return false;
-        findEnd(dstDownY, currDownX0, &currDownX1);
-        updateDownX();
-        return currDownX0 < currDownX1;
-    }
-
-    bool nextLineUp()
-    {
-        dstUpY--;
-        if (!findBegin(dstUpY, &currUpX0, currUpX1)) return false;
-        findEnd(dstUpY, currUpX0, &currUpX1);
-        updateUpX();
-        return currUpX0 < currUpX1;
-    }
-};
-
-//fast calculate pixel at center, don't care boundary
-static __forceinline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* stable, const int32_t sx, const int32_t sy)
-{
-    const uint8_t px = sx >> 8, py = sy >> 8;
-    const int16_t u0 = stable[256 + px], u1 = stable[px];
-    const int16_t u2 = stable[256 - px], u3 = stable[512 - px];
-
-    const __m128i xpart = _mm_setr_epi16(u0, u1, u2, u3, u0, u1, u2, u3); //U0 U1 U2 U3 U0 U1 U2 U3
-    const __m128i ypart = _mm_setr_epi32(stable[256 + py], stable[py], stable[256 - py], stable[512 - py]);
-    
-    const uint32_t* psrc = (const uint32_t*)img->mData;
-    const uint32_t *pixel0 = (const uint32_t*)&psrc[((sy >> 16) - 1) * img->mWidth + ((sx >> 16) - 1)];
-    const uint32_t *pixel1 = &pixel0[img->mWidth];
-    const uint32_t *pixel2 = &pixel1[img->mWidth];
-    const uint32_t *pixel3 = &pixel2[img->mWidth];
-
-    __m128i p0 = _mm_load_si128((const __m128i *)pixel0), p1 = _mm_load_si128((const __m128i *)pixel1); //P00 P01 P02 P03 P10 P11 P12 P13
-    __m128i p2 = _mm_load_si128((const __m128i *)pixel2), p3 = _mm_load_si128((const __m128i *)pixel3); //P20 P21 P22 P23 P30 P31 P32 P33
-
-    p0 = _mm_shuffle_epi8(p0, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B0 G0 R0 A0
-    p1 = _mm_shuffle_epi8(p1, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B1 G1 R1 A1
-    p2 = _mm_shuffle_epi8(p2, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B2 G2 R2 A2
-    p3 = _mm_shuffle_epi8(p3, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B3 G3 R3 A3
-
-    const __m128i bg01 = _mm_unpacklo_epi32(p0, p1); //B0 B1 G0 G1
-    const __m128i ra01 = _mm_unpackhi_epi32(p0, p1); //R0 R1 A0 A1
-    const __m128i bg23 = _mm_unpacklo_epi32(p2, p3); //B2 B3 G2 G3
-    const __m128i ra23 = _mm_unpackhi_epi32(p2, p3); //R2 R3 A2 A3
-
-    const __m128i b01 = _mm_unpacklo_epi8(bg01, _mm_setzero_si128());
-    const __m128i b23 = _mm_unpacklo_epi8(bg23, _mm_setzero_si128());
-
-    //P00 * U0 + P01 * U1 + P02 * U2 + P03 * U3
-    const __m128i sb = _mm_hadd_epi32(_mm_madd_epi16(b01, xpart), _mm_madd_epi16(b23, xpart));
-
-    const __m128i g01 = _mm_unpackhi_epi8(bg01, _mm_setzero_si128());
-    const __m128i g23 = _mm_unpackhi_epi8(bg23, _mm_setzero_si128());
-
-    //P10 * U0 + P11 * U1 + P12 * U2 + P13 * U3
-    const __m128i sg = _mm_hadd_epi32(_mm_madd_epi16(g01, xpart), _mm_madd_epi16(g23, xpart));
-
-    const __m128i r01 = _mm_unpacklo_epi8(ra01, _mm_setzero_si128());
-    const __m128i r23 = _mm_unpacklo_epi8(ra23, _mm_setzero_si128());
-
-    //P20 * U0 + P21 * U1 + P22 * U2 + P23 * U3
-    const __m128i sr = _mm_hadd_epi32(_mm_madd_epi16(r01, xpart), _mm_madd_epi16(r23, xpart));
-
-    const __m128i a01 = _mm_unpackhi_epi8(ra01, _mm_setzero_si128());
-    const __m128i a23 = _mm_unpackhi_epi8(ra23, _mm_setzero_si128());
-
-    //P30 * U0 + P31 * U1 + P32 * U2 + P33 * U3
-    const __m128i sa = _mm_hadd_epi32(_mm_madd_epi16(a01, xpart), _mm_madd_epi16(a23, xpart));
-
-    //P00 * U0 + P01 * U1 + P02 * U2 + P03 * U3 
-    //P10 * U0 + P11 * U1 + P12 * U2 + P13 * U3 
-    //P20 * U0 + P21 * U1 + P22 * U2 + P23 * U3 
-    //P30 * U0 + P31 * U1 + P32 * U2 + P33 * U3 
-    __m128i result = _mm_setr_epi32(
-        _mm_hsum_epi32(_mm_mullo_epi32(sb, ypart)), //SB * V0
-        _mm_hsum_epi32(_mm_mullo_epi32(sg, ypart)), //SG * V1
-        _mm_hsum_epi32(_mm_mullo_epi32(sr, ypart)), //SR * V2
-        _mm_hsum_epi32(_mm_mullo_epi32(sa, ypart))  //SA * V3
-    );
-
-    //SUM >> 16
-    result = _mm_srai_epi32(result, 16);
-
-    //CLAMP 0, 255
-    return _mm_cvtsi128_si32(_mm_packus_epi16(_mm_packus_epi32(result, result), result));
 }
 
-//this calculate pixel with boundary so quite slowly
-static __forceinline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
+__forceinline void updateInX(ROTATE_CLIP* clip)
 {
-    //peek offset at (px,py)
-    const int32_t px = (sx >> 16) - 1, py = (sy >> 16) - 1;
-
-    //calculate 16 pixels start (px-1, py-1), (px+2, py+2)
-    uint32_t pixels[16] = { 0 };
-    for (int32_t i = 0; i < 4; i++)
+    if (!clip->boundWidth || clip->outBoundx0 >= clip->outBoundx1)
     {
-        const int32_t y = py + i;
-        for (int32_t j = 0; j < 4; j++)
-        {
-            const int32_t x = px + j;
-            pixels[(i << 2) + j] = clampPixels(img, x, y);
-        }
+        clip->inBoundx0 = clip->outBoundx0;
+        clip->inBoundx1 = clip->outBoundx1;
     }
+    else
+    {
+        int32_t scx = clip->srcx;
+        int32_t scy = clip->srcy;
+        int32_t i = clip->outBoundx0;
 
-    //construct matrix 16x16 pixels data
-    GFX_IMAGE mpic;
-    mpic.mData = (uint8_t*)pixels;
-    mpic.mWidth = 4;
-    mpic.mHeight = 4;
-    mpic.mRowBytes = 16;
+        while (i < clip->outBoundx1)
+        {
+            if (pointInSrc(clip, scx, scy)) break;
+            scx += clip->ax;
+            scy += clip->ay;
+            i++;
+        }
 
-    //optimize function
-    return bicubicGetPixelCenter(&mpic, sintab, (sx & 0xffff) + 0x10000, (sy & 0xffff) + 0x10000);
+        clip->inBoundx0 = i;
+
+        scx = clip->srcx + (clip->outBoundx1 - clip->outBoundx0) * clip->ax;
+        scy = clip->srcy + (clip->outBoundx1 - clip->outBoundx0) * clip->ay;
+
+        i = clip->outBoundx1;
+
+        while (i > clip->inBoundx0)
+        {
+            scx -= clip->ax;
+            scy -= clip->ay;
+            if (pointInSrc(clip, scx, scy)) break;
+            i--;
+        }
+
+        clip->inBoundx1 = i;
+    }
+}
+
+__forceinline void updateUpX(ROTATE_CLIP* clip)
+{
+    if (clip->currUpx0 < 0) clip->outBoundx0 = 0;
+    else clip->outBoundx0 = clip->currUpx0;
+        
+    if (clip->currUpx1 >= clip->dstw) clip->outBoundx1 = clip->dstw;
+    else clip->outBoundx1 = clip->currUpx1;
+
+    updateInX(clip);
+}
+
+__forceinline void updateDownX(ROTATE_CLIP* clip)
+{
+    if (clip->currDownx0 < 0) clip->outBoundx0 = 0;
+    else clip->outBoundx0 = clip->currDownx0;
+
+    if (clip->currDownx1 >= clip->dstw) clip->outBoundx1 = clip->dstw;
+    else clip->outBoundx1 = clip->currDownx1;
+
+    updateInX(clip);
+}
+
+__forceinline bool intiClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t dcy, const int32_t bwidth)
+{
+    clip->boundWidth = bwidth;
+    clip->dstDownY = dcx;
+    clip->currDownx0 = dcy;
+    clip->currDownx1 = dcy;
+
+    if (findBegin(clip, clip->dstDownY, &clip->currDownx0, clip->currDownx1)) findEnd(clip, clip->dstDownY, clip->currDownx0, &clip->currDownx1);
+
+    clip->dstUpY = clip->dstDownY;
+    clip->currUpx0 = clip->currDownx0;
+    clip->currUpx1 = clip->currDownx1;
+        
+    updateUpX(clip);
+
+    return clip->currDownx0 < clip->currDownx1;
+}
+
+__forceinline bool nextLineDown(ROTATE_CLIP* clip)
+{
+    clip->dstDownY++;
+    if (!findBegin(clip, clip->dstDownY, &clip->currDownx0, clip->currDownx1)) return false;
+    findEnd(clip, clip->dstDownY, clip->currDownx0, &clip->currDownx1);
+    updateDownX(clip);
+    return clip->currDownx0 < clip->currDownx1;
+}
+
+__forceinline bool nextLineUp(ROTATE_CLIP* clip)
+{
+    clip->dstUpY--;
+    if (!findBegin(clip, clip->dstUpY, &clip->currUpx0, clip->currUpx1)) return false;
+    findEnd(clip, clip->dstUpY, clip->currUpx0, &clip->currUpx1);
+    updateUpX(clip);
+    return clip->currUpx0 < clip->currUpx1;
 }

@@ -442,7 +442,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         //range check
         if (degree > 360) degree = 0;
     }
-    
+
     //cleanup...
     freeImage(&img);
 }
@@ -828,7 +828,7 @@ void gfxDemo()
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "What you saw was a combination of the command");
-    showText(10, yc, &txt, "BlockOut and the command BrightnessImage. The text");
+    showText(10, yc, &txt, "blockOut and the command brightnessImage. The text");
     showText(10, yc, &txt, "is an alphamapped image. You may see: working with");
     showText(10, yc, &txt, "images got very easy in GFXLIB - no half things");
     showText(10, yc, &txt, "anymore! To the next... press enter!");
@@ -848,8 +848,8 @@ void gfxDemo()
     
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "This thing is called CrossFading or AlphaBlending.");
-    showText(10, yc, &txt, "In GFXLIB, the procedure is called 'BlendImage'.");
+    showText(10, yc, &txt, "This thing is called crossFading or alphaBlending.");
+    showText(10, yc, &txt, "In GFXLIB, the procedure is called 'blendImage'.");
     showText(10, yc, &txt, "This procedure makes of 2 images another, where");
     showText(10, yc, &txt, "you can decide which image covers more the other.");
     showText(10, yc, &txt, "Enter...");
@@ -859,11 +859,11 @@ void gfxDemo()
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "This is an image rotation. The responsible routine");
-    showText(10, yc, &txt, "for this is called BicubicRotateImage. It doesn't");
-    showText(10, yc, &txt, "seem to be very fast here, but in this demo the");
-    showText(10, yc, &txt, "rotation is an optimize version of bilinear image");
-    showText(10, yc, &txt, "interpolation. You can reach on a INTEL MMX-133 up");
-    showText(10, yc, &txt, "to 20 fps at 640x480x32 bit. You can see another");
+    showText(10, yc, &txt, "for this is called bicubicRotateImage. It doesn't");
+    showText(10, yc, &txt, "seem to be very fast here because delay for show,");
+    showText(10, yc, &txt, "but in this demo the rotation is full optimized.");
+    showText(10, yc, &txt, "You can reach on a INTEL CORE I7-4770K 3.5GHZ up");
+    showText(10, yc, &txt, "to 420 fps at 640x480x32 bit. You can see another");
     showText(10, yc, &txt, "version of rotate image is so fast if only rotate");
     showText(10, yc, &txt, "and show image, check my source code for optimize");
     showText(10, yc, &txt, "version using hardware acceleration SSE2. Enter...");
@@ -873,7 +873,7 @@ void gfxDemo()
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Much more fancy than the other FX... Yeah, you see");
-    showText(10, yc, &txt, "two effects combined here. scaleup and blur image");
+    showText(10, yc, &txt, "two effects combined here. Scales and blur image");
     showText(10, yc, &txt, "are doing their work here. Check the source code");
     showText(10, yc, &txt, "to see the details. The next... Enter :)");
     while (!finished(SDL_SCANCODE_RETURN));
@@ -881,7 +881,7 @@ void gfxDemo()
     
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Antialiased lines, circles and ellipses. Possible");
+    showText(10, yc, &txt, "Anti-aliased lines, circles and ellipses. Possible");
     showText(10, yc, &txt, "with GFXLIB and also even faster than seen here");
     showText(10, yc, &txt, "(just slow for show). Perfect for 3D models and");
     showText(10, yc, &txt, "similar. Enter for the next...");
@@ -891,10 +891,10 @@ void gfxDemo()
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
     showText(10, yc, &txt, "Plasma effect with hight color, this also combine");
-    showText(10, yc, &txt, "scale up image with bilinear interpolation to");
-    showText(10, yc, &txt, "process image with hight quality. This version is");
-    showText(10, yc, &txt, "optimized using integer number but not really fast");
-    showText(10, yc, &txt, "here. See SSE2 hardware version in my source code.");
+    showText(10, yc, &txt, "scale up image with bicubic interpolation to");
+    showText(10, yc, &txt, "process image with best quality. This version is");
+    showText(10, yc, &txt, "full optimized by using fixed number and SSE2+");
+    showText(10, yc, &txt, "instruction for maximize speed (extreamly fast)");
     showText(10, yc, &txt, "Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
     fillRect(20, 20, xc - 39, yc - 39, 0);
@@ -912,11 +912,11 @@ void gfxDemo()
     
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Bumbing effect with full screen, this effect");
-    showText(10, yc, &txt, "combined many images and use subtract, adding");
-    showText(10, yc, &txt, "pixels to calculate render buffer. Scale down");
-    showText(10, yc, &txt, "image using Bresenham algorithm for faster speed");
-    showText(10, yc, &txt, "of image interpolation. Enter for next...");
+    showText(10, yc, &txt, "2D bump mapping effect with full screen, this");
+    showText(10, yc, &txt, "effect also combined many images and use sub-");
+    showText(10, yc, &txt, "tract, adding pixels to calculate render buffer.");
+    showText(10, yc, &txt, "Scale image using Bresenham algorithm for fast");
+    showText(10, yc, &txt, "speed of image interpolation. Enter for next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runLensFlare(&old);
     scaleImage(&im, &old, INTERPOLATION_TYPE_BICUBIC);
@@ -925,12 +925,12 @@ void gfxDemo()
     
     fullSpeed = 0;
     showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Yeah! Lens effect, this effect also combined many");
-    showText(10, yc, &txt, "images too and other pixel manipulation such as");
-    showText(10, yc, &txt, "substract, adding for each to render buffer. This");
-    showText(10, yc, &txt, "also use bicubic interpolation with best quality");
-    showText(10, yc, &txt, "for scale image. Using mouse hardware interrupts");
-    showText(10, yc, &txt, "to tracking mouse event. Enter to continue...");
+    showText(10, yc, &txt, "Yeah! Lens flare effect, this effect is simutation");
+    showText(10, yc, &txt, "the lens flare in photoshop. Combined many images");
+    showText(10, yc, &txt, "too and other pixel manipulation such as substract");
+    showText(10, yc, &txt, "adding for each to render buffer. This is also use");
+    showText(10, yc, &txt, "bicubic interpolation with best quality for scale.");
+    showText(10, yc, &txt, "Use hardware mouse tracking events. Next enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     
     fullSpeed = 0;
@@ -938,7 +938,8 @@ void gfxDemo()
     showText(10, yc, &txt, "That's all folks! More to come soon. In short time");
     showText(10, yc, &txt, "that's enought.See from my source code for another");
     showText(10, yc, &txt, "stuffs.If there occured something which seems tobe");
-    showText(10, yc, &txt, "a bug or any suggestion,please contact me. Thanks!");
+    showText(10, yc, &txt, "a bug or any suggestion, please contact me at:");
+    showText(10, yc, &txt, "https://github.com/pherosiden/gfxlib. Thanks!");
     showText(10, yc, &txt, "");
     showText(10, yc, &txt, "Nguyen Ngoc Van -- pherosiden@gmail.com");
     showText(10, yc, &txt, "");

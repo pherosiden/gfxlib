@@ -941,8 +941,9 @@ void clearScreen(uint32_t color)
     render();
 }
 
+
 //plot a pixel at (x,y) with color
-void putPixelMix(int32_t x, int32_t y, uint32_t color)
+__forceinline void putPixelMix(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -961,7 +962,7 @@ void putPixelMix(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with color
-void putPixelNormal(int32_t x, int32_t y, uint32_t color)
+__forceinline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -985,7 +986,7 @@ void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 //don't use (SC*SA+DC*(255-SA))>>8, you'll always get 254 as your maximum value.
 //ie: (255*128+255*(255-128))>>8=254 --> WRONG!!!
 //with: (255*128+255*(256-128))>>8=255 --> ACCEPTED!!!
-void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
+__forceinline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1029,7 +1030,7 @@ void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 }
 
 //plot a pixel at (x,y) with alpha-blending pixel
-void putPixelAA(int32_t x, int32_t y, uint32_t argb)
+__forceinline void putPixelAA(int32_t x, int32_t y, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1073,7 +1074,7 @@ void putPixelAA(int32_t x, int32_t y, uint32_t argb)
 }
 
 //plot a pixel at (x,y) with background color
-void putPixelBob(int32_t x, int32_t y)
+__forceinline void putPixelBob(int32_t x, int32_t y)
 {
     if (bitsPerPixel != 8) return;
     if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
@@ -1101,7 +1102,7 @@ void putPixelBob(int32_t x, int32_t y)
 }
 
 //plot a pixel at (x,y) with add color
-void putPixelAdd(int32_t x, int32_t y, uint32_t color)
+__forceinline void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1126,7 +1127,7 @@ void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with sub color
-void putPixelSub(int32_t x, int32_t y, uint32_t color)
+__forceinline void putPixelSub(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1192,7 +1193,7 @@ void putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode /* = BLEND_MODE
 }
 
 //peek a pixel at (x,y)
-uint32_t getPixelMix(int32_t x, int32_t y)
+__forceinline uint32_t getPixelMix(int32_t x, int32_t y)
 {
 #ifdef _USE_ASM
     uint8_t col = 0;
@@ -1213,7 +1214,7 @@ uint32_t getPixelMix(int32_t x, int32_t y)
 }
 
 //peek a pixel at (x,y)
-uint32_t getPixel(int32_t x, int32_t y)
+__forceinline uint32_t getPixel(int32_t x, int32_t y)
 {
     //range checking
     if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return 0;
@@ -1241,7 +1242,7 @@ uint32_t getPixel(int32_t x, int32_t y)
 }
 
 //fast horizontal line from (x,y) with sx length, and color
-void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
+__forceinline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1287,7 +1288,7 @@ void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and color
-void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
+__forceinline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1337,7 +1338,7 @@ void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and add color
-void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
+__forceinline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1400,7 +1401,7 @@ void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and sub color
-void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
+__forceinline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1463,7 +1464,7 @@ void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
 }
 
 //fast horizontal line from (x,y) with sx length, and blending pixel
-void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
+__forceinline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1616,7 +1617,7 @@ void horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode /*
 }
 
 //fast vertical line from (x,y) with sy length, and palette color
-void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
+__forceinline void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1647,7 +1648,7 @@ void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and rgb color
-void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
+__forceinline void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1680,7 +1681,7 @@ void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and add color
-void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
+__forceinline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1718,7 +1719,7 @@ void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and sub color
-void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
+__forceinline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1756,7 +1757,7 @@ void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and blending pixels
-void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
+__forceinline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -4765,7 +4766,6 @@ void freeImage(GFX_IMAGE* img)
         img->mHeight   = 0;
         img->mSize     = 0;
         img->mRowBytes = 0;
-        
     }
 }
 
@@ -4774,7 +4774,6 @@ void clearImage(GFX_IMAGE* img)
 {
     if (img && img->mData) memset(img->mData, 0, img->mSize);
 }
-
 
 //get GFX image buffer functions
 void getImageMix(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img)
@@ -5914,7 +5913,7 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //off alpha channel from source pixels (ARGB -> 0RGB)
             __m128i xmm0 = _mm_and_si128(_mm_load_si128((const __m128i*)imgPixels), xmm6);
 
-            //load 4 bytes from background color
+            //load 4 pixels from background color
             __m128i xmm1 = _mm_load_si128((const __m128i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
@@ -6081,7 +6080,7 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //off alpha channel from source pixels (ARGB -> 0RGB)
             __m128i xmm0 = _mm_and_si128(_mm_load_si128((const __m128i*)imgPixels), xmm6);
 
-            //load 4 bytes from background color
+            //load 4 pixels from background color
             __m128i xmm1 = _mm_load_si128((const __m128i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
@@ -6244,7 +6243,7 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         //process 16-bytes aligned
         for (int32_t j = 0; j < aligned; j++)
         {
-            //load 4 bytes from source and dest
+            //load 4 pixels from source and dest
             __m128i src = _mm_load_si128((const __m128i*)imgPixels);
             __m128i dst = _mm_load_si128((const __m128i*)dstPixels);
 
@@ -6364,6 +6363,536 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
     }
 }
 
+//clip point at (x,y)
+__forceinline bool clipPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
+{
+    bool ret = true;
+
+    if (*x < 0)
+    { 
+        *x = 0;
+        ret = false;
+    }
+    else if (*x >= width)
+    { 
+        *x = width - 1;
+        ret = false;
+    }
+
+    if (*y < 0)
+    {
+        *y = 0;
+        ret = false;
+    }
+    else if (*y >= height)
+    {
+        *y = height - 1;
+        ret = false;
+    }
+
+    return ret;
+}
+
+//get source pixel
+__forceinline uint32_t clampOffset(const int32_t width, const int32_t height, const int32_t x, const int32_t y)
+{
+    //x-range check
+    const int32_t xx = clamp(x, 0, width - 1);
+    const int32_t yy = clamp(y, 0, height - 1);
+
+    //return offset at (x,y)
+    return yy * width + xx;
+}
+
+//clamp pixels at offset (x,y)
+__forceinline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
+{
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+    bool insrc = clipPoint(img->mWidth, img->mHeight, &x, &y);
+    uint32_t result = psrc[y * img->mWidth + x];
+    if (!insrc)
+    {
+        ARGB* pcol = (ARGB*)&result;
+        pcol->a = 0;
+    }
+    return result;
+}
+
+//alpha-blending pixel
+__forceinline uint32_t alphaBlend(const uint32_t dst, const uint32_t src)
+{
+#ifdef _USE_ASM
+    __asm {
+        pxor        mm7, mm7
+        movd        mm0, src
+        movd        mm2, dst
+        punpcklbw   mm0, mm7
+        punpcklbw   mm2, mm7
+        movq        mm1, mm0
+        punpckhwd   mm1, mm1
+        psubw       mm0, mm2
+        punpckhdq   mm1, mm1
+        psllw       mm2, 8
+        pmullw      mm0, mm1
+        paddw       mm2, mm0
+        psrlw       mm2, 8
+        packuswb    mm2, mm7
+        movd        eax, mm2
+        emms
+    }
+#else
+    uint32_t cover = src >> 24;
+    uint32_t rcover = 255 - cover;
+    uint32_t rb = ((dst & 0x00ff00ff) * rcover + (src & 0x00ff00ff) * cover);
+    uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((src & 0xff00ff00) >> 8) * cover);
+    return ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
+#endif
+}
+
+//smooth get pixel
+__forceinline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, const int32_t sy)
+{
+    const int32_t lx = sx >> 16;
+    const int32_t ly = sy >> 16;
+    const ARGB* psrc = (const ARGB*)img->mData;
+    const ARGB* p0 = (const ARGB*)&psrc[clampOffset(img->mWidth, img->mHeight, lx, ly)];
+    const ARGB* p1 = (const ARGB*)&psrc[clampOffset(img->mWidth, img->mHeight, lx + 1, ly)];
+
+    uint32_t col = 0;
+    ARGB* pcol = (ARGB*)&col;
+    pcol->a = (p0->a + p1->a) >> 1;
+    pcol->r = (p0->r + p1->r) >> 1;
+    pcol->g = (p0->g + p1->g) >> 1;
+    pcol->b = (p0->b + p1->b) >> 1;
+    return col;
+}
+
+//bilinear get pixel with FIXED-POINT (signed 16.16)
+__forceinline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
+{
+    const uint32_t* pixel = (uint32_t*)psrc->mData;
+    const uint32_t* pixel0 = &pixel[(sy >> 16) * psrc->mWidth + (sx >> 16)];
+    const uint32_t* pixel1 = pixel0 + psrc->mWidth;
+
+    const uint8_t pu = sx >> 8;
+    const uint8_t pv = sy >> 8;
+    const uint32_t w3 = (pu * pv) >> 8;
+    const uint32_t w2 = pu - w3;
+    const uint32_t w1 = pv - w3;
+    const uint32_t w0 = 256 - w1 - w2 - w3;
+
+    //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
+    __m128i p12 = _mm_loadl_epi64((const __m128i*)pixel0);
+    __m128i p34 = _mm_loadl_epi64((const __m128i*)pixel1);
+
+    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
+    p12 = _mm_unpacklo_epi8(p12, p34);
+    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
+    p12 = _mm_unpacklo_epi8(p12, p34);
+
+    //extend to 16bits
+    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
+    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
+
+    //convert floating point weights to 16bits integer w4 w3 w2 w1
+    __m128i weight = _mm_set_epi32(w3, w1, w2, w0);
+
+    //make 32bit -> 2 x 16bits
+    weight = _mm_packs_epi32(weight, weight);
+
+    //rg = [w1*r1 + w2*r2 | w3*r3 + w4*r4 | w1*g1 + w2*g2 | w3*g3 + w4*g4]
+    rg = _mm_madd_epi16(rg, weight);
+
+    //ba = [w1*b1 + w2*b2 | w3*b3 + w4*b4 | w1*a1 + w2*a2 | w3*a3 + w4*a4]
+    ba = _mm_madd_epi16(ba, weight);
+
+    //horizontal add that will produce the output values (in 32bit)
+    weight = _mm_hadd_epi32(rg, ba);
+    weight = _mm_srli_epi32(weight, 8);
+
+    //convert 32bit->8bit
+    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
+    weight = _mm_packus_epi16(weight, _mm_setzero_si128());
+    return _mm_cvtsi128_si32(weight);
+}
+
+//bilinear get pixel with FIXED-POINT (signed 16.16)
+__forceinline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
+{
+    //convert to fixed point
+    const int32_t lx = sx >> 16;
+    const int32_t ly = sy >> 16;
+
+    //load the 4 neighboring pixels
+    uint32_t pixels[4] = { 0 };
+    pixels[0] = clampPixels(psrc, lx    , ly    );
+    pixels[1] = clampPixels(psrc, lx + 1, ly    );
+    pixels[2] = clampPixels(psrc, lx    , ly + 1);
+    pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
+
+    GFX_IMAGE img = { 0 };
+    img.mData = (uint8_t*)pixels;
+    img.mWidth = 2;
+    img.mHeight = 2;
+    img.mRowBytes = 8;
+    return bilinearGetPixelCenter(&img, sx & 0xffff, sy & 0xffff);
+}
+
+//bilinear get pixel with FIXED-POINT (signed 16.16)
+//general optimize version, fast speed
+__forceinline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
+{
+    //convert to fixed point
+    const int32_t lx = sx >> 16;
+    const int32_t ly = sy >> 16;
+    const uint8_t u = (sx & 0xffff) >> 8;
+    const uint8_t v = (sy & 0xffff) >> 8;
+
+    //load the 4 neighboring pixels
+    const uint32_t p0 = clampPixels(psrc, lx    , ly    );
+    const uint32_t p1 = clampPixels(psrc, lx + 1, ly    );
+    const uint32_t p2 = clampPixels(psrc, lx    , ly + 1);
+    const uint32_t p3 = clampPixels(psrc, lx + 1, ly + 1);
+
+    //calculate the weights for each pixel
+    const uint32_t w3 = (u * v) >> 8;
+    const uint32_t w2 = u - w3;
+    const uint32_t w1 = v - w3;
+    const uint32_t w0 = 256 - w1 - w2 - w3;
+
+    uint32_t rb = (p0 & 0x00ff00ff) * w0;
+    uint32_t ga = ((p0 & 0xff00ff00) >> 8) * w0;
+    rb += (p1 & 0x00ff00ff) * w2;
+    ga += ((p1 & 0xff00ff00) >> 8) * w2;
+    rb += (p2 & 0x00ff00ff) * w1;
+    ga += ((p2 & 0xff00ff00) >> 8) * w1;
+    rb += (p3 & 0x00ff00ff) * w3;
+    ga += ((p3 & 0xff00ff00) >> 8) * w3;
+    return (ga & 0xff00ff00) | ((rb & 0xff00ff00) >> 8);
+}
+
+//constant values that will be needed
+static const __m128 CONST_1 = _mm_set_ps1(1);
+static const __m128 CONST_256 = _mm_set_ps1(256);
+
+//calculate weight of pixel at (x,y)
+__forceinline __m128 calcWeights(const double x, const double y)
+{
+    __m128 xmm0 = _mm_set_ps1(float(x));
+    __m128 xmm1 = _mm_set_ps1(float(y));
+    __m128 xmm2 = _mm_unpacklo_ps(xmm0, xmm1);
+
+    xmm0 = _mm_floor_ps(xmm2);
+    xmm1 = _mm_sub_ps(xmm2, xmm0);
+    xmm2 = _mm_sub_ps(CONST_1, xmm1);
+
+    __m128 xmm3 = _mm_unpacklo_ps(xmm2, xmm1);
+    xmm3 = _mm_movelh_ps(xmm3, xmm3);
+
+    __m128 xmm4 = _mm_shuffle_ps(xmm2, xmm1, _MM_SHUFFLE(1, 1, 1, 1));
+    xmm4 = _mm_mul_ps(xmm3, xmm4);
+
+    return _mm_mul_ps(xmm4, CONST_256);
+}
+
+//get pixels bilinear with SSE2
+__forceinline uint32_t bilinearGetPixelSSE2(const GFX_IMAGE* psrc, const double x, const double y)
+{
+    //calculate offset at (x,y)
+    const int32_t lx = int32_t(x);
+    const int32_t ly = int32_t(y);
+
+    //clamp 4 neighboring pixels
+    uint32_t pixels[4] = { 0 };
+    pixels[0] = clampPixels(psrc, lx    , ly    );
+    pixels[1] = clampPixels(psrc, lx + 1, ly    );
+    pixels[2] = clampPixels(psrc, lx    , ly + 1);
+    pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
+
+    //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
+    __m128i p12 = _mm_loadl_epi64((const __m128i*)&pixels[0]);
+    __m128i p34 = _mm_loadl_epi64((const __m128i*)&pixels[2]);
+
+    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
+    p12 = _mm_unpacklo_epi8(p12, p34);
+    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
+    p12 = _mm_unpacklo_epi8(p12, p34);
+
+    //extend to 16bits
+    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
+    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
+
+    //convert floating point weights to 16bits integer w4 w3 w2 w1
+    __m128i weight = _mm_cvtps_epi32(calcWeights(x, y));
+
+    //make 32bit -> 2 x 16bits
+    weight = _mm_packs_epi32(weight, weight);
+
+    //rg = [w1*r1 + w2*r2 | w3*r3 + w4*r4 | w1*g1 + w2*g2 | w3*g3 + w4*g4]
+    rg = _mm_madd_epi16(rg, weight);
+
+    //ba = [w1*b1 + w2*b2 | w3*b3 + w4*b4 | w1*a1 + w2*a2 | w3*a3 + w4*a4]
+    ba = _mm_madd_epi16(ba, weight);
+
+    //horizontal add that will produce the output values (in 32bit)
+    weight = _mm_hadd_epi32(rg, ba);
+    weight = _mm_srli_epi32(weight, 8);
+
+    //convert 32bit->8bit
+    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
+    weight = _mm_packus_epi16(weight, _mm_setzero_si128());
+    return _mm_cvtsi128_si32(weight);
+}
+
+//bicubic helper
+__forceinline double cubicHermite(const double a, const double b, const double c, const double d, const double fract)
+{
+    const double aa = -a / 2.0 + 1.5 * b - 1.5 * c + d / 2.0;
+    const double bb = a - 2.5 * b + 2.0 * c - d / 2.0;
+    const double cc = -a / 2.0 + c / 2.0;
+    return aa * fract * fract * fract + bb * fract * fract + cc * fract + b;
+}
+
+//calculate function sin(x)/x replace for cubicHermite
+//so this will add to lookup table for speedup improvement
+__forceinline double sinXDivX(const double b)
+{
+    const double a = -1;
+    const double x = (b < 0) ? -b : b;
+    const double x2 = x * x, x3 = x2 * x;
+
+    if (x <= 1) return (a + 2) * x3 - (a + 3) * x2 + 1;
+    else if (x <= 2) return a * x3 - (5 * a) * x2 + (8 * a) * x - (4 * a);
+    return 0;
+}
+
+//4 signed 32bits sum of bits of data (simulation for _mm_madd_epi32)
+__forceinline int32_t _mm_hsum_epi32(const __m128i val)
+{
+    //_mm_extract_epi32 is slower
+    __m128i tmp = _mm_add_epi32(val, _mm_srli_si128(val, 8));
+    tmp = _mm_add_epi32(tmp, _mm_srli_si128(tmp, 4));
+    return _mm_cvtsi128_si32(tmp);
+}
+
+//calculate pixel by bicubic interpolation
+__forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, const double sy)
+{
+    const int32_t px = int32_t(sx);
+    const double fx = sx - int32_t(sx);
+
+    const int32_t py = int32_t(sy);
+    const double fy = sy - int32_t(sy);
+
+    const uint32_t width = img->mWidth;
+    const uint32_t height = img->mHeight;
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+
+    const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
+    const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
+    const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
+    const uint8_t* p30 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
+    const uint8_t* p01 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const uint8_t* p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
+    const uint8_t* p21 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const uint8_t* p31 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
+    const uint8_t* p02 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
+    const uint8_t* p12 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
+    const uint8_t* p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
+    const uint8_t* p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
+    const uint8_t* p03 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
+    const uint8_t* p13 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
+    const uint8_t* p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
+    const uint8_t* p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
+
+    //mapping destination pointer
+    uint32_t dst = 0;
+    uint8_t* pdst = (uint8_t*)&dst;
+
+    //start interpolate bicubically
+    for (int32_t i = 0; i < 4; i++)
+    {
+        const double col0 = cubicHermite(p00[i], p10[i], p20[i], p30[i], fx);
+        const double col1 = cubicHermite(p01[i], p11[i], p21[i], p31[i], fx);
+        const double col2 = cubicHermite(p02[i], p12[i], p22[i], p32[i], fx);
+        const double col3 = cubicHermite(p03[i], p13[i], p23[i], p33[i], fx);
+        const double pcol = cubicHermite(col0, col1, col2, col3, fy);
+
+        //saturation check
+        pdst[i] = uint8_t(clamp(pcol, 0.0, 255.0));
+    }
+
+    return dst;
+}
+
+//this calculate pixel with boundary so quite slowly
+__forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
+{
+    //peek offset at (px,py)
+    const int32_t px = sx >> 16, py = sy >> 16;
+
+    const uint32_t width = img->mWidth;
+    const uint32_t height = img->mHeight;
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+
+    //calculate around pixels
+    const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
+    const uint8_t *p01 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
+    const uint8_t *p02 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
+    const uint8_t *p03 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
+    const uint8_t *p10 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const uint8_t *p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
+    const uint8_t *p12 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const uint8_t *p13 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
+    const uint8_t *p20 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
+    const uint8_t *p21 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
+    const uint8_t *p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
+    const uint8_t *p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
+    const uint8_t *p30 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
+    const uint8_t *p31 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
+    const uint8_t *p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
+    const uint8_t *p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
+
+    //4 pixels weigths
+    const uint8_t u = sx >> 8, v = sy >> 8;
+    const int32_t u0 = sintab[256 + u], u1 = sintab[u];
+    const int32_t u2 = sintab[256 - u], u3 = sintab[512 - u];
+    const int32_t v0 = sintab[256 + v], v1 = sintab[v];
+    const int32_t v2 = sintab[256 - v], v3 = sintab[512 - v];
+
+    uint32_t dst = 0;
+    uint8_t* pdst = (uint8_t*)&dst;
+
+    //calculate each pixel channel
+    for (int32_t i = 0; i < 4; i++)
+    {
+        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
+        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
+        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
+        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p22[i] * u2 + p33[i] * u3) * v3;
+        pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+    }
+
+    return dst;
+}
+
+//calculate sin&cos of an angle
+__forceinline void sincos(const double angle, double* sina, double* cosa)
+{
+#ifdef _USE_ASM
+    __asm {
+        fld     angle
+        mov     eax, sina
+        mov     edx, cosa
+        fsincos   
+        fstp    qword ptr [edx]   
+        fstp    qword ptr [eax]  
+    }
+#else
+    *sina = sin(angle);
+    *cosa = cos(angle);
+#endif // _USE_ASM
+}
+
+//fast calculate pixel at center, don't care boundary
+__forceinline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* stable, const int32_t sx, const int32_t sy)
+{
+    const uint8_t px = sx >> 8, py = sy >> 8;
+    const int16_t u0 = stable[256 + px], u1 = stable[px];
+    const int16_t u2 = stable[256 - px], u3 = stable[512 - px];
+
+    const __m128i xpart = _mm_setr_epi16(u0, u1, u2, u3, u0, u1, u2, u3); //U0 U1 U2 U3 U0 U1 U2 U3
+    const __m128i ypart = _mm_setr_epi32(stable[256 + py], stable[py], stable[256 - py], stable[512 - py]);
+
+    const uint32_t* psrc = (const uint32_t*)img->mData;
+    const uint32_t *pixel0 = (const uint32_t*)&psrc[((sy >> 16) - 1) * img->mWidth + ((sx >> 16) - 1)];
+    const uint32_t *pixel1 = &pixel0[img->mWidth];
+    const uint32_t *pixel2 = &pixel1[img->mWidth];
+    const uint32_t *pixel3 = &pixel2[img->mWidth];
+
+    __m128i p0 = _mm_load_si128((const __m128i *)pixel0), p1 = _mm_load_si128((const __m128i *)pixel1); //P00 P01 P02 P03 P10 P11 P12 P13
+    __m128i p2 = _mm_load_si128((const __m128i *)pixel2), p3 = _mm_load_si128((const __m128i *)pixel3); //P20 P21 P22 P23 P30 P31 P32 P33
+
+    p0 = _mm_shuffle_epi8(p0, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B0 G0 R0 A0
+    p1 = _mm_shuffle_epi8(p1, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B1 G1 R1 A1
+    p2 = _mm_shuffle_epi8(p2, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B2 G2 R2 A2
+    p3 = _mm_shuffle_epi8(p3, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B3 G3 R3 A3
+
+    const __m128i bg01 = _mm_unpacklo_epi32(p0, p1); //B0 B1 G0 G1
+    const __m128i ra01 = _mm_unpackhi_epi32(p0, p1); //R0 R1 A0 A1
+    const __m128i bg23 = _mm_unpacklo_epi32(p2, p3); //B2 B3 G2 G3
+    const __m128i ra23 = _mm_unpackhi_epi32(p2, p3); //R2 R3 A2 A3
+
+    const __m128i b01 = _mm_unpacklo_epi8(bg01, _mm_setzero_si128());
+    const __m128i b23 = _mm_unpacklo_epi8(bg23, _mm_setzero_si128());
+
+    //P00 * U0 + P01 * U1 + P02 * U2 + P03 * U3
+    const __m128i sb = _mm_hadd_epi32(_mm_madd_epi16(b01, xpart), _mm_madd_epi16(b23, xpart));
+
+    const __m128i g01 = _mm_unpackhi_epi8(bg01, _mm_setzero_si128());
+    const __m128i g23 = _mm_unpackhi_epi8(bg23, _mm_setzero_si128());
+
+    //P10 * U0 + P11 * U1 + P12 * U2 + P13 * U3
+    const __m128i sg = _mm_hadd_epi32(_mm_madd_epi16(g01, xpart), _mm_madd_epi16(g23, xpart));
+
+    const __m128i r01 = _mm_unpacklo_epi8(ra01, _mm_setzero_si128());
+    const __m128i r23 = _mm_unpacklo_epi8(ra23, _mm_setzero_si128());
+
+    //P20 * U0 + P21 * U1 + P22 * U2 + P23 * U3
+    const __m128i sr = _mm_hadd_epi32(_mm_madd_epi16(r01, xpart), _mm_madd_epi16(r23, xpart));
+
+    const __m128i a01 = _mm_unpackhi_epi8(ra01, _mm_setzero_si128());
+    const __m128i a23 = _mm_unpackhi_epi8(ra23, _mm_setzero_si128());
+
+    //P30 * U0 + P31 * U1 + P32 * U2 + P33 * U3
+    const __m128i sa = _mm_hadd_epi32(_mm_madd_epi16(a01, xpart), _mm_madd_epi16(a23, xpart));
+
+    //P00 * U0 + P01 * U1 + P02 * U2 + P03 * U3 
+    //P10 * U0 + P11 * U1 + P12 * U2 + P13 * U3 
+    //P20 * U0 + P21 * U1 + P22 * U2 + P23 * U3 
+    //P30 * U0 + P31 * U1 + P32 * U2 + P33 * U3 
+    __m128i result = _mm_setr_epi32(
+        _mm_hsum_epi32(_mm_mullo_epi32(sb, ypart)), //SB * V0
+        _mm_hsum_epi32(_mm_mullo_epi32(sg, ypart)), //SG * V1
+        _mm_hsum_epi32(_mm_mullo_epi32(sr, ypart)), //SR * V2
+        _mm_hsum_epi32(_mm_mullo_epi32(sa, ypart))  //SA * V3
+    );
+
+    //SUM >> 16
+    result = _mm_srai_epi32(result, 16);
+
+    //CLAMP 0, 255
+    return _mm_cvtsi128_si32(_mm_packus_epi16(_mm_packus_epi32(result, result), result));
+}
+
+//this calculate pixel with boundary so quite slowly
+__forceinline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
+{
+    //peek offset at (px,py)
+    const int32_t px = (sx >> 16) - 1, py = (sy >> 16) - 1;
+
+    //calculate 16 pixels start (px-1, py-1), (px+2, py+2)
+    uint32_t pixels[16] = { 0 };
+    for (int32_t i = 0; i < 4; i++)
+    {
+        const int32_t y = py + i;
+        for (int32_t j = 0; j < 4; j++)
+        {
+            const int32_t x = px + j;
+            pixels[(i << 2) + j] = clampPixels(img, x, y);
+        }
+    }
+
+    //construct matrix 16x16 pixels data
+    GFX_IMAGE mpic;
+    mpic.mData = (uint8_t*)pixels;
+    mpic.mWidth = 4;
+    mpic.mHeight = 4;
+    mpic.mRowBytes = 16;
+
+    //optimize function
+    return bicubicGetPixelCenter(&mpic, sintab, (sx & 0xffff) + 0x10000, (sy & 0xffff) + 0x10000);
+}
 
 //smooth scaling with Bresenham (internal function)
 //because of several simplifications of the algorithm,
@@ -6563,21 +7092,24 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
             else
             {
                 //calculate average pixel pd = (p0 + p1) / 2
-                uint8_t* pd = (uint8_t*)dst;
-                uint8_t* p0 = (uint8_t*)src;
-                uint8_t* p1 = (uint8_t*)&src[1];
-                pd[0] = (p0[0] + p1[0]) >> 1;
-                pd[1] = (p0[1] + p1[1]) >> 1;
-                pd[2] = (p0[2] + p1[2]) >> 1;
+                ARGB* pd = (ARGB*)dst;
+                ARGB* p0 = (ARGB*)src;
+                ARGB* p1 = (ARGB*)&src[1];
+                pd->r = (p0->r + p1->r) >> 1;
+                pd->g = (p0->g + p1->g) >> 1;
+                pd->b = (p0->b + p1->b) >> 1;
             }
+
             dst++;
             error += sw;
+
             if (error >= dw)
             {
                 error -= dw;
                 src++;
             }
         }
+
         if (dw > sw) *dst = *src;
 #endif
     }
@@ -6707,8 +7239,8 @@ void scaleImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t mode)
     const int32_t fractPart = src->mHeight % dst->mHeight;
     
     uint8_t* srcPrev = NULL;
-    uint8_t* srcPtr = src->mData;
-    uint8_t* dstPtr = dst->mData;
+    uint8_t* srcPtr = (uint8_t*)src->mData;
+    uint8_t* dstPtr = (uint8_t*)dst->mData;
 
     while (numPixels-- > 0)
     {
@@ -6945,10 +7477,11 @@ void bilinearScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//strick 1 (maximize optimize -> maximize speed)
+//maximize optimize version (extreamly speed)
+//using stricks:
 //1. FIXED-POINT
 //2. seperate inbound and outbound pixels calculation
-//3. SSE3 instructions
+//3. SSE2 instructions
 void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
@@ -6956,7 +7489,6 @@ void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 
     //cache local data pointer
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
@@ -6999,7 +7531,7 @@ void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//strick 2: SSE2
+//normal optimize version (very fast)
 //use hardware acceleration with SSE2, seem no faster than FIXED-POINT
 //benchmark for 5000 interation
 //CPU: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz
@@ -7046,6 +7578,7 @@ void bilinearScaleImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 
 //bicubic scale image
 //original version, very slow
+//this show bicubic interpolation only, don't use in production
 void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
@@ -7053,7 +7586,6 @@ void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 
     //cache local data pointer
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     //cache local dimension
     const int32_t swidth = src->mWidth;
@@ -7077,12 +7609,12 @@ void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//SSE2 bicubic interpolation (maximum optimized)
-//the tricks we used:
+//maximize optimized version (extreamly speed)
+//the tricks we're used:
 //1. lookup table
 //2. fixed-point
 //3. SSE2 instructions
-//4. seperate calculate pixels (boundary and center)
+//4. seperate calculate pixels (inbound and outbound)
 void bicubicScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
@@ -7132,27 +7664,27 @@ void bicubicScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//smooth pixel image rotation for mixed mode (optimize version using FIXED-POINT)
+//nearest neighbor image rotation for mixed mode (optimize version using FIXED-POINT)
 void rotateImageMix(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel != 8) return;
 
     //cast to image data
-    uint8_t* pdst = dst->mData;
-    const uint8_t* psrc = src->mData;
+    uint8_t* pdst = (uint8_t*)dst->mData;
+    const uint8_t* psrc = (const uint8_t*)src->mData;
 
-    const int32_t dw = dst->mWidth;
-    const int32_t dcx = dw >> 1;
-    const int32_t dh = dst->mHeight;
-    const int32_t dcy = dh >> 1;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dcx = dstw >> 1;
+    const int32_t dsth = dst->mHeight;
+    const int32_t dcy = dsth >> 1;
 
-    const int32_t sw = src->mWidth;
-    const int32_t scx = sw << 15;
-    const int32_t sh = src->mHeight;
-    const int32_t scy = sh << 15;
-    const int32_t scw = (sw - 1) << 16;
-    const int32_t sch = (sh - 1) << 16;
+    const int32_t srcw = src->mWidth;
+    const int32_t scx = srcw << 15;
+    const int32_t srch = src->mHeight;
+    const int32_t scy = srch << 15;
+    const int32_t scw = (srcw - 1) << 16;
+    const int32_t sch = (srch - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
     const int32_t dx = fround((sin(alpha) / scalex) * 65536);
@@ -7161,13 +7693,13 @@ void rotateImageMix(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double ang
     int32_t xs = scx - (dcx * dy + dcy * dx);
     int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
         int32_t sx = xs, sy = ys;
-        uint8_t* pline = &pdst[y * dw];
-        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
+        uint8_t* pline = pdst;
+        for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
-            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * sw + (sx >> 16)];
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * srcw + (sx >> 16)];
             pline++;
         }
     }
@@ -7183,17 +7715,17 @@ void nearestRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     uint32_t* pdst = (uint32_t*)dst->mData;
     const uint32_t* psrc = (const uint32_t*)src->mData;
 
-    const int32_t dw = dst->mWidth;
-    const int32_t dcx = dw >> 1;
-    const int32_t dh = dst->mHeight;
-    const int32_t dcy = dh >> 1;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dcx = dstw >> 1;
+    const int32_t dsth = dst->mHeight;
+    const int32_t dcy = dsth >> 1;
 
-    const int32_t sw = src->mWidth;
-    const int32_t scx = sw << 15;
-    const int32_t sh = src->mHeight;
-    const int32_t scy = sh << 15;
-    const int32_t scw = (sw - 1) << 16;
-    const int32_t sch = (sh - 1) << 16;
+    const int32_t srcw = src->mWidth;
+    const int32_t scx = srcw << 15;
+    const int32_t srch = src->mHeight;
+    const int32_t scy = srch << 15;
+    const int32_t scw = (srcw - 1) << 16;
+    const int32_t sch = (srch - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
     const int32_t dx = fround((sin(alpha) / scalex) * 65536);
@@ -7202,13 +7734,13 @@ void nearestRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     int32_t xs = scx - (dcx * dy + dcy * dx);
     int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
         int32_t sx = xs, sy = ys;
-        uint32_t* pline = &pdst[y * dw];
-        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
-            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * sw + (sx >> 16)];
+            if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * srcw + (sx >> 16)];
             pline++;
         }
     }
@@ -7275,7 +7807,6 @@ void bilinearRotateImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
 
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     const int32_t dw = dst->mWidth;
     const int32_t dcx = dw >> 1;
@@ -7305,7 +7836,6 @@ void bilinearRotateImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
         }
     }
 }
-
 
 //bilinear image rotation (single optimize version)
 //this version will faster than SSE2 version, in modern CPU, operating
@@ -7350,7 +7880,8 @@ void bilinearRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const 
     }
 }
 
-//bilinear rotate scanline (full optimize version)
+//bilinear rotate scanline (sub-routine of full optimize version)
+//improve smooth border when rotating will make image look better
 void bilinearRotateLine(uint32_t* pdst, int32_t boundx0, int32_t inx0, int32_t inx1, int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, int32_t addx, int32_t addy)
 {
     int32_t x = 0;
@@ -7373,11 +7904,12 @@ void bilinearRotateLine(uint32_t* pdst, int32_t boundx0, int32_t inx0, int32_t i
     }
 }
 
-//bilinear rotate image (full optimize version)
+//maximize optimize version (extreamly speed)
 //use stricks:
 //1. fixed-point
 //2. seperate inbound and outbound pixel calculation
-//3. SSE2 instrin
+//3. SSE2 instructions
+//4. clipping data
 void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     const double scalexy = 1.0 / (scalex * scaley);  
@@ -7409,7 +7941,7 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
     const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
 
-    TClipData clip;
+    ROTATE_CLIP clip;
     clip.ax = ax;
     clip.bx = bx;
     clip.ay = ay;
@@ -7421,23 +7953,23 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     clip.srcw = srcw;
     clip.srch = srch;
     
-    if (!clip.intiClip(dcx, dcy, 1)) return;
+    if (!intiClip(&clip, dcx, dcy, 1)) return;
 
     uint32_t* pline = &pdst[dstw * clip.dstDownY];
     while (true)
     {
         if (clip.dstDownY >= dsth) break;
-        if (clip.dstDownY >= 0) bilinearRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay);
-        if (!clip.nextLineDown()) break;
+        if (clip.dstDownY >= 0) bilinearRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
+        if (!nextLineDown(&clip)) break;
         pline += dstw;
     }
 
     pline = &pdst[dstw * clip.dstUpY];
-    while (clip.nextLineUp())
+    while (nextLineUp(&clip))
     {
         if (clip.dstUpY < 0) break;
         pline -= dstw;
-        if (clip.dstUpY < dsth) bilinearRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay);
+        if (clip.dstUpY < dsth) bilinearRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
     }
 }
 
@@ -7473,13 +8005,16 @@ void bicubicRotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double
         double sy = my + py;
         for (int32_t x = 0; x < width; x++, sx += cosa, sy += sina)
         {
-            if (sx >= 0 && sx <= width - 1 && sy >= 0 && sy <= height - 1) *pdst = bicubicGetPixel(src, sx, sy);
+            if (sx >= 0.0 && sx <= width - 1.0 && sy >= 0 && sy <= height - 1.0) *pdst = bicubicGetPixel(src, sx, sy);
             pdst++;
         }
     }
 }
 
-//bicubic rotate image using FIXED-POINT (normal optimize)
+//single optimize version
+//stricks used:
+//1. fixed-point
+//2. lookup table
 void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
@@ -7522,18 +8057,23 @@ void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     }
 }
 
-//bicubic rotate scanline (full optimize version)
+//bicubic rotate scanline (sub-routine for maximize optimize version)
+//this use smooth border when rotating to keep image looked
 void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0, const int32_t inx1, const int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, const int32_t addx, const int32_t addy, const int16_t* stable)
 {
     int32_t x = 0;
+
+    //outbound process
     for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)
     {
         const uint32_t color = bicubicGetPixelBorder(psrc, stable, sx, sy);
         pdst[x] = alphaBlend(pdst[x], color);
     }
 
+    //inbound process
     for (x = inx0; x < inx1; x++, sx += addx, sy += addy) pdst[x] = bicubicGetPixelCenter(psrc, stable, sx, sy);
 
+    //outbound process
     for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)
     {
         const uint32_t color = bicubicGetPixelBorder(psrc, stable, sx, sy);
@@ -7541,11 +8081,13 @@ void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0
     }
 }
 
-//bicubic rotate image (full optimize version)
+//maximize optimize version (extreamly speed)
 //use stricks:
 //1. fixed-point
 //2. seperate get pixel inbound and outbound of source image
-//3. SSE2 instruction
+//3. SSE2 instructions
+//4. lookup table
+//5. cliping data
 void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     const double scalexy = 1.0 / (scalex * scaley);  
@@ -7577,7 +8119,7 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
     const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
     const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
 
-    TClipData clip;
+    ROTATE_CLIP clip;
     clip.ax = ax;
     clip.bx = bx;
     clip.ay = ay;
@@ -7589,7 +8131,7 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
     clip.srcw = srcw;
     clip.srch = srch;
 
-    if (!clip.intiClip(dcx, dcy, 2)) return;
+    if (!intiClip(&clip, dcx, dcy, 2)) return;
 
     int16_t stable[513] = { 0 };
     for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
@@ -7598,17 +8140,17 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
     while (true)
     {
         if (clip.dstDownY >= dsth) break;
-        if (clip.dstDownY >= 0) bicubicRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
-        if (!clip.nextLineDown()) break;
+        if (clip.dstDownY >= 0) bicubicRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        if (!nextLineDown(&clip)) break;
         pline += dstw;
     }
 
     pline = &pdst[dstw * clip.dstUpY];
-    while (clip.nextLineUp())
+    while (nextLineUp(&clip))
     {
         if (clip.dstUpY < 0) break;
         pline -= dstw;
-        if (clip.dstUpY < dsth) bicubicRotateLine(pline, clip.boundx0, clip.inx0, clip.inx1, clip.boundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        if (clip.dstUpY < dsth) bicubicRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
     }
 }
 
@@ -8310,7 +8852,7 @@ void randomBuffer(void* buff, int32_t count, int32_t range)
 #endif
 }
 
-//get current GFX font
+//get current loaded GFX font
 GFX_FONT* getFont(int32_t type /* = 0 */)
 {
     if (type >= GFX_MAX_FONT) type = GFX_MAX_FONT - 1;
@@ -8319,13 +8861,13 @@ GFX_FONT* getFont(int32_t type /* = 0 */)
     return &gfxFonts[type];
 }
 
-//get current font type
+//get current loaded font type
 int32_t getFontType()
 {
     return fontType;
 }
 
-//set current selected font
+//selected loaded GFX font
 void setFontType(int32_t type)
 {
     //check current range
@@ -8694,13 +9236,13 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
         //calculate font palette, use for hi-color and true-color
         if (bitsPerPixel > 8)
         {
-            uint8_t* pcol = (uint8_t*)&col;
+            const ARGB* pcol = (const ARGB*)&col;
             for (i = 0; i < gfxFonts[fontType].header.subData.usedColors; i++)
             {
-                uint8_t* pixels = &fontPalette[fontType][i << 2];
-                pixels[2] = pcol[2] * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
-                pixels[1] = pcol[1] * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
-                pixels[0] = pcol[0] * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+                ARGB* pixels = (ARGB*)&fontPalette[fontType][i << 2];
+                pixels->r = pcol->r * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+                pixels->g = pcol->g * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+                pixels->b = pcol->b * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
             }
         }
 
@@ -8819,14 +9361,14 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
 }
 
 //print text with format to display screen
-void writeText(int32_t x, int32_t y, uint32_t txtCol, uint32_t mode, const char* format, ...)
+void writeText(int32_t x, int32_t y, uint32_t color, uint32_t mode, const char* format, ...)
 {
     char buffer[1024] = { 0 };
     va_list args;
     va_start(args, format);
     vsprintf(buffer, format, args);
     va_end(args);
-    writeString(x, y, txtCol, mode, buffer);
+    writeString(x, y, color, mode, buffer);
 }
 
 //draw muti-line string font
@@ -8845,7 +9387,7 @@ int32_t drawText(int32_t ypos, int32_t size, const char** str)
     return ypos;
 }
 
-//fast show BMP image to screen
+//fast show BMP image to screen (demo version)
 void showBMP(const char* fname)
 {
     GFX_IMAGE bmp;
@@ -8855,7 +9397,7 @@ void showBMP(const char* fname)
     freeImage(&bmp);
 }
 
-//fast show PNG image to screen
+//fast show PNG image to screen (demo version)
 void showPNG(const char* fname)
 {
     GFX_IMAGE png;
@@ -9330,7 +9872,7 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
     //copy mouse cursors
     for (int32_t i = 0; i < MOUSE_SPRITE_COUNT; i++)
     {
-        mbm[i].mbData = (uint8_t*)calloc(msWidth * msHeight, bytesPerPixel);
+        mbm[i].mbData = (uint8_t*)calloc(intptr_t(msWidth) * msHeight, bytesPerPixel);
         if (!mbm[i].mbData)
         {
             messageBox(GFX_ERROR, "Error create mouse sprite:%d!", i);
@@ -9346,7 +9888,8 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
         for (int32_t y = 0; y < msHeight; y++)
         {
             uint8_t* dst = &mbm[i].mbData[y * msWidth * bytesPerPixel];
-            const uint8_t* src = &msPointer.mData[(i * msWidth + y * msPointer.mWidth) * bytesPerPixel];
+            const uint8_t* psrc = (const uint8_t*)msPointer.mData;
+            const uint8_t* src = &psrc[(i * msWidth + y * msPointer.mWidth) * bytesPerPixel];
             memcpy(dst, src, intptr_t(bytesPerPixel) * msWidth);
         }
     }
@@ -9386,7 +9929,8 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
         for (int32_t y = 0; y < btnHeight; y++)
         {
             uint8_t* dst = &btn->btData[i][y * btnWidth * bytesPerPixel];
-            const uint8_t* src = &img.mData[(i * btnWidth + y * img.mWidth) * bytesPerPixel];
+            const uint8_t* psrc = (const uint8_t*)img.mData;
+            const uint8_t* src = &psrc[(i * btnWidth + y * img.mWidth) * bytesPerPixel];
             memcpy(dst, src, intptr_t(bytesPerPixel) * btnWidth);
         }
     }
@@ -9722,8 +10266,8 @@ void initPlasma(uint8_t* sint, uint8_t* cost)
 
     for (i = 0; i < 256; i++)
     {
-        sint[i] = uint8_t(sin(2 * M_PI * i / 255.0) * 128.0 + 128.0);
-        cost[i] = uint8_t(cos(2 * M_PI * i / 255.0) * 128.0 + 128.0);
+        sint[i] = uint8_t(sin(2 * M_PI * i / 255) * 128 + 128);
+        cost[i] = uint8_t(cos(2 * M_PI * i / 255) * 128 + 128);
     }
 
     for (i = 0; i < 64; i++)
@@ -9789,8 +10333,8 @@ void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
 void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2, uint8_t* ang, uint8_t step)
 {
     uint32_t nsize = dimg->mSize >> 2;
-    uint32_t* dst = (uint32_t*)dimg->mData;
-    uint32_t* src = (uint32_t*)simg->mData;
+    uint32_t* pdst = (uint32_t*)dimg->mData;
+    const uint32_t* psrc = (const uint32_t*)simg->mData;
     
     //only rgb mode
     if (bitsPerPixel <= 8) return;
@@ -9801,8 +10345,8 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2
     uint8_t tmp = *ang;
     __asm {
         mov     ecx, ang
-        mov     edi, dst
-        mov     esi, src
+        mov     edi, pdst
+        mov     esi, psrc
         mov     ebx, buff1
         mov     edx, buff2
         xor     ecx, ecx
@@ -9821,8 +10365,7 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2
     while (nsize--)
     {
         const uint8_t val = *buff1 + *ang;
-        *dst = src[(val << 8) + *buff2];
-        dst++;
+        *pdst++ = psrc[(val << 8) + *buff2];
         buff1++;
         buff2++;
     }
@@ -9832,8 +10375,8 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2
 //FX-effect: blur image buffer
 void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
 {
-    uint8_t* pdst = dst->mData;
-    uint8_t* psrc = src->mData;
+    uint8_t* pdst = (uint8_t*)dst->mData;
+    const uint8_t* psrc = (const uint8_t*)src->mData;
     const uint32_t nsize = src->mSize >> 2;
 
     //only support for rgb mode
@@ -10306,7 +10849,7 @@ void fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col)
 }
 
 //FX-effect: scale-up image buffer
-void scaleUpLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t count, int32_t yval)
+void scaleUpLine(uint32_t* dst, const uint32_t* src, int32_t* tables, int32_t count, int32_t yval)
 {
 #ifdef _USE_ASM
     yval <<= 2;
@@ -10333,7 +10876,7 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
 {
     int32_t i = 0, y = 0;
     uint32_t* pdst = (uint32_t*)dst->mData;
-    uint32_t* psrc = (uint32_t*)src->mData;
+    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     //check color mode
     if (bitsPerPixel <= 8)
@@ -10457,10 +11000,10 @@ void blurImage(GFX_IMAGE* img)
     for (uint32_t i = width; i < offset; i++)
     {
         ARGB* col0 = (ARGB*)&data[i];
-        ARGB* col1 = (ARGB*)&data[i - 1];
-        ARGB* col2 = (ARGB*)&data[i + 1];
-        ARGB* col3 = (ARGB*)&data[i - width];
-        ARGB* col4 = (ARGB*)&data[i + width];
+        const ARGB* col1 = (const ARGB*)&data[i - 1];
+        const ARGB* col2 = (const ARGB*)&data[i + 1];
+        const ARGB* col3 = (const ARGB*)&data[i - width];
+        const ARGB* col4 = (const ARGB*)&data[i + width];
         col0->r = (col1->r + col2->r + col3->r + col4->r) >> 2;
         col0->g = (col1->g + col2->g + col3->g + col4->g) >> 2;
         col0->b = (col1->b + col2->b + col3->b + col4->b) >> 2;
@@ -10597,7 +11140,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
 }
 
 //FX-effect: rotate image buffer, line by line
-void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, int32_t siny, int32_t cosy)
+void rotateLine(uint32_t* dst, const uint32_t* src, int32_t* tables, int32_t width, int32_t siny, int32_t cosy)
 {
 #ifdef _USE_ASM
     const int32_t pos = (width + 1) << 3;
@@ -10662,8 +11205,8 @@ void rotateLine(uint32_t* dst, uint32_t* src, int32_t* tables, int32_t width, in
 void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx, int32_t axisy, double angle, double scale)
 {
     int32_t x = 0, y = 0, lineWidth = 0;
-    uint32_t* psrc = (uint32_t*)src->mData;
     uint32_t* pdst = (uint32_t*)dst->mData;
+    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     if (bitsPerPixel <= 8)
     {
@@ -10729,9 +11272,9 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
 //FX-effect: 2d bumping
 void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int32_t ly)
 {
-    uint32_t* dstdata = (uint32_t*)dst->mData;
-    uint32_t* src1data = (uint32_t*)src1->mData;
-    uint32_t* src2data = (uint32_t*)src2->mData;
+    const uint32_t* dstdata = (const uint32_t*)dst->mData;
+    const uint32_t* src1data = (const uint32_t*)src1->mData;
+    const uint32_t* src2data = (const uint32_t*)src2->mData;
 
     const int32_t src1width = src1->mWidth;
     const int32_t src2width = src2->mWidth;

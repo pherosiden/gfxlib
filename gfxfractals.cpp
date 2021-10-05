@@ -28,8 +28,8 @@ void mandelbrotFloat(uint32_t* out, double mx, double my, double scale, int32_t 
             int32_t n = 0;
             for (; n < iterations; n++)
             {
-                const float x2 = x1 * x1;
-                const float y2 = y1 * y1;
+                const float x2 = sqr(x1);
+                const float y2 = sqr(y1);
                 if (x2 + y2 >= 4) break;
                 y1 = 2 * x1 * y1 + y0;
                 x1 = x2 - y2 + x0;
@@ -52,8 +52,8 @@ void mandelbrotDouble(uint32_t* out, double mx, double my, double scale, int32_t
             int32_t n = 0;
             for (; n < iterations; n++)
             {
-                const double x2 = x1 * x1;
-                const double y2 = y1 * y1;
+                const double x2 = sqr(x1);
+                const double y2 = sqr(y1);
                 if (x2 + y2 >= 4) break;
                 y1 = 2 * x1 * y1 + y0;
                 x1 = x2 - y2 + x0;
@@ -76,8 +76,8 @@ void juliaFloat(uint32_t* out, double mx, double my, double scale, int32_t ys, i
             int32_t n = 0;
             for (; n < iterations; n++)
             {
-                const float x2 = x1 * x1;
-                const float y2 = y1 * y1;
+                const float x2 = sqr(x1);
+                const float y2 = sqr(y1);
                 if (x2 + y2 >= 4) break;
                 y1 = 2 * x1 * y1 + float(cim);
                 x1 = x2 - y2 + float(cre);
@@ -100,8 +100,8 @@ void juliaDouble(uint32_t* out, double mx, double my, double scale, int32_t ys, 
             int32_t n = 0;
             for (; n < iterations; n++)
             {
-                const double x2 = x1 * x1;
-                const double y2 = y1 * y1;
+                const double x2 = sqr(x1);
+                const double y2 = sqr(y1);
                 if (x2 + y2 >= 4) break;
                 y1 = 2 * x1 * y1 + cim;
                 x1 = x2 - y2 + cre;
