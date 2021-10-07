@@ -117,7 +117,7 @@
 #define MOUSE_SPRITE_COUNT      9       //number of mouse sprite
 #define BUTTON_STATE_COUNT      4       //number of button state
 
-//fill poly constant
+//fill polygon constant
 #define MAX_POLY_CORNERS        200     //max polygon corners
 
 //user input filter type

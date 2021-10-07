@@ -1212,7 +1212,7 @@ __forceinline uint32_t getPixelMix(int32_t x, int32_t y)
 }
 
 //peek a pixel at (x,y)
-__forceinline uint32_t getPixel(int32_t x, int32_t y)
+uint32_t getPixel(int32_t x, int32_t y)
 {
     //range checking
     if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return 0;
@@ -6417,8 +6417,8 @@ __forceinline uint32_t alphaBlend(const uint32_t dstCol, const uint32_t srcCol)
 #ifdef _USE_ASM
     __asm {
         pxor        mm7, mm7
-        movd        mm0, src
-        movd        mm2, dst
+        movd        mm0, srcCol
+        movd        mm2, dstCol
         punpcklbw   mm0, mm7
         punpcklbw   mm2, mm7
         movq        mm1, mm0

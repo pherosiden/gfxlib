@@ -311,7 +311,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
         restoreDrawBuffer();
         putImage(sx, sy, &img2);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
 
         //save current buffer for next step
         memcpy(img1.mData, img2.mData, img2.mSize);
@@ -343,7 +343,7 @@ void runCrossFade(int32_t sx, int32_t sy)
         blendImage(&img, &fade1, &fade2, val);
         putImage(sx, sy, &img);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
 
         //check for change direction
         if (up) i++; else i--;
@@ -370,7 +370,7 @@ void runAddImage(int32_t sx, int32_t sy)
         restoreDrawBuffer();
         putImage(sx, sy, &img);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
         clearImage(&img);
     }
 }
@@ -406,7 +406,7 @@ void runRotateImage(int32_t sx, int32_t sy)
         rotateImage(&img, &fade2, tables, fade2.mWidth >> 1, fade2.mHeight >> 1, deg % 360, 1);
         putImage(sx, sy, &img);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
     }
 
     //cleanup...
@@ -437,7 +437,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BICUBIC);
         putImage(sx, sy, &img);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
     }
     
     //cleanup...
@@ -484,7 +484,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
         putImage(sx, sy, &dst);
         fadeOutImage(&dst, 4);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
     }
 
     //cleanup...
@@ -505,7 +505,7 @@ void runLensFlare(GFX_IMAGE* outImg)
     const int32_t centerX = getCenterX();
     const int32_t centerY = getCenterY();
 
-    //current mouse pos and left button
+    //current mouse position and left button
     int32_t lmb = 0;
     int32_t mcx = centerX + 70;
     int32_t mdx = centerY - 80;
@@ -525,7 +525,6 @@ void runLensFlare(GFX_IMAGE* outImg)
     const int32_t cmaxY = getMaxY();
     const int32_t cwidth = getDrawBufferWidth();
 
-
     //time for record FPS
     uint32_t time = 0, oldTime = 0;
 
@@ -541,8 +540,8 @@ void runLensFlare(GFX_IMAGE* outImg)
             if (flareput[i])
             {
                 //merge current image buffer to background
-                int32_t x = (centerX + ((centerX - mcx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mWidth >> 1);
-                int32_t y = (centerY + ((centerY - mdx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mHeight >> 1);
+                const int32_t x = (centerX + ((centerX - mcx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mWidth >> 1);
+                const int32_t y = (centerY + ((centerY - mdx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mHeight >> 1);
                 putImage(x, y, &flares[i], BLEND_MODE_ADD);
             }
         }
@@ -559,7 +558,6 @@ void runLensFlare(GFX_IMAGE* outImg)
         writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / ((time - oldTime) / 1000.0));
 
         render();
-        delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
     //capture current screen
@@ -597,7 +595,7 @@ void runBumpImage()
         bumpImage(&dst, &bumpchn, &bumpimg, lx, ly);
         putImage(0, 0, &dst);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
         clearImage(&dst);
     }
 
@@ -607,10 +605,10 @@ void runBumpImage()
 
 void runPlasmaScale(int32_t sx, int32_t sy)
 {
-    uint8_t sinx[256] = { 0 };
+    uint8_t sina[256] = { 0 };
 
-    //initialized lookup table and preload image
-    for (int32_t y = 0; y < 256; y++) sinx[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
+    //initialized lookup table and pre-load image
+    for (int32_t y = 0; y < 256; y++) sina[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
     GFX_IMAGE plasma = { 0 }, screen = { 0 };
     if (!newImage(getDrawBufferWidth() >> 2, getDrawBufferHeight() >> 2, &plasma)) return;
@@ -625,12 +623,12 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     {
         uint32_t ofs = 0;
         const uint32_t tectr = frames * 10;
-        const uint16_t x1 = sinx[(tectr / 12) & 0xFF];
-        const uint16_t x2 = sinx[(tectr / 11) & 0xFF];
-        const uint16_t x3 = sinx[frames & 0xFF];
-        const uint16_t y1 = sinx[((tectr >> 3) + 64) & 0xFF];
-        const uint16_t y2 = sinx[(tectr / 7 + 64) & 0xFF];
-        const uint16_t y3 = sinx[(tectr / 12 + 64) & 0xFF];
+        const uint16_t x1 = sina[(tectr / 12) & 0xFF];
+        const uint16_t x2 = sina[(tectr / 11) & 0xFF];
+        const uint16_t x3 = sina[frames & 0xFF];
+        const uint16_t y1 = sina[((tectr >> 3) + 64) & 0xFF];
+        const uint16_t y2 = sina[(tectr / 7 + 64) & 0xFF];
+        const uint16_t y3 = sina[(tectr / 12 + 64) & 0xFF];
 
         //calculate plasma buffer
         for (int32_t y = 0; y < plasma.mHeight; y++)
@@ -638,9 +636,9 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             uint16_t a = sqr(y - y1) + sqr(x1);
             uint16_t b = sqr(y - y2) + sqr(x2);
             uint16_t c = sqr(y - y3) + sqr(x3);
-            uint16_t cr = sinx[(a >> 6) & 0xFF];
-            uint16_t cg = sinx[(b >> 6) & 0xFF];
-            uint16_t cb = sinx[(c >> 6) & 0xFF];
+            uint16_t cr = sina[(a >> 6) & 0xFF];
+            uint16_t cg = sina[(b >> 6) & 0xFF];
+            uint16_t cb = sina[(c >> 6) & 0xFF];
 #ifdef _USE_ASM
             __asm {
                 xor     ax, ax
@@ -657,7 +655,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 mov     c, bx
                 shr     bx, cl
                 and     bx, 0xFF
-                mov     bl, byte ptr sinx[ebx]
+                mov     bl, byte ptr sina[ebx]
                 mov     si, bx
                 mov     bx, ax
                 sub     bx, x2
@@ -665,14 +663,14 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 mov     b, bx
                 shr     bx, cl
                 and     bx, 0xFF
-                mov     dl, byte ptr sinx[ebx]
+                mov     dl, byte ptr sina[ebx]
                 mov     bx, ax
                 sub     bx, x1
                 add     bx, a
                 mov     a, bx
                 shr     bx, cl
                 and     bx, 0xFF
-                mov     bl, byte ptr sinx[ebx]
+                mov     bl, byte ptr sina[ebx]
                 mov     ax, bx
                 add     ax, cr
                 mov     cr, bx
@@ -703,11 +701,11 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             for (int32_t x = 0; x < endx; x++)
             {
                 c = x - x3 + c;
-                const uint8_t sc = sinx[(c >> 6) & 0xFF];
+                const uint8_t sc = sina[(c >> 6) & 0xFF];
                 b = x - x2 + b;
-                const uint8_t sb = sinx[(b >> 6) & 0xFF];
+                const uint8_t sb = sina[(b >> 6) & 0xFF];
                 a = x - x1 + a;
-                const uint8_t sa = sinx[(a >> 6) & 0xFF];
+                const uint8_t sa = sina[(a >> 6) & 0xFF];
                 const uint32_t col2 = ((sa + cr) << 15) & 0xFFFF0000;
                 const uint16_t col1 = (((sb + cg) << 7) & 0xFF00) + ((sc + cb) >> 1);
                 cr = sa;
@@ -725,7 +723,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BICUBIC);
         putImage(sx, sy, &screen);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
         frames++;
     }
 
