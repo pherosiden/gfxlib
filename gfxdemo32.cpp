@@ -459,7 +459,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
     if (!newImage(midx, midy, &dst)) return;
 
     //loop until return
-    while (!finished(SDL_SCANCODE_RETURN)) 
+    while (!finished(SDL_SCANCODE_RETURN))
     {
         //redirect drawing to image buffer
         changeDrawBuffer(dst.mData, dst.mWidth, dst.mHeight);

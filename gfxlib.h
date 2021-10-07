@@ -306,33 +306,22 @@ typedef struct
 //rotate clip data
 typedef struct
 {
-    int32_t srcw;
-    int32_t srch;
-    int32_t dstw;
-    int32_t dsth;
-    int32_t srcx;
-    int32_t srcy;
+    int32_t srcw, srch;
+    int32_t dstw, dsth;
+    int32_t srcx, srcy;
 
-    int32_t ax;
-    int32_t ay;
-    int32_t bx;
-    int32_t by;
-    int32_t cx;
-    int32_t cy;
+    int32_t ax, ay;
+    int32_t bx, by;
+    int32_t cx, cy;
 
     int32_t boundWidth;
-    int32_t currUpx0;
-    int32_t currUpx1;
-    int32_t currDownx0;
-    int32_t currDownx1;
+    int32_t currUpx0, currUpx1;
+    int32_t currDownx0, currDownx1;
 
-    int32_t dstUpY;
-    int32_t dstDownY;
+    int32_t dstUpY, dstDownY;
 
-    int32_t outBoundx0;
-    int32_t outBoundx1;
-    int32_t inBoundx0;
-    int32_t inBoundx1;
+    int32_t outBoundx0, outBoundx1;
+    int32_t inBoundx0, inBoundx1;
 } ROTATE_CLIP;
 
 #pragma pack(pop)

@@ -1174,7 +1174,7 @@ void gfxFractals()
             //we use render user-defined buffer
             renderBuffer(data, acx, cy);
 
-            //julia message
+            //Julia message
             if (fractType)
             {
                 sprintf(sbuff, "Julia-Explorer [%s][%dx%d][%.18lf, %.18lf, %.18lf, %lf, %lf, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, 1, 2, 3, 4, q, w]",

@@ -24,7 +24,7 @@ RGB         cpal[256] = { 0 };
 int32_t     grData[120][2] = {0};
 uint8_t     chrBuff[CHR_NUM * CHR_WIDTH][CHR_HEIGHT] = {0};
 
-//Max cordinate buffer
+//Max coordinate buffer
 int32_t     maxHeight[LIMITX] = {0};
 int32_t     minHeight[LIMITX] = {0};
 

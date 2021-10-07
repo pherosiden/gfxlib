@@ -355,7 +355,7 @@ SPRITE sprite[NUM_SPRITES] =
     {10.5, 15.8,8},
 };
 
-//1D Zbuffer
+//1D buffer
 double zBuffer[SCR_WIDTH] = { 0 };
 
 //arrays used to sort the sprites
@@ -387,7 +387,7 @@ void rayCasting()
 {
     double posX = 22.0, posY = 11.5; //x and y start position
     double dirX = -1.0, dirY = 0.0; //initial direction vector
-    double planeX = 0.0, planeY = 0.66; //the 2d raycaster version of camera plane
+    double planeX = 0.0, planeY = 0.66; //the 2d ray caster version of camera plane
     
     uint32_t time = 0, oldTime = 0;
 
@@ -410,9 +410,9 @@ void rayCasting()
 
     //init screen mode
     if (!loadFont("assets/sysfont.xfn", 0)) return;
-    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Raycasting [Fast version] -- Keys: Use arrows to move your works!")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Ray-casting [Fast version] -- Keys: Use arrows to move your works!")) return;
 
-    //maxtrix textures
+    //matrix textures
     uint32_t** textures[11] = { 0 };
 
     //load some textures
@@ -468,7 +468,7 @@ void rayCasting()
 
             for (int32_t x = 0; x < cwidth; x++)
             {
-                //the cell coord is simply got from the integer parts of floorX and floorY
+                //the cell coordinator is simply got from the integer parts of floorX and floorY
                 const int32_t cellX = int32_t(floorX);
                 const int32_t cellY = int32_t(floorY);
 
@@ -695,7 +695,7 @@ void rayCasting()
         //timing for input and FPS counter
         oldTime = time;
         time = getTime();
-        const double frameTime = (time - oldTime) / 1000.0; //frametime is the time this frame has taken, in seconds
+        const double frameTime = (time - oldTime) / 1000.0; //frame time is the time this frame has taken, in seconds
         writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime); //FPS counter
         render();
 
@@ -841,7 +841,7 @@ void imageArithmetic()
         //pdst[1] = uint8_t(255 * (pimg2[1] / 255.0 * pimg1[1] / 255.0));
         //pdst[0] = uint8_t(255 * (pimg2[0] / 255.0 * pimg1[0] / 255.0));
 
-        //differnce
+        //difference
         //pdst[2] = abs(pimg1[2] - pimg2[2]);
         //pdst[1] = abs(pimg1[1] - pimg2[1]);
         //pdst[0] = abs(pimg1[0] - pimg2[0]);
@@ -945,7 +945,7 @@ void juliaExplorer()
     //current and old time, and their difference (for input)
     uint32_t time = 0, oldTime = 0, frameTime = 0;
 
-    //retrive the current pixel buffer
+    //retrieve the current pixel buffer
     int32_t i = 0, cwidth = 0, cheight = 0;
     uint32_t* pbuff= (uint32_t*)getDrawBuffer(&cwidth, &cheight);
     if (!pbuff) return;
@@ -959,7 +959,7 @@ void juliaExplorer()
     //user input key
     int32_t input = 0;
 
-    //interations
+    //iterations
     int32_t iterations = 255;
     double cre = -0.7, cim = 0.27015;
 
@@ -1267,7 +1267,7 @@ void mandelbrotExporer()
     //user input key
     int32_t input = 0;
 
-    //interations
+    //iterations
     int32_t iterations = 255;
 
     //scale unit
@@ -1563,7 +1563,7 @@ void tunnelDemo()
         {
             for (int32_t x = 0; x < cwidth; x++)
             {
-                //get the texel from the texture by using the tables, shifted with the animation values
+                //get the offset from the texture by using the tables, shifted with the animation values
                 const int32_t oy = uint32_t(distBuff[y][x] + shiftX) % th;
                 const int32_t ox = uint32_t(angleBuff[y][x] + shiftY) % tw;
                 pixels[y][x] = texture[oy][ox];
@@ -1764,7 +1764,7 @@ void imageFillter()
             pdst[1] = clamp(int32_t(factor * green + bias), 0, 255);
             pdst[0] = clamp(int32_t(factor * blue + bias), 0, 255);
 
-            //make grey
+            //make gray
             pdst[2] = pdst[1] = pdst[0] = uint8_t(0.2126 * pdst[2] + 0.7152 * pdst[1] + 0.0722 * pdst[0]);
 
             //take absolute value and truncate to 255
@@ -1820,7 +1820,7 @@ void imageFillter()
 //that we need to cast 320 rays (PROJECTIONPLANEWIDTH) within that 60 degree FOV.
 #define ANGLE60                 PROJECTION_PLANE_WIDTH
 
-//You must make sure these values are integers because we're using loopup tables.
+//You must make sure these values are integers because we're using lookup tables.
 #define ANGLE0                  0
 #define ANGLE30                 (ANGLE60 / 2)
 #define ANGLE90                 (ANGLE30 * 3)
@@ -1888,7 +1888,7 @@ static int32_t      wallWidth = 0, wallHeight = 0;
 static int32_t      floorWidth = 0, floorHeight = 0;
 static int32_t      ceilingWidth = 0, ceilingHeight = 0;
 
-//scren resolution
+//screen resolution
 static int32_t      cwidth = 0, cheight = 0;
 
 double arcToRad(double arcAngle)
@@ -2053,10 +2053,10 @@ int32_t initData()
     int32_t i = 0;
     double radian = 0;
 
-    //retrive render buffer
+    //retrieve render buffer
     uint32_t* pBuff = (uint32_t*)getDrawBuffer(&cwidth, &cheight);
 
-    //setup draw buffer as maxtrix to easy access data
+    //setup draw buffer as matrix to easy access data
     rawPixels = (uint32_t**)calloc(cheight, sizeof(uint32_t*));
     if (!rawPixels) return 0;
 
@@ -2166,7 +2166,7 @@ void drawOverheadMap()
     playerMapY = playerY / TILE_SIZE * MINI_MAP_WIDTH;
 }
 
-//draw ray on the overhead map (for illustartion purpose)
+//draw ray on the overhead map (for illustration purpose)
 //this is not part of the ray-casting process
 void drawRayOnOverheadMap(int32_t x, int32_t y)
 {
@@ -2174,7 +2174,7 @@ void drawRayOnOverheadMap(int32_t x, int32_t y)
     drawLineBuffer(playerMapX, playerMapY, PROJECTION_PLANE_WIDTH + x * MINI_MAP_WIDTH / TILE_SIZE, y * MINI_MAP_WIDTH / TILE_SIZE, RGB_GREEN);
 }
 
-//draw player POV on the overhead map (for illustartion purpose)
+//draw player POV on the overhead map (for illustration purpose)
 //this is not part of the ray-casting process
 void drawPlayerPOVOnOverheadMap()
 {
@@ -2184,7 +2184,7 @@ void drawPlayerPOVOnOverheadMap()
 
 void doRayCasting()
 {
-    //horizotal or vertical coordinate of intersection theoritically, this will be multiple of TILE_SIZE, but some trick did here might cause the values off by 1
+    //horizontal or vertical coordinate of intersection theoretically, this will be multiple of TILE_SIZE, but some trick did here might cause the values off by 1
     int32_t verticalGrid = 0, horizontalGrid = 0;
 
     //how far to the next bound (this is multiple of tile size)
@@ -2224,7 +2224,7 @@ void doRayCasting()
         //ray is facing down
         if (castArc > ANGLE0 && castArc < ANGLE180)
         {
-            //truncuate then add to get the coordinate of the FIRST grid (horizontal wall) that is in front of the player (this is in pixel unit)
+            //truncate then add to get the coordinate of the FIRST grid (horizontal wall) that is in front of the player (this is in pixel unit)
             horizontalGrid = playerY / TILE_SIZE * TILE_SIZE + TILE_SIZE;
 
             //compute distance to the next horizontal wall
@@ -2348,7 +2348,7 @@ void doRayCasting()
         if (distToHorizontalGridBeingHit < distToVerticalGridBeingHit)
         {
             //the next function call (drawRayOnMap()) is not a part of raycating rendering part, 
-            //it just draws the ray on the overhead map to illustrate the raycasting process
+            //it just draws the ray on the overhead map to illustrate the ray casting process
             drawRayOnOverheadMap(int32_t(intersectionX), horizontalGrid);
             distance = distToHorizontalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
@@ -2361,7 +2361,7 @@ void doRayCasting()
         else
         {
             //the next function call (drawRayOnMap()) is not a part of raycating rendering part, 
-            //it just draws the ray on the overhead map to illustrate the raycasting process
+            //it just draws the ray on the overhead map to illustrate the ray casting process
             drawRayOnOverheadMap(verticalGrid, int32_t(intersectionY));
             distance = distToVerticalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
@@ -2485,7 +2485,7 @@ void runRayCasting()
         oldTime = time;
         time = getTime();
 
-        //frametime is the time this frame has taken, in seconds
+        //frame time is the time this frame has taken, in seconds
         const double frameTime = (time - oldTime) / 1000.0;
         
         //report FPS counter
