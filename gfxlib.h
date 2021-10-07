@@ -39,10 +39,11 @@
 #endif
 
 //just for x32 and old compiler only
-//optimize by used MMX technology
+//optimize by using MMX technology
+//on modern system, don't use this option
 #if !defined(__APPLE__) && !defined(_WIN64)
 #define _USE_ASM
-#pragma message("Build with assembly code for maximize performance...")
+#pragma message("MMX technology is turned on for optimize performance.")
 #endif
 
 //GFX version string
@@ -90,7 +91,7 @@
 #define GFX_FONT_MULTI          0x02    //multiple font
 #define GFX_FONT_ANIMATE        0x04    //animation font
 #define GFX_FONT_ANIPOS         0x08    //random position font
-#define GFX_FONT_SCALEABLE      0x10    //scaleable font
+#define GFX_FONT_SCALEABLE      0x10    //scalable font
 #define GFX_FONT_VECTOR         0x20    //vector font (like CHR, BGI font)
 #define GFX_BUFF_SIZE           131072  //maximum GFX buffer
 #define GFX_MAX_FONT            5       //maximum GFX font loaded at same time
@@ -105,11 +106,11 @@
 #define MOUSE_RIGHT_BUTTON      2       //mouse right button pressed
 
 //button state
-#define BUTTON_STATE_NORMAL     0       //mouse state nornal
+#define BUTTON_STATE_NORMAL     0       //mouse state normal
 #define BUTTON_STATE_ACTIVE     1       //mouse state active
 #define BUTTON_STATE_PRESSED    2       //mouse state pressed
 #define BUTTON_STATE_WAITING    3       //mouse state waiting
-#define BUTTON_STATE_DISABLED   4       //mouse state diasble
+#define BUTTON_STATE_DISABLED   4       //mouse state disable
 
 //button and mouse sprite count
 #define BUTTON_HANDLE_COUNT     2       //number of button to handle
@@ -184,7 +185,7 @@ typedef struct
 //GFX stroke vector info
 typedef struct
 {
-    uint8_t         code;                       //stroke code (0: unuse, 1: moveto, 2: lineto)
+    uint8_t         code;                       //stroke code (0: unused, 1: move to, 2: line to)
     uint8_t         x, y;                       //stroke coordinates
 } GFX_STROKE_INFO;
 
@@ -205,7 +206,7 @@ typedef struct
     uint16_t        width;                      //font width
     uint16_t        height;                     //font height
     uint16_t        baseLine;                   //baseLine of the character
-    uint16_t        descender;                  //font desender
+    uint16_t        descender;                  //font descender
     uint16_t        startChar;                  //start of character
     uint16_t        endChar;                    //end of character
     uint8_t         distance;                   //distance between characters
@@ -243,7 +244,7 @@ typedef struct
     int32_t         mWidth;                     //image width
     int32_t         mHeight;                    //image height
     uint32_t        mSize;                      //image size in bytes
-    uint32_t        mRowBytes;                  //bytes per scanline
+    uint32_t        mRowBytes;                  //bytes per scan line
     void*           mData;                      //image raw data
 } GFX_IMAGE;
 
@@ -251,8 +252,8 @@ typedef struct
 typedef struct tagMOUSEBITMAP GFX_BITMAP;
 struct tagMOUSEBITMAP
 {
-    int32_t         mbHotX;                     //mouse hotspot x
-    int32_t         mbHotY;                     //mouse hotspot y
+    int32_t         mbHotX;                     //mouse hot spot x
+    int32_t         mbHotY;                     //mouse hot spot y
     uint8_t*        mbData;                     //mouse bitmap data
     GFX_BITMAP*     mbNext;                     //point to next mouse data
 };
@@ -260,11 +261,11 @@ struct tagMOUSEBITMAP
 //the structure for a bitmap mouse pointer.
 typedef struct
 {
-    int32_t         msPosX;                     //current pos x
-    int32_t         msPosY;                     //current pos y
+    int32_t         msPosX;                     //current position x
+    int32_t         msPosY;                     //current position y
     int32_t         msWidth;                    //mouse image width
     int32_t         msHeight;                   //mouse image height
-    uint8_t*        msUnder;                    //mouse under bacground
+    uint8_t*        msUnder;                    //mouse under background
     GFX_BITMAP*     msBitmap;                   //hold mouse bitmap info
 } GFX_MOUSE;
 
@@ -328,17 +329,17 @@ typedef struct
 
 //pixel blending mode
 enum BLEND_MODE {
-    BLEND_MODE_NORMAL,                          //this's a normal mode
+    BLEND_MODE_NORMAL,                          //this is a normal mode
     BLEND_MODE_ADD,                             //add with background color
     BLEND_MODE_SUB,                             //sub with background color
     BLEND_MODE_ALPHA,                           //alpha blending with background color
-    BLEND_MODE_ANTIALIASED                      //anti-aliased edge (use for line, circle, ellipse, cubic, bezier)
+    BLEND_MODE_ANTIALIASED                      //anti-aliased edge (use for line, circle, ellipse, cubic, bezier curve)
 };
 
 //image interpolation type (apply for scale, rotate, ...)
 enum INTERPOLATION_TYPE
 {
-    INTERPOLATION_TYPE_NORMAL,                  //Bresenham interpolcation (nearest and smooth)
+    INTERPOLATION_TYPE_NORMAL,                  //Bresenham interpolation (nearest and smooth)
     INTERPOLATION_TYPE_NEARST,                  //nearest neighbor (low quality)
     INTERPOLATION_TYPE_SMOOTH,                  //use average to smooth image (still low quality)
     INTERPOLATION_TYPE_BILINEAR,                //bi-linear interpolation (good quality)
@@ -350,8 +351,8 @@ enum INTERPOLATION_TYPE
 enum PROJECTION_TYPE
 {
     PROJECTION_TYPE_PERSPECTIVE,                //perspective projection
-    PROJECTION_TYPE_PARALLELE,                  //parallele perjection
-    PROJECTION_TYPE_UNKNOWN,                    //error perjection
+    PROJECTION_TYPE_PARALLELE,                  //paralleled projection
+    PROJECTION_TYPE_UNKNOWN,                    //error projection
 };
 
 //projection parameters
@@ -359,7 +360,7 @@ enum PROJECTION_PARAMS
 {
     PROJECTION_PARAMS_THETA,                    //theta angle
     PROJECTION_PARAMS_PHI,                      //phi angle
-    PROJECTION_PARAMS_DE,                       //deplace ending
+    PROJECTION_PARAMS_DE,                       //deplane ending
     PROJECTION_PARAMS_UNKNOWN,                  //error params
 };
 
@@ -558,7 +559,7 @@ void        fadeCircle(int32_t dir, uint32_t col);
 void        fadeRollo(int32_t dir, uint32_t col);
 void        fadeOutImage(GFX_IMAGE* img, uint8_t step);
 
-//some FX-effect functiosn
+//some FX-effect functions
 void        prepareTunnel(GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2);
 void        drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, uint8_t* mov, uint8_t step);
 void        blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur);
@@ -616,7 +617,7 @@ static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
     const double s = si / 256.0;
     const double l = li / 256.0;
 
-    //if saturation is 0, the color is a shade of grey
+    //if saturation is 0, the color is a shade of gray
     if (s == 0.0) r = g = b = l;
 
     //if saturation > 0, more complex calculations are needed
@@ -671,7 +672,7 @@ static __forceinline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
     const double v = vi / 256.0;
     double r = 0.0, g = 0.0, b = 0.0;
 
-    //if saturation is 0, the color is a shade of grey
+    //if saturation is 0, the color is a shade of gray
     if (s == 0.0) r = g = b = v;
 
     //if saturation > 0, more complex calculations are needed
@@ -792,7 +793,7 @@ static __forceinline int32_t random(int32_t a, int32_t b)
     return (a < b) ? (a + (rand() % (b - a + 1))) : (b + (rand() % (a - b + 1)));
 }
 
-//generate double random in ranage
+//generate double random in range
 static __forceinline double frand(double fmin, double fmax)
 {
     const double fn = double(rand()) / RAND_MAX;

@@ -5509,7 +5509,7 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
 #endif
 }
 
-//put GFX image with alpha color
+//put GFX image to draw buffer (export function)
 void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //mixed mode?
@@ -5916,13 +5916,13 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //inverted mask (key color is 0x00 and render is 0xFF)
             xmm2 = _mm_xor_si128(xmm2, xmm5);
 
-            //make source with off keycolor (0x00XX)
+            //make source with off key color (0x00XX)
             xmm0 = _mm_and_si128(xmm0, xmm2);
 
             //add with background color (only add render color)
             xmm1 = _mm_adds_epu8(xmm0, xmm1);
 
-            //store backto background
+            //store back to background
             _mm_store_si128((__m128i*)dstPixels, xmm1);
 
             //next 4 pixels
@@ -6086,16 +6086,16 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //inverted mask (key color is 0x00 and render is 0xFF)
             xmm2 = _mm_xor_si128(xmm2, xmm5);
 
-            //make source with off keycolor (0x00XX)
+            //make source with off key color (0x00XX)
             xmm0 = _mm_and_si128(xmm0, xmm2);
 
             //sub source to background color (only sub render color)
             xmm0 = _mm_subs_epu8(xmm0, xmm1);
 
-            //replace keycolor with background color
+            //replace key color with background color
             xmm3 = _mm_or_si128(xmm0, xmm3);
 
-            //store backto background
+            //store back to background
             _mm_store_si128((__m128i*)dstPixels, xmm3);
 
             //next 4 pixels
@@ -6127,7 +6127,7 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
+//put a sprite at point(x1, y1) with key color (don't render key color) and blending color
 void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 {
     //calculate new position
@@ -6356,8 +6356,8 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
     }
 }
 
-//clip point at (x,y)
-__forceinline bool clipPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
+//boundary clip point at (x,y)
+__forceinline bool clampPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
 {
     bool ret = true;
 
@@ -6401,7 +6401,7 @@ __forceinline uint32_t clampOffset(const int32_t width, const int32_t height, co
 __forceinline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
 {
     const uint32_t* psrc = (const uint32_t*)img->mData;
-    bool insrc = clipPoint(img->mWidth, img->mHeight, &x, &y);
+    bool insrc = clampPoint(img->mWidth, img->mHeight, &x, &y);
     uint32_t result = psrc[y * img->mWidth + x];
     if (!insrc)
     {
@@ -6442,7 +6442,7 @@ __forceinline uint32_t alphaBlend(const uint32_t dstCol, const uint32_t srcCol)
 #endif
 }
 
-//smooth get pixel
+//smooth get pixel (average pixel calculation)
 __forceinline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, const int32_t sy)
 {
     const int32_t lx = sx >> 16;
@@ -6524,7 +6524,7 @@ __forceinline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32
     pixels[3] = clampPixels(psrc, lx + 1, ly + 1);
 
     GFX_IMAGE img = { 0 };
-    img.mData = (uint8_t*)pixels;
+    img.mData = pixels;
     img.mWidth = 2;
     img.mHeight = 2;
     img.mRowBytes = 8;
@@ -6554,42 +6554,41 @@ __forceinline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_
     const uint32_t w0 = 256 - w1 - w2 - w3;
 
     uint32_t rb = (p0 & 0x00ff00ff) * w0;
-    uint32_t ga = ((p0 & 0xff00ff00) >> 8) * w0;
+    uint32_t ag = ((p0 & 0xff00ff00) >> 8) * w0;
     rb += (p1 & 0x00ff00ff) * w2;
-    ga += ((p1 & 0xff00ff00) >> 8) * w2;
+    ag += ((p1 & 0xff00ff00) >> 8) * w2;
     rb += (p2 & 0x00ff00ff) * w1;
-    ga += ((p2 & 0xff00ff00) >> 8) * w1;
+    ag += ((p2 & 0xff00ff00) >> 8) * w1;
     rb += (p3 & 0x00ff00ff) * w3;
-    ga += ((p3 & 0xff00ff00) >> 8) * w3;
-    return (ga & 0xff00ff00) | ((rb & 0xff00ff00) >> 8);
+    ag += ((p3 & 0xff00ff00) >> 8) * w3;
+    return (ag & 0xff00ff00) | ((rb & 0xff00ff00) >> 8);
 }
 
 //constant values that will be needed
-static const __m128 CONST_1 = _mm_set_ps1(1);
-static const __m128 CONST_256 = _mm_set_ps1(256);
+static const __m256d CONST_1 = _mm256_set1_pd(1);
+static const __m256d CONST_256 = _mm256_set1_pd(256);
 
-//calculate weight of pixel at (x,y)
-__forceinline __m128 calcWeights(const double x, const double y)
+__forceinline __m256d calcWeights(const double x, const double y)
 {
-    __m128 xmm0 = _mm_set_ps1(float(x));
-    __m128 xmm1 = _mm_set_ps1(float(y));
-    __m128 xmm2 = _mm_unpacklo_ps(xmm0, xmm1);
+    __m256d xmm0 = _mm256_set1_pd(x);
+    __m256d xmm1 = _mm256_set1_pd(y);
+    __m256d xmm2 = _mm256_unpacklo_pd(xmm0, xmm1);
 
-    xmm0 = _mm_floor_ps(xmm2);
-    xmm1 = _mm_sub_ps(xmm2, xmm0);
-    xmm2 = _mm_sub_ps(CONST_1, xmm1);
+    xmm0 = _mm256_floor_pd(xmm2);
+    xmm1 = _mm256_sub_pd(xmm2, xmm0);
+    xmm2 = _mm256_sub_pd(CONST_1, xmm1);
 
-    __m128 xmm3 = _mm_unpacklo_ps(xmm2, xmm1);
-    xmm3 = _mm_movelh_ps(xmm3, xmm3);
+    __m256d xmm3 = _mm256_unpacklo_pd(xmm2, xmm1);
+    xmm3 = _mm256_permute4x64_pd(xmm3, _MM_SHUFFLE(1, 0, 1, 0));
 
-    __m128 xmm4 = _mm_shuffle_ps(xmm2, xmm1, _MM_SHUFFLE(1, 1, 1, 1));
-    xmm4 = _mm_mul_ps(xmm3, xmm4);
+    __m256d xmm4 = _mm256_permute2f128_pd(xmm2, xmm1, _MM_SHUFFLE2(16, 1));
+    xmm4 = _mm256_mul_pd(xmm3, xmm4);
 
-    return _mm_mul_ps(xmm4, CONST_256);
+    return _mm256_mul_pd(xmm4, CONST_256);
 }
 
-//get pixels bilinear with SSE2
-__forceinline uint32_t bilinearGetPixelSSE2(const GFX_IMAGE* psrc, const double x, const double y)
+//get pixels bilinear with AVX2
+__forceinline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double x, const double y)
 {
     //calculate offset at (x,y)
     const int32_t lx = int32_t(x);
@@ -6616,7 +6615,7 @@ __forceinline uint32_t bilinearGetPixelSSE2(const GFX_IMAGE* psrc, const double 
     __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
 
     //convert floating point weights to 16bits integer w4 w3 w2 w1
-    __m128i weight = _mm_cvtps_epi32(calcWeights(x, y));
+    __m128i weight = _mm256_cvtpd_epi32(calcWeights(x, y));
 
     //make 32bit -> 2 x 16bits
     weight = _mm_packs_epi32(weight, weight);
@@ -6637,7 +6636,7 @@ __forceinline uint32_t bilinearGetPixelSSE2(const GFX_IMAGE* psrc, const double 
     return _mm_cvtsi128_si32(weight);
 }
 
-//bicubic helper
+//bi-cubic helper (this function will be replaced by sin(x)/x for optimize
 __forceinline double cubicHermite(const double a, const double b, const double c, const double d, const double fract)
 {
     const double aa = -a / 2.0 + 1.5 * b - 1.5 * c + d / 2.0;
@@ -6646,16 +6645,17 @@ __forceinline double cubicHermite(const double a, const double b, const double c
     return aa * fract * fract * fract + bb * fract * fract + cc * fract + b;
 }
 
-//calculate function sin(x)/x replace for cubicHermite
+//calculate function sin(x)/x replacement for cubicHermite
 //so this will add to lookup table for speedup improvement
 __forceinline double sinXDivX(const double b)
 {
-    const double a = -1;
+    //control constant, i.e: -2,-1,-0.75,-0.5
+    const double ctl = -1;
     const double x = (b < 0) ? -b : b;
     const double x2 = x * x, x3 = x2 * x;
 
-    if (x <= 1) return (a + 2) * x3 - (a + 3) * x2 + 1;
-    else if (x <= 2) return a * x3 - (5 * a) * x2 + (8 * a) * x - (4 * a);
+    if (x <= 1) return (ctl + 2) * x3 - (ctl + 3) * x2 + 1;
+    else if (x <= 2) return ctl * x3 - (5 * ctl) * x2 + (8 * ctl) * x - (4 * ctl);
     return 0;
 }
 
@@ -6663,12 +6663,13 @@ __forceinline double sinXDivX(const double b)
 __forceinline int32_t _mm_hsum_epi32(const __m128i val)
 {
     //_mm_extract_epi32 is slower
-    __m128i tmp = _mm_add_epi32(val, _mm_srli_si128(val, 8));
-    tmp = _mm_add_epi32(tmp, _mm_srli_si128(tmp, 4));
-    return _mm_cvtsi128_si32(tmp);
+    __m128i result = _mm_add_epi32(val, _mm_srli_si128(val, 8));
+    result = _mm_add_epi32(result, _mm_srli_si128(result, 4));
+    return _mm_cvtsi128_si32(result);
 }
 
-//calculate pixel by bicubic interpolation
+//calculate pixel by bi-cubic interpolation (original version)
+//this is show how to bi-cubic interpolation works, don't use for production
 __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, const double sy)
 {
     const int32_t px = int32_t(sx);
@@ -6681,6 +6682,7 @@ __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, co
     const uint32_t height = img->mHeight;
     const uint32_t* psrc = (const uint32_t*)img->mData;
 
+    //clamp 16 pixels at center and border
     const uint8_t* p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
     const uint8_t* p10 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
     const uint8_t* p20 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
@@ -6702,7 +6704,7 @@ __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, co
     uint32_t dst = 0;
     uint8_t* pdst = (uint8_t*)&dst;
 
-    //start interpolate bi-cubically
+    //start interpolate bi-cubically for each pixel channel
     for (int32_t i = 0; i < 4; i++)
     {
         const double col0 = cubicHermite(p00[i], p10[i], p20[i], p30[i], fx);
@@ -6718,7 +6720,7 @@ __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, co
     return dst;
 }
 
-//this calculate pixel with boundary so quite slowly
+//this calculate pixel with boundary so quite slowly (using fixed point)
 __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
 {
     //peek offset at (px,py)
@@ -6728,7 +6730,7 @@ __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t 
     const uint32_t height = img->mHeight;
     const uint32_t* psrc = (const uint32_t*)img->mData;
 
-    //calculate around pixels
+    //calculate 16 around pixels
     const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
     const uint8_t *p01 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
     const uint8_t *p02 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
@@ -6769,7 +6771,7 @@ __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t 
     return dst;
 }
 
-//calculate sin&cos of an angle
+//calculate sin&cos of an angle (merge sin+cos function)
 __forceinline void sincos(const double angle, double* sina, double* cosa)
 {
 #ifdef _USE_ASM
@@ -6784,7 +6786,7 @@ __forceinline void sincos(const double angle, double* sina, double* cosa)
 #else
     *sina = sin(angle);
     *cosa = cos(angle);
-#endif // _USE_ASM
+#endif
 }
 
 //fast calculate pixel at center, don't care boundary
@@ -6803,8 +6805,11 @@ __forceinline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t
     const uint32_t *pixel2 = &pixel1[img->mWidth];
     const uint32_t *pixel3 = &pixel2[img->mWidth];
 
-    __m128i p0 = _mm_load_si128((const __m128i *)pixel0), p1 = _mm_load_si128((const __m128i *)pixel1); //P00 P01 P02 P03 P10 P11 P12 P13
-    __m128i p2 = _mm_load_si128((const __m128i *)pixel2), p3 = _mm_load_si128((const __m128i *)pixel3); //P20 P21 P22 P23 P30 P31 P32 P33
+    //load 16 pixels for calculation
+    __m128i p0 = _mm_load_si128((const __m128i*)pixel0); //P00 P01 P02 P03
+    __m128i p1 = _mm_load_si128((const __m128i*)pixel1); //P10 P11 P12 P13
+    __m128i p2 = _mm_load_si128((const __m128i*)pixel2); //P20 P21 P22 P23
+    __m128i p3 = _mm_load_si128((const __m128i*)pixel3); //P30 P31 P32 P33
 
     p0 = _mm_shuffle_epi8(p0, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B0 G0 R0 A0
     p1 = _mm_shuffle_epi8(p1, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B1 G1 R1 A1
@@ -6878,7 +6883,7 @@ __forceinline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t
 
     //construct matrix 16x16 pixels data
     GFX_IMAGE mpic;
-    mpic.mData = (uint8_t*)pixels;
+    mpic.mData = pixels;
     mpic.mWidth = 4;
     mpic.mHeight = 4;
     mpic.mRowBytes = 16;
@@ -7413,7 +7418,7 @@ void smoothScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
     ARGB* pdst = (ARGB*)dst->mData;
-    const ARGB* psrc = (const ARGB*)src->mData;
+    const uint32_t* psrc = (const uint32_t*)src->mData;
 
     const int32_t dstw = dst->mWidth;
     const int32_t dsth = dst->mHeight;
@@ -7525,7 +7530,7 @@ void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 }
 
 //normal optimize version (very fast)
-//use hardware acceleration with SSE2, seem no faster than FIXED-POINT
+//use hardware acceleration with AVX2, seem no faster than FIXED-POINT
 //benchmark for 5000 iterations
 //CPU: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz
 //RAM: 32GB
@@ -7533,13 +7538,13 @@ void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 //Compiler: VC++ 2019
 //x64 release build
 //FIXED-POINT: about 8.649s
-//SSE2: about 8.617s --> no much faster than FIXED-POINT
+//AVX2: about 8.617s --> no much faster than FIXED-POINT
 //x32 release build
 //FIXED-POINT: about 14.658s
-//SSE2: about 9.043s --> seem faster than FIXED-POINT
+//AVX2: about 9.043s --> seem faster than FIXED-POINT
 //use hardware acceleration will get constantly speed
 //in modern system (64bits) integer will be operated fastest
-void bilinearScaleImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src)
+void bilinearScaleImageAVX2(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -7564,14 +7569,14 @@ void bilinearScaleImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src)
         for (int32_t x = 0; x < dstw; x++)
         {
             const double sx = x * xratio;
-            *pdst++ = bilinearGetPixelSSE2(src, sx, sy);
+            *pdst++ = bilinearGetPixelAVX2(src, sx, sy);
         }
     }
 }
 
 //bi-cubic scale image
 //original version, very slow
-//this show bi-cubic interpolation only, don't use in production
+//this is show bi-cubic interpolation only, don't use in production
 void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //only works with rgb mode
@@ -7748,17 +7753,17 @@ void smoothRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
 
-    const int32_t dw = dst->mWidth;
-    const int32_t dcx = dw >> 1;
-    const int32_t dh = dst->mHeight;
-    const int32_t dcy = dh >> 1;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dcx = dstw >> 1;
+    const int32_t dsth = dst->mHeight;
+    const int32_t dcy = dsth >> 1;
 
-    const int32_t sw = src->mWidth;
-    const int32_t scx = sw << 15;
-    const int32_t sh = src->mHeight;
-    const int32_t scy = sh << 15;
-    const int32_t scw = (sw - 1) << 16;
-    const int32_t sch = (sh - 1) << 16;
+    const int32_t srcw = src->mWidth;
+    const int32_t scx = srcw << 15;
+    const int32_t srch = src->mHeight;
+    const int32_t scy = srch << 15;
+    const int32_t scw = (srcw - 1) << 16;
+    const int32_t sch = (srch - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
     const int32_t dx = fround((sin(alpha) / scalex) * 65536);
@@ -7767,11 +7772,11 @@ void smoothRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     int32_t xs = scx - (dcx * dy + dcy * dx);
     int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
         int32_t sx = xs, sy = ys;
-        uint32_t* pline = &pdst[y * dw];
-        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
             if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = smoothGetPixel(src, sx, sy);
             pline++;
@@ -7779,7 +7784,7 @@ void smoothRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     }
 }
 
-//use hardware acceleration with SSE2, seem no faster than FIXED-POINT
+//use hardware acceleration with AVX2, seem no faster than FIXED-POINT
 //benchmark for 5000 iterations
 //CPU: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz
 //RAM: 32GB
@@ -7787,13 +7792,13 @@ void smoothRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
 //Compiler: VC++ 2019
 //x64 release build
 //FIXED-POINT: about 9.486s
-//SSE2: about 10.250s --> no faster than FIXED-POINT
+//AVX2: about 10.250s --> no faster than FIXED-POINT
 //x32 release build
 //FIXED-POINT: about 14.768s
-//SSE2: about 10.422s --> seem faster than FIXED-POINT
+//AVX2: about 10.422s --> seem faster than FIXED-POINT
 //use hardware acceleration will get constantly speed
 //in modern system (64bits) integer will be operated fastest
-void bilinearRotateImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
+void bilinearRotateImageAVX2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
     //only works with rgb mode
     if (bitsPerPixel <= 8) return;
@@ -7801,15 +7806,15 @@ void bilinearRotateImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
 
-    const int32_t dw = dst->mWidth;
-    const int32_t dcx = dw >> 1;
-    const int32_t dh = dst->mHeight;
-    const int32_t dcy = dh >> 1;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dcx = dstw >> 1;
+    const int32_t dsth = dst->mHeight;
+    const int32_t dcy = dsth >> 1;
 
-    const int32_t sw = src->mWidth;
-    const int32_t scx = sw >> 1;
-    const int32_t sh = src->mHeight;
-    const int32_t scy = sh >> 1;
+    const int32_t srcw = src->mWidth;
+    const int32_t scx = srcw >> 1;
+    const int32_t srch = src->mHeight;
+    const int32_t scy = srch >> 1;
 
     const double alpha = (angle * M_PI) / 180;
     const double dx = sin(alpha) / scalex;
@@ -7818,13 +7823,13 @@ void bilinearRotateImageSSE2(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     double xs = scx - (dcx * dy + dcy * dx);
     double ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
         double sx = xs, sy = ys;
-        uint32_t* pline = &pdst[y * dw];
-        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
-            if (sx >= 0 && sy >= 0 && sx < sw && sy < sh) *pline = bilinearGetPixelSSE2(src, sx, sy);
+            if (sx >= 0 && sy >= 0 && sx < srcw && sy < srch) *pline = bilinearGetPixelAVX2(src, sx, sy);
             pline++;
         }
     }
@@ -7861,10 +7866,10 @@ void bilinearRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const 
     int32_t xs = scx - (dcx * dy + dcy * dx);
     int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
         int32_t sx = xs, sy = ys;
-        uint32_t* pline = &pdst[y * dstw];
+        uint32_t* pline = pdst;
         for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
             if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = bilinearGetPixelFixed(src, sx, sy);
@@ -7911,8 +7916,8 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
 
     double sina = 0, cosa = 0;
     sincos(-(angle * M_PI) / 180, &sina, &cosa);
-    const int32_t sini = fround(sina * 65536);
-    const int32_t cosi = fround(cosa * 65536);
+    const int32_t sini = fround(sina * 65536); //convert to fixed point (no truncated)
+    const int32_t cosi = fround(cosa * 65536); //convert to fixed point (no truncated)
 
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
@@ -7928,9 +7933,10 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
 
     const int32_t dcx = dstw >> 1;
     const int32_t dcy = dsth >> 1;
-    const int32_t scx = srcw << 15;
-    const int32_t scy = srch << 15;
+    const int32_t scx = srcw << 15; //(srcw >> 1) << 16 convert to fixed point
+    const int32_t scy = srch << 15; //(srch >> 1) << 16 convert to fixed point
 
+    //rotation point
     const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
     const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
 
@@ -7946,23 +7952,24 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     clip.srcw = srcw;
     clip.srch = srch;
     
+    //clipping data
     if (!intiClip(&clip, dcx, dcy, 1)) return;
 
-    uint32_t* pline = &pdst[dstw * clip.dstDownY];
+    uint32_t* yline = &pdst[dstw * clip.dstDownY];
     while (true)
     {
         if (clip.dstDownY >= dsth) break;
-        if (clip.dstDownY >= 0) bilinearRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
+        if (clip.dstDownY >= 0) bilinearRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
         if (!nextLineDown(&clip)) break;
-        pline += dstw;
+        yline += dstw;
     }
 
-    pline = &pdst[dstw * clip.dstUpY];
+    yline = &pdst[dstw * clip.dstUpY];
     while (nextLineUp(&clip))
     {
         if (clip.dstUpY < 0) break;
-        pline -= dstw;
-        if (clip.dstUpY < dsth) bilinearRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
+        yline -= dstw;
+        if (clip.dstUpY < dsth) bilinearRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
     }
 }
 
@@ -8016,17 +8023,17 @@ void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     //cast to image data
     uint32_t* pdst = (uint32_t*)dst->mData;
 
-    const int32_t dw = dst->mWidth;
-    const int32_t dcx = dw >> 1;
-    const int32_t dh = dst->mHeight;
-    const int32_t dcy = dh >> 1;
+    const int32_t dstw = dst->mWidth;
+    const int32_t dcx = dstw >> 1;
+    const int32_t dsth = dst->mHeight;
+    const int32_t dcy = dsth >> 1;
 
-    const int32_t sw = src->mWidth;
-    const int32_t scx = sw << 15;
-    const int32_t sh = src->mHeight;
-    const int32_t scy = sh << 15;
-    const int32_t scw = (sw - 1) << 16;
-    const int32_t sch = (sh - 1) << 16;
+    const int32_t srcw = src->mWidth;
+    const int32_t scx = srcw << 15;
+    const int32_t srch = src->mHeight;
+    const int32_t scy = srch << 15;
+    const int32_t scw = (srcw - 1) << 16;
+    const int32_t sch = (srch - 1) << 16;
 
     const double alpha = (angle * M_PI) / 180;
     const int32_t dx = fround((sin(alpha) / scalex) * 65536);
@@ -8038,11 +8045,11 @@ void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
     int32_t xs = scx - (dcx * dy + dcy * dx);
     int32_t ys = scy - (dcy * dy - dcx * dx);
 
-    for (int32_t y = 0; y < dh; y++, xs += dx, ys += dy)
+    for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
         int32_t sx = xs, sy = ys;
-        uint32_t* pline = &pdst[y * dw];
-        for (int32_t x = 0; x < dw; x++, sx += dy, sy -= dx)
+        uint32_t* pline = pdst;
+        for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
             if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = bicubicGetPixelFixed(src, stable, sx, sy);
             pline++;
@@ -8089,8 +8096,8 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
 
     double sina = 0, cosa = 0;
     sincos(-(angle * M_PI) / 180, &sina, &cosa);
-    const int32_t sini = fround(sina * 65536);
-    const int32_t cosi = fround(cosa * 65536);
+    const int32_t sini = fround(sina * 65536); //convert to fixed point (no truncated)
+    const int32_t cosi = fround(cosa * 65536); //convert to fixed point (no truncated)
 
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
@@ -8106,9 +8113,10 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
 
     const int32_t dcx = dstw >> 1;
     const int32_t dcy = dsth >> 1;
-    const int32_t scx = srcw << 15;
-    const int32_t scy = srch << 15;
+    const int32_t scx = srcw << 15; //(srcw >> 1) << 16 convert to fixed point
+    const int32_t scy = srch << 15; //(srch >> 1) << 16 convert to fixed point
 
+    //rotation point
     const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
     const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
 
@@ -8124,26 +8132,27 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
     clip.srcw = srcw;
     clip.srch = srch;
 
+    //clipping data
     if (!intiClip(&clip, dcx, dcy, 2)) return;
 
     int16_t stable[513] = { 0 };
     for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
 
-    uint32_t* pline = &pdst[dstw * clip.dstDownY];
+    uint32_t* yline = &pdst[dstw * clip.dstDownY];
     while (true)
     {
         if (clip.dstDownY >= dsth) break;
-        if (clip.dstDownY >= 0) bicubicRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        if (clip.dstDownY >= 0) bicubicRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
         if (!nextLineDown(&clip)) break;
-        pline += dstw;
+        yline += dstw;
     }
 
-    pline = &pdst[dstw * clip.dstUpY];
+    yline = &pdst[dstw * clip.dstUpY];
     while (nextLineUp(&clip))
     {
         if (clip.dstUpY < 0) break;
-        pline -= dstw;
-        if (clip.dstUpY < dsth) bicubicRotateLine(pline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        yline -= dstw;
+        if (clip.dstUpY < dsth) bicubicRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
     }
 }
 
@@ -8207,7 +8216,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type /* 
         break;
 
     case INTERPOLATION_TYPE_BILINEAR:
-        bilinearRotateImageMax(dst, src, degree, 1, 1);
+        bilinearRotateImageAVX2(dst, src, degree, 1, 1);
         break;
 
     case INTERPOLATION_TYPE_BICUBIC:
@@ -8696,7 +8705,7 @@ void schRepl(char* str, const char* schr, uint8_t repl)
     }
 }
 
-//character to string convertion
+//character to string conversion
 void chr2Str(uint8_t chr, uint8_t num, char* str)
 {
     str[0] = chr;
@@ -8832,13 +8841,13 @@ void randomBuffer(void* buff, int32_t count, int32_t range)
 #else
     //check range
     int32_t val = 0;
-    uint8_t* ptrBuff = (uint8_t*)buff;
+    uint16_t* ptrBuff = (uint16_t*)buff;
     if (!count || !randSeed || !range) return;
 
     for (int32_t i = 0; i < count; i++)
     {
         val = factor * randSeed + 1;
-        *(uint16_t*)&ptrBuff[i] = ((val >> 16) * range) >> 16;
+        *ptrBuff++ = ((val >> 16) * range) >> 16;
     }
 
     randSeed = val;
@@ -9239,7 +9248,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
             }
         }
 
-        //genertate random position for animation font
+        //generate random position for animation font
         if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
         {
             randomBuffer(gfxBuff, len + 1, gfxFonts[fontType].header.subData.randomX);
@@ -9299,7 +9308,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
     //alpha channel font
     else if (gfxFonts[fontType].header.subData.bitsPerPixel == 32)
     {
-        //genertate random position for animation font
+        //generate random position for animation font
         if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
         {
             randomBuffer(gfxBuff, len + 1, gfxFonts[fontType].header.subData.randomX);
@@ -9364,7 +9373,7 @@ void writeText(int32_t x, int32_t y, uint32_t color, uint32_t mode, const char* 
     writeString(x, y, color, mode, buffer);
 }
 
-//draw muti-line string font
+//draw multi-line string font
 int32_t drawText(int32_t ypos, int32_t size, const char** str)
 {
     //check for font loaded
@@ -9399,7 +9408,7 @@ void showPNG(const char* fname)
     //background color
     const uint32_t col[2] = { RGB_GREY191, RGB_WHITE };
 
-    //make caro background
+    //make background
     for (int32_t y = 0; y < texHeight; y++)
     {
         for (int32_t x = 0; x < texWidth; x++) fillRect(x, y, 8, 8, col[((x ^ y) >> 3) & 1]);
@@ -9531,7 +9540,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     return 1;
 }
 
-//initalize mouse driver and bitmap mouse image
+//initialize mouse driver and bitmap mouse image
 int32_t initMouseButton(GFX_MOUSE* mi)
 {
     //initialize mouse image value
@@ -10026,7 +10035,7 @@ void handleMouseButton()
 
     do
     {
-        //get current moust coordinate
+        //get current mouse coordinate
         getMouseState(&mcx, &mdx, &mbx, NULL);
 
         //limit pointer range
@@ -10289,7 +10298,7 @@ void initPlasma(uint8_t* sint, uint8_t* cost)
     setPalette(pal);
 }
 
-//FX-effect: pre-calculate tunnel buffer
+//FX-effect: calculate tunnel buffer
 void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
 {
     const int32_t maxAng = 2048;
@@ -10758,7 +10767,7 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
     if (xb == 1 && yb == 1) memcpy(pdst, psrc, src->mSize);
     else
     {
-        //calculate deltax, deltay
+        //calculate delta x, delta y
         const int32_t cx = (((src->mWidth >> 1) % xb) << 16) | xb;
         const int32_t cy = (yb - ((src->mHeight >> 1) % yb));
 
@@ -10881,7 +10890,7 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     //init lookup table
     for (i = 0; i < src->mWidth; i++) tables[i] = fround(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1)) + xfact);
 
-    //scaleup line by line
+    //scale up line by line
     for (i = 0; i < src->mHeight; i++)
     {
         y = fround(double(i) / (intmax_t(src->mHeight) - 1) * ((intmax_t(src->mHeight) - 1) - (intmax_t(yfact) << 1)) + yfact);
@@ -11415,10 +11424,10 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
     for (y = 100; y <= 500; y++)
     {
         //calculate starting offset
-        osrc1 = (src1width * y + 99);
-        osrc2 = (src2width * y + 99);
-        odst = (dstwidth * y + 99);
-
+        odst = dstwidth * y + 99;
+        osrc1 = src1width * y + 99;
+        osrc2 = src2width * y + 99;
+        
         //scan for image width
         for (x = 100; x <= 700; x++)
         {
@@ -11448,9 +11457,9 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
             }
 
             //next pixel
+            odst++;
             osrc1++;
             osrc2++;
-            odst++;
         }
     }
 #endif
@@ -11578,7 +11587,7 @@ void calcCpuSpeed()
     const uint64_t start = getCyclesCount();
     delay(50);
     const uint64_t stop = getCyclesCount();
-    const uint64_t speed = (stop - start) / 50000;
+    const uint64_t speed = (stop - start) / 50000U;
     cpuSpeed = uint32_t(speed);
 }
 
