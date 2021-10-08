@@ -194,6 +194,7 @@ xcopy /Y /Q /S /I ..\assets .\assets</Command>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../sdl2/include;../sdl2_image/include</AdditionalIncludeDirectories>
       <EnablePREfast>false</EnablePREfast>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
