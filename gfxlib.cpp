@@ -1065,8 +1065,8 @@ __forceinline void putPixelAA(int32_t x, int32_t y, uint32_t argb)
     const uint32_t dst = *pixels;
     const uint8_t cover = argb >> 24;
     const uint8_t rcover = 255 - cover;
-    uint32_t rb = ((argb & 0x00ff00ff) * rcover + (dst & 0x00ff00ff) * cover);
-    uint32_t ag = (((argb & 0xff00ff00) >> 8) * rcover + ((dst & 0xff00ff00) >> 8) * cover);
+    const uint32_t rb = ((argb & 0x00ff00ff) * rcover + (dst & 0x00ff00ff) * cover);
+    const uint32_t ag = (((argb & 0xff00ff00) >> 8) * rcover + ((dst & 0xff00ff00) >> 8) * cover);
     *pixels = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
 #endif
 }
@@ -2037,10 +2037,10 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //aligned 16-bytes
     const int32_t align = width >> 2;
     const __m128i xmm0 = _mm_set1_epi32(color);
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const uint32_t addOfs = texWidth - width;
     
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2052,7 +2052,7 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
             __m128i xmm2 = _mm_load_si128(xmm1);
             xmm2 = _mm_adds_epu8(xmm2, xmm0);
             _mm_store_si128(xmm1, xmm2);
-            pixels += 16;
+            pixels += 4;
         }
 
         //have unaligned bytes
@@ -2062,10 +2062,10 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
             const ARGB* pcol = (const ARGB*)&color;
             for (int32_t j = 0; j < remainder; j++)
             {
-                pixels[0] = min(pixels[0] + pcol->b, 255);
-                pixels[1] = min(pixels[1] + pcol->g, 255);
-                pixels[2] = min(pixels[2] + pcol->r, 255);
-                pixels += 4;
+                pixels->b = min(pixels->b + pcol->b, 255);
+                pixels->g = min(pixels->g + pcol->g, 255);
+                pixels->r = min(pixels->r + pcol->r, 255);
+                pixels++;
             }
         }
 
@@ -2119,10 +2119,10 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //aligned 16-bytes
     const int32_t align = width >> 2;
     const __m128i xmm0 = _mm_set1_epi32(color);
-    const uint32_t addOfs = (texWidth - width) << 2;
+    const uint32_t addOfs = texWidth - width;
 
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2134,7 +2134,7 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
             __m128i xmm2 = _mm_load_si128(xmm1);
             xmm2 = _mm_subs_epu8(xmm2, xmm0);
             _mm_store_si128(xmm1, xmm2);
-            pixels += 16;
+            pixels += 4;
         }
 
         //have unaligned bytes
@@ -2144,10 +2144,10 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
             const ARGB* pcol = (const ARGB*)&color;
             for (int32_t j = 0; j < remainder; j++)
             {
-                pixels[0] = max(pixels[0] - pcol->b, 0);
-                pixels[1] = max(pixels[1] - pcol->g, 0);
-                pixels[2] = max(pixels[2] - pcol->r, 0);
-                pixels += 4;
+                pixels->b = max(pixels->b - pcol->b, 0);
+                pixels->g = max(pixels->g - pcol->g, 0);
+                pixels->r = max(pixels->r - pcol->r, 0);
+                pixels++;
             }
         }
 
@@ -2541,7 +2541,7 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //calculate starting address
     ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     
-    //start scanline
+    //start scan line
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -2638,7 +2638,7 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //calculate starting address
     ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     
-    //start scanline
+    //start scan line
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -3020,7 +3020,7 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     if (bitsPerPixel != 8) return;
 
     //range check
-    if (x1 < 0 || x1 > texWidth - 1 || x2 < 0 || x2 > texWidth - 1 || y1 < 0 || y1 > texHeight - 1 || y2 < 0 || y2 > texHeight - 1) return;
+    if (x1 < 0 || x1 >= texWidth || x2 < 0 || x2 >= texWidth || y1 < 0 || y1 >= texHeight || y2 < 0 || y2 >= texHeight) return;
 
 #ifdef _USE_ASM    
     int32_t dst = 0, sc = 0, dc = 0;
@@ -11129,8 +11129,8 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
         {
             const uint32_t src = *psrc1;
             const uint32_t dst = *psrc2;
-            uint32_t rb = ((dst & 0x00ff00ff) * rcover + (src & 0x00ff00ff) * cover);
-            uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((src & 0xff00ff00) >> 8) * cover);
+            const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (src & 0x00ff00ff) * cover);
+            const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((src & 0xff00ff00) >> 8) * cover);
             *pdst++ = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
             psrc1++;
             psrc2++;

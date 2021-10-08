@@ -657,10 +657,10 @@ static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
     }
 
     uint32_t col = 0;
-    uint8_t* pcol = (uint8_t*)&col;
-    pcol[2] = uint8_t(r * 255);
-    pcol[1] = uint8_t(g * 255);
-    pcol[0] = uint8_t(b * 255);
+    ARGB* pcol = (ARGB*)&col;
+    pcol->r = uint8_t(r * 255);
+    pcol->g = uint8_t(g * 255);
+    pcol->b = uint8_t(b * 255);
     return col;
 }
 
@@ -702,10 +702,10 @@ static __forceinline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
     }
 
     uint32_t col = 0;
-    uint8_t* pcol = (uint8_t*)&col;
-    pcol[2] = uint8_t(r * 255);
-    pcol[1] = uint8_t(g * 255);
-    pcol[0] = uint8_t(b * 255);
+    ARGB* pcol = (ARGB*)&col;
+    pcol->r = uint8_t(r * 255);
+    pcol->g = uint8_t(g * 255);
+    pcol->b = uint8_t(b * 255);
     return col;
 }
 

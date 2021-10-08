@@ -1409,7 +1409,7 @@ void displayPlasma()
         "That's all folks!",
         "I hope, you enjoyed this demo",
         "Thank you for making use of my programs",
-        "More sourcecode from me available @ my homepage:",
+        "More source code from me available @ my homepage:",
         "http://codedemo.net",
         "",
         "If you have some improvements, additions,",
@@ -1448,7 +1448,7 @@ void displayPlasma()
     //plasma image buffer
     if (!newImage(160, 120, &src)) return;
 
-    //scale palsma image buffer
+    //scale plasma image buffer
     if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
     initPlasma(sint, cost);
 
@@ -1462,7 +1462,7 @@ void displayPlasma()
         createPlasma(&dx, &dy, sint, cost, &src);
         putImage(x, y, &src);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
 
         //check limitation
         if (decx) x--; else x++;
@@ -1492,7 +1492,7 @@ void displayPlasma()
         endPos = drawText(ypos--, size, str);
         if (endPos <= 98) fadeDown(pal);
         render();
-        delay(FPS_60);
+        delay(FPS_90);
     } while (ypos > -32767 && endPos > -30 && !finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
@@ -1586,7 +1586,7 @@ void gfxDemoMix()
     writeText(centerX - (getFontWidth(msgWelcome[3]) >> 1), msgY + 170, 35, 1, msgWelcome[3]);
     writeText(centerX - (getFontWidth(msgWelcome[4]) >> 1), cmaxY - 70, 35, 1, msgWelcome[4]);
     freeFont(0);
-    fadeIn(pal2, FPS_60);
+    fadeIn(pal2, FPS_90);
     sleepFor(2000);
     fadeRollo(2, 0);
 
@@ -1594,61 +1594,61 @@ void gfxDemoMix()
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo0(centerX, centerY, int32_t(200 * ratio), int32_t(100 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
 
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo1(centerX, centerY, int32_t(160 * ratio), int32_t(40 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
 
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo2(centerX, centerY, int32_t(80 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo3(centerX, centerY, int32_t(80 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo4(centerX, centerY, int32_t(120 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo5(cmaxX / 7, cmaxY / 5 - 10, int32_t(28 * ratio), int32_t(90 * ratio), int32_t(62 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo6(centerX, centerY, int32_t(200 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo7(centerX, centerY, int32_t(200 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo8(centerX, centerY, int32_t(245 * ratio), int32_t(100 * ratio));
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
     graphDemo9(centerX, centerY, 0.6 * ratio);
-    rotatePalette(32, 103, 72, FPS_60);
+    rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[64], &pal2[64], 40 * sizeof(RGB));
@@ -1669,13 +1669,13 @@ void gfxDemoMix()
     initDemo10(4, 7);
     for (i = 0; i <= 19; i++)
     graphDemo10(centerX + (centerX >> 1), centerY + (centerY >> 1), 130 - (i << 2), 130 - (i << 2), 64 + i);
-    rotatePalette(64, 103, 40, FPS_60);
+    rotatePalette(64, 103, 40, FPS_90);
 
     clearScreen(0);
     memcpy(pal1, pal2, 256 * sizeof(RGB));
     makeLinearPalette();
     drawPolygon(centerX, centerY, centerX - 140, 11, 1);
-    rotatePalette(16, 177, 162, FPS_60);
+    rotatePalette(16, 177, 162, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[32], &pal2[32], 130 * sizeof(RGB));
@@ -1721,17 +1721,17 @@ void gfxDemoMix()
     clearScreen(0);
     memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
     rotatePolygon(pts, 6, centerX, centerY, centerX - 140, 100, 20, 40);
-    rotatePalette(40, 103, 64, FPS_60);
+    rotatePalette(40, 103, 64, FPS_90);
     
     clearScreen(0);
     memcpy(&pal1[37], &pal2[37], 67 * sizeof(RGB));
     randomPoly(pts, 12, cmaxX, cmaxY, 40, 20, 37);
-    rotatePalette(37, 103, 67, FPS_60);
+    rotatePalette(37, 103, 67, FPS_90);
 
     clearScreen(0);
     memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
     drawHexagon(pts, 12, centerX, centerY, 35, centerX - 140, 20, 40);
-    rotatePalette(40, 103, 64, FPS_60);
+    rotatePalette(40, 103, 64, FPS_90);
 
     clearScreen(0);
     graphDemo11();
@@ -1755,9 +1755,9 @@ void gfxDemoMix()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 45, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 45, FPS_90);
+    fadeMin(FPS_90);
     
     clearScreen(0);
     resetParameters();
@@ -1770,9 +1770,9 @@ void gfxDemoMix()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 45, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 45, FPS_90);
+    fadeMin(FPS_90);
 
     clearScreen(0);
     resetParameters();
@@ -1785,9 +1785,9 @@ void gfxDemoMix()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 45, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 45, FPS_90);
+    fadeMin(FPS_90);
 
     clearScreen(0);
     resetParameters();
@@ -1800,9 +1800,9 @@ void gfxDemoMix()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 45, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 45, FPS_90);
+    fadeMin(FPS_90);
 
     clearScreen(0);
     resetParameters();
@@ -1815,9 +1815,9 @@ void gfxDemoMix()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 45, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 45, FPS_90);
+    fadeMin(FPS_90);
     
     FX = FX11;
     FY = FY11;
@@ -1829,9 +1829,9 @@ void gfxDemoMix()
     familleDesCourbesEnV();
     affichage(14);
 
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 72, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 72, FPS_90);
+    fadeMin(FPS_90);
 
     FX = FX21;
     FY = FY21;
@@ -1843,9 +1843,9 @@ void gfxDemoMix()
     familleDesCourbesEnV();
     affichage(14);
     
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 72, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 72, FPS_90);
+    fadeMin(FPS_90);
 
     FX = FX31;
     FY = FY31;
@@ -1857,9 +1857,9 @@ void gfxDemoMix()
     familleDesCourbesEnV();
     affichage(14);
     
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 72, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 72, FPS_90);
+    fadeMin(FPS_90);
 
     FX = FX41;
     FY = FY41;
@@ -1871,9 +1871,9 @@ void gfxDemoMix()
     familleDesCourbesEnV();
     affichage(14);
     
-    fadeIn(pal2, FPS_60);
-    rotatePalette(32, 103, 72, FPS_60);
-    fadeMin(FPS_60);
+    fadeIn(pal2, FPS_90);
+    rotatePalette(32, 103, 72, FPS_90);
+    fadeMin(FPS_90);
 
     freeFont(0);
     freeFont(1);
@@ -1891,9 +1891,9 @@ void gfxDemoMix()
     fillEllipse(centerX, j - introY, a, b, 50);
     writeText(centerX - (getFontWidth(logo) >> 1), j - introY - CHR_WIDTH, 32, 1, logo);
 
-    fadeIn(pal2, FPS_60);
+    fadeIn(pal2, FPS_90);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    rotatePalette(32, 103, 250, FPS_60);
+    rotatePalette(32, 103, 250, FPS_90);
 
     clearScreen(0);
     setPalette(pal2);
