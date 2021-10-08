@@ -5076,7 +5076,6 @@ void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
     }
 #endif
 }
-#pragma optimize("", off)
 
 //put GFX image with add background color
 void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
@@ -5176,12 +5175,12 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m128i src = _mm_load_si128((const __m128i*)imgPixels);
-            const __m128i dst = _mm_load_si128((const __m128i*)dstPixels);
+            const __m128i src = _mm_loadu_si128((const __m128i*)imgPixels);
+            const __m128i dst = _mm_loadu_si128((const __m128i*)dstPixels);
 
             //add 16-bytes data with saturation and store
             const __m128i res = _mm_adds_epu8(src, dst);
-            _mm_store_si128((__m128i*)dstPixels, res);
+            _mm_storeu_si128((__m128i*)dstPixels, res);
 
             //next 4 pixels
             dstPixels += 4;
@@ -5208,7 +5207,6 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
     }
 #endif
 }
-#pragma optimize("", on)
 
 //put GFX image with sub background color
 void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
@@ -5305,12 +5303,12 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m128i src = _mm_load_si128((const __m128i*)imgPixels);
-            const __m128i dst = _mm_load_si128((const __m128i*)dstPixels);
+            const __m128i src = _mm_loadu_si128((const __m128i*)imgPixels);
+            const __m128i dst = _mm_loadu_si128((const __m128i*)dstPixels);
 
             //add 16-bytes data with saturation and store
             const __m128i res = _mm_subs_epu8(src, dst);
-            _mm_store_si128((__m128i*)dstPixels, res);
+            _mm_storeu_si128((__m128i*)dstPixels, res);
 
             //next 4 pixels
             dstPixels += 4;
@@ -5628,8 +5626,6 @@ void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//disable optimize avoid crash on compiler (MSVC)
-#pragma optimize("", off)
 //put a sprite at point(x1, y1) with key color (don't render key color)
 void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 {
@@ -5745,13 +5741,13 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels
-            __m128i xmm0 = _mm_and_si128(_mm_load_si128((const __m128i*)imgPixels), xmm6);
+            __m128i xmm0 = _mm_and_si128(_mm_loadu_si128((const __m128i*)imgPixels), xmm6);
 
             //get mask with key color
             __m128i xmm2 = _mm_cmpeq_epi32(xmm0, xmm4);
             
             //replace background color by key color
-            __m128i xmm1 = _mm_and_si128(_mm_load_si128((const __m128i*)dstPixels), xmm2);
+            __m128i xmm1 = _mm_and_si128(_mm_loadu_si128((const __m128i*)dstPixels), xmm2);
             
             //inverted mask
             xmm2 = _mm_xor_si128(xmm2, xmm5);
@@ -5763,7 +5759,7 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             xmm1 = _mm_or_si128(xmm1, xmm0);
             
             //store color
-            _mm_store_si128((__m128i*)dstPixels, xmm1);
+            _mm_storeu_si128((__m128i*)dstPixels, xmm1);
             
             //next pixels
             dstPixels += 4;
@@ -5788,7 +5784,6 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     }
 #endif
 }
-#pragma optimize("", on)
 
 //put a sprite at point(x1, y1) with key color (don't render key color), add with background color
 void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
@@ -5905,10 +5900,10 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m128i xmm0 = _mm_and_si128(_mm_load_si128((const __m128i*)imgPixels), xmm6);
+            __m128i xmm0 = _mm_and_si128(_mm_loadu_si128((const __m128i*)imgPixels), xmm6);
 
             //load 4 pixels from background color
-            __m128i xmm1 = _mm_load_si128((const __m128i*)dstPixels);
+            __m128i xmm1 = _mm_loadu_si128((const __m128i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
             __m128i xmm2 = _mm_cmpeq_epi32(xmm0, xmm4);
@@ -5923,7 +5918,7 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             xmm1 = _mm_adds_epu8(xmm0, xmm1);
 
             //store back to background
-            _mm_store_si128((__m128i*)dstPixels, xmm1);
+            _mm_storeu_si128((__m128i*)dstPixels, xmm1);
 
             //next 4 pixels
             dstPixels += 4;
@@ -6072,10 +6067,10 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m128i xmm0 = _mm_and_si128(_mm_load_si128((const __m128i*)imgPixels), xmm6);
+            __m128i xmm0 = _mm_and_si128(_mm_loadu_si128((const __m128i*)imgPixels), xmm6);
 
             //load 4 pixels from background color
-            __m128i xmm1 = _mm_load_si128((const __m128i*)dstPixels);
+            __m128i xmm1 = _mm_loadu_si128((const __m128i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
             __m128i xmm2 = _mm_cmpeq_epi32(xmm0, xmm4);
@@ -6096,7 +6091,7 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             xmm3 = _mm_or_si128(xmm0, xmm3);
 
             //store back to background
-            _mm_store_si128((__m128i*)dstPixels, xmm3);
+            _mm_storeu_si128((__m128i*)dstPixels, xmm3);
 
             //next 4 pixels
             dstPixels += 4;
