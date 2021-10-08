@@ -6605,7 +6605,7 @@ __forceinline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double 
     __m128i p12 = _mm_loadl_epi64((const __m128i*)&pixels[0]);
     __m128i p34 = _mm_loadl_epi64((const __m128i*)&pixels[2]);
 
-    //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
+    //convert RGBA RGBA RGBA RGBA to RRRR GGGG BBBB AAAA
     p12 = _mm_unpacklo_epi8(p12, p34);
     p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
     p12 = _mm_unpacklo_epi8(p12, p34);
@@ -8277,7 +8277,7 @@ void projette(double x, double y, double z, double *px, double *py)
     {
         *px = 0;
         *py = 0;
-        messageBox(GFX_WARNING, "Warning unknown projection type!");
+        messageBox(GFX_WARNING, "Unknown projection type!");
     }
 }
 
@@ -8366,7 +8366,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
     }
     else
     {
-        while (1)
+        while (true)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
             memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
