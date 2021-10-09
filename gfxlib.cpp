@@ -6482,7 +6482,7 @@ __forceinline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32
     __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
     __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
 
-    //convert floating point weights to 16bits integer w4 w3 w2 w1
+    //initialize pixel weights to 16bits integer w4 w3 w2 w1
     __m128i weight = _mm_set_epi32(w3, w1, w2, w0);
 
     //make 32bit -> 2 x 16bits
@@ -6563,6 +6563,7 @@ __forceinline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_
 static const __m256d CONST_1 = _mm256_set1_pd(1);
 static const __m256d CONST_256 = _mm256_set1_pd(256);
 
+//AVX2 calculate the weights of pixel
 __forceinline __m256d calcWeights(const double x, const double y)
 {
     __m256d xmm0 = _mm256_set1_pd(x);
@@ -6629,6 +6630,24 @@ __forceinline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double 
     weight = _mm_packus_epi32(weight, _mm_setzero_si128());
     weight = _mm_packus_epi16(weight, _mm_setzero_si128());
     return _mm_cvtsi128_si32(weight);
+}
+
+//calculate sin&cos of an angle (merge sin+cos function)
+__forceinline void sincos(const double angle, double* sina, double* cosa)
+{
+#ifdef _USE_ASM
+    __asm {
+        fld     angle
+        mov     eax, sina
+        mov     edx, cosa
+        fsincos
+        fstp    qword ptr[edx]
+        fstp    qword ptr[eax]
+    }
+#else
+    *sina = sin(angle);
+    *cosa = cos(angle);
+#endif
 }
 
 //bi-cubic helper (this function will be replaced by sin(x)/x for optimize
@@ -6764,24 +6783,6 @@ __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t 
     }
 
     return dst;
-}
-
-//calculate sin&cos of an angle (merge sin+cos function)
-__forceinline void sincos(const double angle, double* sina, double* cosa)
-{
-#ifdef _USE_ASM
-    __asm {
-        fld     angle
-        mov     eax, sina
-        mov     edx, cosa
-        fsincos   
-        fstp    qword ptr [edx]   
-        fstp    qword ptr [eax]  
-    }
-#else
-    *sina = sin(angle);
-    *cosa = cos(angle);
-#endif
 }
 
 //fast calculate pixel at center, don't care boundary
