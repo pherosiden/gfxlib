@@ -10883,7 +10883,7 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
     }
 
     //init lookup table
-    for (i = 0; i < src->mWidth; i++) tables[i] = fround(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1)) + xfact);
+    for (i = 0; i < src->mWidth; i++) tables[i] = fround(double(i) / (intmax_t(src->mWidth) - 1) * ((intmax_t(src->mWidth) - 1) - (intmax_t(xfact) << 1))) + xfact;
 
     //scale up line by line
     for (i = 0; i < src->mHeight; i++)

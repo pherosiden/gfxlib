@@ -293,6 +293,9 @@ void runScaleUpImage(int32_t sx, int32_t sy)
         return;
     }
 
+    //background color
+    const uint32_t rcolor = rgb(0, 255, 200);
+
     //loop until enter key pressed
     while (!finished(SDL_SCANCODE_RETURN))
     {
@@ -300,7 +303,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
         changeDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
 
         //put some random pixel and GFX message
-        for (int32_t i = 0; i < 400; i++) putPixel(random(img1.mWidth - 4) + 2, random(img1.mHeight - 4) + 2, rgb(0, 255, 200));
+        for (int32_t i = 0; i < 400; i++) putPixel(random(img1.mWidth - 4) + 2, random(img1.mHeight - 4) + 2, rcolor);
         if (random(64) == 32) putImage((img1.mWidth - img3.mWidth) >> 1, (img1.mHeight - img3.mHeight) >> 1, &img3, BLEND_MODE_ALPHA);
 
         //blur & scale buffer
@@ -548,14 +551,14 @@ void runLensFlare(GFX_IMAGE* outImg)
 
         //put logo and draw text message
         putImage(cwidth - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
-        writeText(tx, ty, rgb(255, 255, 255), 2, str);
+        writeText(tx, ty, RGB_WHITE, 2, str);
 
         //timing for input and FPS counter
         oldTime = time;
         time = getTime();
 
         //report FPS counter
-        writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / ((time - oldTime) / 1000.0));
+        writeText(1, 1, RGB_WHITE, 0, "FPS:%.2f", 1.0 / ((time - oldTime) / 1000.0));
 
         render();
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
@@ -636,9 +639,9 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             uint16_t a = sqr(y - y1) + sqr(x1);
             uint16_t b = sqr(y - y2) + sqr(x2);
             uint16_t c = sqr(y - y3) + sqr(x3);
-            uint16_t cr = sina[(a >> 6) & 0xFF];
-            uint16_t cg = sina[(b >> 6) & 0xFF];
-            uint16_t cb = sina[(c >> 6) & 0xFF];
+            uint16_t cr = sina[(a >> 6) & 0xff];
+            uint16_t cg = sina[(b >> 6) & 0xff];
+            uint16_t cb = sina[(c >> 6) & 0xff];
 #ifdef _USE_ASM
             __asm {
                 xor     ax, ax
@@ -654,7 +657,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 add     bx, c
                 mov     c, bx
                 shr     bx, cl
-                and     bx, 0xFF
+                and     bx, 0xff
                 mov     bl, byte ptr sina[ebx]
                 mov     si, bx
                 mov     bx, ax
@@ -662,14 +665,14 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 add     bx, b
                 mov     b, bx
                 shr     bx, cl
-                and     bx, 0xFF
+                and     bx, 0xff
                 mov     dl, byte ptr sina[ebx]
                 mov     bx, ax
                 sub     bx, x1
                 add     bx, a
                 mov     a, bx
                 shr     bx, cl
-                and     bx, 0xFF
+                and     bx, 0xff
                 mov     bl, byte ptr sina[ebx]
                 mov     ax, bx
                 add     ax, cr
@@ -701,13 +704,13 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             for (int32_t x = 0; x < endx; x++)
             {
                 c = x - x3 + c;
-                const uint8_t sc = sina[(c >> 6) & 0xFF];
+                const uint8_t sc = sina[(c >> 6) & 0xff];
                 b = x - x2 + b;
-                const uint8_t sb = sina[(b >> 6) & 0xFF];
+                const uint8_t sb = sina[(b >> 6) & 0xff];
                 a = x - x1 + a;
-                const uint8_t sa = sina[(a >> 6) & 0xFF];
-                const uint32_t col2 = ((sa + cr) << 15) & 0xFFFF0000;
-                const uint16_t col1 = (((sb + cg) << 7) & 0xFF00) + ((sc + cb) >> 1);
+                const uint8_t sa = sina[(a >> 6) & 0xff];
+                const uint32_t col2 = ((sa + cr) << 15) & 0xffff0000;
+                const uint16_t col1 = (((sb + cg) << 7) & 0xff00) + ((sc + cb) >> 1);
                 cr = sa;
                 cg = sb;
                 cb = sc;
