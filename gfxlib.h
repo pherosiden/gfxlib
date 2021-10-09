@@ -316,13 +316,13 @@ typedef struct
     int32_t cx, cy;
 
     int32_t boundWidth;
-    int32_t currUpx0, currUpx1;
-    int32_t currDownx0, currDownx1;
+    int32_t currUp0, currUp1;
+    int32_t currDown0, currDown1;
 
-    int32_t dstUpY, dstDownY;
+    int32_t yUp, yDown;
 
-    int32_t outBoundx0, outBoundx1;
-    int32_t inBoundx0, inBoundx1;
+    int32_t outBound0, outBound1;
+    int32_t inBound0, inBound1;
 } ROTATE_CLIP;
 
 #pragma pack(pop)
@@ -911,18 +911,18 @@ __forceinline void findEnd(const ROTATE_CLIP* clip, const int32_t dsty, const in
 
 __forceinline void updateInX(ROTATE_CLIP* clip)
 {
-    if (!clip->boundWidth || clip->outBoundx0 >= clip->outBoundx1)
+    if (!clip->boundWidth || clip->outBound0 >= clip->outBound1)
     {
-        clip->inBoundx0 = clip->outBoundx0;
-        clip->inBoundx1 = clip->outBoundx1;
+        clip->inBound0 = clip->outBound0;
+        clip->inBound1 = clip->outBound1;
     }
     else
     {
         int32_t scx = clip->srcx;
         int32_t scy = clip->srcy;
-        int32_t i = clip->outBoundx0;
+        int32_t i = clip->outBound0;
 
-        while (i < clip->outBoundx1)
+        while (i < clip->outBound1)
         {
             if (pointInSrc(clip, scx, scy)) break;
             scx += clip->ax;
@@ -930,14 +930,14 @@ __forceinline void updateInX(ROTATE_CLIP* clip)
             i++;
         }
 
-        clip->inBoundx0 = i;
+        clip->inBound0 = i;
 
-        scx = clip->srcx + (clip->outBoundx1 - clip->outBoundx0) * clip->ax;
-        scy = clip->srcy + (clip->outBoundx1 - clip->outBoundx0) * clip->ay;
+        scx = clip->srcx + (clip->outBound1 - clip->outBound0) * clip->ax;
+        scy = clip->srcy + (clip->outBound1 - clip->outBound0) * clip->ay;
 
-        i = clip->outBoundx1;
+        i = clip->outBound1;
 
-        while (i > clip->inBoundx0)
+        while (i > clip->inBound0)
         {
             scx -= clip->ax;
             scy -= clip->ay;
@@ -945,28 +945,28 @@ __forceinline void updateInX(ROTATE_CLIP* clip)
             i--;
         }
 
-        clip->inBoundx1 = i;
+        clip->inBound1 = i;
     }
 }
 
 __forceinline void updateUpX(ROTATE_CLIP* clip)
 {
-    if (clip->currUpx0 < 0) clip->outBoundx0 = 0;
-    else clip->outBoundx0 = clip->currUpx0;
+    if (clip->currUp0 < 0) clip->outBound0 = 0;
+    else clip->outBound0 = clip->currUp0;
         
-    if (clip->currUpx1 >= clip->dstw) clip->outBoundx1 = clip->dstw;
-    else clip->outBoundx1 = clip->currUpx1;
+    if (clip->currUp1 >= clip->dstw) clip->outBound1 = clip->dstw;
+    else clip->outBound1 = clip->currUp1;
 
     updateInX(clip);
 }
 
 __forceinline void updateDownX(ROTATE_CLIP* clip)
 {
-    if (clip->currDownx0 < 0) clip->outBoundx0 = 0;
-    else clip->outBoundx0 = clip->currDownx0;
+    if (clip->currDown0 < 0) clip->outBound0 = 0;
+    else clip->outBound0 = clip->currDown0;
 
-    if (clip->currDownx1 >= clip->dstw) clip->outBoundx1 = clip->dstw;
-    else clip->outBoundx1 = clip->currDownx1;
+    if (clip->currDown1 >= clip->dstw) clip->outBound1 = clip->dstw;
+    else clip->outBound1 = clip->currDown1;
 
     updateInX(clip);
 }
@@ -974,35 +974,35 @@ __forceinline void updateDownX(ROTATE_CLIP* clip)
 __forceinline bool intiClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t dcy, const int32_t bwidth)
 {
     clip->boundWidth = bwidth;
-    clip->dstDownY = dcx;
-    clip->currDownx0 = dcy;
-    clip->currDownx1 = dcy;
+    clip->yDown = dcx;
+    clip->currDown0 = dcy;
+    clip->currDown1 = dcy;
 
-    if (findBegin(clip, clip->dstDownY, &clip->currDownx0, clip->currDownx1)) findEnd(clip, clip->dstDownY, clip->currDownx0, &clip->currDownx1);
+    if (findBegin(clip, clip->yDown, &clip->currDown0, clip->currDown1)) findEnd(clip, clip->yDown, clip->currDown0, &clip->currDown1);
 
-    clip->dstUpY = clip->dstDownY;
-    clip->currUpx0 = clip->currDownx0;
-    clip->currUpx1 = clip->currDownx1;
+    clip->yUp = clip->yDown;
+    clip->currUp0 = clip->currDown0;
+    clip->currUp1 = clip->currDown1;
         
     updateUpX(clip);
 
-    return clip->currDownx0 < clip->currDownx1;
+    return clip->currDown0 < clip->currDown1;
 }
 
 __forceinline bool nextLineDown(ROTATE_CLIP* clip)
 {
-    clip->dstDownY++;
-    if (!findBegin(clip, clip->dstDownY, &clip->currDownx0, clip->currDownx1)) return false;
-    findEnd(clip, clip->dstDownY, clip->currDownx0, &clip->currDownx1);
+    clip->yDown++;
+    if (!findBegin(clip, clip->yDown, &clip->currDown0, clip->currDown1)) return false;
+    findEnd(clip, clip->yDown, clip->currDown0, &clip->currDown1);
     updateDownX(clip);
-    return clip->currDownx0 < clip->currDownx1;
+    return clip->currDown0 < clip->currDown1;
 }
 
 __forceinline bool nextLineUp(ROTATE_CLIP* clip)
 {
-    clip->dstUpY--;
-    if (!findBegin(clip, clip->dstUpY, &clip->currUpx0, clip->currUpx1)) return false;
-    findEnd(clip, clip->dstUpY, clip->currUpx0, &clip->currUpx1);
+    clip->yUp--;
+    if (!findBegin(clip, clip->yUp, &clip->currUp0, clip->currUp1)) return false;
+    findEnd(clip, clip->yUp, clip->currUp0, &clip->currUp1);
     updateUpX(clip);
-    return clip->currUpx0 < clip->currUpx1;
+    return clip->currUp0 < clip->currUp1;
 }

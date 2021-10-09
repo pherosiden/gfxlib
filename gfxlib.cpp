@@ -7950,21 +7950,21 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     //clipping data
     if (!intiClip(&clip, dcx, dcy, 1)) return;
 
-    uint32_t* yline = &pdst[dstw * clip.dstDownY];
+    uint32_t* yline = &pdst[dstw * clip.yDown];
     while (true)
     {
-        if (clip.dstDownY >= dsth) break;
-        if (clip.dstDownY >= 0) bilinearRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
+        if (clip.yDown >= dsth) break;
+        if (clip.yDown >= 0) bilinearRotateLine(yline, clip.outBound0, clip.inBound0, clip.inBound1, clip.outBound1, src, clip.srcx, clip.srcy, ax, ay);
         if (!nextLineDown(&clip)) break;
         yline += dstw;
     }
 
-    yline = &pdst[dstw * clip.dstUpY];
+    yline = &pdst[dstw * clip.yUp];
     while (nextLineUp(&clip))
     {
-        if (clip.dstUpY < 0) break;
+        if (clip.yUp < 0) break;
         yline -= dstw;
-        if (clip.dstUpY < dsth) bilinearRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay);
+        if (clip.yUp < dsth) bilinearRotateLine(yline, clip.outBound0, clip.inBound0, clip.inBound1, clip.outBound1, src, clip.srcx, clip.srcy, ax, ay);
     }
 }
 
@@ -8133,21 +8133,21 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
     int16_t stable[513] = { 0 };
     for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
 
-    uint32_t* yline = &pdst[dstw * clip.dstDownY];
+    uint32_t* yline = &pdst[dstw * clip.yDown];
     while (true)
     {
-        if (clip.dstDownY >= dsth) break;
-        if (clip.dstDownY >= 0) bicubicRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        if (clip.yDown >= dsth) break;
+        if (clip.yDown >= 0) bicubicRotateLine(yline, clip.outBound0, clip.inBound0, clip.inBound1, clip.outBound1, src, clip.srcx, clip.srcy, ax, ay, stable);
         if (!nextLineDown(&clip)) break;
         yline += dstw;
     }
 
-    yline = &pdst[dstw * clip.dstUpY];
+    yline = &pdst[dstw * clip.yUp];
     while (nextLineUp(&clip))
     {
-        if (clip.dstUpY < 0) break;
+        if (clip.yUp < 0) break;
         yline -= dstw;
-        if (clip.dstUpY < dsth) bicubicRotateLine(yline, clip.outBoundx0, clip.inBoundx0, clip.inBoundx1, clip.outBoundx1, src, clip.srcx, clip.srcy, ax, ay, stable);
+        if (clip.yUp < dsth) bicubicRotateLine(yline, clip.outBound0, clip.inBound0, clip.inBound1, clip.outBound1, src, clip.srcx, clip.srcy, ax, ay, stable);
     }
 }
 

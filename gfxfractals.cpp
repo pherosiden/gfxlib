@@ -1177,7 +1177,7 @@ void gfxFractals()
             //Julia message
             if (fractType)
             {
-                sprintf(sbuff, "Julia-Explorer [%s][%dx%d][%.18lf, %.18lf, %.18lf, %lf, %lf, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, 1, 2, 3, 4, q, w]",
+                sprintf(sbuff, "Julia-Explorer [%s][%dx%d][%g, %g, %g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, 1, 2, 3, 4, i, o, s, q, w]",
                     methodNames[funcIndexs[fractType]],
                     acx, cy,
                     xx, yy, scale,
@@ -1190,7 +1190,7 @@ void gfxFractals()
             }
             else
             {
-                sprintf(sbuff, "Mandelbrot-Explorer [%s][%dx%d][%.18lf, %.18lf, %.18lf, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, q, w]",
+                sprintf(sbuff, "Mandelbrot-Explorer [%s][%dx%d][%g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, q, w]",
                     methodNames[funcIndexs[fractType]],
                     acx, cy,
                     xx, yy, scale,
