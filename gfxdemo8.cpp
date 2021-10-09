@@ -702,7 +702,7 @@ void graphDemo13()
     POINT2D points[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
 
     makeLinearPalette();
-    fillPolygon(points, 19, 50);
+    fillPolygon(points, sizeof(points) / sizeof(points[0]), 50);
 
     const int32_t cmaxX = getMaxX();
     const int32_t cmaxY = getMaxY();
@@ -1409,8 +1409,8 @@ void displayPlasma()
         "That's all folks!",
         "I hope, you enjoyed this demo",
         "Thank you for making use of my programs",
-        "More source code from me available @ my homepage:",
-        "http://codedemo.net",
+        "More source code from me available at:",
+        "https://github.com/pherosiden/",
         "",
         "If you have some improvements, additions,",
         "bug reports or something else, please contact me",

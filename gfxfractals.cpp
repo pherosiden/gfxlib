@@ -8,7 +8,7 @@
 //calculation function type
 typedef void func_t(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t sx, int32_t sy);
 
-//for julia set
+//for Julia's set
 double cim = 0;
 double cre = 0;
 
@@ -744,8 +744,8 @@ void mandelbrotDoubleFMA(uint32_t* out, double mx, double my, double scale, int3
                 if (_mm256_test_all_ones(masks)) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
-                const __m256d t = _mm256_add_pd(x1, x1);
-                y1 = _mm256_fmadd_pd(t, y1, y0);
+                const __m256d tmp = _mm256_add_pd(x1, x1);
+                y1 = _mm256_fmadd_pd(tmp, y1, y0);
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
             }
 
@@ -840,8 +840,8 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
                 if (_mm256_test_all_ones(masks)) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
-                const __m256d t = _mm256_add_pd(x1, x1);
-                y1 = _mm256_fmadd_pd(t, y1, xim);
+                const __m256d tmp = _mm256_add_pd(x1, x1);
+                y1 = _mm256_fmadd_pd(tmp, y1, xim);
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
             }
 
@@ -855,8 +855,8 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
     }
 }
 
-func_t* calculateFuncs[2] = { 0 };
 func_t* funcs[2][20] = { 0 };
+func_t* calculateFuncs[2] = { 0 };
 
 char sbuff[2000] = { 0 };
 const char* methodNames[20] = { 0 };
