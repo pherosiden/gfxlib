@@ -429,13 +429,13 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         return 0;
     }
 
-    //initalize bits per pixel
+    //initialize bits per pixel
     bitsPerPixel = bpp;
 
     //initialize bytes per pixel
     bytesPerPixel = (bitsPerPixel + 7) / 8;
 
-    //initialze bytes per line
+    //initialize bytes per line
     bytesPerScanline = width * bytesPerPixel;
 
     //use palette color for 8 bits?
@@ -584,6 +584,99 @@ void render()
     }
 }
 
+//render from user-defined buffer
+void renderBuffer(const void* buffer, int32_t width, int32_t height)
+{
+    //calculate amount of bytes transfer
+    const uint32_t bytesCopy = width * height * bytesPerPixel;
+
+    //detect texture size has changed?
+    if (texWidth != width || texHeight != height)
+    {
+        //create new texture with new size
+        if (sdlTexture) SDL_DestroyTexture(sdlTexture);
+        sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+        if (!sdlTexture)
+        {
+            messageBox(GFX_ERROR, "Failed to create new texture: %s", SDL_GetError());
+            return;
+        }
+
+        //8 bits
+        if (bytesPerPixel == 1)
+        {
+            //save current palette
+            RGB pal[256] = { 0 };
+            getPalette(pal);
+
+            //create new 32bits surface
+            if (sdlScreen) SDL_FreeSurface(sdlScreen);
+            sdlScreen = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+            if (!sdlScreen)
+            {
+                messageBox(GFX_ERROR, "Failed to create new 32bits surface: %s", SDL_GetError());
+                return;
+            }
+
+            //create new 8bits surface
+            if (sdlSurface) SDL_FreeSurface(sdlSurface);
+            sdlSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+            if (!sdlSurface)
+            {
+                messageBox(GFX_ERROR, "Failed to create new 8bits surface: %s", SDL_GetError());
+                return;
+            }
+
+            //initialize new drawing buffer
+            if (!sdlSurface->pixels)
+            {
+                messageBox(GFX_ERROR, "Failed to create render buffer!");
+                return;
+            }
+
+            drawBuff = sdlSurface->pixels;
+
+            //restore palette on new surface
+            SDL_SetPaletteColors(sdlSurface->format->palette, pal, 0, 256);
+        }
+        else
+        {
+            void* pbuff = NULL;
+
+            //adjust render buffer
+            if (drawBuff) pbuff = _aligned_realloc(drawBuff, bytesCopy, 16);
+            else pbuff = _aligned_malloc(bytesCopy, 16);
+
+            if (!pbuff)
+            {
+                messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
+                return;
+            }
+
+            drawBuff = pbuff;
+        }
+
+        //update new screen buffer size
+        texWidth = width;
+        texHeight = height;
+        centerX = (texWidth >> 1) - 1;
+        centerY = (texHeight >> 1) - 1;
+
+        //update new view port size
+        cminX = 0;
+        cminY = 0;
+        cmaxX = texWidth - 1;
+        cmaxY = texHeight - 1;
+
+        //update bytes per scan line
+        bytesPerScanline = width * bytesPerPixel;
+    }
+
+    //done adjustment render buffer
+    memcpy(drawBuff, buffer, bytesCopy);
+    render();
+}
+
 //raise a message box
 void messageBox(int32_t type, const char* fmt, ...)
 {
@@ -662,99 +755,6 @@ void restoreDrawBuffer()
 {
     drawBuff = oldBuffer;
     restoreViewPort();
-}
-
-//render from user-defined buffer
-void renderBuffer(const void* buffer, int32_t width, int32_t height)
-{
-    //calculate amount of bytes transfer
-    const uint32_t bytesCopy = width * height * bytesPerPixel;
-
-    //detect texture size has changed?
-    if (texWidth != width || texHeight != height)
-    {
-        //create new texture with new size
-        if (sdlTexture) SDL_DestroyTexture(sdlTexture);
-        sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
-        if (!sdlTexture)
-        {
-            messageBox(GFX_ERROR, "Failed to create new texture: %s", SDL_GetError());
-            return;
-        }
-
-        //8 bits
-        if (bytesPerPixel == 1)
-        {
-            //save current palette
-            RGB pal[256] = { 0 };
-            getPalette(pal);
-
-            //create new 32bits surface
-            if (sdlScreen) SDL_FreeSurface(sdlScreen);
-            sdlScreen = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-            if (!sdlScreen)
-            {
-                messageBox(GFX_ERROR, "Failed to create new 32bits surface: %s", SDL_GetError());
-                return;
-            }
-
-            //create new 8bits surface
-            if (sdlSurface) SDL_FreeSurface(sdlSurface);
-            sdlSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
-            if (!sdlSurface)
-            {
-                messageBox(GFX_ERROR, "Failed to create new 8bits surface: %s", SDL_GetError());
-                return;
-            }
-
-            //initialize new drawing buffer
-            if (!sdlSurface->pixels)
-            {
-                messageBox(GFX_ERROR, "Failed to create render buffer!");
-                return;
-            }
-
-            drawBuff = sdlSurface->pixels;
-
-            //restore palette on new surface
-            SDL_SetPaletteColors(sdlSurface->format->palette, pal, 0, 256);
-        }
-        else
-        {
-            void* pbuff = NULL;
-
-            //adjust render buffer
-            if (drawBuff) pbuff = _aligned_realloc(drawBuff, bytesCopy, 16);
-            else pbuff = _aligned_malloc(bytesCopy, 16);
-
-            if (!pbuff)
-            {
-                messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
-                return;
-            }
-
-            drawBuff = pbuff;
-        }
-
-        //update new screen buffer size
-        texWidth    = width;
-        texHeight   = height;
-        centerX     = (texWidth >> 1) - 1;
-        centerY     = (texHeight >> 1) - 1;
-
-        //update new view port size
-        cminX   = 0;
-        cminY   = 0;
-        cmaxX   = texWidth - 1;
-        cmaxY   = texHeight - 1;
-
-        //update bytes per scan line
-        bytesPerScanline = width * bytesPerPixel;
-    }
-
-    //done adjustment render buffer
-    memcpy(drawBuff, buffer, bytesCopy);
-    render();
 }
 
 //set current screen view port for clipping
@@ -1117,7 +1117,7 @@ __forceinline void putPixelAdd(int32_t x, int32_t y, uint32_t color)
     }
 #else
     ARGB* rgb = (ARGB*)&color;
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
     pixels->r = min(pixels->r + rgb->r, 255);
     pixels->g = min(pixels->g + rgb->g, 255);
     pixels->b = min(pixels->b + rgb->b, 255);
@@ -1142,7 +1142,7 @@ __forceinline void putPixelSub(int32_t x, int32_t y, uint32_t color)
     }
 #else
     ARGB* rgb = (ARGB*)&color;
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
     pixels->r = max(pixels->r - rgb->r, 0);
     pixels->g = max(pixels->g - rgb->g, 0);
     pixels->b = max(pixels->b - rgb->b, 0);
@@ -1703,7 +1703,7 @@ __forceinline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     ARGB* rgb = (ARGB*)&color;
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
 
     for (int32_t i = 0; i < sy; i++)
     {
@@ -1741,7 +1741,7 @@ __forceinline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     ARGB* rgb = (ARGB*)&color;
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
 
     for (int32_t i = 0; i < sy; i++)
     {
@@ -2040,7 +2040,7 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const uint32_t addOfs = texWidth - width;
     
     //calculate starting address
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
     
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2122,7 +2122,7 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const uint32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2539,7 +2539,7 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const uint32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
     
     //start scan line
     for (int32_t i = 0; i < height; i++)
@@ -2636,7 +2636,7 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const uint32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
     
     //start scan line
     for (int32_t i = 0; i < height; i++)
@@ -5166,8 +5166,8 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
     const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
+    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5294,8 +5294,8 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
     const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
+    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5890,8 +5890,8 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
+    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6057,8 +6057,8 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const uint32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)((uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx);
-    ARGB* imgPixels = (ARGB*)((uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
+    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -8877,12 +8877,12 @@ void setFontType(int32_t type)
 void setFontSize(uint32_t size)
 {
     //have sub-fonts
-    if (gfxFonts[fontType].header.subFonts > 0)
+    if (gfxFonts[fontType].hdr.subFonts > 0)
     {
         //correct sub-fonts number
-        if (size > gfxFonts[fontType].header.subFonts) size = gfxFonts[fontType].header.subFonts;
-        //copy sub-fonts header
-        memcpy(&gfxFonts[fontType].header.subData, &gfxFonts[fontType].dataPtr[(intptr_t(gfxFonts[fontType].header.subData.endChar) - gfxFonts[fontType].header.subData.startChar + 1) * 4 * (intptr_t(gfxFonts[fontType].header.subFonts) + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
+        if (size > gfxFonts[fontType].hdr.subFonts) size = gfxFonts[fontType].hdr.subFonts;
+        //copy sub-fonts hdr
+        memcpy(&gfxFonts[fontType].hdr.subData, &gfxFonts[fontType].dataPtr[(intptr_t(gfxFonts[fontType].hdr.subData.endChar) - gfxFonts[fontType].hdr.subData.startChar + 1) * 4 * (intptr_t(gfxFonts[fontType].hdr.subFonts) + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
     }
     subFonts = size;
 }
@@ -8901,19 +8901,19 @@ int32_t getFontHeight(const char* str)
     if (!str || !len) return 0;
 
     //fixed font, all characters have a same height
-    if (gfxFonts[fontType].header.flags & GFX_FONT_FIXED) height = gfxFonts[fontType].header.subData.height;
+    if (gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED) height = gfxFonts[fontType].hdr.subData.height;
     else
     {
         //vector font
-        if (gfxFonts[fontType].header.flags & GFX_FONT_VECTOR)
+        if (gfxFonts[fontType].hdr.flags & GFX_FONT_VECTOR)
         {
             for (i = 0; i < len; i++)
             {
                 //skip invalid character
-                if (str[i] < gfxFonts[fontType].header.subData.startChar || str[i] > gfxFonts[fontType].header.subData.endChar) continue;
+                if (str[i] < gfxFonts[fontType].hdr.subData.startChar || str[i] > gfxFonts[fontType].hdr.subData.endChar) continue;
 
                 //position of raw data of current character
-                mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((str[i] - gfxFonts[fontType].header.subData.startChar) << 2)];
+                mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((str[i] - gfxFonts[fontType].hdr.subData.startChar) << 2)];
                 size = gfxFonts[fontType].dataPtr[mempos + 1];
                 if (size > height) height = size;
             }
@@ -8922,29 +8922,29 @@ int32_t getFontHeight(const char* str)
         else
         {
             //BMP1 font
-            if (gfxFonts[fontType].header.subData.bitsPerPixel == 1)
+            if (gfxFonts[fontType].hdr.subData.bitsPerPixel == 1)
             {
                 for (i = 0; i < len; i++)
                 {
                     //skip invalid character
-                    if (str[i] < gfxFonts[fontType].header.subData.startChar || str[i] > gfxFonts[fontType].header.subData.endChar) continue;
+                    if (str[i] < gfxFonts[fontType].hdr.subData.startChar || str[i] > gfxFonts[fontType].hdr.subData.endChar) continue;
 
                     //position of raw data of current character
-                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((str[i] - gfxFonts[fontType].header.subData.startChar) << 2)];
+                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((str[i] - gfxFonts[fontType].hdr.subData.startChar) << 2)];
                     size = gfxFonts[fontType].dataPtr[mempos + 1];
                     if (size > height) height = size;
                 }
             }
-            else if (gfxFonts[fontType].header.subData.bitsPerPixel >= 2 && gfxFonts[fontType].header.subData.bitsPerPixel <= 32)
+            else if (gfxFonts[fontType].hdr.subData.bitsPerPixel >= 2 && gfxFonts[fontType].hdr.subData.bitsPerPixel <= 32)
             {
                 //BMP8 and RGB font
                 for (i = 0; i < len; i++)
                 {
                     //skip invalid character
-                    if (str[i] < gfxFonts[fontType].header.subData.startChar || str[i] > gfxFonts[fontType].header.subData.endChar) continue;
+                    if (str[i] < gfxFonts[fontType].hdr.subData.startChar || str[i] > gfxFonts[fontType].hdr.subData.endChar) continue;
 
                     //position of raw data of current character
-                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((str[i] - gfxFonts[fontType].header.subData.startChar) << 2)];
+                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((str[i] - gfxFonts[fontType].hdr.subData.startChar) << 2)];
                     size = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 4] + *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 12];
                     if (size > height) height = size;
                 }
@@ -8953,7 +8953,7 @@ int32_t getFontHeight(const char* str)
     }
 
     //animation font
-    if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS) height += gfxFonts[fontType].header.subData.randomY;
+    if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS) height += gfxFonts[fontType].hdr.subData.randomY;
     return height;
 }
 
@@ -8972,68 +8972,68 @@ int32_t getFontWidth(const char* str)
     if (!str || !len) return 0;
 
     //fixed font, all characters have a same width
-    if (gfxFonts[fontType].header.flags & GFX_FONT_FIXED) width = (gfxFonts[fontType].header.subData.width + gfxFonts[fontType].header.subData.distance) * len;
+    if (gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED) width = (gfxFonts[fontType].hdr.subData.width + gfxFonts[fontType].hdr.subData.distance) * len;
     else
     {
         //vector font
-        if (gfxFonts[fontType].header.flags & GFX_FONT_VECTOR)
+        if (gfxFonts[fontType].hdr.flags & GFX_FONT_VECTOR)
         {
             for (i = 0; i < len; i++)
             {
                 //skip invalid character
-                if (str[i] < gfxFonts[fontType].header.subData.startChar || str[i] > gfxFonts[fontType].header.subData.endChar) size = gfxFonts[fontType].header.subData.spacer;
+                if (str[i] < gfxFonts[fontType].hdr.subData.startChar || str[i] > gfxFonts[fontType].hdr.subData.endChar) size = gfxFonts[fontType].hdr.subData.spacer;
                 else
                 {
                     //position of raw data of current character
-                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((str[i] - gfxFonts[fontType].header.subData.startChar) << 2)];
+                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((str[i] - gfxFonts[fontType].hdr.subData.startChar) << 2)];
                     data = (GFX_STROKE_DATA*)&gfxFonts[fontType].dataPtr[mempos];
                     size = data->width * subFonts;
                 }
-                width += size + gfxFonts[fontType].header.subData.distance;
+                width += size + gfxFonts[fontType].hdr.subData.distance;
             }
         }
         else
         {
             //BMP1 font
-            if (gfxFonts[fontType].header.subData.bitsPerPixel == 1)
+            if (gfxFonts[fontType].hdr.subData.bitsPerPixel == 1)
             {
                 for (i = 0; i < len; i++)
                 {
                     //skip invalid character
-                    if (str[i] < gfxFonts[fontType].header.subData.startChar || str[i] > gfxFonts[fontType].header.subData.endChar)
+                    if (str[i] < gfxFonts[fontType].hdr.subData.startChar || str[i] > gfxFonts[fontType].hdr.subData.endChar)
                     {
-                        width += gfxFonts[fontType].header.subData.spacer + gfxFonts[fontType].header.subData.distance;
+                        width += gfxFonts[fontType].hdr.subData.spacer + gfxFonts[fontType].hdr.subData.distance;
                         continue;
                     }
 
                     //position of raw data of current character
-                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((str[i] - gfxFonts[fontType].header.subData.startChar) << 2)];
-                    width += *(uint8_t*)&gfxFonts[fontType].dataPtr[mempos] + gfxFonts[fontType].header.subData.distance;
+                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((str[i] - gfxFonts[fontType].hdr.subData.startChar) << 2)];
+                    width += *(uint8_t*)&gfxFonts[fontType].dataPtr[mempos] + gfxFonts[fontType].hdr.subData.distance;
                 }
             }
-            else if (gfxFonts[fontType].header.subData.bitsPerPixel >= 2 && gfxFonts[fontType].header.subData.bitsPerPixel <= 32)
+            else if (gfxFonts[fontType].hdr.subData.bitsPerPixel >= 2 && gfxFonts[fontType].hdr.subData.bitsPerPixel <= 32)
             {
                 //BMP8 and RGB font
                 for (i = 0; i < len; i++)
                 {
                     //skip invalid character
-                    if (str[i] < gfxFonts[fontType].header.subData.startChar || str[i] > gfxFonts[fontType].header.subData.endChar)
+                    if (str[i] < gfxFonts[fontType].hdr.subData.startChar || str[i] > gfxFonts[fontType].hdr.subData.endChar)
                     {
-                        width += gfxFonts[fontType].header.subData.spacer + gfxFonts[fontType].header.subData.distance;
+                        width += gfxFonts[fontType].hdr.subData.spacer + gfxFonts[fontType].hdr.subData.distance;
                         continue;
                     }
 
                     //position of raw data of current character
-                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((str[i] - gfxFonts[fontType].header.subData.startChar) << 2)];
-                    width += *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos] + *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 8] + gfxFonts[fontType].header.subData.distance;
+                    mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((str[i] - gfxFonts[fontType].hdr.subData.startChar) << 2)];
+                    width += *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos] + *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 8] + gfxFonts[fontType].hdr.subData.distance;
                 }
             }
         }
     }
 
     //animation font
-    if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS) width += gfxFonts[fontType].header.subData.randomX;
-    return width - gfxFonts[fontType].header.subData.distance;
+    if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS) width += gfxFonts[fontType].hdr.subData.randomX;
+    return width - gfxFonts[fontType].hdr.subData.distance;
 }
 
 //load font name to memory
@@ -9054,11 +9054,11 @@ int32_t loadFont(const char* fname, int32_t type)
         return 0;
     }
 
-    //read font header
-    fread(&gfxFonts[type].header, sizeof(GFX_FONT_HEADER), 1, fp);
+    //read font hdr
+    fread(&gfxFonts[type].hdr, sizeof(GFX_FONT_HEADER), 1, fp);
 
     //check font signature, version number and memory size
-    if (memcmp(gfxFonts[type].header.signature, "Fnt2", 4) || gfxFonts[type].header.version != 0x0101 || !gfxFonts[type].header.memSize)
+    if (memcmp(gfxFonts[type].hdr.signature, "Fnt2", 4) || gfxFonts[type].hdr.version != 0x0101 || !gfxFonts[type].hdr.memSize)
     {
         fclose(fp);
         messageBox(GFX_WARNING, "Error load font: %s! wrong GFX font!", fname);
@@ -9066,7 +9066,7 @@ int32_t loadFont(const char* fname, int32_t type)
     }
 
     //allocate raw data buffer
-    gfxFonts[type].dataPtr = (uint8_t*)calloc(gfxFonts[type].header.memSize, 1);
+    gfxFonts[type].dataPtr = (uint8_t*)calloc(gfxFonts[type].hdr.memSize, 1);
     if (!gfxFonts[type].dataPtr)
     {
         fclose(fp);
@@ -9075,18 +9075,18 @@ int32_t loadFont(const char* fname, int32_t type)
     }
 
     //read raw font data
-    fread(gfxFonts[type].dataPtr, gfxFonts[type].header.memSize, 1, fp);
+    fread(gfxFonts[type].dataPtr, gfxFonts[type].hdr.memSize, 1, fp);
     fclose(fp);
 
     //reset font header for old font
-    if (gfxFonts[type].header.flags & GFX_FONT_MULTI) setFontSize(0);
+    if (gfxFonts[type].hdr.flags & GFX_FONT_MULTI) setFontSize(0);
 
     //default sub-fonts
-    if (gfxFonts[type].header.flags & GFX_FONT_VECTOR) subFonts = 1;
+    if (gfxFonts[type].hdr.flags & GFX_FONT_VECTOR) subFonts = 1;
     else subFonts = 0;
 
     //BMP8 font palette
-    if (gfxFonts[type].header.subData.usedColors > 1)
+    if (gfxFonts[type].hdr.subData.usedColors > 1)
     {
         //BMP8 use up to 128 colors (128 * 4)
         fontPalette[type] = (uint8_t*)calloc(512, 1);
@@ -9122,7 +9122,7 @@ void freeFont(int32_t type)
     }
 
     //reset header
-    memset(&gfxFonts[type].header, 0, sizeof(GFX_FONT_HEADER));
+    memset(&gfxFonts[type].hdr, 0, sizeof(GFX_FONT_HEADER));
 }
 
 //draw a stroke of BGI font (YES we also support BGI font)
@@ -9132,10 +9132,10 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
     if (!gfxFonts[fontType].dataPtr) return 0;
 
     //check for non-drawable character
-    if (gfxFonts[fontType].header.subData.startChar > chr || gfxFonts[fontType].header.subData.endChar < chr) return gfxFonts[fontType].header.subData.spacer;
+    if (gfxFonts[fontType].hdr.subData.startChar > chr || gfxFonts[fontType].hdr.subData.endChar < chr) return gfxFonts[fontType].hdr.subData.spacer;
 
     //memory position of character
-    uint32_t mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((chr - gfxFonts[fontType].header.subData.startChar) << 2)];
+    uint32_t mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((chr - gfxFonts[fontType].hdr.subData.startChar) << 2)];
     GFX_STROKE_DATA* data = (GFX_STROKE_DATA*)&gfxFonts[fontType].dataPtr[mempos];
     GFX_STROKE_INFO* stroke = (GFX_STROKE_INFO*)&gfxFonts[fontType].dataPtr[mempos + sizeof(GFX_STROKE_DATA)];
 
@@ -9173,31 +9173,31 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
     uint32_t len = uint32_t(strlen(str));
 
     //check for vector font
-    if (gfxFonts[fontType].header.flags & GFX_FONT_VECTOR)
+    if (gfxFonts[fontType].hdr.flags & GFX_FONT_VECTOR)
     {
         for (i = 0; i < len; i++)
         {
-            x += outStroke(x, y, str[i], col, mode) + gfxFonts[fontType].header.subData.distance;
+            x += outStroke(x, y, str[i], col, mode) + gfxFonts[fontType].hdr.subData.distance;
             if (mode == 1) col++;
         }
         return;
     }
 
     //BMP1 font format
-    if (gfxFonts[fontType].header.subData.bitsPerPixel == 1)
+    if (gfxFonts[fontType].hdr.subData.bitsPerPixel == 1)
     {
         for (i = 0; i < len; i++)
         {
             //invalid character, update position
-            if (uint8_t(str[i]) < gfxFonts[fontType].header.subData.startChar || uint8_t(str[i]) > gfxFonts[fontType].header.subData.endChar)
+            if (uint8_t(str[i]) < gfxFonts[fontType].hdr.subData.startChar || uint8_t(str[i]) > gfxFonts[fontType].hdr.subData.endChar)
             {
-                if (!(gfxFonts[fontType].header.flags & GFX_FONT_FIXED)) x += gfxFonts[fontType].header.subData.spacer + gfxFonts[fontType].header.subData.distance;
-                else x += gfxFonts[fontType].header.subData.width + gfxFonts[fontType].header.subData.distance;
+                if (!(gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED)) x += gfxFonts[fontType].hdr.subData.spacer + gfxFonts[fontType].hdr.subData.distance;
+                else x += gfxFonts[fontType].hdr.subData.width + gfxFonts[fontType].hdr.subData.distance;
                 continue;
             }
 
             //memory position for each character
-            mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((uint8_t(str[i]) - gfxFonts[fontType].header.subData.startChar) << 2)];
+            mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((uint8_t(str[i]) - gfxFonts[fontType].hdr.subData.startChar) << 2)];
             width = gfxFonts[fontType].dataPtr[mempos];
             height = gfxFonts[fontType].dataPtr[mempos + 1];
             mempos += 2;
@@ -9221,52 +9221,52 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
                         else putPixel(x + cx, y + cy, col);
                     }
                 }
-                mempos += gfxFonts[fontType].header.subData.bytesPerLine;
+                mempos += gfxFonts[fontType].hdr.subData.bytesPerLine;
             }
-            x += width + gfxFonts[fontType].header.subData.distance;
+            x += width + gfxFonts[fontType].hdr.subData.distance;
             if (mode == 1) col++;
         }
     }
     //BMP8 font format
-    else if (gfxFonts[fontType].header.subData.bitsPerPixel > 1 && gfxFonts[fontType].header.subData.bitsPerPixel < 8)
+    else if (gfxFonts[fontType].hdr.subData.bitsPerPixel > 1 && gfxFonts[fontType].hdr.subData.bitsPerPixel < 8)
     {
         //calculate font palette, use for hi-color and true-color
         if (bitsPerPixel > 8)
         {
             const ARGB* pcol = (const ARGB*)&col;
-            for (i = 0; i < gfxFonts[fontType].header.subData.usedColors; i++)
+            for (i = 0; i < gfxFonts[fontType].hdr.subData.usedColors; i++)
             {
                 ARGB* pixels = (ARGB*)&fontPalette[fontType][i << 2];
-                pixels->r = pcol->r * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
-                pixels->g = pcol->g * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
-                pixels->b = pcol->b * (i + 1) / gfxFonts[fontType].header.subData.usedColors;
+                pixels->r = pcol->r * (i + 1) / gfxFonts[fontType].hdr.subData.usedColors;
+                pixels->g = pcol->g * (i + 1) / gfxFonts[fontType].hdr.subData.usedColors;
+                pixels->b = pcol->b * (i + 1) / gfxFonts[fontType].hdr.subData.usedColors;
             }
         }
 
         //generate random position for animation font
-        if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
+        if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS)
         {
-            randomBuffer(gfxBuff, len + 1, gfxFonts[fontType].header.subData.randomX);
-            randomBuffer(&gfxBuff[512], len + 1, gfxFonts[fontType].header.subData.randomY);
+            randomBuffer(gfxBuff, len + 1, gfxFonts[fontType].hdr.subData.randomX);
+            randomBuffer(&gfxBuff[512], len + 1, gfxFonts[fontType].hdr.subData.randomY);
         }
 
         for (i = 0; i < len; i++)
         {
             //invalid character, update character position
-            if (uint8_t(str[i]) < gfxFonts[fontType].header.subData.startChar || uint8_t(str[i]) > gfxFonts[fontType].header.subData.endChar)
+            if (uint8_t(str[i]) < gfxFonts[fontType].hdr.subData.startChar || uint8_t(str[i]) > gfxFonts[fontType].hdr.subData.endChar)
             {
-                if (!(gfxFonts[fontType].header.flags & GFX_FONT_FIXED)) x += gfxFonts[fontType].header.subData.spacer + gfxFonts[fontType].header.subData.distance;
-                else x += gfxFonts[fontType].header.subData.width + gfxFonts[fontType].header.subData.distance;
+                if (!(gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED)) x += gfxFonts[fontType].hdr.subData.spacer + gfxFonts[fontType].hdr.subData.distance;
+                else x += gfxFonts[fontType].hdr.subData.width + gfxFonts[fontType].hdr.subData.distance;
                 continue;
             }
 
             //lookup character position
-            mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((uint8_t(str[i]) - gfxFonts[fontType].header.subData.startChar) << 2)];
+            mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((uint8_t(str[i]) - gfxFonts[fontType].hdr.subData.startChar) << 2)];
             addx = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos];
             addy = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 4];
 
             //update position for animation font
-            if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
+            if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS)
             {
                 addx += gfxBuff[i << 1];
                 addy += gfxBuff[(i << 1) + 512];
@@ -9295,38 +9295,38 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
             }
 
             //update next position
-            if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS) x -= gfxBuff[i << 1];
-            if (gfxFonts[fontType].header.flags & GFX_FONT_FIXED) x += gfxFonts[fontType].header.subData.width + gfxFonts[fontType].header.subData.distance;
-            else x += width + gfxFonts[fontType].header.subData.distance;
+            if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS) x -= gfxBuff[i << 1];
+            if (gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED) x += gfxFonts[fontType].hdr.subData.width + gfxFonts[fontType].hdr.subData.distance;
+            else x += width + gfxFonts[fontType].hdr.subData.distance;
         }
     }
     //alpha channel font
-    else if (gfxFonts[fontType].header.subData.bitsPerPixel == 32)
+    else if (gfxFonts[fontType].hdr.subData.bitsPerPixel == 32)
     {
         //generate random position for animation font
-        if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
+        if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS)
         {
-            randomBuffer(gfxBuff, len + 1, gfxFonts[fontType].header.subData.randomX);
-            randomBuffer(&gfxBuff[512], len + 1, gfxFonts[fontType].header.subData.randomY);
+            randomBuffer(gfxBuff, len + 1, gfxFonts[fontType].hdr.subData.randomX);
+            randomBuffer(&gfxBuff[512], len + 1, gfxFonts[fontType].hdr.subData.randomY);
         }
 
         for (i = 0; i < len; i++)
         {
             //invalid character, update character position
-            if (uint8_t(str[i]) < gfxFonts[fontType].header.subData.startChar || uint8_t(str[i]) > gfxFonts[fontType].header.subData.endChar)
+            if (uint8_t(str[i]) < gfxFonts[fontType].hdr.subData.startChar || uint8_t(str[i]) > gfxFonts[fontType].hdr.subData.endChar)
             {
-                if (!(gfxFonts[fontType].header.flags & GFX_FONT_FIXED)) x += gfxFonts[fontType].header.subData.spacer + gfxFonts[fontType].header.subData.distance;
-                else x += gfxFonts[fontType].header.subData.width + gfxFonts[fontType].header.subData.distance;
+                if (!(gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED)) x += gfxFonts[fontType].hdr.subData.spacer + gfxFonts[fontType].hdr.subData.distance;
+                else x += gfxFonts[fontType].hdr.subData.width + gfxFonts[fontType].hdr.subData.distance;
                 continue;
             }
 
             //lookup character position
-            mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].header.subData.startOffset + ((uint8_t(str[i]) - gfxFonts[fontType].header.subData.startChar) << 2)];
+            mempos = *(uint32_t*)&gfxFonts[fontType].dataPtr[gfxFonts[fontType].hdr.subData.startOffset + ((uint8_t(str[i]) - gfxFonts[fontType].hdr.subData.startChar) << 2)];
             addx = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos];
             addy = *(uint32_t*)&gfxFonts[fontType].dataPtr[mempos + 4];
 
             //update position for animation font
-            if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS)
+            if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS)
             {
                 addx += gfxBuff[i << 1];
                 addy += gfxBuff[(i << 1) + 512];
@@ -9350,9 +9350,9 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
             }
 
             //update next position
-            if (gfxFonts[fontType].header.flags & GFX_FONT_ANIPOS) x -= gfxBuff[i << 1];
-            if (gfxFonts[fontType].header.flags & GFX_FONT_FIXED) x += gfxFonts[fontType].header.subData.width + gfxFonts[fontType].header.subData.distance;
-            else x += width + gfxFonts[fontType].header.subData.distance;
+            if (gfxFonts[fontType].hdr.flags & GFX_FONT_ANIPOS) x -= gfxBuff[i << 1];
+            if (gfxFonts[fontType].hdr.flags & GFX_FONT_FIXED) x += gfxFonts[fontType].hdr.subData.width + gfxFonts[fontType].hdr.subData.distance;
+            else x += width + gfxFonts[fontType].hdr.subData.distance;
         }
     }
 }

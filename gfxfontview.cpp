@@ -36,9 +36,9 @@ void showFontsDir(const char* path, const char* ext)
             const GFX_FONT* font = getFont();
 
             //view all size of font
-            for (i = 0; i <= font->header.subFonts; i++)
+            for (i = 0; i <= font->hdr.subFonts; i++)
             {
-                if (font->header.subFonts > 0) setFontSize(i);
+                if (font->hdr.subFonts > 0) setFontSize(i);
                 height = getFontHeight(buff);
 
                 //have limit line
@@ -81,9 +81,9 @@ void showFontsDir(const char* path, const char* ext)
         const GFX_FONT* font = getFont();
 
         //view all size of font
-        for (i = 0; i <= font->header.subFonts; i++)
+        for (i = 0; i <= font->hdr.subFonts; i++)
         {
-            if (font->header.subFonts > 0) setFontSize(i);
+            if (font->hdr.subFonts > 0) setFontSize(i);
             height = getFontHeight(buff);
 
             //have limit line

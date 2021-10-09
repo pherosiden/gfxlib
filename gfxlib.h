@@ -223,7 +223,7 @@ typedef struct
     uint8_t         signature[4];               //font signature 'Fnt2'
     uint16_t        version;                    //version number 0x0101
     uint8_t         name[32];                   //name of font
-    uint8_t         copyRight[32];              //font copy-right (use for BGI font)
+    uint8_t         copyright[32];              //font copy-right (use for BGI font)
     uint8_t         fontType[4];                //font type BMP1, BMP8, VECT, ...
     uint16_t        subFonts;                   //number of sub-fonts (difference size)
     uint32_t        memSize;                    //bytes on load raw data (use this to alloc memory)
@@ -234,11 +234,11 @@ typedef struct
 //GFX loaded font memory
 typedef struct
 {
-    GFX_FONT_HEADER header;                     //font header
+    GFX_FONT_HEADER hdr;                        //font header
     uint8_t*        dataPtr;                    //font raw data
 } GFX_FONT;
 
-//the structure of image data (base image for GX2LIB)
+//the structure of image data (base image for GFXLIB)
 typedef struct
 {
     int32_t         mWidth;                     //image width
@@ -399,7 +399,6 @@ void        setFontSize(uint32_t size);
 void        makeFont(char* str);
 int32_t     loadFont(const char* fname, int32_t type);
 void        freeFont(int32_t type);
-
 
 //program keyboard input handler
 void        quit();

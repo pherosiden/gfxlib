@@ -1257,11 +1257,11 @@ void getPixelChar()
     for (int32_t i = 32; i < CHR_MAX; i++)
     {
         writeText(0, 0, 31, 0, "%c", i);
-        for (int32_t j = 0; j < font->header.subData.width; j++)
+        for (int32_t j = 0; j < font->hdr.subData.width; j++)
         {
-            for (int32_t k = 0; k < font->header.subData.height; k++) if (getPixel(j, k) == 31) chrPixels[i][j][k] = 1;
+            for (int32_t k = 0; k < font->hdr.subData.height; k++) if (getPixel(j, k) == 31) chrPixels[i][j][k] = 1;
         }
-        fillRect(0, 0, font->header.subData.width, font->header.subData.height, 0);
+        fillRect(0, 0, font->hdr.subData.width, font->hdr.subData.height, 0);
     }
 }
 
@@ -1271,26 +1271,26 @@ void scrollLed(const char *msg)
     const int32_t zx = 5, zy = 3, sy = 50;
     const GFX_FONT* font = getFont();
 
-    drawRoundRect(0, sy, getMaxX() - 1, font->header.subData.height << 2, 50, 10);
+    drawRoundRect(0, sy, getMaxX() - 1, font->hdr.subData.height << 2, 50, 10);
     
     while (!finished(SDL_SCANCODE_RETURN))
     {
         const uint8_t chr = msg[m];
-        for (k = 0; k < font->header.subData.width; k++)
+        for (k = 0; k < font->hdr.subData.width; k++)
         {
-            for (i = 0; i < CHR_NUM * font->header.subData.width - 1; i++)
+            for (i = 0; i < CHR_NUM * font->hdr.subData.width - 1; i++)
             {
-                for (j = 0; j < font->header.subData.height; j++) chrBuff[i][j] = chrBuff[i + 1][j];
+                for (j = 0; j < font->hdr.subData.height; j++) chrBuff[i][j] = chrBuff[i + 1][j];
             }
 
-            for (j = 0; j < font->header.subData.height; j++) chrBuff[CHR_NUM * font->header.subData.width - 1][j] = chrPixels[chr][k][j];
+            for (j = 0; j < font->hdr.subData.height; j++) chrBuff[CHR_NUM * font->hdr.subData.width - 1][j] = chrPixels[chr][k][j];
             
-            for (i = 0; i < CHR_NUM * font->header.subData.width; i++)
+            for (i = 0; i < CHR_NUM * font->hdr.subData.width; i++)
             {
-                for (j = 0; j < font->header.subData.height; j++)
+                for (j = 0; j < font->hdr.subData.height; j++)
                 {
-                    if (chrBuff[i][j]) putPixel(font->header.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 14);
-                    else putPixel(font->header.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 0);
+                    if (chrBuff[i][j]) putPixel(font->hdr.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 14);
+                    else putPixel(font->hdr.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 0);
                 }
             }
             delay(10);
