@@ -609,8 +609,8 @@ static __forceinline uint32_t rgba(uint32_t col, uint8_t alpha)
 static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
 {
     double r = 0.0, g = 0.0, b = 0.0;
-    double temp1 = 0.0, temp2 = 0.0;
-    double tempr = 0.0, tempg = 0.0, tempb = 0.0;
+    double t1 = 0.0, t2 = 0.0;
+    double tr = 0.0, tg = 0.0, tb = 0.0;
 
     const double h = hi / 256.0;
     const double s = si / 256.0;
@@ -623,36 +623,36 @@ static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
     else
     {
         //set the temporary values
-        if (l < 0.5) temp2 = l * (1 + s);
-        else temp2 = (l + s) - (l * s);
+        if (l < 0.5) t2 = l * (1 + s);
+        else t2 = (l + s) - (l * s);
 
-        temp1 = 2 * l - temp2;
-        tempr = h + 1.0 / 3.0;
+        t1 = 2 * l - t2;
+        tr = h + 1.0 / 3.0;
 
-        if (tempr > 1.0) tempr--;
+        if (tr > 1.0) tr--;
 
-        tempg = h;
-        tempb = h - 1.0 / 3.0;
+        tg = h;
+        tb = h - 1.0 / 3.0;
 
-        if (tempb < 0.0) tempb++;
+        if (tb < 0.0) tb++;
 
         //red
-        if (tempr < 1.0 / 6.0) r = temp1 + (temp2 - temp1) * 6.0 * tempr;
-        else if (tempr < 0.5) r = temp2;
-        else if (tempr < 2.0 / 3.0) r = temp1 + (temp2 - temp1) * ((2.0 / 3.0) - tempr) * 6.0;
-        else r = temp1;
+        if (tr < 1.0 / 6.0) r = t1 + (t2 - t1) * 6.0 * tr;
+        else if (tr < 0.5) r = t2;
+        else if (tr < 2.0 / 3.0) r = t1 + (t2 - t1) * ((2.0 / 3.0) - tr) * 6.0;
+        else r = t1;
 
         //green
-        if (tempg < 1.0 / 6.0) g = temp1 + (temp2 - temp1) * 6.0 * tempg;
-        else if (tempg < 0.5) g = temp2;
-        else if (tempg < 2.0 / 3.0) g = temp1 + (temp2 - temp1) * ((2.0 / 3.0) - tempg) * 6.0;
-        else g = temp1;
+        if (tg < 1.0 / 6.0) g = t1 + (t2 - t1) * 6.0 * tg;
+        else if (tg < 0.5) g = t2;
+        else if (tg < 2.0 / 3.0) g = t1 + (t2 - t1) * ((2.0 / 3.0) - tg) * 6.0;
+        else g = t1;
 
         //blue
-        if (tempb < 1.0 / 6.0) b = temp1 + (temp2 - temp1) * 6.0 * tempb;
-        else if (tempb < 0.5) b = temp2;
-        else if (tempb < 2.0 / 3.0) b = temp1 + (temp2 - temp1) * ((2.0 / 3.0) - tempb) * 6.0;
-        else b = temp1;
+        if (tb < 1.0 / 6.0) b = t1 + (t2 - t1) * 6.0 * tb;
+        else if (tb < 0.5) b = t2;
+        else if (tb < 2.0 / 3.0) b = t1 + (t2 - t1) * ((2.0 / 3.0) - tb) * 6.0;
+        else b = t1;
     }
 
     uint32_t col = 0;

@@ -7413,8 +7413,7 @@ void nearestScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 void smoothScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
-    ARGB* pdst = (ARGB*)dst->mData;
-    const uint32_t* psrc = (const uint32_t*)src->mData;
+    uint32_t* pdst = (uint32_t*)dst->mData;
 
     const int32_t dstw = dst->mWidth;
     const int32_t dsth = dst->mHeight;
@@ -7430,21 +7429,7 @@ void smoothScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     //very slow loop
     for (int32_t y = 0, sy = errory; y < dsth; y++, sy += scaley)
     {
-        const int32_t ly = sy >> 16;
-        for (int32_t x = 0, sx = errorx; x < dstw; x++, sx += scalex)
-        {
-            const int32_t lx = sx >> 16;
-
-            //calculate offset to index 2 pixels
-            const ARGB* pa = (const ARGB*)&psrc[clampOffset(srcw, srch, lx, ly)];
-            const ARGB* pb = (const ARGB*)&psrc[clampOffset(srcw, srch, lx + 1, ly)];
-
-            //calculate average pixel
-            pdst->r = (pa->r + pb->r) >> 1;
-            pdst->g = (pa->g + pb->g) >> 1;
-            pdst->b = (pa->b + pb->b) >> 1;
-            pdst++;
-        }
+        for (int32_t x = 0, sx = errorx; x < dstw; x++, sx += scalex) *pdst++ = smoothGetPixel(src, sx, sy);
     }
 }
 

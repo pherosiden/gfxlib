@@ -861,7 +861,7 @@ void gfxDemo()
     showText(10, yc, &txt, "seem to be very fast here because delay for show,");
     showText(10, yc, &txt, "but in this demo the rotation is full optimized.");
     showText(10, yc, &txt, "You can reach on a INTEL CORE I7-4770K 3.5GHZ up");
-    showText(10, yc, &txt, "to 420 fps at 640x480x32 bit. You can see another");
+    showText(10, yc, &txt, "to 420 fps at 640x480x32bits. You can see another");
     showText(10, yc, &txt, "version of rotate image is so fast if only rotate");
     showText(10, yc, &txt, "and show image, check my source code for optimize");
     showText(10, yc, &txt, "version using hardware acceleration AVX2. Enter...");
