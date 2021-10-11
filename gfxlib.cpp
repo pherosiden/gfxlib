@@ -292,7 +292,7 @@ void delay(uint32_t miliseconds)
     SDL_Delay(miliseconds);
 }
 
-//only return 1 when exitkey scancode (not escape) is givent, ESCAPE key to exit program
+//only return 1 when exit key scancode (not escape) is given, ESCAPE key to exit program
 int32_t finished(int32_t keyCode)
 {
     //what the user input key?
@@ -1964,7 +1964,7 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
     //align 16-bytes
     const int32_t align = width >> 2;
     const __m128i xmm0 = _mm_set1_epi32(color);
-    const int32_t addOffset = (texWidth - width);
+    const int32_t addOffset = texWidth - width;
 
     //calculate starting address
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
@@ -2037,7 +2037,7 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //aligned 16-bytes
     const int32_t align = width >> 2;
     const __m128i xmm0 = _mm_set1_epi32(color);
-    const uint32_t addOfs = texWidth - width;
+    const int32_t addOfs = texWidth - width;
     
     //calculate starting address
     ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
@@ -2119,7 +2119,7 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //aligned 16-bytes
     const int32_t align = width >> 2;
     const __m128i xmm0 = _mm_set1_epi32(color);
-    const uint32_t addOfs = texWidth - width;
+    const int32_t addOfs = texWidth - width;
 
     //calculate starting address
     ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
@@ -2205,7 +2205,7 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
     //aligned 16-bytes
     const int32_t aligned = width >> 2;
     const uint8_t cover = argb >> 24;
-    const uint32_t addOfs = texWidth - width;
+    const int32_t addOfs = texWidth - width;
     
     //calculate starting address
     uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
@@ -2369,7 +2369,7 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
     }
 #else
     //calculate starting address
-    const uint32_t addDstOffs = texWidth - width;
+    const int32_t addDstOffs = texWidth - width;
     uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
     for (int32_t i = 0; i < height; i++)
     {
@@ -2448,7 +2448,7 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
     }
 #else
     //calculate starting address
-    const uint32_t addDstOffs = texWidth - width;
+    const int32_t addDstOffs = texWidth - width;
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
     for (int32_t i = 0; i < height; i++)
     {
@@ -2536,7 +2536,7 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
 #else
     //convert to byte color
     const ARGB* pcol = (const ARGB*)&col;
-    const uint32_t addOfs = texWidth - width;
+    const int32_t addOfs = texWidth - width;
 
     //calculate starting address
     ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
@@ -2633,7 +2633,7 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
 #else
     //convert to byte color
     const ARGB* pcol = (const ARGB*)&col;
-    const uint32_t addOfs = texWidth - width;
+    const int32_t addOfs = texWidth - width;
 
     //calculate starting address
     ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
@@ -2720,7 +2720,7 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
     //calculate starting address
     const uint8_t cover = argb >> 24;
     const uint8_t rcover = 255 - cover;
-    const uint32_t addOfs = texWidth - width;
+    const int32_t addOfs = texWidth - width;
     uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
     
     for (int32_t i = 0; i < height; i++)
@@ -5162,8 +5162,8 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t aligned = width >> 2;
 
     //calculate next offset
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -5290,8 +5290,8 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t aligned = width >> 2;
 
     //calculate next offset
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -5425,8 +5425,8 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
     const __m128i unity = _mm_set1_epi16(256);
 
     //next offset
-    const uint32_t addDstOffs = (texWidth - width);
-    const uint32_t addImgOffs = (img->mWidth - width);
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -5605,8 +5605,8 @@ void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     }
 #else
     //calculate next offsets
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -5727,8 +5727,8 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
 
     //calculate next offsets
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -5772,7 +5772,7 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                if ((*imgPixels & 0x00FFFFFF) != keyColor) *dstPixels = *imgPixels;
+                if ((*imgPixels & 0x00ffffff) != keyColor) *dstPixels = *imgPixels;
                 dstPixels++;
                 imgPixels++;
             }
@@ -5886,8 +5886,8 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
 
     //calculate next offsets
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -5931,7 +5931,7 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
+                if ((*(uint32_t*)imgPixels & 0x00ffffff) != keyColor)
                 {
                     dstPixels->r = min(imgPixels->r + dstPixels->r, 255);
                     dstPixels->g = min(imgPixels->g + dstPixels->g, 255);
@@ -6053,8 +6053,8 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
 
     //calculate next offsets
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -6104,7 +6104,7 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         {
             for (int32_t j = 0; j < remainder; j++)
             {
-                if ((*(uint32_t*)imgPixels & 0x00FFFFFF) != keyColor)
+                if ((*(uint32_t*)imgPixels & 0x00ffffff) != keyColor)
                 {
                     dstPixels->r = max(imgPixels->r - dstPixels->r, 0);
                     dstPixels->g = max(imgPixels->g - dstPixels->g, 0);
@@ -6219,8 +6219,8 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const __m128i bmask = _mm_set1_epi32(0xffffffff);
 
     //calculate adding offsets for next line
-    const uint32_t addDstOffs = texWidth - width;
-    const uint32_t addImgOffs = img->mWidth - width;
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
@@ -6293,7 +6293,7 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             for (int32_t j = 0; j < remainder; j++)
             {
                 //we accepted RGB color only
-                if ((*imgPixels & 0x00FFFFFF) != keyColor)
+                if ((*imgPixels & 0x00ffffff) != keyColor)
                 {
                     const uint32_t dstCol = *dstPixels;
                     const uint32_t srcCol = *imgPixels;
@@ -8840,8 +8840,7 @@ GFX_FONT* getFont(int32_t type /* = 0 */)
 {
     if (type >= GFX_MAX_FONT) type = GFX_MAX_FONT - 1;
     if (type < 0) type = 0;
-    if (!type) return &gfxFonts[fontType];
-    return &gfxFonts[type];
+    return &gfxFonts[type ? type : fontType];
 }
 
 //get current loaded font type
@@ -9387,12 +9386,12 @@ void showPNG(const char* fname)
     loadImage(fname, &png);
 
     //background color
-    const uint32_t col[2] = { RGB_GREY191, RGB_WHITE };
+    const uint32_t cols[2] = { RGB_GREY191, RGB_WHITE };
 
     //make background
     for (int32_t y = 0; y < texHeight; y++)
     {
-        for (int32_t x = 0; x < texWidth; x++) fillRect(x, y, 8, 8, col[((x ^ y) >> 3) & 1]);
+        for (int32_t x = 0; x < texWidth; x++) fillRect(x, y, 8, 8, cols[((x ^ y) >> 3) & 1]);
     }
 
     //render image
@@ -9622,7 +9621,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
     }
 #else
     //calculate starting address
-    const uint32_t addOffs = texWidth - msWidth;
+    const int32_t addOffs = texWidth - msWidth;
     uint32_t* srcPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
 
     for (int32_t i = 0; i < msHeight; i++)
@@ -9636,7 +9635,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
                 *msUnder = *srcPixels;
 
                 //check color and copy pixel from cursor image to render buffer
-                if (*msImage & 0x00FFFFFF) *srcPixels = *msImage;
+                if (*msImage & 0x00ffffff) *srcPixels = *msImage;
             }
 
             //goto next pixel
@@ -9715,7 +9714,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
     }
 #else
     //calculate starting address
-    const uint32_t addOffs = texWidth - msWidth;
+    const int32_t addOffs = texWidth - msWidth;
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
 
     for (int32_t i = 0; i < msHeight; i++)
@@ -9809,18 +9808,17 @@ void drawButton(GFX_BUTTON* btn)
     }
 #else
     //calculate starting address
+    const int32_t addDstOffs = texWidth - lbWidth;
+    const int32_t addImgOffs = btnWidth - lbWidth;
+
     uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly1 + lx1;
     uint32_t* imgPixels = (uint32_t*)btnData + btnWidth * (intptr_t(ly1) - y1) + (intptr_t(lx1) - x1);
-    if (!dstPixels || !imgPixels) return;
-
-    const uint32_t addDstOffs = texWidth - lbWidth;
-    const uint32_t addImgOffs = btnWidth - lbWidth;
 
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
         {
-            if (*imgPixels & 0x00FFFFFF) *dstPixels = *imgPixels;
+            if (*imgPixels & 0x00ffffff) *dstPixels = *imgPixels;
             dstPixels++;
             imgPixels++;
         }

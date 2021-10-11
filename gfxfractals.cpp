@@ -1,5 +1,9 @@
 #include "gfxlib.h"
+#ifdef __APPLE__
+#include <pthread.h>
+#else
 #include <windows.h>
+#endif
 
 //screen size
 #define MAXX    1280
@@ -1101,7 +1105,11 @@ void allocBuffer()
 const int32_t yadd = 32;
 volatile long yprocessed = 0;
 
+#ifdef __APPLE__
+void* threadProc(void* args)
+#else
 DWORD WINAPI threadProc(LPVOID lpThreadParameter)
+#endif
 {
     int32_t acx = alignSize(cx);
     while (true)
@@ -1115,6 +1123,12 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 
 void calculateMultiThread()
 {
+#ifdef __APPLE__
+    pthread_t threads[64] = { 0 };
+    yprocessed = 0;
+    for (uint32_t i = 0; i < cpuCores; i++) pthread_create(&threads[i], NULL, threadProc, NULL);
+    for (uint32_t i = 0; i < cpuCores; i++) pthread_join(threads[i], NULL);
+#else
     HANDLE threads[64] = { 0 };
 
     yprocessed = 0;
@@ -1124,6 +1138,7 @@ void calculateMultiThread()
     {
         if (threads[i]) CloseHandle(threads[i]);
     }
+#endif
 }
 
 void setScale(double newScale)
