@@ -6778,7 +6778,7 @@ __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t 
         const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
         const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
         const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
-        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p22[i] * u2 + p33[i] * u3) * v3;
+        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p32[i] * u2 + p33[i] * u3) * v3;
         pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
     }
 
