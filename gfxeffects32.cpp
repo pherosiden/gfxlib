@@ -1299,9 +1299,6 @@ void mandelbrotExporer()
     //windows title buffer (add FPS)
     char sbuff[200] = { 0 };
 
-    //after how much iterations the function should stop
-    int32_t maxIterations = 255;
-
     //show hint text
     int32_t showText = 0;
 

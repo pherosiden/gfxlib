@@ -9147,7 +9147,6 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
 //draw string with current loaded font
 void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* str)
 {
-    RGB rgb = { 0 };
     uint32_t i = 0, cx = 0, cy = 0;
     uint32_t width = 0, height = 0, addx = 0, addy = 0;
     uint32_t data = 0, datapos = 0, mempos = 0;
