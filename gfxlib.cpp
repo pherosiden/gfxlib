@@ -941,7 +941,7 @@ void clearScreen(uint32_t color)
 
 
 //plot a pixel at (x,y) with color
-__forceinline void putPixelMix(int32_t x, int32_t y, uint32_t color)
+must_inline void putPixelMix(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -960,7 +960,7 @@ __forceinline void putPixelMix(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with color
-__forceinline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
+must_inline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -984,7 +984,7 @@ __forceinline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 //don't use (SC*SA+DC*(255-SA))>>8, you'll always get 254 as your maximum value.
 //ie: (255*128+255*(255-128))>>8=254 --> WRONG!!!
 //with: (255*128+255*(256-128))>>8=255 --> ACCEPTED!!!
-__forceinline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
+must_inline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1027,7 +1027,7 @@ __forceinline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
 }
 
 //plot a pixel at (x,y) with anti-aliased
-__forceinline void putPixelAA(int32_t x, int32_t y, uint32_t argb)
+must_inline void putPixelAA(int32_t x, int32_t y, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1070,7 +1070,7 @@ __forceinline void putPixelAA(int32_t x, int32_t y, uint32_t argb)
 }
 
 //plot a pixel at (x,y) with background color
-__forceinline void putPixelBob(int32_t x, int32_t y)
+must_inline void putPixelBob(int32_t x, int32_t y)
 {
     if (bitsPerPixel != 8) return;
     if (x < cminX || y < cminY || x > cmaxX || y > cmaxY) return;
@@ -1098,7 +1098,7 @@ __forceinline void putPixelBob(int32_t x, int32_t y)
 }
 
 //plot a pixel at (x,y) with add color
-__forceinline void putPixelAdd(int32_t x, int32_t y, uint32_t color)
+must_inline void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1123,7 +1123,7 @@ __forceinline void putPixelAdd(int32_t x, int32_t y, uint32_t color)
 }
 
 //plot a pixel at (x,y) with sub color
-__forceinline void putPixelSub(int32_t x, int32_t y, uint32_t color)
+must_inline void putPixelSub(int32_t x, int32_t y, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1189,7 +1189,7 @@ void putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode /* = BLEND_MODE
 }
 
 //peek a pixel at (x,y)
-__forceinline uint32_t getPixelMix(int32_t x, int32_t y)
+must_inline uint32_t getPixelMix(int32_t x, int32_t y)
 {
 #ifdef _USE_ASM
     uint8_t col = 0;
@@ -1238,7 +1238,7 @@ uint32_t getPixel(int32_t x, int32_t y)
 }
 
 //fast horizontal line from (x,y) with sx length, and color
-__forceinline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
+must_inline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1285,7 +1285,7 @@ __forceinline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color
 }
 
 //fast horizontal line from (x,y) with sx length, and color
-__forceinline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
+must_inline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1336,7 +1336,7 @@ __forceinline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t co
 }
 
 //fast horizontal line from (x,y) with sx length, and add color
-__forceinline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
+must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1400,7 +1400,7 @@ __forceinline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color
 }
 
 //fast horizontal line from (x,y) with sx length, and sub color
-__forceinline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
+must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1464,7 +1464,7 @@ __forceinline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color
 }
 
 //fast horizontal line from (x,y) with sx length, and blending pixel
-__forceinline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
+must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1616,7 +1616,7 @@ void horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode /*
 }
 
 //fast vertical line from (x,y) with sy length, and palette color
-__forceinline void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
+must_inline void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1647,7 +1647,7 @@ __forceinline void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and rgb color
-__forceinline void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
+must_inline void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1680,7 +1680,7 @@ __forceinline void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t col
 }
 
 //fast vertical line from (x,y) with sy length, and add color
-__forceinline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
+must_inline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1718,7 +1718,7 @@ __forceinline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and sub color
-__forceinline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
+must_inline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 {
 #ifdef _USE_ASM
     __asm {
@@ -1756,7 +1756,7 @@ __forceinline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 }
 
 //fast vertical line from (x,y) with sy length, and blending pixels
-__forceinline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
+must_inline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
 {
 #ifdef _USE_ASM
     __asm {
@@ -6354,7 +6354,7 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
 }
 
 //boundary clip point at (x,y)
-__forceinline bool clampPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
+must_inline bool clampPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
 {
     bool ret = true;
 
@@ -6384,7 +6384,7 @@ __forceinline bool clampPoint(const int32_t width, const int32_t height, int32_t
 }
 
 //get source pixel
-__forceinline uint32_t clampOffset(const int32_t width, const int32_t height, const int32_t x, const int32_t y)
+must_inline uint32_t clampOffset(const int32_t width, const int32_t height, const int32_t x, const int32_t y)
 {
     //x-range check
     const int32_t xx = clamp(x, 0, width - 1);
@@ -6395,7 +6395,7 @@ __forceinline uint32_t clampOffset(const int32_t width, const int32_t height, co
 }
 
 //clamp pixels at offset (x,y)
-__forceinline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
+must_inline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
 {
     const uint32_t* psrc = (const uint32_t*)img->mData;
     bool insrc = clampPoint(img->mWidth, img->mHeight, &x, &y);
@@ -6409,7 +6409,7 @@ __forceinline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
 }
 
 //alpha-blending pixel
-__forceinline uint32_t alphaBlend(const uint32_t dstCol, const uint32_t srcCol)
+must_inline uint32_t alphaBlend(const uint32_t dstCol, const uint32_t srcCol)
 {
 #ifdef _USE_ASM
     __asm {
@@ -6440,7 +6440,7 @@ __forceinline uint32_t alphaBlend(const uint32_t dstCol, const uint32_t srcCol)
 }
 
 //smooth get pixel (average pixel calculation)
-__forceinline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, const int32_t sy)
+must_inline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, const int32_t sy)
 {
     const int32_t lx = sx >> 16;
     const int32_t ly = sy >> 16;
@@ -6458,7 +6458,7 @@ __forceinline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, co
 }
 
 //bilinear get pixel with FIXED-POINT (signed 16.16)
-__forceinline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
+must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
     const uint32_t* pixel = (uint32_t*)psrc->mData;
     const uint32_t* pixel0 = &pixel[(sy >> 16) * psrc->mWidth + (sx >> 16)];
@@ -6507,7 +6507,7 @@ __forceinline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32
 }
 
 //bilinear get pixel with FIXED-POINT (signed 16.16)
-__forceinline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
+must_inline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
     //convert to fixed point
     const int32_t lx = sx >> 16;
@@ -6530,7 +6530,7 @@ __forceinline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32
 
 //bilinear get pixel with FIXED-POINT (signed 16.16)
 //general optimize version, fast speed
-__forceinline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
+must_inline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
     //convert to fixed point
     const int32_t lx = sx >> 16;
@@ -6566,7 +6566,7 @@ static const __m256d CONST_1 = _mm256_set1_pd(1);
 static const __m256d CONST_256 = _mm256_set1_pd(256);
 
 //AVX2 calculate the weights of pixel
-__forceinline __m256d calcWeights(const double x, const double y)
+must_inline __m256d calcWeights(const double x, const double y)
 {
     __m256d xmm0 = _mm256_set1_pd(x);
     __m256d xmm1 = _mm256_set1_pd(y);
@@ -6586,7 +6586,7 @@ __forceinline __m256d calcWeights(const double x, const double y)
 }
 
 //get pixels bilinear with AVX2
-__forceinline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double x, const double y)
+must_inline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double x, const double y)
 {
     //calculate offset at (x,y)
     const int32_t lx = int32_t(x);
@@ -6635,7 +6635,7 @@ __forceinline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double 
 }
 
 //calculate sin&cos of an angle (merge sin+cos function)
-__forceinline void sincos(const double angle, double* sina, double* cosa)
+must_inline void sincos(const double angle, double* sina, double* cosa)
 {
 #ifdef _USE_ASM
     __asm {
@@ -6653,7 +6653,7 @@ __forceinline void sincos(const double angle, double* sina, double* cosa)
 }
 
 //bi-cubic helper (this function will be replaced by sin(x)/x for optimize
-__forceinline double cubicHermite(const double a, const double b, const double c, const double d, const double fract)
+must_inline double cubicHermite(const double a, const double b, const double c, const double d, const double fract)
 {
     const double aa = -a / 2.0 + 1.5 * b - 1.5 * c + d / 2.0;
     const double bb = a - 2.5 * b + 2.0 * c - d / 2.0;
@@ -6663,7 +6663,7 @@ __forceinline double cubicHermite(const double a, const double b, const double c
 
 //calculate function sin(x)/x replacement for cubicHermite
 //so this will add to lookup table for speedup improvement
-__forceinline double sinXDivX(const double b)
+must_inline double sinXDivX(const double b)
 {
     //control constant, i.e: -2,-1,-0.75,-0.5
     const double ctl = -1;
@@ -6676,7 +6676,7 @@ __forceinline double sinXDivX(const double b)
 }
 
 //4 signed 32bits sum of bits of data (simulation for _mm_madd_epi32)
-__forceinline int32_t _mm_hsum_epi32(const __m128i val)
+must_inline int32_t _mm_hsum_epi32(const __m128i val)
 {
     //_mm_extract_epi32 is slower
     __m128i result = _mm_add_epi32(val, _mm_srli_si128(val, 8));
@@ -6686,7 +6686,7 @@ __forceinline int32_t _mm_hsum_epi32(const __m128i val)
 
 //calculate pixel by bi-cubic interpolation (original version)
 //this is show how to bi-cubic interpolation works, don't use for production
-__forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, const double sy)
+must_inline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, const double sy)
 {
     const int32_t px = int32_t(sx);
     const double fx = sx - int32_t(sx);
@@ -6737,7 +6737,7 @@ __forceinline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, co
 }
 
 //this calculate pixel with boundary so quite slowly (using fixed point)
-__forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
+must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
 {
     //peek offset at (px,py)
     const int32_t px = sx >> 16, py = sy >> 16;
@@ -6788,7 +6788,7 @@ __forceinline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t 
 }
 
 //fast calculate pixel at center, don't care boundary
-__forceinline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* stable, const int32_t sx, const int32_t sy)
+must_inline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* stable, const int32_t sx, const int32_t sy)
 {
     const uint8_t px = sx >> 8, py = sy >> 8;
     const int16_t u0 = stable[256 + px], u1 = stable[px];
@@ -6862,7 +6862,7 @@ __forceinline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t
 }
 
 //this calculate pixel with boundary so quite slowly
-__forceinline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
+must_inline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
 {
     //peek offset at (px,py)
     const int32_t px = (sx >> 16) - 1, py = (sy >> 16) - 1;

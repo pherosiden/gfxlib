@@ -144,6 +144,13 @@
 #define HIWORD(a)               (((a) >> 16) & 0xFFFF)
 #endif
 
+//inline common
+#ifdef __APPLE__
+#define must_inline             __attribute__((always_inline))
+#else
+#define must_inline             __forceinline
+#endif
+
 //RGB common colors
 #define RGB_BLACK               0x000000
 #define RGB_WHITE               0xFFFFFF
@@ -594,19 +601,19 @@ void        gfxFontView();
 void        gfxFractals();
 
 //convert r,g,b values to 32bits integer value
-static __forceinline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
+static must_inline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
 {
     return (r << 16) | (g << 8) | b;
 }
 
 //merge rgb and alpha channel to packed color
-static __forceinline uint32_t rgba(uint32_t col, uint8_t alpha)
+static must_inline uint32_t rgba(uint32_t col, uint8_t alpha)
 {
     return (uint32_t(alpha) << 24) | col;
 }
 
 //HSL to RGB convert
-static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
+static must_inline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
 {
     double r = 0.0, g = 0.0, b = 0.0;
     double t1 = 0.0, t2 = 0.0;
@@ -664,7 +671,7 @@ static __forceinline uint32_t hsl2rgb(int32_t hi, int32_t si, int32_t li)
 }
 
 //HSV to RGB convert
-static __forceinline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
+static must_inline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
 {
     double h = hi / 256.0;
     const double s = si / 256.0;
@@ -709,7 +716,7 @@ static __forceinline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
 }
 
 //converts an RGB color to HSV color
-static __forceinline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
+static must_inline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
 {
     double r = ri / 256.0;
     double g = gi / 256.0;
@@ -747,7 +754,7 @@ static __forceinline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
 }
 
 //convert an RGB color to HSL color
-static __forceinline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
+static must_inline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
 {
     double r = ri / 255.0;
     double g = gi / 255.0;
@@ -781,37 +788,37 @@ static __forceinline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
 }
 
 //generate random value from number
-static __forceinline int32_t random(int32_t a)
+static must_inline int32_t random(int32_t a)
 {
     return a ? rand() % a : 0;
 }
 
 //generate random value in range
-static __forceinline int32_t random(int32_t a, int32_t b)
+static must_inline int32_t random(int32_t a, int32_t b)
 {
     return (a < b) ? (a + (rand() % (b - a + 1))) : (b + (rand() % (a - b + 1)));
 }
 
 //generate double random in range
-static __forceinline double frand(double fmin, double fmax)
+static must_inline double frand(double fmin, double fmax)
 {
     const double fn = double(rand()) / RAND_MAX;
     return fmin + fn * (fmax - fmin);
 }
 
 //round-up function
-static __forceinline int32_t fround(double x)
+static must_inline int32_t fround(double x)
 {
     return (x > 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
-__forceinline bool pointInBound(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
+static must_inline bool pointInBound(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
 {
     return  (((scx >= (-(clip->boundWidth << 16))) && ((scx >> 16) < (clip->srcw + clip->boundWidth))) &&
              ((scy >= (-(clip->boundWidth << 16))) && ((scy >> 16) < (clip->srch + clip->boundWidth))));
 }
 
-__forceinline bool pointInSrc(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
+static must_inline bool pointInSrc(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
 {
     return  (((scx >= (clip->boundWidth << 16)) &&
              ((scx >> 16) < (clip->srcw - clip->boundWidth))) &&
@@ -819,7 +826,7 @@ __forceinline bool pointInSrc(const ROTATE_CLIP* clip, const int32_t scx, const 
              ((scy >> 16) < (clip->srch - clip->boundWidth))));
 }
 
-__forceinline void findBeginIn(const ROTATE_CLIP* clip, int32_t* dstx, int32_t* scx, int32_t* scy)
+static must_inline void findBeginIn(const ROTATE_CLIP* clip, int32_t* dstx, int32_t* scx, int32_t* scy)
 {
     *scx -= clip->ax;
     *scy -= clip->ay;
@@ -835,7 +842,7 @@ __forceinline void findBeginIn(const ROTATE_CLIP* clip, int32_t* dstx, int32_t* 
     *scy += clip->ay;
 }
 
-__forceinline bool findBegin(ROTATE_CLIP* clip, const int32_t dsty, int32_t* dstx0, const int32_t dstx1)
+static must_inline bool findBegin(ROTATE_CLIP* clip, const int32_t dsty, int32_t* dstx0, const int32_t dstx1)
 {
     const int32_t testx0 = *dstx0 - 1;
     int32_t scx = clip->ax * testx0 + clip->bx * dsty + clip->cx;
@@ -870,7 +877,7 @@ __forceinline bool findBegin(ROTATE_CLIP* clip, const int32_t dsty, int32_t* dst
     return false;
 }
 
-__forceinline void findEnd(const ROTATE_CLIP* clip, const int32_t dsty, const int32_t dstx0, int32_t* dstx1)
+static must_inline void findEnd(const ROTATE_CLIP* clip, const int32_t dsty, const int32_t dstx0, int32_t* dstx1)
 {
     int32_t testx1 = *dstx1;
     if (testx1 < dstx0) testx1 = dstx0;
@@ -908,7 +915,7 @@ __forceinline void findEnd(const ROTATE_CLIP* clip, const int32_t dsty, const in
     }
 }
 
-__forceinline void updateInX(ROTATE_CLIP* clip)
+static must_inline void updateInX(ROTATE_CLIP* clip)
 {
     if (!clip->boundWidth || clip->outBound0 >= clip->outBound1)
     {
@@ -948,7 +955,7 @@ __forceinline void updateInX(ROTATE_CLIP* clip)
     }
 }
 
-__forceinline void updateUpX(ROTATE_CLIP* clip)
+static must_inline void updateUpX(ROTATE_CLIP* clip)
 {
     if (clip->currUp0 < 0) clip->outBound0 = 0;
     else clip->outBound0 = clip->currUp0;
@@ -959,7 +966,7 @@ __forceinline void updateUpX(ROTATE_CLIP* clip)
     updateInX(clip);
 }
 
-__forceinline void updateDownX(ROTATE_CLIP* clip)
+static must_inline void updateDownX(ROTATE_CLIP* clip)
 {
     if (clip->currDown0 < 0) clip->outBound0 = 0;
     else clip->outBound0 = clip->currDown0;
@@ -970,7 +977,7 @@ __forceinline void updateDownX(ROTATE_CLIP* clip)
     updateInX(clip);
 }
 
-__forceinline bool intiClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t dcy, const int32_t bwidth)
+static must_inline bool intiClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t dcy, const int32_t bwidth)
 {
     clip->boundWidth = bwidth;
     clip->yDown = dcx;
@@ -988,7 +995,7 @@ __forceinline bool intiClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t 
     return clip->currDown0 < clip->currDown1;
 }
 
-__forceinline bool nextLineDown(ROTATE_CLIP* clip)
+static must_inline bool nextLineDown(ROTATE_CLIP* clip)
 {
     clip->yDown++;
     if (!findBegin(clip, clip->yDown, &clip->currDown0, clip->currDown1)) return false;
@@ -997,7 +1004,7 @@ __forceinline bool nextLineDown(ROTATE_CLIP* clip)
     return clip->currDown0 < clip->currDown1;
 }
 
-__forceinline bool nextLineUp(ROTATE_CLIP* clip)
+static must_inline bool nextLineUp(ROTATE_CLIP* clip)
 {
     clip->yUp--;
     if (!findBegin(clip, clip->yUp, &clip->currUp0, clip->currUp1)) return false;
