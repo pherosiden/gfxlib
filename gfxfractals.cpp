@@ -1,13 +1,16 @@
 #include "gfxlib.h"
 #ifdef __APPLE__
 #include <pthread.h>
+#include <cpuid.h>
+#include <sys/sysctl.h>
 #else
 #include <windows.h>
 #endif
 
 //screen size
-#define MAXX    1280
-#define MAXY    900
+#define SCR_WIDTH       1280
+#define SCR_HEIGHT      900
+#define THREAD_COUNT    64
 
 //calculation function type
 typedef void func_t(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t sx, int32_t sy);
@@ -318,7 +321,7 @@ void mandelbrotFloatAVX(uint32_t* out, double mx, double my, double scale, int32
                 const __m256i cmp = _mm256_castps_si256(_mm256_cmp_ps(abs, _mm256_set1_ps(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256 tmp = _mm256_mul_ps(x1, y1);
@@ -366,7 +369,7 @@ void mandelbrotDoubleAVX(uint32_t* out, double mx, double my, double scale, int3
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256d tmp = _mm256_mul_pd(x1, y1);
@@ -413,7 +416,7 @@ void juliaFloatAVX(uint32_t* out, double mx, double my, double scale, int32_t ys
                 const __m256i cmp = _mm256_castps_si256(_mm256_cmp_ps(abs, _mm256_set1_ps(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256 tmp = _mm256_mul_ps(x1, y1);
@@ -464,7 +467,7 @@ void juliaDoubleAVX(uint32_t* out, double mx, double my, double scale, int32_t y
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256d tmp = _mm256_mul_pd(x1, y1);
@@ -508,7 +511,7 @@ void mandelbrotFloatAVX2(uint32_t* out, double mx, double my, double scale, int3
                 const __m256i cmp = _mm256_castps_si256(_mm256_cmp_ps(abs, _mm256_set1_ps(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256 tmp = _mm256_mul_ps(x1, y1);
@@ -556,7 +559,7 @@ void mandelbrotDoubleAVX2(uint32_t* out, double mx, double my, double scale, int
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256d tmp = _mm256_mul_pd(x1, y1);
@@ -603,7 +606,7 @@ void juliaFloatAVX2(uint32_t* out, double mx, double my, double scale, int32_t y
                 const __m256i cmp = _mm256_castps_si256(_mm256_cmp_ps(abs, _mm256_set1_ps(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256 tmp = _mm256_mul_ps(x1, y1);
@@ -654,7 +657,7 @@ void juliaDoubleAVX2(uint32_t* out, double mx, double my, double scale, int32_t 
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 __m256d tmp = _mm256_mul_pd(x1, y1);
@@ -698,7 +701,7 @@ void mandelbrotFloatFMA(uint32_t* out, double mx, double my, double scale, int32
                 const __m256i cmp = _mm256_castps_si256(_mm256_cmp_ps(abs, _mm256_set1_ps(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 const __m256 tmp = _mm256_add_ps (x1, x1);
@@ -745,7 +748,7 @@ void mandelbrotDoubleFMA(uint32_t* out, double mx, double my, double scale, int3
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 const __m256d tmp = _mm256_add_pd(x1, x1);
@@ -791,7 +794,7 @@ void juliaFloatFMA(uint32_t* out, double mx, double my, double scale, int32_t ys
                 const __m256i cmp = _mm256_castps_si256(_mm256_cmp_ps(abs, _mm256_set1_ps(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 const __m256 tmp = _mm256_add_ps (x1, x1);
@@ -841,7 +844,7 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 const __m256d tmp = _mm256_add_pd(x1, x1);
@@ -882,21 +885,32 @@ int32_t cy = 0;
 uint32_t *data = NULL;
 uint32_t dataSize = 0;
 
-uint32_t cpuCores = 0;
+int32_t cpuCores = 0;
 
 void initThreads()
 {
+#ifdef __APPLE__
+    size_t len = sizeof(cpuCores);
+    sysctlbyname("hw.logicalcpu", &cpuCores, &len, NULL, 0);
+#else
     SYSTEM_INFO si;
     GetSystemInfo(&si);
     cpuCores = si.dwNumberOfProcessors;
-    if (cpuCores > 64) cpuCores = 64;
+#endif
+
+    if (cpuCores < 1) cpuCores = 1;
+    if (cpuCores > THREAD_COUNT) cpuCores = THREAD_COUNT;
 }
 
 void initFunctions(int32_t type)
 {
     int32_t out[4] = { 0 };
 
+#ifdef __APPLE__
+    __cpuid(1, out[0], out[1], out[2], out[3]);
+#else
     __cpuid(out, 1);
+#endif
 
     bool sse42      = (out[2] & (1 << 20)) != 0;
     bool sse41      = (out[2] & (1 << 19)) != 0;
@@ -904,8 +918,13 @@ void initFunctions(int32_t type)
     bool avx        = (out[2] & (1 << 28)) != 0;
     bool osxsave    = (out[2] & (1 << 29)) != 0;
 
+#ifdef __APPLE__
+    __cpuid_count(7, 0, out[0], out[1], out[2], out[3]);
+#else
     __cpuidex(out, 7, 0);
-    bool avx2 = (out[1] & 0x20) != 0;
+#endif
+
+    bool avx2 = (out[1] & (1 << 5)) != 0;
 
     if (type)
     {
@@ -1092,12 +1111,10 @@ void allocBuffer()
     const uint32_t size = alignSize(cx) * cy * getBytesPerPixel();
     if (size > dataSize)
     {
-        uint32_t* pdata = NULL;
-        if (data) pdata = (uint32_t*)_aligned_realloc(data, size, 32);
-        else pdata = (uint32_t*)_aligned_malloc(size, 32);
-        if (!pdata) exit(1);
-        memset(pdata, 0, size);
-        data = pdata;
+        if (data) _mm_free(data);
+        data = (uint32_t*)_mm_malloc(size, 32);
+        if (!data) exit(1);
+        memset(data, 0, size);
         dataSize = size;
     }
 }
@@ -1114,11 +1131,17 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
     int32_t acx = alignSize(cx);
     while (true)
     {
+#ifdef __APPLE__
+        int32_t y0 = __sync_add_and_fetch(&yprocessed, yadd) - yadd;
+#else
         int32_t y0 = InterlockedAdd(&yprocessed, yadd) - yadd;
+#endif
         if (y0 >= cy) return 0;
         int32_t y1 = min(y0 + yadd, cy);
         calculateFuncs[fractType](&data[y0 * acx], xx, yy, scale, y0, acx, y1);
     }
+
+    return 0;
 }
 
 void calculateMultiThread()
@@ -1126,15 +1149,14 @@ void calculateMultiThread()
 #ifdef __APPLE__
     pthread_t threads[64] = { 0 };
     yprocessed = 0;
-    for (uint32_t i = 0; i < cpuCores; i++) pthread_create(&threads[i], NULL, threadProc, NULL);
-    for (uint32_t i = 0; i < cpuCores; i++) pthread_join(threads[i], NULL);
+    for (int32_t i = 0; i < cpuCores; i++) pthread_create(&threads[i], NULL, threadProc, NULL);
+    for (int32_t i = 0; i < cpuCores; i++) pthread_join(threads[i], NULL);
 #else
-    HANDLE threads[64] = { 0 };
-
     yprocessed = 0;
-    for (uint32_t i = 0; i < cpuCores; i++) threads[i] = CreateThread(NULL, 0, &threadProc, NULL, 0, NULL);
+    HANDLE threads[THREAD_COUNT] = { 0 };
+    for (int32_t i = 0; i < cpuCores; i++) threads[i] = CreateThread(NULL, 0, &threadProc, NULL, 0, NULL);
     WaitForMultipleObjects(cpuCores, threads, TRUE, INFINITE);
-    for (uint32_t i = 0; i < cpuCores; i++)
+    for (int32_t i = 0; i < cpuCores; i++)
     {
         if (threads[i]) CloseHandle(threads[i]);
     }
@@ -1156,7 +1178,7 @@ void shift(double sx, double sy)
 
 void gfxFractals()
 {
-    if (!initScreen(MAXX, MAXY, 32, 0, "Fractals Explorer")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Fractals Explorer")) return;
 
     initThreads();
     initFunctions(fractType);
@@ -1372,7 +1394,7 @@ void gfxFractals()
     } while (input != SDL_SCANCODE_RETURN);
 
     //cleanup
-    _aligned_free(data);
+    _mm_free(data);
     SDL_FreeCursor(handCursor);
     cleanup();
 }

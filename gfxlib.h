@@ -7,8 +7,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.3                                   //
-//          Last Update: 2021-09-29                              //
+//              Version: 1.2.4                                   //
+//          Last Update: 2021-10-12                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -47,8 +47,8 @@
 #endif
 
 //GFX version string
-#define GFX_VERSION             "v21.09.29"
-#define GFX_BUILD_ID            20210929
+#define GFX_VERSION             "v21.10.12"
+#define GFX_BUILD_ID            20211012
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size

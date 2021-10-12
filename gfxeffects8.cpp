@@ -6823,8 +6823,8 @@ namespace textScrolling {
     #define LEN 	    256
     #define SIZE 	    2
     #define CURVE 	    2
-    #define MAXX 	    (309 / SIZE)
-    #define MAXY 	    8
+    #define SCR_WIDTH 	    (309 / SIZE)
+    #define SCR_HEIGHT 	    8
     #define SPEED 	    -1
 
     const uint8_t mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
@@ -6835,9 +6835,9 @@ namespace textScrolling {
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     
     uint16_t sint[LEN] = { 0 };
-    int16_t xpos[MAXX][MAXY] = { 0 };
-    int16_t ypos[MAXX][MAXY] = { 0 };
-    uint8_t bitmap[MAXX][MAXY] = { 0 };
+    int16_t xpos[SCR_WIDTH][SCR_HEIGHT] = { 0 };
+    int16_t ypos[SCR_WIDTH][SCR_HEIGHT] = { 0 };
+    uint8_t bitmap[SCR_WIDTH][SCR_HEIGHT] = { 0 };
 
     void loadFont()
     {
@@ -6858,19 +6858,19 @@ namespace textScrolling {
 
             if (pos >= uint16_t(strlen(text))) pos = 0;
 
-            for (uint16_t i = 0; i < MAXY; i++)
+            for (uint16_t i = 0; i < SCR_HEIGHT; i++)
             {
-                memcpy(&bitmap[0], &bitmap[1], MAXY * MAXX);
+                memcpy(&bitmap[0], &bitmap[1], SCR_HEIGHT * SCR_WIDTH);
 
-                for (y = 0; y < MAXY; y++)
+                for (y = 0; y < SCR_HEIGHT; y++)
                 {
-                    if (mask[i] & fbuff[MAXY * c + y]) bitmap[MAXX - 1][y] = 15;
-                    else bitmap[MAXX - 1][y] = 0;
+                    if (mask[i] & fbuff[SCR_HEIGHT * c + y]) bitmap[SCR_WIDTH - 1][y] = 15;
+                    else bitmap[SCR_WIDTH - 1][y] = 0;
                 }
 
-                for (x = 0; x < MAXX; x++)
+                for (x = 0; x < SCR_WIDTH; x++)
                 {
-                    for (y = 0; y < MAXY; y++)
+                    for (y = 0; y < SCR_HEIGHT; y++)
                     {
                         vmem[ypos[x][y]][xpos[x][y]] = vbuff[ypos[x][y]][xpos[x][y]];
                         xpos[x][y] = SIZE * x + sint[(x + y) % LEN] - OFS;

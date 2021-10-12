@@ -133,7 +133,7 @@ void juliaSet()
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
 
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
@@ -1078,7 +1078,7 @@ void juliaExplorer()
                     const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                     masks = _mm256_or_si256(cmp, masks);
-                    if (_mm256_test_all_ones(masks)) break;
+                    if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
 
                     iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
@@ -1263,7 +1263,7 @@ void mandelbrotSet()
                 const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                 masks = _mm256_or_si256(cmp, masks);
-                if (_mm256_test_all_ones(masks)) break;
+                if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
                 const __m256d t = _mm256_add_pd(x1, x1);
@@ -1380,7 +1380,7 @@ void mandelbrotExporer()
                     const __m256i cmp = _mm256_castpd_si256(_mm256_cmp_pd(abs, _mm256_set1_pd(4), _CMP_GE_OS));
 
                     masks = _mm256_or_si256(cmp, masks);
-                    if (_mm256_test_all_ones(masks)) break;
+                    if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
 
                     iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 

@@ -5,8 +5,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.3                                   //
-//          Last Update: 2021-09-29                              //
+//              Version: 1.2.4                                   //
+//          Last Update: 2021-10-12                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -472,7 +472,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     else
     {
         //initialize drawing buffer for 32 bits RGBA (16-bytes alignment)
-        drawBuff = _aligned_malloc(intptr_t(width) * height * bytesPerPixel, 16);
+        drawBuff = _mm_malloc(intptr_t(width) * height * bytesPerPixel, 16);
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
@@ -529,7 +529,7 @@ void cleanup()
     {
         if (drawBuff)
         {
-            _aligned_free(drawBuff);
+            _mm_free(drawBuff);
             drawBuff = NULL;
         }
     }
@@ -641,19 +641,15 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
         }
         else
         {
-            void* pbuff = NULL;
-
             //adjust render buffer
-            if (drawBuff) pbuff = _aligned_realloc(drawBuff, bytesCopy, 16);
-            else pbuff = _aligned_malloc(bytesCopy, 16);
+            if (drawBuff) _mm_free(drawBuff);
+            drawBuff = _mm_malloc(bytesCopy, 16);
 
-            if (!pbuff)
+            if (!drawBuff)
             {
                 messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
                 return;
             }
-
-            drawBuff = pbuff;
         }
 
         //update new screen buffer size
@@ -864,20 +860,21 @@ void clearScreenMix(uint32_t color)
         rep     stosb
     }
 #else
-    const int32_t align = msize >> 4;
-    const __m128i xmm0 = _mm_set1_epi8(color);
+    //32-bytes alignment
+    const int32_t align = msize >> 5;
+    const __m256i xmm0 = _mm256_set1_epi8(color);
     uint8_t* pixels = (uint8_t*)drawBuff;
 
     //loop for 16-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
-        __m128i* xmm1 = (__m128i*)pixels;
-        _mm_store_si128(xmm1, xmm0);
-        pixels += 16;
+        __m256i* xmm1 = (__m256i*)pixels;
+        _mm256_store_si256(xmm1, xmm0);
+        pixels += 32;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = msize % 16;
+    const int32_t remainder = msize % 32;
     if (remainder > 0)
     {
         for (int32_t i = 0; i < remainder; i++) *pixels++ = color;
@@ -919,20 +916,21 @@ void clearScreen(uint32_t color)
         emms        
     }
 #else
-    const int32_t align = msize >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //32-bytes alignment
+    const int32_t align = msize >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     uint32_t* pixels = (uint32_t*)drawBuff;
     
     //loop for 16-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
-        __m128i* xmm1 = (__m128i*)pixels;
-        _mm_store_si128(xmm1, xmm0);
-        pixels += 4;
+        __m256i* xmm1 = (__m256i*)pixels;
+        _mm256_store_si256(xmm1, xmm0);
+        pixels += 8;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = msize % 4;
+    const int32_t remainder = msize % 8;
     if (remainder > 0)
     {
         for (int32_t i = 0; i < remainder; i++) *pixels++ = color;
@@ -1264,20 +1262,21 @@ __forceinline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color
         rep     stosb
     }
 #else
-    const int32_t align = sx >> 4;
-    const __m128i xmm0 = _mm_set1_epi8(color);
+    //32-bytes alignment
+    const int32_t align = sx >> 5;
+    const __m256i xmm0 = _mm256_set1_epi8(color);
     uint8_t* pixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
     
-    //loop for 16-bytes aligned
+    //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
-        __m128i* xmm1 = (__m128i*)pixels;
-        _mm_store_si128(xmm1, xmm0);
-        pixels += 16;
+        __m256i* xmm1 = (__m256i*)pixels;
+        _mm256_store_si256(xmm1, xmm0);
+        pixels += 32;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = sx % 16;
+    const int32_t remainder = sx % 32;
     if (remainder > 0)
     {
         for (int32_t i = 0; i < remainder; i++) *pixels++ = color;
@@ -1314,20 +1313,21 @@ __forceinline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t co
         emms
     }
 #else
-    const int32_t align = sx >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //32-bytes alignment
+    const int32_t align = sx >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
 
-    //loop for 16-bytes aligned
+    //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
-        __m128i* xmm1 = (__m128i*)pixels;
-        _mm_store_si128(xmm1, xmm0);
-        pixels += 4;
+        __m256i* xmm1 = (__m256i*)pixels;
+        _mm256_store_si256(xmm1, xmm0);
+        pixels += 8;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = sx % 4;
+    const int32_t remainder = sx % 8;
     if (remainder > 0)
     {
         for (int32_t i = 0; i < remainder; i++) *pixels++ = color;
@@ -1368,22 +1368,23 @@ __forceinline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color
         emms
     }
 #else
-    const int32_t align = sx >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //32-bytes alignment
+    const int32_t align = sx >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
     
-    //loop for 16-bytes aligned
+    //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
-        __m128i* xmm1 = (__m128i*)pixels;
-        __m128i xmm2 = _mm_load_si128(xmm1);
-        xmm2 = _mm_adds_epu8(xmm2, xmm0);
-        _mm_store_si128(xmm1, xmm2);
-        pixels += 16;
+        __m256i* xmm1 = (__m256i*)pixels;
+        __m256i xmm2 = _mm256_load_si256(xmm1);
+        xmm2 = _mm256_adds_epu8(xmm2, xmm0);
+        _mm256_store_si256(xmm1, xmm2);
+        pixels += 32;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = sx % 4;
+    const int32_t remainder = sx % 8;
     if (remainder > 0)
     {
         const ARGB* rgb = (const ARGB*)&color;
@@ -1431,22 +1432,23 @@ __forceinline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color
         emms
     }
 #else
-    const int32_t align = sx >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //32-bytes alignment
+    const int32_t align = sx >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
 
-    //loop for 16-bytes aligned
+    //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
-        __m128i* xmm1 = (__m128i*)pixels;
-        __m128i xmm2 = _mm_load_si128(xmm1);
-        xmm2 = _mm_subs_epu8(xmm2, xmm0);
-        _mm_store_si128(xmm1, xmm2);
-        pixels += 16;
+        __m256i* xmm1 = (__m256i*)pixels;
+        __m256i xmm2 = _mm256_load_si256(xmm1);
+        xmm2 = _mm256_subs_epu8(xmm2, xmm0);
+        _mm256_store_si256(xmm1, xmm2);
+        pixels += 32;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = sx % 4;
+    const int32_t remainder = sx % 8;
     if (remainder > 0)
     {
         const ARGB* rgb = (const ARGB*)&color;
@@ -1503,52 +1505,52 @@ __forceinline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t arg
     uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
 
     //zero all
-    const __m128i xmm0 = _mm_setzero_si128();
+    const __m256i xmm0 = _mm256_setzero_si256();
 
     //alpha and inverted alpha, 8 x 16 bits
-    const __m128i alpha = _mm_set1_epi16(cover);
-    const __m128i invert = _mm_set1_epi16(256 - cover);
+    const __m256i alpha = _mm256_set1_epi16(cover);
+    const __m256i invert = _mm256_set1_epi16(256 - cover);
 
     //set 4 pixels source color (8 x 16 bits data)
-    __m128i losrc = _mm_set1_epi32(argb);
-    __m128i hisrc = losrc;
+    __m256i losrc = _mm256_set1_epi32(argb);
+    __m256i hisrc = losrc;
 
     //unpack to low & hi (S * A) (8 x 16 bits data)
-    losrc = _mm_unpacklo_epi8(losrc, xmm0);
-    losrc = _mm_mullo_epi16(losrc, alpha);
-    hisrc = _mm_unpackhi_epi8(hisrc, xmm0);
-    hisrc = _mm_mullo_epi16(hisrc, alpha);
+    losrc = _mm256_unpacklo_epi8(losrc, xmm0);
+    losrc = _mm256_mullo_epi16(losrc, alpha);
+    hisrc = _mm256_unpackhi_epi8(hisrc, xmm0);
+    hisrc = _mm256_mullo_epi16(hisrc, alpha);
 
-    //process 16-bytes aligned
-    const int32_t aligned = sx >> 2;
+    //process 32-bytes aligned
+    const int32_t aligned = sx >> 3;
     for (int32_t i = 0; i < aligned; i++)
     {
-        //load 4 pixes width from dest (8 x 16 bits data)
-        __m128i lodst = _mm_load_si128((__m128i*)pixels);
-        __m128i hidst = lodst;
+        //load 8 pixes width from dest (8 x 32 bits data)
+        __m256i lodst = _mm256_load_si256((__m256i*)pixels);
+        __m256i hidst = lodst;
 
-        //unpack to low & high (D * (256 - A)) (8 x 16 bits data)
-        lodst = _mm_unpacklo_epi8(lodst, xmm0);
-        lodst = _mm_mullo_epi16(lodst, invert);
-        hidst = _mm_unpackhi_epi8(hidst, xmm0);
-        hidst = _mm_mullo_epi16(hidst, invert);
+        //unpack to low & high (D * (256 - A)) (8 x 32 bits data)
+        lodst = _mm256_unpacklo_epi8(lodst, xmm0);
+        lodst = _mm256_mullo_epi16(lodst, invert);
+        hidst = _mm256_unpackhi_epi8(hidst, xmm0);
+        hidst = _mm256_mullo_epi16(hidst, invert);
 
-        //blending low, high (S * A + D * (256 - A)) >> 8 (8 x 16 bits data)
-        __m128i loret = _mm_adds_epu16(losrc, lodst);
-        loret = _mm_srli_epi16(loret, 8);
-        __m128i hiret = _mm_adds_epu16(hisrc, hidst);
-        hiret = _mm_srli_epi16(hiret, 8);
+        //blending low, high (S * A + D * (256 - A)) >> 8 (8 x 32 bits data)
+        __m256i loret = _mm256_adds_epu16(losrc, lodst);
+        loret = _mm256_srli_epi16(loret, 8);
+        __m256i hiret = _mm256_adds_epu16(hisrc, hidst);
+        hiret = _mm256_srli_epi16(hiret, 8);
 
-        //destination = PACKED(low,hi) 16 x 8 bits
-        const __m128i result = _mm_packus_epi16(loret, hiret);
-        _mm_store_si128((__m128i*)pixels, result);
+        //destination = PACKED(low,hi) 32 x 8 bits
+        const __m256i result = _mm256_packus_epi16(loret, hiret);
+        _mm256_store_si256((__m256i*)pixels, result);
 
-        //next 4 pixels
-        pixels += 4;
+        //next 8 pixels
+        pixels += 8;
     }
 
     //have unaligned bytes
-    const int32_t remainder = sx % 4;
+    const int32_t remainder = sx % 8;
     if (remainder > 0)
     {
         for (int32_t i = 0; i < remainder; i++)
@@ -1892,9 +1894,9 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         pop     edx
     }
 #else
-    //align 16-bytes
-    const int32_t align = width >> 4;
-    const __m128i xmm0 = _mm_set1_epi8(color);
+    //align 32-bytes
+    const int32_t align = width >> 5;
+    const __m256i xmm0 = _mm256_set1_epi8(color);
     const int32_t addOffset = texWidth - width;
     
     //calculate starting address
@@ -1903,16 +1905,16 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
     {
-        //loop for 16-bytes aligned
+        //loop for 32-bytes aligned
         for (int32_t j = 0; j < align; j++)
         {
-            __m128i* xmm1 = (__m128i*)dstPixels;
-            _mm_store_si128(xmm1, xmm0);
-            dstPixels += 16;
+            __m256i* xmm1 = (__m256i*)dstPixels;
+            _mm256_store_si256(xmm1, xmm0);
+            dstPixels += 32;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 16;
+        const int32_t remainder = width % 32;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++) *dstPixels++ = color;
@@ -1961,9 +1963,9 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
         emms
     }
 #else
-    //align 16-bytes
-    const int32_t align = width >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //align 32-bytes
+    const int32_t align = width >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     const int32_t addOffset = texWidth - width;
 
     //calculate starting address
@@ -1972,16 +1974,16 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
     {
-        //loop for 16-bytes aligned
+        //loop for 32-bytes aligned
         for (int32_t j = 0; j < align; j++)
         {
-            __m128i* xmm1 = (__m128i*)dstPixels;
-            _mm_store_si128(xmm1, xmm0);
-            dstPixels += 4;
+            __m256i* xmm1 = (__m256i*)dstPixels;
+            _mm256_store_si256(xmm1, xmm0);
+            dstPixels += 8;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++) *dstPixels++ = color;
@@ -2034,9 +2036,9 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         emms
     }
 #else
-    //aligned 16-bytes
-    const int32_t align = width >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //aligned 32-bytes
+    const int32_t align = width >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     const int32_t addOfs = texWidth - width;
     
     //calculate starting address
@@ -2045,18 +2047,18 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
     {
-        //loop for 16-bytes aligned
+        //loop for 32-bytes aligned
         for (int32_t j = 0; j < align; j++)
         {
-            __m128i* xmm1 = (__m128i*)pixels;
-            __m128i xmm2 = _mm_load_si128(xmm1);
-            xmm2 = _mm_adds_epu8(xmm2, xmm0);
-            _mm_store_si128(xmm1, xmm2);
-            pixels += 4;
+            __m256i* xmm1 = (__m256i*)pixels;
+            __m256i xmm2 = _mm256_load_si256(xmm1);
+            xmm2 = _mm256_adds_epu8(xmm2, xmm0);
+            _mm256_store_si256(xmm1, xmm2);
+            pixels += 8;
         }
 
         //have unaligned bytes
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             const ARGB* pcol = (const ARGB*)&color;
@@ -2116,9 +2118,9 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         emms
     }
 #else
-    //aligned 16-bytes
-    const int32_t align = width >> 2;
-    const __m128i xmm0 = _mm_set1_epi32(color);
+    //aligned 32-bytes
+    const int32_t align = width >> 3;
+    const __m256i xmm0 = _mm256_set1_epi32(color);
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
@@ -2127,18 +2129,18 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
     {
-        //loop for 16-bytes aligned
+        //loop for 32-bytes aligned
         for (int32_t j = 0; j < align; j++)
         {
-            __m128i* xmm1 = (__m128i*)pixels;
-            __m128i xmm2 = _mm_load_si128(xmm1);
-            xmm2 = _mm_subs_epu8(xmm2, xmm0);
-            _mm_store_si128(xmm1, xmm2);
-            pixels += 4;
+            __m256i* xmm1 = (__m256i*)pixels;
+            __m256i xmm2 = _mm256_load_si256(xmm1);
+            xmm2 = _mm256_subs_epu8(xmm2, xmm0);
+            _mm256_store_si256(xmm1, xmm2);
+            pixels += 8;
         }
 
         //have unaligned bytes
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             const ARGB* pcol = (const ARGB*)&color;
@@ -2202,8 +2204,8 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
         emms
     }
 #else
-    //aligned 16-bytes
-    const int32_t aligned = width >> 2;
+    //aligned 32-bytes
+    const int32_t aligned = width >> 3;
     const uint8_t cover = argb >> 24;
     const int32_t addOfs = texWidth - width;
     
@@ -2211,53 +2213,53 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
     uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
 
     //zero all
-    const __m128i xmm0 = _mm_setzero_si128();
+    const __m256i xmm0 = _mm256_setzero_si256();
 
     //alpha and inverted alpha, 8 x 16 bits
-    const __m128i alpha = _mm_set1_epi16(cover);
-    const __m128i invert = _mm_set1_epi16(256 - cover);
+    const __m256i alpha = _mm256_set1_epi16(cover);
+    const __m256i invert = _mm256_set1_epi16(256 - cover);
 
-    //set 4 pixels source color (8 x 16 bits data)
-    __m128i losrc = _mm_set1_epi32(argb);
-    __m128i hisrc = losrc;
+    //set 8 pixels source color (8 x 32 bits data)
+    __m256i losrc = _mm256_set1_epi32(argb);
+    __m256i hisrc = losrc;
 
-    //unpack to low & hi (S * A) (8 x 16 bits data)
-    losrc = _mm_unpacklo_epi8(losrc, xmm0);
-    losrc = _mm_mullo_epi16(losrc, alpha);
-    hisrc = _mm_unpackhi_epi8(hisrc, xmm0);
-    hisrc = _mm_mullo_epi16(hisrc, alpha);
+    //unpack to low & hi (S * A) (8 x 32 bits data)
+    losrc = _mm256_unpacklo_epi8(losrc, xmm0);
+    losrc = _mm256_mullo_epi16(losrc, alpha);
+    hisrc = _mm256_unpackhi_epi8(hisrc, xmm0);
+    hisrc = _mm256_mullo_epi16(hisrc, alpha);
 
-    //process 16-bytes aligned
+    //process 32-bytes aligned
     for (int32_t i = 0; i < height; i++)
     {
         for (int32_t j = 0; j < aligned; j++)
         {
-            //load 4 pixes width from dest (8 x 16 bits data)
-            __m128i lodst = _mm_load_si128((__m128i*)pixels);
-            __m128i hidst = lodst;
+            //load 8 pixes width from dest (8 x 32 bits data)
+            __m256i lodst = _mm256_load_si256((__m256i*)pixels);
+            __m256i hidst = lodst;
 
-            //unpack to low & high (D * (256 - A)) (8 x 16 bits data)
-            lodst = _mm_unpacklo_epi8(lodst, xmm0);
-            lodst = _mm_mullo_epi16(lodst, invert);
-            hidst = _mm_unpackhi_epi8(hidst, xmm0);
-            hidst = _mm_mullo_epi16(hidst, invert);
+            //unpack to low & high (D * (256 - A)) (8 x 32 bits data)
+            lodst = _mm256_unpacklo_epi8(lodst, xmm0);
+            lodst = _mm256_mullo_epi16(lodst, invert);
+            hidst = _mm256_unpackhi_epi8(hidst, xmm0);
+            hidst = _mm256_mullo_epi16(hidst, invert);
 
-            //blending low, high (S * A + D * (256 - A)) >> 8 (8 x 16 bits data)
-            __m128i loret = _mm_adds_epu16(losrc, lodst);
-            loret = _mm_srli_epi16(loret, 8);
-            __m128i hiret = _mm_adds_epu16(hisrc, hidst);
-            hiret = _mm_srli_epi16(hiret, 8);
+            //blending low, high (S * A + D * (256 - A)) >> 8 (8 x 32 bits data)
+            __m256i loret = _mm256_adds_epu16(losrc, lodst);
+            loret = _mm256_srli_epi16(loret, 8);
+            __m256i hiret = _mm256_adds_epu16(hisrc, hidst);
+            hiret = _mm256_srli_epi16(hiret, 8);
 
-            //destination = PACKED(low,hi) 16 x 8 bits
-            const __m128i result = _mm_packus_epi16(loret, hiret);
-            _mm_store_si128((__m128i*)pixels, result);
+            //destination = PACKED(low,hi) 32 x 8 bits
+            const __m256i result = _mm256_packus_epi16(loret, hiret);
+            _mm256_store_si256((__m256i*)pixels, result);
 
-            //next 4 pixels
-            pixels += 4;
+            //next 8 pixels
+            pixels += 8;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             const uint8_t rcover = 255 - cover;
@@ -4701,7 +4703,7 @@ int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
     }
 
     //16-bytes alignment for SIMD
-    img->mData = _aligned_malloc(memSize, 16);
+    img->mData = _mm_malloc(memSize, 16);
     if (!img->mData)
     {
         messageBox(GFX_ERROR, "Error alloc memory, size:%lu", memSize);
@@ -4733,15 +4735,15 @@ int32_t updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
     }
 
     //reallocate new memory with new size
-    void* pdata = _aligned_realloc(img->mData, size, 16);
-    if (!pdata)
+    if (img->mData) _mm_free(img->mData);
+    img->mData = _mm_malloc(size, 16);
+    if (!img->mData)
     {
         messageBox(GFX_ERROR, "Error alloc memory with size: %lu", size);
         return 0;
     }
 
     //store image width and height
-    img->mData     = pdata;
     img->mWidth    = width;
     img->mHeight   = height;
     img->mSize     = size;
@@ -4755,7 +4757,7 @@ void freeImage(GFX_IMAGE* img)
 {
     if (img && img->mData)
     {
-        _aligned_free(img->mData);
+        _mm_free(img->mData);
         img->mData     = NULL;
         img->mWidth    = 0;
         img->mHeight   = 0;
@@ -4858,7 +4860,7 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
 
     for (int32_t i = 0; i < height; i++)
     {
-        memcpy(imgPixels, dstPixels, intptr_t(img->mWidth) << 2);
+        memcpy(imgPixels, dstPixels, img->mRowBytes);
         dstPixels += texWidth;
         imgPixels += img->mWidth;
     }
@@ -5158,8 +5160,8 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
         emms
     }
 #else
-    //align 16-bytes
-    const int32_t aligned = width >> 2;
+    //32-bytes alignment
+    const int32_t aligned = width >> 3;
 
     //calculate next offset
     const int32_t addDstOffs = texWidth - width;
@@ -5175,20 +5177,20 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m128i src = _mm_loadu_si128((const __m128i*)imgPixels);
-            const __m128i dst = _mm_loadu_si128((const __m128i*)dstPixels);
+            const __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
+            const __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
 
             //add 16-bytes data with saturation and store
-            const __m128i res = _mm_adds_epu8(src, dst);
-            _mm_storeu_si128((__m128i*)dstPixels, res);
+            const __m256i res = _mm256_adds_epu8(src, dst);
+            _mm256_store_si256((__m256i*)dstPixels, res);
 
-            //next 4 pixels
-            dstPixels += 4;
-            imgPixels += 4;
+            //next 8 pixels
+            dstPixels += 8;
+            imgPixels += 8;
         }
         
         //have unaligned bytes
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -5286,8 +5288,8 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
         emms
     }
 #else
-    //align 16-bytes
-    const int32_t aligned = width >> 2;
+    //32-bytes alignment
+    const int32_t aligned = width >> 3;
 
     //calculate next offset
     const int32_t addDstOffs = texWidth - width;
@@ -5303,20 +5305,20 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m128i src = _mm_loadu_si128((const __m128i*)imgPixels);
-            const __m128i dst = _mm_loadu_si128((const __m128i*)dstPixels);
+            const __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
+            const __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
 
-            //add 16-bytes data with saturation and store
-            const __m128i res = _mm_subs_epu8(src, dst);
-            _mm_storeu_si128((__m128i*)dstPixels, res);
+            //sub 32-bytes data with saturation and store
+            const __m256i res = _mm256_subs_epu8(src, dst);
+            _mm256_store_si256((__m256i*)dstPixels, res);
 
-            //next 4 pixels
-            dstPixels += 4;
-            imgPixels += 4;
+            //next 8 pixels
+            dstPixels += 8;
+            imgPixels += 8;
         }
 
         //have unaligned bytes
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -5419,10 +5421,10 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
         emms
     }
 #else
-    //align 16-bytes
-    const int32_t aligned = width >> 2;
-    const __m128i zero = _mm_setzero_si128();
-    const __m128i unity = _mm_set1_epi16(256);
+    //align 32-bytes
+    const int32_t aligned = width >> 3;
+    const __m256i zero = _mm256_setzero_si256();
+    const __m256i unity = _mm256_set1_epi16(256);
 
     //next offset
     const int32_t addDstOffs = texWidth - width;
@@ -5435,56 +5437,56 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
     //scan height
     for (int32_t i = 0; i < height; i++)
     {
-        //process 16-bytes aligned
+        //process 32-bytes aligned
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m128i src = _mm_load_si128((const __m128i*)imgPixels);
-            const __m128i dst = _mm_load_si128((const __m128i*)dstPixels);
+            const __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
+            const __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
 
             //high source (S * A)
-            __m128i src16 = _mm_unpackhi_epi8(src, zero);
-            __m128i alpha = src16;
-            alpha = _mm_shufflehi_epi16(alpha, 0xff);
-            alpha = _mm_shufflelo_epi16(alpha, 0xff);
-            src16 = _mm_mullo_epi16(src16, alpha);
+            __m256i src16 = _mm256_unpackhi_epi8(src, zero);
+            __m256i alpha = src16;
+            alpha = _mm256_shufflehi_epi16(alpha, 0xff);
+            alpha = _mm256_shufflelo_epi16(alpha, 0xff);
+            src16 = _mm256_mullo_epi16(src16, alpha);
 
             //high dest (D * (256 - A))
-            __m128i dst16 = _mm_unpackhi_epi8(dst, zero);
-            alpha = _mm_sub_epi16(unity, alpha);
-            dst16 = _mm_mullo_epi16(dst16, alpha);
+            __m256i dst16 = _mm256_unpackhi_epi8(dst, zero);
+            alpha = _mm256_sub_epi16(unity, alpha);
+            dst16 = _mm256_mullo_epi16(dst16, alpha);
 
             //high result (S * A + D * (256 - A)) >> 8
-            __m128i rlt16h = _mm_add_epi16(src16, dst16);
-            rlt16h = _mm_srli_epi16(rlt16h, 8);
+            __m256i rlt16h = _mm256_add_epi16(src16, dst16);
+            rlt16h = _mm256_srli_epi16(rlt16h, 8);
 
             //low (S * A)
-            src16 = _mm_unpacklo_epi8(src, zero);
+            src16 = _mm256_unpacklo_epi8(src, zero);
             alpha = src16;
-            alpha = _mm_shufflehi_epi16(alpha, 0xff);
-            alpha = _mm_shufflelo_epi16(alpha, 0xff);
-            src16 = _mm_mullo_epi16(src16, alpha);
+            alpha = _mm256_shufflehi_epi16(alpha, 0xff);
+            alpha = _mm256_shufflelo_epi16(alpha, 0xff);
+            src16 = _mm256_mullo_epi16(src16, alpha);
 
             //low (D * (256 - A))
-            dst16 = _mm_unpacklo_epi8(dst, zero);
-            alpha = _mm_sub_epi16(unity, alpha);
-            dst16 = _mm_mullo_epi16(dst16, alpha);
+            dst16 = _mm256_unpacklo_epi8(dst, zero);
+            alpha = _mm256_sub_epi16(unity, alpha);
+            dst16 = _mm256_mullo_epi16(dst16, alpha);
 
             //low result (S * A + D * (256 - A)) >> 8
-            __m128i rlt16l = _mm_add_epi16(src16, dst16);
-            rlt16l = _mm_srli_epi16(rlt16l, 8);
+            __m256i rlt16l = _mm256_add_epi16(src16, dst16);
+            rlt16l = _mm256_srli_epi16(rlt16l, 8);
 
             //final merge result (hi,low) and store
-            const __m128i result = _mm_packus_epi16(rlt16l, rlt16h);
-            _mm_store_si128((__m128i*)dstPixels, result);
+            const __m256i result = _mm256_packus_epi16(rlt16l, rlt16h);
+            _mm256_store_si256((__m256i*)dstPixels, result);
 
-            //next 4 pixels width
-            dstPixels += 4;
-            imgPixels += 4;
+            //next 8 pixels width
+            dstPixels += 8;
+            imgPixels += 8;
         }
 
         //have unaligned bytes
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -5720,11 +5722,11 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         emms
     }
 #else
-    //aligned 16-bytes
-    const int32_t aligned = width >> 2;
-    const __m128i xmm4 = _mm_set1_epi32(keyColor);
-    const __m128i xmm5 = _mm_set1_epi32(0xffffffff);
-    const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
+    //aligned 32-bytes
+    const int32_t aligned = width >> 3;
+    const __m256i xmm4 = _mm256_set1_epi32(keyColor);
+    const __m256i xmm5 = _mm256_set1_epi32(0xffffffff);
+    const __m256i xmm6 = _mm256_set1_epi32(0x00ffffff);
 
     //calculate next offsets
     const int32_t addDstOffs = texWidth - width;
@@ -5737,37 +5739,37 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     //line-by-line
     for (int32_t i = 0; i < height; i++)
     {
-        //process 16-bytes align
+        //process 32-bytes align
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels
-            __m128i xmm0 = _mm_and_si128(_mm_loadu_si128((const __m128i*)imgPixels), xmm6);
+            __m256i xmm0 = _mm256_and_si256(_mm256_load_si256((const __m256i*)imgPixels), xmm6);
 
             //get mask with key color
-            __m128i xmm2 = _mm_cmpeq_epi32(xmm0, xmm4);
+            __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
             
             //replace background color by key color
-            __m128i xmm1 = _mm_and_si128(_mm_loadu_si128((const __m128i*)dstPixels), xmm2);
+            __m256i xmm1 = _mm256_and_si256(_mm256_load_si256((const __m256i*)dstPixels), xmm2);
             
             //inverted mask
-            xmm2 = _mm_xor_si128(xmm2, xmm5);
+            xmm2 = _mm256_xor_si256(xmm2, xmm5);
             
             //turn off key color channel from source
-            xmm0 = _mm_and_si128(xmm0, xmm2);
+            xmm0 = _mm256_and_si256(xmm0, xmm2);
 
             //add with background
-            xmm1 = _mm_or_si128(xmm1, xmm0);
+            xmm1 = _mm256_or_si256(xmm1, xmm0);
             
             //store color
-            _mm_storeu_si128((__m128i*)dstPixels, xmm1);
-            
-            //next pixels
-            dstPixels += 4;
-            imgPixels += 4;
+            _mm256_store_si256((__m256i*)dstPixels, xmm1);
+
+            //next 8 pixels
+            dstPixels += 8;
+            imgPixels += 8;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -5879,11 +5881,11 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         emms
     }
 #else
-    //aligned 16-bytes
-    const int32_t aligned = width >> 2;
-    const __m128i xmm4 = _mm_set1_epi32(keyColor);
-    const __m128i xmm5 = _mm_set1_epi32(0xffffffff);
-    const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
+    //aligned 32-bytes
+    const int32_t aligned = width >> 3;
+    const __m256i xmm4 = _mm256_set1_epi32(keyColor);
+    const __m256i xmm5 = _mm256_set1_epi32(0xffffffff);
+    const __m256i xmm6 = _mm256_set1_epi32(0x00ffffff);
 
     //calculate next offsets
     const int32_t addDstOffs = texWidth - width;
@@ -5896,37 +5898,37 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     //line-by-line
     for (int32_t i = 0; i < height; i++)
     {
-        //process 16-bytes align
+        //process 32-bytes align
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m128i xmm0 = _mm_and_si128(_mm_loadu_si128((const __m128i*)imgPixels), xmm6);
+            __m256i xmm0 = _mm256_and_si256(_mm256_load_si256((const __m256i*)imgPixels), xmm6);
 
             //load 4 pixels from background color
-            __m128i xmm1 = _mm_loadu_si128((const __m128i*)dstPixels);
+            __m256i xmm1 = _mm256_load_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
-            __m128i xmm2 = _mm_cmpeq_epi32(xmm0, xmm4);
+            __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
 
             //inverted mask (key color is 0x00 and render is 0xFF)
-            xmm2 = _mm_xor_si128(xmm2, xmm5);
+            xmm2 = _mm256_xor_si256(xmm2, xmm5);
 
             //make source with off key color (0x00XX)
-            xmm0 = _mm_and_si128(xmm0, xmm2);
+            xmm0 = _mm256_and_si256(xmm0, xmm2);
 
             //add with background color (only add render color)
-            xmm1 = _mm_adds_epu8(xmm0, xmm1);
+            xmm1 = _mm256_adds_epu8(xmm0, xmm1);
 
             //store back to background
-            _mm_storeu_si128((__m128i*)dstPixels, xmm1);
+            _mm256_store_si256((__m256i*)dstPixels, xmm1);
 
-            //next 4 pixels
-            dstPixels += 4;
-            imgPixels += 4;
+            //next 8 pixels
+            dstPixels += 8;
+            imgPixels += 8;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -6046,11 +6048,11 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         emms
     }
 #else
-    //aligned 16-bytes
-    const int32_t aligned = width >> 2;
-    const __m128i xmm4 = _mm_set1_epi32(keyColor);
-    const __m128i xmm5 = _mm_set1_epi32(0xffffffff);
-    const __m128i xmm6 = _mm_set1_epi32(0x00ffffff);
+    //aligned 32-bytes
+    const int32_t aligned = width >> 3;
+    const __m256i xmm4 = _mm256_set1_epi32(keyColor);
+    const __m256i xmm5 = _mm256_set1_epi32(0xffffffff);
+    const __m256i xmm6 = _mm256_set1_epi32(0x00ffffff);
 
     //calculate next offsets
     const int32_t addDstOffs = texWidth - width;
@@ -6063,43 +6065,43 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     //line-by-line
     for (int32_t i = 0; i < height; i++)
     {
-        //process 16-bytes align
+        //process 32-bytes align
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m128i xmm0 = _mm_and_si128(_mm_loadu_si128((const __m128i*)imgPixels), xmm6);
+            __m256i xmm0 = _mm256_and_si256(_mm256_load_si256((const __m256i*)imgPixels), xmm6);
 
             //load 4 pixels from background color
-            __m128i xmm1 = _mm_loadu_si128((const __m128i*)dstPixels);
+            __m256i xmm1 = _mm256_load_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
-            __m128i xmm2 = _mm_cmpeq_epi32(xmm0, xmm4);
+            __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
 
             //save revert background
-            __m128i xmm3 = _mm_and_si128(xmm1, xmm2);
+            __m256i xmm3 = _mm256_and_si256(xmm1, xmm2);
 
             //inverted mask (key color is 0x00 and render is 0xFF)
-            xmm2 = _mm_xor_si128(xmm2, xmm5);
+            xmm2 = _mm256_xor_si256(xmm2, xmm5);
 
             //make source with off key color (0x00XX)
-            xmm0 = _mm_and_si128(xmm0, xmm2);
+            xmm0 = _mm256_and_si256(xmm0, xmm2);
 
             //sub source to background color (only sub render color)
-            xmm0 = _mm_subs_epu8(xmm0, xmm1);
+            xmm0 = _mm256_subs_epu8(xmm0, xmm1);
 
             //replace key color with background color
-            xmm3 = _mm_or_si128(xmm0, xmm3);
+            xmm3 = _mm256_or_si256(xmm0, xmm3);
 
             //store back to background
-            _mm_storeu_si128((__m128i*)dstPixels, xmm3);
+            _mm256_store_si256((__m256i*)dstPixels, xmm3);
 
-            //next 4 pixels
-            dstPixels += 4;
-            imgPixels += 4;
+            //next 8 pixels
+            dstPixels += 8;
+            imgPixels += 8;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -6210,13 +6212,13 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         emms
     }
 #else
-    //align 16-bytes
-    const int32_t aligned = width >> 2;
-    const __m128i zero = _mm_setzero_si128();
-    const __m128i unity = _mm_set1_epi16(256);
+    //align 32-bytes
+    const int32_t aligned = width >> 3;
+    const __m256i zero = _mm256_setzero_si256();
+    const __m256i unity = _mm256_set1_epi16(256);
 
-    const __m128i amask = _mm_set1_epi32(keyColor);
-    const __m128i bmask = _mm_set1_epi32(0xffffffff);
+    const __m256i amask = _mm256_set1_epi32(keyColor);
+    const __m256i bmask = _mm256_set1_epi32(0xffffffff);
 
     //calculate adding offsets for next line
     const int32_t addDstOffs = texWidth - width;
@@ -6229,65 +6231,65 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     //line-by-line
     for (int32_t i = 0; i < height; i++)
     {
-        //process 16-bytes aligned
+        //process 32-bytes aligned
         for (int32_t j = 0; j < aligned; j++)
         {
-            //load 4 pixels from source and dest
-            __m128i src = _mm_load_si128((const __m128i*)imgPixels);
-            __m128i dst = _mm_load_si128((const __m128i*)dstPixels);
+            //load 8 pixels from source and dest
+            __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
+            __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
-            __m128i mask = _mm_cmpeq_epi32(src, amask);
+            __m256i mask = _mm256_cmpeq_epi32(src, amask);
 
             //inverted mask (key color is 0x00 and render is 0xFF)
-            mask = _mm_xor_si128(mask, bmask);
+            mask = _mm256_xor_si256(mask, bmask);
 
             //make source with off key color (0x00XX)
-            src = _mm_and_si128(src, mask);
+            src = _mm256_and_si256(src, mask);
 
             //high source (S * A)
-            __m128i src16 = _mm_unpackhi_epi8(src, zero);
-            __m128i alpha = src16;
-            alpha = _mm_shufflehi_epi16(alpha, 0xff);
-            alpha = _mm_shufflelo_epi16(alpha, 0xff);
-            src16 = _mm_mullo_epi16(src16, alpha);
+            __m256i src16 = _mm256_unpackhi_epi8(src, zero);
+            __m256i alpha = src16;
+            alpha = _mm256_shufflehi_epi16(alpha, 0xff);
+            alpha = _mm256_shufflelo_epi16(alpha, 0xff);
+            src16 = _mm256_mullo_epi16(src16, alpha);
 
             //high dest (D * (256 - A))
-            __m128i dst16 = _mm_unpackhi_epi8(dst, zero);
-            alpha = _mm_sub_epi16(unity, alpha);
-            dst16 = _mm_mullo_epi16(dst16, alpha);
+            __m256i dst16 = _mm256_unpackhi_epi8(dst, zero);
+            alpha = _mm256_sub_epi16(unity, alpha);
+            dst16 = _mm256_mullo_epi16(dst16, alpha);
 
             //high result (S * A + D * (256 - A)) >> 8
-            __m128i rlt16h = _mm_add_epi16(src16, dst16);
-            rlt16h = _mm_srli_epi16(rlt16h, 8);
+            __m256i rlt16h = _mm256_add_epi16(src16, dst16);
+            rlt16h = _mm256_srli_epi16(rlt16h, 8);
 
             //low (S * A)
-            src16 = _mm_unpacklo_epi8(src, zero);
+            src16 = _mm256_unpacklo_epi8(src, zero);
             alpha = src16;
-            alpha = _mm_shufflehi_epi16(alpha, 0xff);
-            alpha = _mm_shufflelo_epi16(alpha, 0xff);
-            src16 = _mm_mullo_epi16(src16, alpha);
+            alpha = _mm256_shufflehi_epi16(alpha, 0xff);
+            alpha = _mm256_shufflelo_epi16(alpha, 0xff);
+            src16 = _mm256_mullo_epi16(src16, alpha);
 
             //low (D * (256 - A))
-            dst16 = _mm_unpacklo_epi8(dst, zero);
-            alpha = _mm_sub_epi16(unity, alpha);
-            dst16 = _mm_mullo_epi16(dst16, alpha);
+            dst16 = _mm256_unpacklo_epi8(dst, zero);
+            alpha = _mm256_sub_epi16(unity, alpha);
+            dst16 = _mm256_mullo_epi16(dst16, alpha);
 
             //low result (S * A + D * (256 - A)) >> 8
-            __m128i rlt16l = _mm_add_epi16(src16, dst16);
-            rlt16l = _mm_srli_epi16(rlt16l, 8);
+            __m256i rlt16l = _mm256_add_epi16(src16, dst16);
+            rlt16l = _mm256_srli_epi16(rlt16l, 8);
 
             //final merge result (hi,low) and store
-            const __m128i result = _mm_packus_epi16(rlt16l, rlt16h);
-            _mm_store_si128((__m128i*)dstPixels, result);
+            const __m256i result = _mm256_packus_epi16(rlt16l, rlt16h);
+            _mm256_store_si256((__m256i*)dstPixels, result);
 
-            //next 4 pixels width
-            dstPixels += 4;
-            imgPixels += 4;
+            //next 8 pixels width
+            dstPixels += 8;
+            imgPixels += 8;
         }
 
         //have unaligned bytes?
-        const int32_t remainder = width % 4;
+        const int32_t remainder = width % 8;
         if (remainder > 0)
         {
             for (int32_t j = 0; j < remainder; j++)
@@ -11050,56 +11052,56 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     }
 #else
     //all zero
-    const __m128i xmm0 = _mm_setzero_si128();
+    const __m256i xmm0 = _mm256_setzero_si256();
 
-    //alpha and inverted alpha, 8 x 16 bits
-    const __m128i alpha = _mm_set1_epi16(cover);
-    const __m128i invert = _mm_set1_epi16(256 - cover);
+    //alpha and inverted alpha, 8 x 32 bits
+    const __m256i alpha = _mm256_set1_epi16(cover);
+    const __m256i invert = _mm256_set1_epi16(256 - cover);
 
-    //process 16-bytes aligned
-    const int32_t aligned = pixels >> 2;
+    //process 32-bytes aligned
+    const int32_t aligned = pixels >> 3;
     for (int32_t i = 0; i < aligned; i++)
     {
-        //load 4 pixes width from src1 (8 x 16 bits data)
-        __m128i los1 = _mm_load_si128((__m128i*)psrc1);
-        __m128i his1 = los1;
+        //load 8 pixes width from src1 (8 x 32 bits data)
+        __m256i los1 = _mm256_load_si256((__m256i*)psrc1);
+        __m256i his1 = los1;
 
         //unpack to low & hi
-        los1 = _mm_unpacklo_epi8(los1, xmm0);
-        his1 = _mm_unpackhi_epi8(his1, xmm0);
+        los1 = _mm256_unpacklo_epi8(los1, xmm0);
+        his1 = _mm256_unpackhi_epi8(his1, xmm0);
 
-        //load 4 pixes width from src2 (8 x 16 bits data)
-        __m128i los2 = _mm_load_si128((__m128i*)psrc2);
-        __m128i his2 = los2;
+        //load 8 pixes width from src2 (8 x 32 bits data)
+        __m256i los2 = _mm256_load_si256((__m256i*)psrc2);
+        __m256i his2 = los2;
 
         //unpack to low & high
-        los2 = _mm_unpacklo_epi8(los2, xmm0);
-        his2 = _mm_unpackhi_epi8(his2, xmm0);
+        los2 = _mm256_unpacklo_epi8(los2, xmm0);
+        his2 = _mm256_unpackhi_epi8(his2, xmm0);
 
-        //blending low = (A * SRC + B * DST) >> 8, (8 x 16 bits data)
-        los1 = _mm_mullo_epi16(los1, alpha);
-        los2 = _mm_mullo_epi16(los2, invert);
-        __m128i los = _mm_adds_epu16(los1, los2);
-        los = _mm_srli_epi16(los, 8);
+        //blending low = (A * SRC + B * DST) >> 8, (8 x 32 bits data)
+        los1 = _mm256_mullo_epi16(los1, alpha);
+        los2 = _mm256_mullo_epi16(los2, invert);
+        __m256i los = _mm256_adds_epu16(los1, los2);
+        los = _mm256_srli_epi16(los, 8);
 
-        //blending high = (A * SRC + B * DST) >> 8, (8 x 16 bits data)
-        his1 = _mm_mullo_epi16(his1, alpha);
-        his2 = _mm_mullo_epi16(his2, invert);
-        __m128i his = _mm_adds_epu16(his1, his2);
-        his = _mm_srli_epi16(his, 8);
+        //blending high = (A * SRC + B * DST) >> 8, (8 x 32 bits data)
+        his1 = _mm256_mullo_epi16(his1, alpha);
+        his2 = _mm256_mullo_epi16(his2, invert);
+        __m256i his = _mm256_adds_epu16(his1, his2);
+        his = _mm256_srli_epi16(his, 8);
 
-        //destination = PACKED(low,hi) 16 x 8 bits
-        const __m128i res = _mm_packus_epi16(los, his);
-        _mm_store_si128((__m128i*)pdst, res);
+        //destination = PACKED(low,hi) 32 x 8 bits
+        const __m256i res = _mm256_packus_epi16(los, his);
+        _mm256_store_si256((__m256i*)pdst, res);
 
-        //next 4 pixels
-        pdst += 4;
-        psrc1 += 4;
-        psrc2 += 4;
+        //next 8 pixels
+        pdst += 8;
+        psrc1 += 8;
+        psrc2 += 8;
     }
 
     //have unaligned bytes
-    const int32_t remainder = pixels % 4;
+    const int32_t remainder = pixels % 8;
     if (remainder > 0)
     {
         uint32_t rcover = 255 - cover;
@@ -11480,33 +11482,33 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
         emms
     }
 #else
-    //make 16-bytes align (4 pixels)
-    const int32_t aligned = msize >> 2;
+    //make 32-bytes alignment (8 pixels)
+    const int32_t aligned = msize >> 3;
 
-    //make 16-bytes step
-    const __m128i mstep = _mm_set1_epi8(step);
+    //make 32-bytes step
+    const __m256i mstep = _mm256_set1_epi8(step);
 
-    //start loop for 16-bytes aligned
+    //start loop for 32-bytes aligned
     for (int32_t i = 0; i < aligned; i++)
     {
-        //make 128-bits data type
-        __m128i* xmm1 = (__m128i*)pixels;
+        //make 256-bits data type
+        __m256i* xmm1 = (__m256i*)pixels;
 
-        //load 4 pixels (128-bits data)
-        const __m128i xmm0 = _mm_load_si128(xmm1);
+        //load 8 pixels (256-bits data)
+        const __m256i xmm0 = _mm256_load_si256(xmm1);
 
-        //sub 16-bytes pixels with saturating
-        const __m128i xmm2 = _mm_subs_epu8(xmm0, mstep);
+        //sub 32-bytes pixels with saturating
+        const __m256i xmm2 = _mm256_subs_epu8(xmm0, mstep);
         
-        //store data
-        _mm_store_si128(xmm1, xmm2);
+        //store data 32-bytes
+        _mm256_store_si256(xmm1, xmm2);
         
-        //next-to 16-bytes align (4 pixels)
-        pixels += 4;
+        //next-to 32-bytes align (8 pixels)
+        pixels += 8;
     }
 
     //have unaligned bytes?
-    const int32_t remainder = msize % 4;
+    const int32_t remainder = msize % 8;
     if (remainder > 0)
     {
         //process remainder bytes
@@ -11700,11 +11702,21 @@ void calcCpuFeatures()
     if (cpuInfo[0] >= 1) CPUID(cpuInfo, 1);
     
     memset(cpuFeatures, 0, sizeof(cpuFeatures));
+
     if (have3DNow()) strcat(cpuFeatures, "3DNow!,");
     if (cpuInfo[3] & 0x00800000) strcat(cpuFeatures, "MMX,");
     if (cpuInfo[3] & 0x02000000) strcat(cpuFeatures, "SSE,");
     if (cpuInfo[3] & 0x04000000) strcat(cpuFeatures, "SSE2,");
-    if (cpuInfo[2] & 0x00000001) strcat(cpuFeatures, "SSE3,");
+    if (cpuInfo[2] & 0x10000000) strcat(cpuFeatures, "AVX,");
+
+#ifdef __APPLE__
+    __cpuid_count(7, 0, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
+#else
+    __cpuidex(cpuInfo, 7, 0);
+#endif
+
+    if (cpuInfo[1] & 0x00000020) strcat(cpuFeatures, "AVX2,");
+
     size_t len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
 }
@@ -11903,9 +11915,9 @@ int32_t initSystemInfo()
     initMemoryInfo();
 
     //check CPU extension
-    if (!strstr(cpuFeatures, "MMX") && !strstr(cpuFeatures, "SSE2"))
+    if (!strstr(cpuFeatures, "MMX") && !strstr(cpuFeatures, "SSE2") && !strstr(cpuFeatures, "AVX2"))
     {
-        messageBox(GFX_ERROR, "GFXLIB require modern CPU with MMX and SSE2 extension!");
+        messageBox(GFX_ERROR, "GFXLIB require modern CPU with MMX, SSE2 and AVX2 extension!");
         return 0;
     }
 
