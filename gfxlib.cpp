@@ -869,7 +869,7 @@ void clearScreenMix(uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        _mm256_store_si256(xmm1, xmm0);
+        _mm256_storeu_si256(xmm1, xmm0);
         pixels += 32;
     }
 
@@ -925,7 +925,7 @@ void clearScreen(uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        _mm256_store_si256(xmm1, xmm0);
+        _mm256_storeu_si256(xmm1, xmm0);
         pixels += 8;
     }
 
@@ -1271,7 +1271,7 @@ must_inline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        _mm256_store_si256(xmm1, xmm0);
+        _mm256_storeu_si256(xmm1, xmm0);
         pixels += 32;
     }
 
@@ -1322,7 +1322,7 @@ must_inline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t colo
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        _mm256_store_si256(xmm1, xmm0);
+        _mm256_storeu_si256(xmm1, xmm0);
         pixels += 8;
     }
 
@@ -1377,9 +1377,9 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        __m256i xmm2 = _mm256_load_si256(xmm1);
+        __m256i xmm2 = _mm256_loadu_si256(xmm1);
         xmm2 = _mm256_adds_epu8(xmm2, xmm0);
-        _mm256_store_si256(xmm1, xmm2);
+        _mm256_storeu_si256(xmm1, xmm2);
         pixels += 32;
     }
 
@@ -1441,9 +1441,9 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        __m256i xmm2 = _mm256_load_si256(xmm1);
+        __m256i xmm2 = _mm256_loadu_si256(xmm1);
         xmm2 = _mm256_subs_epu8(xmm2, xmm0);
-        _mm256_store_si256(xmm1, xmm2);
+        _mm256_storeu_si256(xmm1, xmm2);
         pixels += 32;
     }
 
@@ -1526,7 +1526,7 @@ must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
     for (int32_t i = 0; i < aligned; i++)
     {
         //load 8 pixes width from dest (8 x 32 bits data)
-        __m256i lodst = _mm256_load_si256((__m256i*)pixels);
+        __m256i lodst = _mm256_loadu_si256((__m256i*)pixels);
         __m256i hidst = lodst;
 
         //unpack to low & high (D * (256 - A)) (8 x 32 bits data)
@@ -1543,7 +1543,7 @@ must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
 
         //destination = PACKED(low,hi) 32 x 8 bits
         const __m256i result = _mm256_packus_epi16(loret, hiret);
-        _mm256_store_si256((__m256i*)pixels, result);
+        _mm256_storeu_si256((__m256i*)pixels, result);
 
         //next 8 pixels
         pixels += 8;
@@ -1909,7 +1909,7 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         for (int32_t j = 0; j < align; j++)
         {
             __m256i* xmm1 = (__m256i*)dstPixels;
-            _mm256_store_si256(xmm1, xmm0);
+            _mm256_storeu_si256(xmm1, xmm0);
             dstPixels += 32;
         }
 
@@ -1978,7 +1978,7 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
         for (int32_t j = 0; j < align; j++)
         {
             __m256i* xmm1 = (__m256i*)dstPixels;
-            _mm256_store_si256(xmm1, xmm0);
+            _mm256_storeu_si256(xmm1, xmm0);
             dstPixels += 8;
         }
 
@@ -2051,9 +2051,9 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         for (int32_t j = 0; j < align; j++)
         {
             __m256i* xmm1 = (__m256i*)pixels;
-            __m256i xmm2 = _mm256_load_si256(xmm1);
+            __m256i xmm2 = _mm256_loadu_si256(xmm1);
             xmm2 = _mm256_adds_epu8(xmm2, xmm0);
-            _mm256_store_si256(xmm1, xmm2);
+            _mm256_storeu_si256(xmm1, xmm2);
             pixels += 8;
         }
 
@@ -2133,9 +2133,9 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         for (int32_t j = 0; j < align; j++)
         {
             __m256i* xmm1 = (__m256i*)pixels;
-            __m256i xmm2 = _mm256_load_si256(xmm1);
+            __m256i xmm2 = _mm256_loadu_si256(xmm1);
             xmm2 = _mm256_subs_epu8(xmm2, xmm0);
-            _mm256_store_si256(xmm1, xmm2);
+            _mm256_storeu_si256(xmm1, xmm2);
             pixels += 8;
         }
 
@@ -2235,7 +2235,7 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
         for (int32_t j = 0; j < aligned; j++)
         {
             //load 8 pixes width from dest (8 x 32 bits data)
-            __m256i lodst = _mm256_load_si256((__m256i*)pixels);
+            __m256i lodst = _mm256_loadu_si256((__m256i*)pixels);
             __m256i hidst = lodst;
 
             //unpack to low & high (D * (256 - A)) (8 x 32 bits data)
@@ -2252,7 +2252,7 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
 
             //destination = PACKED(low,hi) 32 x 8 bits
             const __m256i result = _mm256_packus_epi16(loret, hiret);
-            _mm256_store_si256((__m256i*)pixels, result);
+            _mm256_storeu_si256((__m256i*)pixels, result);
 
             //next 8 pixels
             pixels += 8;
@@ -5184,12 +5184,12 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
-            const __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
+            const __m256i src = _mm256_loadu_si256((const __m256i*)imgPixels);
+            const __m256i dst = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //add 16-bytes data with saturation and store
             const __m256i res = _mm256_adds_epu8(src, dst);
-            _mm256_store_si256((__m256i*)dstPixels, res);
+            _mm256_storeu_si256((__m256i*)dstPixels, res);
 
             //next 8 pixels
             dstPixels += 8;
@@ -5312,12 +5312,12 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
-            const __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
+            const __m256i src = _mm256_loadu_si256((const __m256i*)imgPixels);
+            const __m256i dst = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //sub 32-bytes data with saturation and store
             const __m256i res = _mm256_subs_epu8(src, dst);
-            _mm256_store_si256((__m256i*)dstPixels, res);
+            _mm256_storeu_si256((__m256i*)dstPixels, res);
 
             //next 8 pixels
             dstPixels += 8;
@@ -5448,8 +5448,8 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load source and destination
-            const __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
-            const __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
+            const __m256i src = _mm256_loadu_si256((const __m256i*)imgPixels);
+            const __m256i dst = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //high source (S * A)
             __m256i src16 = _mm256_unpackhi_epi8(src, zero);
@@ -5485,7 +5485,7 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
 
             //final merge result (hi,low) and store
             const __m256i result = _mm256_packus_epi16(rlt16l, rlt16h);
-            _mm256_store_si256((__m256i*)dstPixels, result);
+            _mm256_storeu_si256((__m256i*)dstPixels, result);
 
             //next 8 pixels width
             dstPixels += 8;
@@ -5750,13 +5750,13 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels
-            __m256i xmm0 = _mm256_and_si256(_mm256_load_si256((const __m256i*)imgPixels), xmm6);
+            __m256i xmm0 = _mm256_and_si256(_mm256_loadu_si256((const __m256i*)imgPixels), xmm6);
 
             //get mask with key color
             __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
             
             //replace background color by key color
-            __m256i xmm1 = _mm256_and_si256(_mm256_load_si256((const __m256i*)dstPixels), xmm2);
+            __m256i xmm1 = _mm256_and_si256(_mm256_loadu_si256((const __m256i*)dstPixels), xmm2);
             
             //inverted mask
             xmm2 = _mm256_xor_si256(xmm2, xmm5);
@@ -5768,7 +5768,7 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             xmm1 = _mm256_or_si256(xmm1, xmm0);
             
             //store color
-            _mm256_store_si256((__m256i*)dstPixels, xmm1);
+            _mm256_storeu_si256((__m256i*)dstPixels, xmm1);
 
             //next 8 pixels
             dstPixels += 8;
@@ -5909,10 +5909,10 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m256i xmm0 = _mm256_and_si256(_mm256_load_si256((const __m256i*)imgPixels), xmm6);
+            __m256i xmm0 = _mm256_and_si256(_mm256_loadu_si256((const __m256i*)imgPixels), xmm6);
 
             //load 4 pixels from background color
-            __m256i xmm1 = _mm256_load_si256((const __m256i*)dstPixels);
+            __m256i xmm1 = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
             __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
@@ -5927,7 +5927,7 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             xmm1 = _mm256_adds_epu8(xmm0, xmm1);
 
             //store back to background
-            _mm256_store_si256((__m256i*)dstPixels, xmm1);
+            _mm256_storeu_si256((__m256i*)dstPixels, xmm1);
 
             //next 8 pixels
             dstPixels += 8;
@@ -6076,10 +6076,10 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m256i xmm0 = _mm256_and_si256(_mm256_load_si256((const __m256i*)imgPixels), xmm6);
+            __m256i xmm0 = _mm256_and_si256(_mm256_loadu_si256((const __m256i*)imgPixels), xmm6);
 
             //load 4 pixels from background color
-            __m256i xmm1 = _mm256_load_si256((const __m256i*)dstPixels);
+            __m256i xmm1 = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
             __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
@@ -6100,7 +6100,7 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             xmm3 = _mm256_or_si256(xmm0, xmm3);
 
             //store back to background
-            _mm256_store_si256((__m256i*)dstPixels, xmm3);
+            _mm256_storeu_si256((__m256i*)dstPixels, xmm3);
 
             //next 8 pixels
             dstPixels += 8;
@@ -6242,8 +6242,8 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         for (int32_t j = 0; j < aligned; j++)
         {
             //load 8 pixels from source and dest
-            __m256i src = _mm256_load_si256((const __m256i*)imgPixels);
-            __m256i dst = _mm256_load_si256((const __m256i*)dstPixels);
+            __m256i src = _mm256_loadu_si256((const __m256i*)imgPixels);
+            __m256i dst = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
             __m256i mask = _mm256_cmpeq_epi32(src, amask);
@@ -6288,7 +6288,7 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 
             //final merge result (hi,low) and store
             const __m256i result = _mm256_packus_epi16(rlt16l, rlt16h);
-            _mm256_store_si256((__m256i*)dstPixels, result);
+            _mm256_storeu_si256((__m256i*)dstPixels, result);
 
             //next 8 pixels width
             dstPixels += 8;
@@ -11070,7 +11070,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     for (int32_t i = 0; i < aligned; i++)
     {
         //load 8 pixes width from src1 (8 x 32 bits data)
-        __m256i los1 = _mm256_load_si256((const __m256i*)psrc1);
+        __m256i los1 = _mm256_loadu_si256((const __m256i*)psrc1);
         __m256i his1 = los1;
 
         //unpack to low & hi
@@ -11078,7 +11078,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
         his1 = _mm256_unpackhi_epi8(his1, xmm0);
 
         //load 8 pixes width from src2 (8 x 32 bits data)
-        __m256i los2 = _mm256_load_si256((const __m256i*)psrc2);
+        __m256i los2 = _mm256_loadu_si256((const __m256i*)psrc2);
         __m256i his2 = los2;
 
         //unpack to low & high
@@ -11099,7 +11099,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
 
         //destination = PACKED(low,hi) 32 x 8 bits
         const __m256i res = _mm256_packus_epi16(los, his);
-        _mm256_store_si256((__m256i*)pdst, res);
+        _mm256_storeu_si256((__m256i*)pdst, res);
 
         //next 8 pixels
         pdst += 8;
@@ -11502,13 +11502,13 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
         __m256i* xmm1 = (__m256i*)pixels;
 
         //load 8 pixels (256-bits data)
-        const __m256i xmm0 = _mm256_load_si256(xmm1);
+        const __m256i xmm0 = _mm256_loadu_si256(xmm1);
 
         //sub 32-bytes pixels with saturating
         const __m256i xmm2 = _mm256_subs_epu8(xmm0, mstep);
         
         //store data 32-bytes
-        _mm256_store_si256(xmm1, xmm2);
+        _mm256_storeu_si256(xmm1, xmm2);
         
         //next-to 32-bytes align (8 pixels)
         pixels += 8;

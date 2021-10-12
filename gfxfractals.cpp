@@ -331,7 +331,7 @@ void mandelbrotFloatAVX(uint32_t* out, double mx, double my, double scale, int32
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -379,7 +379,7 @@ void mandelbrotDoubleAVX(uint32_t* out, double mx, double my, double scale, int3
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -426,7 +426,7 @@ void juliaFloatAVX(uint32_t* out, double mx, double my, double scale, int32_t ys
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -477,7 +477,7 @@ void juliaDoubleAVX(uint32_t* out, double mx, double my, double scale, int32_t y
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -521,7 +521,7 @@ void mandelbrotFloatAVX2(uint32_t* out, double mx, double my, double scale, int3
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -569,7 +569,7 @@ void mandelbrotDoubleAVX2(uint32_t* out, double mx, double my, double scale, int
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -616,7 +616,7 @@ void juliaFloatAVX2(uint32_t* out, double mx, double my, double scale, int32_t y
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -667,7 +667,7 @@ void juliaDoubleAVX2(uint32_t* out, double mx, double my, double scale, int32_t 
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -710,7 +710,7 @@ void mandelbrotFloatFMA(uint32_t* out, double mx, double my, double scale, int32
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -757,7 +757,7 @@ void mandelbrotDoubleFMA(uint32_t* out, double mx, double my, double scale, int3
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -803,7 +803,7 @@ void juliaFloatFMA(uint32_t* out, double mx, double my, double scale, int32_t ys
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -853,7 +853,7 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
             }
 
             int32_t itpos[8] = { 0 };
-            _mm256_store_si256((__m256i*)itpos, iters);
+            _mm256_storeu_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -1120,7 +1120,7 @@ void allocBuffer()
 }
 
 const int32_t yadd = 32;
-volatile int32_t yprocessed = 0;
+volatile long yprocessed = 0;
 
 #ifdef __APPLE__
 void* threadProc(void* args)

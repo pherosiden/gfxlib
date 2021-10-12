@@ -144,7 +144,7 @@ void juliaSet()
 
             //extract iteration position for each pixel
             int32_t it[8] = { 0 };
-            _mm256_store_si256((__m256i*)it, iters);
+            _mm256_storeu_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
@@ -1089,7 +1089,7 @@ void juliaExplorer()
 
                 //extract iteration position for each pixel
                 int32_t it[8] = { 0 };
-                _mm256_store_si256((__m256i*)it, iters);
+                _mm256_storeu_si256((__m256i*)it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
@@ -1273,7 +1273,7 @@ void mandelbrotSet()
 
             //extract iteration position for each pixel
             int32_t it[8] = { 0 };
-            _mm256_store_si256((__m256i*)it, iters);
+            _mm256_storeu_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
@@ -1391,7 +1391,7 @@ void mandelbrotExporer()
 
                 //extract iteration position for each pixel
                 int32_t it[8] = { 0 };
-                _mm256_store_si256((__m256i*)it, iters);
+                _mm256_storeu_si256((__m256i*)it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
