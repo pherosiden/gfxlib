@@ -1147,13 +1147,15 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 void calculateMultiThread()
 {
 #ifdef __APPLE__
-    pthread_t threads[THREAD_COUNT] = { 0 };
     yprocessed = 0;
+    pthread_t threads[THREAD_COUNT] = { 0 };
+    
     for (int32_t i = 0; i < cpuCores; i++) pthread_create(&threads[i], NULL, threadProc, NULL);
     for (int32_t i = 0; i < cpuCores; i++) pthread_join(threads[i], NULL);
 #else
     yprocessed = 0;
     HANDLE threads[THREAD_COUNT] = { 0 };
+
     for (int32_t i = 0; i < cpuCores; i++) threads[i] = CreateThread(NULL, 0, &threadProc, NULL, 0, NULL);
     WaitForMultipleObjects(cpuCores, threads, TRUE, INFINITE);
     for (int32_t i = 0; i < cpuCores; i++)
