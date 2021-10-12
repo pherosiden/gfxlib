@@ -4010,18 +4010,25 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
             x1 = int32_t(255 * fabs(err - dx - dy + xy) / ed);
             if (x1 < 256) putPixel(x0, y0, rgba(col, x1), BLEND_MODE_ANTIALIASED);
 
-            if (f = 2 * err + dy < 0)
+            if ((f = 2 * err + dy < 0))
             {
                 if (y0 == y2) return;
                 if (dx - err < ed) putPixel(x0 + sx, y0, rgba(col, uint8_t(255 * fabs(dx - err) / ed)), BLEND_MODE_ANTIALIASED);
             }
+
             if (2 * err + dx > 0)
             {
                 if (x0 == x2) return;
                 if (err - dy < ed) putPixel(x0, y0 + sy, rgba(col, uint8_t(255 * fabs(err - dy) / ed)), BLEND_MODE_ANTIALIASED);
                 x0 += sx; dx += xy; err += dy += yy;
             }
-            if (f) { y0 += sy; dy += xy; err += dx += xx; }
+
+            if (f)
+            {
+                y0 += sy;
+                dy += xy;
+                err += dx += xx;
+            }
         } while (dy < dx);
     }
 
@@ -11063,7 +11070,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     for (int32_t i = 0; i < aligned; i++)
     {
         //load 8 pixes width from src1 (8 x 32 bits data)
-        __m256i los1 = _mm256_load_si256((__m256i*)psrc1);
+        __m256i los1 = _mm256_load_si256((const __m256i*)psrc1);
         __m256i his1 = los1;
 
         //unpack to low & hi
@@ -11071,7 +11078,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
         his1 = _mm256_unpackhi_epi8(his1, xmm0);
 
         //load 8 pixes width from src2 (8 x 32 bits data)
-        __m256i los2 = _mm256_load_si256((__m256i*)psrc2);
+        __m256i los2 = _mm256_load_si256((const __m256i*)psrc2);
         __m256i his2 = los2;
 
         //unpack to low & high
