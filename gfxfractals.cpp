@@ -1156,7 +1156,7 @@ void calculateMultiThread()
     yprocessed = 0;
     HANDLE threads[THREAD_COUNT] = { 0 };
 
-    for (int32_t i = 0; i < cpuCores; i++) threads[i] = CreateThread(NULL, 0, &threadProc, NULL, 0, NULL);
+    for (int32_t i = 0; i < cpuCores; i++) threads[i] = CreateThread(NULL, 0, threadProc, NULL, 0, NULL);
     WaitForMultipleObjects(cpuCores, threads, TRUE, INFINITE);
     for (int32_t i = 0; i < cpuCores; i++)
     {
