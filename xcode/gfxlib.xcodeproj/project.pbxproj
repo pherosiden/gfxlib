@@ -9,10 +9,12 @@
 /* Begin PBXBuildFile section */
 		774C827C26C0F566009D2103 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 774C827B26C0F566009D2103 /* IOKit.framework */; };
 		774C827D26C0F593009D2103 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 774C827926C0F555009D2103 /* CoreFoundation.framework */; };
-		77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; settings = {ATTRIBUTES = (Required, ); }; };
-		77801DC626AB2DBB0045402B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC626A71C5600C4C722 /* SDL2.framework */; };
 		779FFE6A26C04A44007785CE /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 779FFE6926C04A44007785CE /* Credits.rtf */; };
 		77ACCF662716193F00152EA7 /* gfxfractals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77ACCF652716193F00152EA7 /* gfxfractals.cpp */; };
+		77ACCF6727161E9900152EA7 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC626A71C5600C4C722 /* SDL2.framework */; };
+		77ACCF6827161E9900152EA7 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC626A71C5600C4C722 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		77ACCF6A27161E9C00152EA7 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; };
+		77ACCF6B27161E9C00152EA7 /* SDL2_image.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		77EECD4A26BFF10D00959767 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD4726BFF10D00959767 /* Assets.xcassets */; };
 		77EECD5426BFF14600959767 /* gfxdemo32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4B26BFF14600959767 /* gfxdemo32.cpp */; };
 		77EECD5526BFF14600959767 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4C26BFF14600959767 /* main.cpp */; };
@@ -24,6 +26,21 @@
 		77EECD5B26BFF14600959767 /* gfxeffects32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD5326BFF14600959767 /* gfxeffects32.cpp */; };
 		77EECD6326BFF33C00959767 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD6226BFF33C00959767 /* Info.plist */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		77ACCF6927161E9900152EA7 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				77ACCF6827161E9900152EA7 /* SDL2.framework in Embed Frameworks */,
+				77ACCF6B27161E9C00152EA7 /* SDL2_image.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		774C827926C0F555009D2103 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -53,8 +70,8 @@
 			files = (
 				774C827D26C0F593009D2103 /* CoreFoundation.framework in Frameworks */,
 				774C827C26C0F566009D2103 /* IOKit.framework in Frameworks */,
-				77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */,
-				77801DC626AB2DBB0045402B /* SDL2.framework in Frameworks */,
+				77ACCF6727161E9900152EA7 /* SDL2.framework in Frameworks */,
+				77ACCF6A27161E9C00152EA7 /* SDL2_image.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,6 +137,7 @@
 				77B97EA326A71BF000C4C722 /* Sources */,
 				77B97EA426A71BF000C4C722 /* Frameworks */,
 				77B97EA526A71BF000C4C722 /* Resources */,
+				77ACCF6927161E9900152EA7 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -314,7 +332,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20210807;
+				CURRENT_PROJECT_VERSION = 20211012;
 				DEVELOPMENT_ASSET_PATHS = "";
 				EXCLUDED_ARCHS = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -326,7 +344,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.2.4;
 				OTHER_CFLAGS = "-march=haswell";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vnn.gfxlib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -342,7 +360,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20210807;
+				CURRENT_PROJECT_VERSION = 20211012;
 				DEVELOPMENT_ASSET_PATHS = "";
 				EXCLUDED_ARCHS = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -355,7 +373,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.2.4;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-march=haswell";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vnn.gfxlib;
