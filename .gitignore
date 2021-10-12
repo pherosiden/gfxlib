@@ -37,3 +37,9 @@ visualc/Release
 visualc/Debug
 visualc/x64
 visualc/assets
+
+# MAC OSX
+.DS_Store
+
+# Windows Thumbs
+.Thumbs
