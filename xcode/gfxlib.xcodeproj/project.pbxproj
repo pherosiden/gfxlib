@@ -12,6 +12,7 @@
 		77801DC326AB2DB90045402B /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC526A71C5600C4C722 /* SDL2_image.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		77801DC626AB2DBB0045402B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77B97EC626A71C5600C4C722 /* SDL2.framework */; };
 		779FFE6A26C04A44007785CE /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 779FFE6926C04A44007785CE /* Credits.rtf */; };
+		77ACCF662716193F00152EA7 /* gfxfractals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77ACCF652716193F00152EA7 /* gfxfractals.cpp */; };
 		77EECD4A26BFF10D00959767 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77EECD4726BFF10D00959767 /* Assets.xcassets */; };
 		77EECD5426BFF14600959767 /* gfxdemo32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4B26BFF14600959767 /* gfxdemo32.cpp */; };
 		77EECD5526BFF14600959767 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77EECD4C26BFF14600959767 /* main.cpp */; };
@@ -28,9 +29,10 @@
 		774C827926C0F555009D2103 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		774C827B26C0F566009D2103 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		779FFE6926C04A44007785CE /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
+		77ACCF652716193F00152EA7 /* gfxfractals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxfractals.cpp; path = ../gfxfractals.cpp; sourceTree = "<group>"; };
 		77B97EA726A71BF000C4C722 /* gfxlib.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gfxlib.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		77B97EC526A71C5600C4C722 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = ../../../Library/Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
-		77B97EC626A71C5600C4C722 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		77B97EC526A71C5600C4C722 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = ../../../../../Library/Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
+		77B97EC626A71C5600C4C722 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 		77EECD4726BFF10D00959767 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		77EECD4B26BFF14600959767 /* gfxdemo32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gfxdemo32.cpp; path = ../gfxdemo32.cpp; sourceTree = "<group>"; };
 		77EECD4C26BFF14600959767 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../main.cpp; sourceTree = "<group>"; };
@@ -97,11 +99,12 @@
 				77EECD5126BFF14600959767 /* gfxeffects8.cpp */,
 				77EECD5326BFF14600959767 /* gfxeffects32.cpp */,
 				77EECD4F26BFF14600959767 /* gfxfontview.cpp */,
+				77ACCF652716193F00152EA7 /* gfxfractals.cpp */,
 				77EECD5226BFF14600959767 /* gfxlib.cpp */,
-				77EECD4D26BFF14600959767 /* gfxlib.h */,
 				77EECD4C26BFF14600959767 /* main.cpp */,
-				779FFE6926C04A44007785CE /* Credits.rtf */,
+				77EECD4D26BFF14600959767 /* gfxlib.h */,
 				77EECD6226BFF33C00959767 /* Info.plist */,
+				779FFE6926C04A44007785CE /* Credits.rtf */,
 				77EECD4726BFF10D00959767 /* Assets.xcassets */,
 			);
 			name = gfxlib;
@@ -182,6 +185,7 @@
 				77EECD5A26BFF14600959767 /* gfxlib.cpp in Sources */,
 				77EECD5526BFF14600959767 /* main.cpp in Sources */,
 				77EECD5626BFF14600959767 /* gfxdemo8.cpp in Sources */,
+				77ACCF662716193F00152EA7 /* gfxfractals.cpp in Sources */,
 				77EECD5426BFF14600959767 /* gfxdemo32.cpp in Sources */,
 				77EECD5726BFF14600959767 /* gfxfontview.cpp in Sources */,
 			);
@@ -323,6 +327,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.1.6;
+				OTHER_CFLAGS = "-march=haswell";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vnn.gfxlib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -344,6 +349,7 @@
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
+				GCC_OPTIMIZATION_LEVEL = 3;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -351,6 +357,7 @@
 				);
 				MARKETING_VERSION = 1.1.6;
 				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-march=haswell";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vnn.gfxlib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

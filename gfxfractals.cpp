@@ -1120,7 +1120,7 @@ void allocBuffer()
 }
 
 const int32_t yadd = 32;
-volatile long yprocessed = 0;
+volatile int32_t yprocessed = 0;
 
 #ifdef __APPLE__
 void* threadProc(void* args)
