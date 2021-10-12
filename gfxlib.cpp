@@ -6811,10 +6811,10 @@ must_inline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* 
     const uint32_t *pixel3 = &pixel2[img->mWidth];
 
     //load 16 pixels for calculation
-    __m128i p0 = _mm_load_si128((const __m128i*)pixel0); //P00 P01 P02 P03
-    __m128i p1 = _mm_load_si128((const __m128i*)pixel1); //P10 P11 P12 P13
-    __m128i p2 = _mm_load_si128((const __m128i*)pixel2); //P20 P21 P22 P23
-    __m128i p3 = _mm_load_si128((const __m128i*)pixel3); //P30 P31 P32 P33
+    __m128i p0 = _mm_loadu_si128((const __m128i*)pixel0); //P00 P01 P02 P03
+    __m128i p1 = _mm_loadu_si128((const __m128i*)pixel1); //P10 P11 P12 P13
+    __m128i p2 = _mm_loadu_si128((const __m128i*)pixel2); //P20 P21 P22 P23
+    __m128i p3 = _mm_loadu_si128((const __m128i*)pixel3); //P30 P31 P32 P33
 
     p0 = _mm_shuffle_epi8(p0, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B0 G0 R0 A0
     p1 = _mm_shuffle_epi8(p1, _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)); //B1 G1 R1 A1
