@@ -472,7 +472,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     else
     {
         //initialize drawing buffer for 32 bits RGBA (16-bytes alignment)
-        size_t msize = bytesPerScanline * height;
+        size_t msize = intptr_t(height) * bytesPerScanline;
         drawBuff = _mm_malloc(msize, 16);
         if (!drawBuff)
         {
