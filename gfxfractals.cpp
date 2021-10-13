@@ -925,6 +925,7 @@ void initFunctions(int32_t type)
 #endif
 
     bool avx2 = (out[1] & (1 << 5)) != 0;
+    bool avx512 = (out[1] & (1 << 16)) != 0;
 
     if (type)
     {
@@ -1134,7 +1135,7 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 #ifdef __APPLE__
         int32_t y0 = __sync_add_and_fetch(&yprocessed, yadd) - yadd;
 #else
-        int32_t y0 = InterlockedAdd(&yprocessed, yadd) - yadd;
+        int32_t y0 = _interlockedadd(&yprocessed, yadd) - yadd;
 #endif
         if (y0 >= cy) return 0;
         int32_t y1 = min(y0 + yadd, cy);

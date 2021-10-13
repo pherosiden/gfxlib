@@ -106,7 +106,7 @@ void juliaSet()
         }
     }
     ============================================================================================*/
-
+    
     const __m256d xim = _mm256_set1_pd(cim);
     const __m256d xre = _mm256_set1_pd(cre);
 
@@ -1050,7 +1050,61 @@ void juliaExplorer()
                 pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
             }
         }
-        ===========================================================*/
+        ===========================================================
+        ==========AVX - 512 version support INTEL 11th later=======
+
+        const __m512d xim = _mm512_set1_pd(cim);
+        const __m512d xre = _mm512_set1_pd(cre);
+
+        const __m512d dd = _mm512_set1_pd(scale);
+        const __m512d tx = _mm512_set1_pd(mx);
+
+        for (int32_t y = 0; y < cheight; y++)
+        {
+            const __m512d y0 = _mm512_set1_pd(y * scale + my);
+            for (int32_t x = 0; x < cwidth; x += 8)
+            {
+                const __m256i ind = _mm256_setr_epi32(x, x + 1, x + 2, x + 3, x + 4, x + 5, x + 6, x + 7);
+                const __m512d x0 = _mm512_fmadd_pd(dd, _mm512_cvtepi32_pd(ind), tx);
+                __m512d x1 = x0;
+                __m512d y1 = y0;
+                __m512i iters = _mm512_setzero_si512();
+                __m512i masks = _mm512_setzero_si512();
+
+                for (int32_t n = 0; n < iterations; n++)
+                {
+                    const __m512d x2 = _mm512_mul_pd(x1, x1);
+                    const __m512d y2 = _mm512_mul_pd(y1, y1);
+                    const __m512d abs = _mm512_add_pd(x2, y2);
+                    const __m512i cmp = _mm512_movm_epi64(_mm512_cmp_pd_mask(abs, _mm512_set1_pd(4), _CMP_GE_OS));
+
+                    masks = _mm512_or_epi32(cmp, masks);
+                    if (_mm512_test_epi64_mask(masks, masks) == 1) break;
+
+                    iters = _mm512_add_epi32(iters, _mm512_andnot_epi32(masks, _mm512_set1_epi32(1)));
+
+                    const __m512d t = _mm512_add_pd(x1, x1);
+                    y1 = _mm512_fmadd_pd(t, y1, xim);
+                    x1 = _mm512_add_pd(_mm512_sub_pd(x2, y2), xre);
+                }
+
+                //extract iteration position for each pixel
+                int32_t it[8] = { 0 };
+                _mm512_storeu_epi32(it, iters);
+
+                //use HSV convert to get full rainbow palette
+                uint32_t* pdst = &pixels[y][x];
+                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+            }
+        }
+        ==========================================================================================*/
 
         const __m256d xim = _mm256_set1_pd(cim);
         const __m256d xre = _mm256_set1_pd(cre);
@@ -1216,7 +1270,7 @@ void mandelbrotSet()
     const double mx = -0.5 * cwidth * scale - 0.5;
     const double my = -0.5 * cheight * scale;
 
-    /*============== use fma version below ===============
+    /*=================== use fma version below ========================
     for (int32_t y = 0; y < cheight; y++)
     {
         const double y0 = y * scale + my;
@@ -1238,8 +1292,59 @@ void mandelbrotSet()
             pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
         }
     }
-    ====================================================*/
-    
+    ======================================================================
+    ============AVX - 512 version support INTEL 11th later================
+
+    const __m512d dd = _mm512_set1_pd(scale);
+    const __m512d tx = _mm512_set1_pd(mx);
+
+    for (int32_t y = 0; y < cheight; y++)
+    {
+        const __m512d y0 = _mm512_set1_pd(y * scale + my);
+        for (int32_t x = 0; x < cwidth; x += 8)
+        {
+            const __m256i ind = _mm256_setr_epi32(x, x + 1, x + 2, x + 3, x + 4, x + 5, x + 6, x + 7);
+            const __m512d x0 = _mm512_fmadd_pd(dd, _mm512_cvtepi32_pd(ind), tx);
+            __m512d x1 = x0;
+            __m512d y1 = y0;
+            __m512i iters = _mm512_setzero_si512();
+            __m512i masks = _mm512_setzero_si512();
+
+            for (int32_t n = 0; n < iterations; n++)
+            {
+                const __m512d x2 = _mm512_mul_pd(x1, x1);
+                const __m512d y2 = _mm512_mul_pd(y1, y1);
+                const __m512d abs = _mm512_add_pd(x2, y2);
+                const __m512i cmp = _mm512_movm_epi64(_mm512_cmp_pd_mask(abs, _mm512_set1_pd(4), _CMP_GE_OS));
+
+                masks = _mm512_or_epi32(cmp, masks);
+                if (_mm512_test_epi64_mask(masks, masks) == 1) break;
+
+                iters = _mm512_add_epi32(iters, _mm512_andnot_epi32(masks, _mm512_set1_epi32(1)));
+
+                const __m512d t = _mm512_add_pd(x1, x1);
+                y1 = _mm512_fmadd_pd(t, y1, y0);
+                x1 = _mm512_add_pd(_mm512_sub_pd(x2, y2), x0);
+            }
+
+            //extract iteration position for each pixel
+            int32_t it[8] = { 0 };
+            _mm512_storeu_epi32(it, iters);
+
+            //use HSV convert to get full rainbow palette
+            uint32_t* pdst = &pixels[y][x];
+            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+        }
+    }
+    ==========================================================================================*/
+
     const __m256d dd = _mm256_set1_pd(scale);
     const __m256d tx = _mm256_set1_pd(mx);
 
@@ -1332,7 +1437,7 @@ void mandelbrotExporer()
     //begin main program loop
     do
     {
-        /*=================== use fma version below =====================
+        /*======================== use fma version below =====================
         for (int32_t y = 0; y < cheight; y++)
         {
             //scan-x
@@ -1355,8 +1460,58 @@ void mandelbrotExporer()
                 pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
             }
         }
-        ===============================================================*/
+        ========================================================================
+        ============AVX - 512 version support INTEL 11th later==================
 
+        const __m512d dd = _mm512_set1_pd(scale);
+        const __m512d tx = _mm512_set1_pd(mx);
+
+        for (int32_t y = 0; y < cheight; y++)
+        {
+            const __m512d y0 = _mm512_set1_pd(y * scale + my);
+            for (int32_t x = 0; x < cwidth; x += 8)
+            {
+                const __m256i ind = _mm256_setr_epi32(x, x + 1, x + 2, x + 3, x + 4, x + 5, x + 6, x + 7);
+                const __m512d x0 = _mm512_fmadd_pd(dd, _mm512_cvtepi32_pd(ind), tx);
+                __m512d x1 = x0;
+                __m512d y1 = y0;
+                __m512i iters = _mm512_setzero_si512();
+                __m512i masks = _mm512_setzero_si512();
+
+                for (int32_t n = 0; n < iterations; n++)
+                {
+                    const __m512d x2 = _mm512_mul_pd(x1, x1);
+                    const __m512d y2 = _mm512_mul_pd(y1, y1);
+                    const __m512d abs = _mm512_add_pd(x2, y2);
+                    const __m512i cmp = _mm512_movm_epi64(_mm512_cmp_pd_mask(abs, _mm512_set1_pd(4), _CMP_GE_OS));
+
+                    masks = _mm512_or_epi32(cmp, masks);
+                    if (_mm512_test_epi64_mask(masks, masks) == 1) break;
+
+                    iters = _mm512_add_epi32(iters, _mm512_andnot_epi32(masks, _mm512_set1_epi32(1)));
+
+                    const __m512d t = _mm512_add_pd(x1, x1);
+                    y1 = _mm512_fmadd_pd(t, y1, y0);
+                    x1 = _mm512_add_pd(_mm512_sub_pd(x2, y2), x0);
+                }
+
+                //extract iteration position for each pixel
+                int32_t it[8] = { 0 };
+                _mm512_storeu_epi32(it, iters);
+
+                //use HSV convert to get full rainbow palette
+                uint32_t* pdst = &pixels[y][x];
+                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+            }
+        }
+        ==========================================================================================*/
         const __m256d dd = _mm256_set1_pd(scale);
         const __m256d tx = _mm256_set1_pd(mx);
 
