@@ -452,7 +452,7 @@ void        waitFor(uint32_t tmstart, uint32_t ms);
 void        sleepFor(uint32_t ms);
 
 //video and render functions
-int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "");
+int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "", int32_t resizeable = 0);
 int32_t     getCenterX();
 int32_t     getCenterY();
 int32_t     getMaxX();

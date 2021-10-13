@@ -42,7 +42,7 @@ int32_t         oldWidth = 0, oldHeight = 0;        //saved buffer height
 //pixels attributes
 int32_t         bitsPerPixel = 0;                   //bits per pixel (8/15/16/24/32)
 int32_t         bytesPerPixel = 0;                  //bytes per pixel (1/2/3/4)
-int32_t         bytesPerScanline = 0;               //bytes per scanline
+int32_t         bytesPerScanline = 0;               //bytes per scan line
 
 //mid-screen coordinate
 int32_t         centerX = 0, centerY = 0;           //x, y center of screen
@@ -59,7 +59,7 @@ int32_t         oldMaxX = 0, oldMaxY = 0;           //saved right-bottom
 int32_t         currX = 0, currY = 0;               //current cursor x, y
 
 //3D projection
-double          DE = 0.0;                           //deplace end for projection
+double          DE = 0.0;                           //deplane end for projection
 
 //trigonometric angle
 double          RHO = 0.0;                          //RHO perspective projection
@@ -125,7 +125,7 @@ SDL_Event		sdlEvent = { 0 };                   //store key input event
 //keyboard status
 uint8_t* keyStates = 0;                             //key input states
 
-//for the "keyPressed" function to detect a key pressed only once
+//the "keyPressed" status map
 std::map<int32_t, int32_t> keyStatus;               //key input status
 
 //default 8-bits palette entries for mixed mode, SDL2 initialize with black, no default here
@@ -380,7 +380,7 @@ void setMousePosition(int32_t x, int32_t y)
 }
 
 //initialize graphic video system
-int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title)
+int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable)
 {
     //initialize SDL video mode only
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -397,7 +397,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, SDL_WINDOW_SHOWN);
+    sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE : SDL_WINDOW_SHOWN);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
@@ -643,9 +643,9 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
         }
         else
         {
-            //adjust render buffer
+            //adjust render buffer (32-bytes alignment)
             if (drawBuff) _mm_free(drawBuff);
-            drawBuff = _mm_malloc(bytesCopy, 16);
+            drawBuff = _mm_malloc(bytesCopy, 32);
             if (!drawBuff)
             {
                 messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
@@ -981,7 +981,7 @@ must_inline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 #endif
 }
 
-//plot a pixel at (x,y) with alpha-blending pixel
+//plot a pixel at (x,y) with alpha-blending
 //correct formular: (SC*SA+DC*(256-SA))>>8
 //don't use (SC*SA+DC*(255-SA))>>8, you'll always get 254 as your maximum value.
 //ie: (255*128+255*(255-128))>>8=254 --> WRONG!!!
@@ -4743,9 +4743,9 @@ int32_t updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
         return 0;
     }
 
-    //reallocate new memory with new size
+    //reallocate new memory with new size (32-bytes alignment)
     if (img->mData) _mm_free(img->mData);
-    img->mData = _mm_malloc(size, 16);
+    img->mData = _mm_malloc(size, 32);
     if (!img->mData)
     {
         messageBox(GFX_ERROR, "Error alloc memory with size: %lu", size);
@@ -9159,9 +9159,9 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
 void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* str)
 {
     uint32_t i = 0, cx = 0, cy = 0;
-    uint32_t width = 0, height = 0, addx = 0, addy = 0;
     uint32_t data = 0, datapos = 0, mempos = 0;
-
+    uint32_t width = 0, height = 0, addx = 0, addy = 0;
+    
     //check for font is loaded
     if (!gfxFonts[fontType].dataPtr) return;
 
