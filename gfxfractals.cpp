@@ -1109,14 +1109,14 @@ void initFractals(int32_t sx, int32_t sy)
 
 void allocBuffer()
 {
-    const uint32_t size = alignSize(cx) * cy * getBytesPerPixel();
-    if (size > dataSize)
+    const uint32_t msize = alignSize(cx) * cy * getBytesPerPixel();
+    if (msize > dataSize)
     {
         if (data) _mm_free(data);
-        data = (uint32_t*)_mm_malloc(size, 32);
+        data = (uint32_t*)_mm_malloc(msize, 32);
         if (!data) exit(1);
-        memset(data, 0, size);
-        dataSize = size;
+        memset(data, 0, msize);
+        dataSize = msize;
     }
 }
 

@@ -826,7 +826,7 @@ void basicDrawing()
     //the new line represents the part of the old line that is visible on screen
     clipLine(&x1, &y1, &x2, &y2);
 
-    //the newline is drawn as a red line
+    //the newline is drawn as a red line with smooth pixel
     drawLine(x1, y1, x2, y2, RGB_RED, BLEND_MODE_ANTIALIASED);
     drawCircle(100, 100, 30, RGB_GREEN, BLEND_MODE_ANTIALIASED);
     fillCircle(200, 100, 40, RGB_YELLOW);

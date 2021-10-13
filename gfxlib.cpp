@@ -472,12 +472,14 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     else
     {
         //initialize drawing buffer for 32 bits RGBA (16-bytes alignment)
-        drawBuff = _mm_malloc(intptr_t(width) * height * bytesPerPixel, 16);
+        size_t msize = bytesPerScanline * height;
+        drawBuff = _mm_malloc(msize, 16);
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
             return 0;
         }
+        memset(drawBuff, 0, msize);
     }
 
     //initialize random number generation
@@ -644,12 +646,12 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
             //adjust render buffer
             if (drawBuff) _mm_free(drawBuff);
             drawBuff = _mm_malloc(bytesCopy, 16);
-
             if (!drawBuff)
             {
                 messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
                 return;
             }
+            memset(drawBuff, 0, bytesCopy);
         }
 
         //update new screen buffer size
