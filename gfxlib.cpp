@@ -471,9 +471,9 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
     else
     {
-        //initialize drawing buffer for 32 bits RGBA (16-bytes alignment)
+        //initialize drawing buffer for 32 bits RGBA (32-bytes alignment for AVX2 use)
         size_t msize = intptr_t(height) * bytesPerScanline;
-        drawBuff = _mm_malloc(msize, 16);
+        drawBuff = _mm_malloc(msize, 32);
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
@@ -867,7 +867,7 @@ void clearScreenMix(uint32_t color)
     const __m256i xmm0 = _mm256_set1_epi8(color);
     uint8_t* pixels = (uint8_t*)drawBuff;
 
-    //loop for 16-bytes aligned
+    //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
@@ -923,7 +923,7 @@ void clearScreen(uint32_t color)
     const __m256i xmm0 = _mm256_set1_epi32(color);
     uint32_t* pixels = (uint32_t*)drawBuff;
     
-    //loop for 16-bytes aligned
+    //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
@@ -4711,8 +4711,8 @@ int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
         return 0;
     }
 
-    //16-bytes alignment for SIMD
-    img->mData = _mm_malloc(memSize, 16);
+    //32-bytes alignment for SIMD
+    img->mData = _mm_malloc(memSize, 32);
     if (!img->mData)
     {
         messageBox(GFX_ERROR, "Error alloc memory, size:%lu", memSize);
@@ -5189,7 +5189,7 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
             const __m256i src = _mm256_loadu_si256((const __m256i*)imgPixels);
             const __m256i dst = _mm256_loadu_si256((const __m256i*)dstPixels);
 
-            //add 16-bytes data with saturation and store
+            //add 32-bytes data with saturation and store
             const __m256i res = _mm256_adds_epu8(src, dst);
             _mm256_storeu_si256((__m256i*)dstPixels, res);
 
