@@ -388,7 +388,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         messageBox(GFX_ERROR, "Failed init SDL2: %s", SDL_GetError());
         return 0;
     }
-
+    
     //initialize SDL2 image lib
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
     {

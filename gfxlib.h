@@ -600,6 +600,12 @@ void        gfxEffects();
 void        gfxFontView();
 void        gfxFractals();
 
+//32-bytes alignment for AVX2 use
+static must_inline uint32_t alignedSize(uint32_t msize)
+{
+    return (msize + 31) & ~0x1F;
+}
+
 //convert r,g,b values to 32bits integer value
 static must_inline uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
 {
