@@ -1212,7 +1212,7 @@ void affichage(int32_t range)
     char buff[80] = { 0 };
     const char *strTitle = "Shapes 3D Transform";
     const int32_t centerX = getCenterX();
-     const int32_t cmaxX = getMaxX();
+    const int32_t cmaxX = getMaxX();
     const int32_t cmaxY = getMaxY();
 
     setFontType(1);
