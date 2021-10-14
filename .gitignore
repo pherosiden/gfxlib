@@ -40,6 +40,7 @@ visualc/assets
 
 # MAC OSX
 .DS_Store
+xcuserdata
 
 # Windows Thumbs
 .Thumbs
