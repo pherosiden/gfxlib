@@ -435,7 +435,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     //initialize bytes per pixel
     bytesPerPixel = (bitsPerPixel + 7) / 8;
 
-    //initialize bytes per line
+    //initialize bytes per scan line (should be 32-bytes alignment)
     bytesPerScanline = width * bytesPerPixel;
 
     //use palette color for 8 bits?
@@ -501,10 +501,10 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     centerY     = (texHeight >> 1) - 1;
 
     //initialize view port size
-    cminX   = 0;
-    cminY   = 0;
-    cmaxX   = texWidth - 1;
-    cmaxY   = texHeight - 1;
+    cminX       = 0;
+    cminY       = 0;
+    cmaxX       = texWidth - 1;
+    cmaxY       = texHeight - 1;
     
     //OK, I'm fine!
     return 1;
@@ -589,7 +589,7 @@ void render()
 //render from user-defined buffer
 void renderBuffer(const void* buffer, int32_t width, int32_t height)
 {
-    //calculate amount of bytes transfer
+    //calculate amount of bytes transfer (should be 32-bytes alignment)
     const uint32_t bytesCopy = width * height * bytesPerPixel;
 
     //detect texture size has changed?
@@ -871,7 +871,7 @@ void clearScreenMix(uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        _mm256_storeu_si256(xmm1, xmm0);
+        _mm256_stream_si256(xmm1, xmm0);
         pixels += 32;
     }
 
@@ -927,7 +927,7 @@ void clearScreen(uint32_t color)
     for (int32_t i = 0; i < align; i++)
     {
         __m256i* xmm1 = (__m256i*)pixels;
-        _mm256_storeu_si256(xmm1, xmm0);
+        _mm256_stream_si256(xmm1, xmm0);
         pixels += 8;
     }
 
@@ -1267,11 +1267,14 @@ must_inline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 5;
     const __m256i xmm0 = _mm256_set1_epi8(color);
-    uint8_t* pixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint8_t* pdata = (uint8_t*)drawBuff;
+    uint8_t* pixels = &pdata[texWidth * y + x];
     
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
     {
+        //_mm256_storeu_si256 is slower than _mm256_stream_si256
+        //but _mm256_stream_si256 required memory is aligned by 32-bytes
         __m256i* xmm1 = (__m256i*)pixels;
         _mm256_storeu_si256(xmm1, xmm0);
         pixels += 32;
@@ -1318,7 +1321,8 @@ must_inline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t colo
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i xmm0 = _mm256_set1_epi32(color);
-    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pixels = &pdata[texWidth * y + x];
 
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
@@ -1373,7 +1377,8 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i xmm0 = _mm256_set1_epi32(color);
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+	uint8_t* pdata = (uint8_t*)drawBuff;
+	uint8_t* pixels = &pdata[texWidth * y + x];
     
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
@@ -1437,7 +1442,8 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i xmm0 = _mm256_set1_epi32(color);
-    uint8_t* pixels = (uint8_t*)((uint32_t*)drawBuff + intptr_t(texWidth) * y + x);
+	uint8_t* pdata = (uint8_t*)drawBuff;
+	uint8_t* pixels = &pdata[texWidth * y + x];
 
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
@@ -1504,7 +1510,8 @@ must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
 #else
     //calculate starting address
     const uint8_t cover = argb >> 24;
-    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pixels = &pdata[texWidth * y + x];
 
     //zero all
     const __m256i xmm0 = _mm256_setzero_si256();
@@ -1528,7 +1535,8 @@ must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
     for (int32_t i = 0; i < aligned; i++)
     {
         //load 8 pixes width from dest (8 x 32 bits data)
-        __m256i lodst = _mm256_loadu_si256((__m256i*)pixels);
+        __m256i* pdata = (__m256i*)pixels;
+        __m256i lodst = _mm256_loadu_si256(pdata);
         __m256i hidst = lodst;
 
         //unpack to low & high (D * (256 - A)) (8 x 32 bits data)
@@ -1545,7 +1553,7 @@ must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
 
         //destination = PACKED(low,hi) 32 x 8 bits
         const __m256i result = _mm256_packus_epi16(loret, hiret);
-        _mm256_storeu_si256((__m256i*)pixels, result);
+        _mm256_storeu_si256(pdata, result);
 
         //next 8 pixels
         pixels += 8;
@@ -1639,7 +1647,8 @@ must_inline void vertLineMix(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    uint8_t* pixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint8_t* pdata = (uint8_t*)drawBuff;
+    uint8_t* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1672,7 +1681,8 @@ must_inline void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color
     }
 #else
     //calculate starting address
-    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+	uint32_t* pdata = (uint32_t*)drawBuff;
+	uint32_t* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1707,7 +1717,8 @@ must_inline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     ARGB* rgb = (ARGB*)&color;
-    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
 
     for (int32_t i = 0; i < sy; i++)
     {
@@ -1745,7 +1756,8 @@ must_inline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     ARGB* rgb = (ARGB*)&color;
-    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
+	ARGB* pdata = (ARGB*)drawBuff;
+	ARGB* pixels = &pdata[texWidth * y + x];
 
     for (int32_t i = 0; i < sy; i++)
     {
@@ -1799,7 +1811,8 @@ must_inline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
 #else
     //calculate starting address
     const uint8_t cover = argb >> 24;
-    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+	uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pixels = &pdata[texWidth * y + x];
 
     for (int32_t i = 0; i < sy; i++)
     {
@@ -1898,11 +1911,14 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 #else
     //align 32-bytes
     const int32_t align = width >> 5;
-    const __m256i xmm0 = _mm256_set1_epi8(color);
     const int32_t addOffset = texWidth - width;
     
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint8_t* pdata = (uint8_t*)drawBuff;
+    uint8_t* dstPixels = &pdata[texWidth * y + x];
+    
+    //initialize vector color
+    const __m256i xmm0 = _mm256_set1_epi8(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -1967,11 +1983,14 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
 #else
     //align 32-bytes
     const int32_t align = width >> 3;
-    const __m256i xmm0 = _mm256_set1_epi32(color);
     const int32_t addOffset = texWidth - width;
 
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* dstPixels = &pdata[texWidth * y + x];
+
+	//initialize vector color
+	const __m256i xmm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2040,12 +2059,15 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 #else
     //aligned 32-bytes
     const int32_t align = width >> 3;
-    const __m256i xmm0 = _mm256_set1_epi32(color);
     const int32_t addOfs = texWidth - width;
     
     //calculate starting address
-    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
     
+	//initialize vector color
+	const __m256i xmm0 = _mm256_set1_epi32(color);
+
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
     {
@@ -2122,11 +2144,14 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 #else
     //aligned 32-bytes
     const int32_t align = width >> 3;
-    const __m256i xmm0 = _mm256_set1_epi32(color);
     const int32_t addOfs = texWidth - width;
 
-    //calculate starting address
-    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
+	//calculate starting address
+	ARGB* pdata = (ARGB*)drawBuff;
+	ARGB* pixels = &pdata[texWidth * y + x];
+
+	//initialize vector color
+	const __m256i xmm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2212,7 +2237,8 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
     const int32_t addOfs = texWidth - width;
     
     //calculate starting address
-    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pixels = &pdata[texWidth * y + x];
 
     //zero all
     const __m256i xmm0 = _mm256_setzero_si256();
@@ -2237,7 +2263,8 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
         for (int32_t j = 0; j < aligned; j++)
         {
             //load 8 pixes width from dest (8 x 32 bits data)
-            __m256i lodst = _mm256_loadu_si256((__m256i*)pixels);
+            __m256i* mpixels = (__m256i*)pixels;
+            __m256i lodst = _mm256_loadu_si256(mpixels);
             __m256i hidst = lodst;
 
             //unpack to low & high (D * (256 - A)) (8 x 32 bits data)
@@ -2254,7 +2281,7 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
 
             //destination = PACKED(low,hi) 32 x 8 bits
             const __m256i result = _mm256_packus_epi16(loret, hiret);
-            _mm256_storeu_si256((__m256i*)pixels, result);
+            _mm256_storeu_si256(mpixels, result);
 
             //next 8 pixels
             pixels += 8;
@@ -2374,7 +2401,9 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
 #else
     //calculate starting address
     const int32_t addDstOffs = texWidth - width;
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint8_t* pdata = (uint8_t*)drawBuff;
+    uint8_t* dstPixels = &pdata[texWidth * y + x];
+
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -2453,7 +2482,9 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
 #else
     //calculate starting address
     const int32_t addDstOffs = texWidth - width;
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* dstPixels = &pdata[texWidth * y + x];
+
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -2543,7 +2574,8 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
     
     //start scan line
     for (int32_t i = 0; i < height; i++)
@@ -2640,8 +2672,9 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pixels = (ARGB*)drawBuff + intptr_t(texWidth) * y + x;
-    
+	ARGB* pdata = (ARGB*)drawBuff;
+	ARGB* pixels = &pdata[texWidth * y + x];
+
     //start scan line
     for (int32_t i = 0; i < height; i++)
     {
@@ -2721,12 +2754,15 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
         emms
     }
 #else
-    //calculate starting address
+    //calculate alpha and adding offset for the next line
     const uint8_t cover = argb >> 24;
     const uint8_t rcover = 255 - cover;
     const int32_t addOfs = texWidth - width;
-    uint32_t* pixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
-    
+
+    //calculate starting address
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pixels = &pdata[texWidth * y + x];
+
     for (int32_t i = 0; i < height; i++)
     {
         uint8_t al = pattern[i & 7];
@@ -4228,7 +4264,7 @@ void drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double ang
 //draw cubic bezier segment
 void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2, double y2, int32_t x3, int32_t y3, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
-    //anti-alased mode?
+    //anti-aliased mode?
     if (mode == BLEND_MODE_ANTIALIASED)
     {
         drawCubicBezierSegAA(x0, y0, x1, y1, x2, y2, x3, y3, col);
@@ -4457,17 +4493,8 @@ void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t 
     int32_t mc = yc - radius;
     calcCircle(radius, point);
 
-    for (i = 0; i <= radius - 1; i++)
-    {
-        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
-        mc++;
-    }
-
-    for (i = radius - 1; i >= 0; i--)
-    {
-        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
-        mc++;
-    }
+    for (i = 0; i <= radius - 1; i++, mc++) horizLine(xc - point[i], mc, (point[i] << 1), color, mode);
+    for (i = radius - 1; i >= 0; i--, mc++) horizLine(xc - point[i], mc, (point[i] << 1), color, mode);
 }
 
 //filled ellipse with color
@@ -4488,17 +4515,8 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color,
     if (ra != rb) calcEllipse(ra, rb, point);
     else calcCircle(ra, point);
 
-    for (i = 0; i <= rb - 1; i++)
-    {
-        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
-        mc++;
-    }
-
-    for (i = rb - 1; i >= 0; i--)
-    {
-        horizLine(xc - point[i], mc, point[i] << 1, color, mode);
-        mc++;
-    }
+    for (i = 0; i <= rb - 1; i++, mc++) horizLine(xc - point[i], mc, point[i] << 1, color, mode);
+    for (i = rb - 1; i >= 0; i--, mc++) horizLine(xc - point[i], mc, point[i] << 1, color, mode);
 }
 
 //fill polygon using Darel Rex Finley algorithm https://alienryderflex.com/polygon_fill/
@@ -4573,7 +4591,7 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BL
 }
 
 //FX-effect: fade circle
-void fadeCircle(int32_t dir, uint32_t col)
+void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
 {
     int32_t i = 0, x = 0, y = 0;
 
@@ -4587,7 +4605,7 @@ void fadeCircle(int32_t dir, uint32_t col)
                 for (x = 0; x <= cmaxX / 40; x++) fillCircle(x * 40 + 20, y * 40 + 20, i, col);
             }
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4602,7 +4620,7 @@ void fadeCircle(int32_t dir, uint32_t col)
                 }
             }
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4617,7 +4635,7 @@ void fadeCircle(int32_t dir, uint32_t col)
                 }
             }
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4632,7 +4650,7 @@ void fadeCircle(int32_t dir, uint32_t col)
                 }
             }
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4642,7 +4660,7 @@ void fadeCircle(int32_t dir, uint32_t col)
 }
 
 //FX-effect: fade rollo
-void fadeRollo(int32_t dir, uint32_t col)
+void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
 {
     int32_t i = 0, j = 0;
 
@@ -4653,7 +4671,7 @@ void fadeRollo(int32_t dir, uint32_t col)
         {
             for (j = 0; j <= cmaxY / 10; j++) horizLine(0, j * 20 + i, cmaxX, col);
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4662,7 +4680,7 @@ void fadeRollo(int32_t dir, uint32_t col)
         {
             for (j = 0; j <= cmaxX / 10; j++) vertLine(j * 20 + i, 0, cmaxY, col);
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4675,7 +4693,7 @@ void fadeRollo(int32_t dir, uint32_t col)
                 if (j * 10 < cmaxY) horizLine(0, j * 20 + i, cmaxX, col);
             }
             render();
-            delay(FPS_60);
+            delay(mswait);
         }
         break;
 
@@ -4703,7 +4721,7 @@ void setVisualPage(GFX_IMAGE* page)
 //create a new GFX image
 int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
 {
-    //calculate buffer size, add to width and height
+    //calculate buffer size (should be 32-bytes alignment)
     const uint32_t memSize = height * width * bytesPerPixel;
     if (!memSize)
     {
@@ -4711,7 +4729,7 @@ int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
         return 0;
     }
 
-    //32-bytes alignment for SIMD
+    //32-bytes alignment for SIMD optimize
     img->mData = _mm_malloc(memSize, 32);
     if (!img->mData)
     {
@@ -4734,7 +4752,7 @@ int32_t updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
     //no need update
     if (img->mWidth == width && img->mHeight == height) return 1;
 
-    //calculate buffer size, add to width and height
+    //calculate buffer size (should be 32-bytes alignment)
     const uint32_t size = height * width * bytesPerPixel;
 
     if (!size)
@@ -4810,8 +4828,9 @@ void getImageMix(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE*
     }
 #else
     //calculate starting address
+    uint8_t* pdata = (uint8_t*)drawBuff;
     uint8_t* imgPixels = (uint8_t*)img->mData;
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint8_t* dstPixels = &pdata[texWidth * y + x];
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -4864,8 +4883,9 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
     }
 #else
     //calculate starting address
+    uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* imgPixels = (uint32_t*)img->mData;
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * y + x;
+    uint32_t* dstPixels = &pdata[texWidth * y + x];
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -4876,7 +4896,7 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
 #endif
 }
 
-//get GFX image buffer functions
+//get GFX image buffer (export function)
 void getImage(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img)
 {
     //calculate new position
@@ -4987,8 +5007,10 @@ void putImageMix(int32_t x, int32_t y, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly + lx;
-    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+    uint8_t* dstData = (uint8_t*)drawBuff;
+    uint8_t* srcData = (uint8_t*)img->mData;
+    uint8_t* dstPixels = &dstData[texWidth * ly + lx];
+    uint8_t* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -5076,12 +5098,15 @@ void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
     }
 #else
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+    const uint32_t bytesCopy = width << 2;
+	uint32_t* dstData = (uint32_t*)drawBuff;
+	uint32_t* srcData = (uint32_t*)img->mData;
+	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+	uint32_t* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     for (int32_t i = 0; i < height; i++)
     {
-        memcpy(dstPixels, imgPixels, intptr_t(width) << 2);
+        memcpy(dstPixels, imgPixels, bytesCopy);
         dstPixels += texWidth;
         imgPixels += img->mWidth;
     }
@@ -5177,8 +5202,10 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
-    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	ARGB* dstData = (ARGB*)drawBuff;
+	ARGB* srcData = (ARGB*)img->mData;
+	ARGB* dstPixels = &dstData[texWidth * ly + lx];
+	ARGB* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5305,8 +5332,10 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
-    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	ARGB* dstData = (ARGB*)drawBuff;
+	ARGB* srcData = (ARGB*)img->mData;
+	ARGB* dstPixels = &dstData[texWidth * ly + lx];
+	ARGB* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5440,8 +5469,10 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	uint32_t* dstData = (uint32_t*)drawBuff;
+	uint32_t* srcData = (uint32_t*)img->mData;
+	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+	uint32_t* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //scan height
     for (int32_t i = 0; i < height; i++)
@@ -5620,8 +5651,10 @@ void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* dstPixels = (uint8_t*)drawBuff + intptr_t(texWidth) * ly + lx;
-    uint8_t* imgPixels = (uint8_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	uint8_t* dstData = (uint8_t*)drawBuff;
+	uint8_t* srcData = (uint8_t*)img->mData;
+	uint8_t* dstPixels = &dstData[texWidth * ly + lx];
+	uint8_t* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -5742,8 +5775,10 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	uint32_t* dstData = (uint32_t*)drawBuff;
+	uint32_t* srcData = (uint32_t*)img->mData;
+	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+	uint32_t* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5901,8 +5936,10 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
-    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	ARGB* dstData = (ARGB*)drawBuff;
+	ARGB* srcData = (ARGB*)img->mData;
+	ARGB* dstPixels = &dstData[texWidth * ly + lx];
+	ARGB* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5910,10 +5947,11 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         //process 32-bytes align
         for (int32_t j = 0; j < aligned; j++)
         {
-            //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m256i xmm0 = _mm256_and_si256(_mm256_loadu_si256((const __m256i*)imgPixels), xmm6);
+            //off alpha channel from 8 source pixels (ARGB -> 0RGB)
+            __m256i xmm0 = _mm256_loadu_si256((const __m256i*)imgPixels);
+            xmm0 = _mm256_and_si256(xmm0, xmm6);
 
-            //load 4 pixels from background color
+            //load 8 pixels from background color
             __m256i xmm1 = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
@@ -6068,8 +6106,10 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    ARGB* dstPixels = (ARGB*)drawBuff + intptr_t(texWidth) * ly + lx;
-    ARGB* imgPixels = (ARGB*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	ARGB* dstData = (ARGB*)drawBuff;
+	ARGB* srcData = (ARGB*)img->mData;
+	ARGB* dstPixels = &dstData[texWidth * ly + lx];
+	ARGB* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6077,10 +6117,11 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         //process 32-bytes align
         for (int32_t j = 0; j < aligned; j++)
         {
-            //off alpha channel from source pixels (ARGB -> 0RGB)
-            __m256i xmm0 = _mm256_and_si256(_mm256_loadu_si256((const __m256i*)imgPixels), xmm6);
+            //off alpha channel from 8 source pixels (ARGB -> 0RGB)
+            __m256i xmm0 = _mm256_loadu_si256((const __m256i*)imgPixels);
+            xmm0 = _mm256_and_si256(xmm0, xmm6);
 
-            //load 4 pixels from background color
+            //load 8 pixels from background color
             __m256i xmm1 = _mm256_loadu_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xFF and render is 0x00)
@@ -6234,8 +6275,10 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint32_t* dstPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * ly + lx;
-    uint32_t* imgPixels = (uint32_t*)img->mData + img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x);
+	uint32_t* dstData = (uint32_t*)drawBuff;
+	uint32_t* srcData = (uint32_t*)img->mData;
+	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+	uint32_t* imgPixels = &srcData[img->mWidth * (intptr_t(ly) - y) + (intptr_t(lx) - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -7467,7 +7510,7 @@ void bilinearScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//maximize optimize version (extremely speed)
+//maximize optimize version (extremely fast)
 //using sticks:
 //1. FIXED-POINT
 //2. separate inbound and outbound pixels calculation
@@ -7599,7 +7642,7 @@ void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//maximize optimized version (extremely speed)
+//maximize optimized version (extremely fast)
 //the tricks we're used:
 //1. lookup table
 //2. fixed-point
@@ -7894,7 +7937,7 @@ void bilinearRotateLine(uint32_t* pdst, int32_t boundx0, int32_t inx0, int32_t i
     }
 }
 
-//maximize optimize version (extremely speed)
+//maximize optimize version (extremely fast)
 //use sticks:
 //1. fixed-point
 //2. separate inbound and outbound pixel calculation
@@ -8073,7 +8116,7 @@ void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0
     }
 }
 
-//maximize optimize version (extremely speed)
+//maximize optimize version (extremely fast)
 //use sticks:
 //1. fixed-point
 //2. separate get pixel inbound and outbound of source image
@@ -8208,7 +8251,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type /* 
         break;
 
     case INTERPOLATION_TYPE_BILINEAR:
-        bilinearRotateImageAVX2(dst, src, degree, 1, 1);
+        bilinearRotateImageMax(dst, src, degree, 1, 1);
         break;
 
     case INTERPOLATION_TYPE_BICUBIC:
@@ -11072,7 +11115,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     for (int32_t i = 0; i < aligned; i++)
     {
         //load 8 pixes width from src1 (8 x 32 bits data)
-        __m256i los1 = _mm256_loadu_si256((const __m256i*)psrc1);
+        __m256i los1 = _mm256_load_si256((const __m256i*)psrc1);
         __m256i his1 = los1;
 
         //unpack to low & hi
@@ -11080,7 +11123,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
         his1 = _mm256_unpackhi_epi8(his1, xmm0);
 
         //load 8 pixes width from src2 (8 x 32 bits data)
-        __m256i los2 = _mm256_loadu_si256((const __m256i*)psrc2);
+        __m256i los2 = _mm256_load_si256((const __m256i*)psrc2);
         __m256i his2 = los2;
 
         //unpack to low & high
@@ -11504,7 +11547,7 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
         __m256i* xmm1 = (__m256i*)pixels;
 
         //load 8 pixels (256-bits data)
-        const __m256i xmm0 = _mm256_loadu_si256(xmm1);
+        const __m256i xmm0 = _mm256_load_si256(xmm1);
 
         //sub 32-bytes pixels with saturating
         const __m256i xmm2 = _mm256_subs_epu8(xmm0, mstep);

@@ -152,8 +152,8 @@ void mandelbrotFloatSSE(uint32_t* out, double mx, double my, double scale, int32
                 x1 = _mm_add_ps(_mm_sub_ps(x2, y2), x0);
             }
 
-            int32_t itpos[4] = { 0 };
-            _mm_store_si128((__m128i*)itpos, iters);
+            alignas(16) int32_t itpos[4] = { 0 };
+            _mm_stream_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -196,8 +196,8 @@ void mandelbrotDoubleSSE2(uint32_t* out, double mx, double my, double scale, int
                 x1 = _mm_add_pd(_mm_sub_pd(x2, y2), x0);
             }
 
-            int32_t itpos[4] = { 0 };
-            _mm_store_si128((__m128i*)itpos, iters);
+            alignas(16) int32_t itpos[4] = { 0 };
+            _mm_stream_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
         }
@@ -241,8 +241,8 @@ void juliaFloatSSE(uint32_t* out, double mx, double my, double scale, int32_t ys
                 x1 = _mm_add_ps(_mm_sub_ps(x2, y2), xre);
             }
 
-            int32_t itpos[4] = { 0 };
-            _mm_store_si128((__m128i*)itpos, iters);
+            alignas(16) int32_t itpos[4] = { 0 };
+            _mm_stream_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -288,8 +288,8 @@ void juliaDoubleSSE2(uint32_t* out, double mx, double my, double scale, int32_t 
                 x1 = _mm_add_pd(_mm_sub_pd(x2, y2), xre);
             }
 
-            int32_t itpos[4] = { 0 };
-            _mm_store_si128((__m128i*)itpos, iters);
+            alignas(16) int32_t itpos[4] = { 0 };
+            _mm_stream_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
         }
@@ -330,8 +330,8 @@ void mandelbrotFloatAVX(uint32_t* out, double mx, double my, double scale, int32
                 x1 = _mm256_add_ps(_mm256_sub_ps(x2, y2), x0);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -378,8 +378,8 @@ void mandelbrotDoubleAVX(uint32_t* out, double mx, double my, double scale, int3
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -425,8 +425,8 @@ void juliaFloatAVX(uint32_t* out, double mx, double my, double scale, int32_t ys
                 x1 = _mm256_add_ps(_mm256_sub_ps(x2, y2), xre);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -476,8 +476,8 @@ void juliaDoubleAVX(uint32_t* out, double mx, double my, double scale, int32_t y
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -520,8 +520,8 @@ void mandelbrotFloatAVX2(uint32_t* out, double mx, double my, double scale, int3
                 x1 = _mm256_add_ps(_mm256_sub_ps(x2, y2), x0);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -568,8 +568,8 @@ void mandelbrotDoubleAVX2(uint32_t* out, double mx, double my, double scale, int
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -615,8 +615,8 @@ void juliaFloatAVX2(uint32_t* out, double mx, double my, double scale, int32_t y
                 x1 = _mm256_add_ps(_mm256_sub_ps(x2, y2), xre);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -666,8 +666,8 @@ void juliaDoubleAVX2(uint32_t* out, double mx, double my, double scale, int32_t 
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -709,8 +709,8 @@ void mandelbrotFloatFMA(uint32_t* out, double mx, double my, double scale, int32
                 x1 = _mm256_add_ps (_mm256_sub_ps (x2, y2), x0);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -756,8 +756,8 @@ void mandelbrotDoubleFMA(uint32_t* out, double mx, double my, double scale, int3
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -802,8 +802,8 @@ void juliaFloatFMA(uint32_t* out, double mx, double my, double scale, int32_t ys
                 x1 = _mm256_add_ps (_mm256_sub_ps (x2, y2), xre);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -852,8 +852,8 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
                 x1 = _mm256_add_pd(_mm256_sub_pd(x2, y2), xre);
             }
 
-            int32_t itpos[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)itpos, iters);
+            alignas(32) int32_t itpos[8] = { 0 };
+            _mm256_stream_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -925,7 +925,8 @@ void initFunctions(int32_t type)
 #endif
 
     bool avx2 = (out[1] & (1 << 5)) != 0;
-    bool avx512 = (out[1] & (1 << 16)) != 0;
+    bool avx512f = (out[1] & (1 << 16)) != 0;
+    bool avx512vl = (out[1] & (1 << 31)) != 0;
 
     if (type)
     {
@@ -1079,11 +1080,6 @@ void initFunctions(int32_t type)
     }
 }
 
-int32_t alignSize(int32_t num)
-{
-    return (num + 7) & ~7;
-}
-
 void initFractals(int32_t sx, int32_t sy)
 {
     double added = 0;
@@ -1109,7 +1105,7 @@ void initFractals(int32_t sx, int32_t sy)
 
 void allocBuffer()
 {
-    const uint32_t msize = alignSize(cx) * cy * getBytesPerPixel();
+    const uint32_t msize = alignedBytes(alignedSize(cx) * cy * getBytesPerPixel());
     if (msize > dataSize)
     {
         if (data) _mm_free(data);
@@ -1120,7 +1116,7 @@ void allocBuffer()
     }
 }
 
-const int32_t yadd = 32;
+const int32_t yadd = 16;
 volatile long yprocessed = 0;
 
 #ifdef __APPLE__
@@ -1129,7 +1125,7 @@ void* threadProc(void* args)
 DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 #endif
 {
-    int32_t acx = alignSize(cx);
+    int32_t acx = alignedSize(cx);
     while (true)
     {
 #ifdef __APPLE__
@@ -1205,7 +1201,7 @@ void gfxFractals()
         //only draw when needed
         if (redraw)
         {
-            uint32_t acx = alignSize(cx);
+            uint32_t acx = alignedSize(cx);
             allocBuffer();
             clock_t t1 = clock();
             calculateMultiThread();

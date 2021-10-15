@@ -561,8 +561,8 @@ void        fadeOut(RGB* dest, uint32_t wtime);
 void        fadeMax(uint32_t wtime);
 void        fadeMin(uint32_t wtime);
 void        fadeDown(RGB* pal);
-void        fadeCircle(int32_t dir, uint32_t col);
-void        fadeRollo(int32_t dir, uint32_t col);
+void        fadeCircle(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
+void        fadeRollo(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
 void        fadeOutImage(GFX_IMAGE* img, uint8_t step);
 
 //some FX-effect functions
@@ -600,10 +600,16 @@ void        gfxEffects();
 void        gfxFontView();
 void        gfxFractals();
 
-//32-bytes alignment for AVX2 use
-static must_inline uint32_t alignedSize(uint32_t msize)
+//8-pixels alignment for AVX2 use
+static must_inline int32_t alignedSize(int32_t msize)
 {
-    return (msize + 31) & ~0x1F;
+    return (msize + 7) & ~7;
+}
+
+//32-bytes alignment for AVX2 use
+static must_inline int32_t alignedBytes(int32_t msize)
+{
+	return (msize + 31) & ~0x1F;
 }
 
 //convert r,g,b values to 32bits integer value
