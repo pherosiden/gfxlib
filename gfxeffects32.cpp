@@ -49,7 +49,7 @@ void juliaSet()
             }
 
             //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
+            pixels[y][x] = hsv2rgb(0xff * i / iterations, 0xff, (i < iterations) ? 0xff : 0);
         }
     }
     ====================AVX-512 version support INTEL 11th later===============================
@@ -1047,7 +1047,7 @@ void juliaExplorer()
                 }
 
                 //use color model conversion to get rainbow palette
-                pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
+                pixels[y][x] = hsv2rgb(0xff * i / iterations, 0xff, (i < iterations) ? 0xff : 0);
             }
         }
         ===========================================================
@@ -1289,7 +1289,7 @@ void mandelbrotSet()
             }
 
             //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
+            pixels[y][x] = hsv2rgb(0xff * i / iterations, 0xff, (i < iterations) ? 0xff : 0);
         }
     }
     ======================================================================
@@ -1457,7 +1457,7 @@ void mandelbrotExporer()
                 }
 
                 //use color model conversion to get rainbow palette
-                pixels[y][x] = hsv2rgb(0xFF * i / iterations, 0xFF, (i < iterations) ? 0xFF : 0);
+                pixels[y][x] = hsv2rgb(0xff * i / iterations, 0xff, (i < iterations) ? 0xff : 0);
             }
         }
         ========================================================================

@@ -84,12 +84,12 @@ uint32_t        randSeed = 0;                       //global random seed
 uint32_t        factor = 0x8088405;                 //global factor
 
 //pattern filled styles
-uint8_t         ptnLine[]           = { 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00 };
+uint8_t         ptnLine[]           = { 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00 };
 uint8_t         ptnLiteSlash[]      = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 uint8_t         ptnSlash[]          = { 0x07, 0x0E, 0x1C, 0x38, 0x70, 0xE0, 0xC1, 0x83 };
 uint8_t         ptnBackSlash[]      = { 0x07, 0x83, 0xC1, 0xE0, 0x70, 0x38, 0x1C, 0x0E };
 uint8_t         ptnLiteBackSlash[]  = { 0x5A, 0x2D, 0x96, 0x4B, 0xA5, 0xD2, 0x69, 0xB4 };
-uint8_t         ptnHatch[]          = { 0xFF, 0x88, 0x88, 0x88, 0xFF, 0x88, 0x88, 0x88 };
+uint8_t         ptnHatch[]          = { 0xff, 0x88, 0x88, 0x88, 0xff, 0x88, 0x88, 0x88 };
 uint8_t         ptnHatchX[]         = { 0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x24, 0x18 };
 uint8_t         ptnInterLeave[]     = { 0xCC, 0x33, 0xCC, 0x33, 0xCC, 0x33, 0xCC, 0x33 };
 uint8_t         ptnWideDot[]        = { 0x80, 0x00, 0x08, 0x00, 0x80, 0x00, 0x08, 0x00 };
@@ -5951,10 +5951,10 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //load 8 pixels from background color
             __m256i xmm1 = _mm256_loadu_si256((const __m256i*)dstPixels);
 
-            //get mask with key color (key color is 0xFF and render is 0x00)
+            //get mask with key color (key color is 0xff and render is 0x00)
             __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
 
-            //inverted mask (key color is 0x00 and render is 0xFF)
+            //inverted mask (key color is 0x00 and render is 0xff)
             xmm2 = _mm256_xor_si256(xmm2, xmm5);
 
             //make source with off key color (0x00XX)
@@ -6121,13 +6121,13 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             //load 8 pixels from background color
             __m256i xmm1 = _mm256_loadu_si256((const __m256i*)dstPixels);
 
-            //get mask with key color (key color is 0xFF and render is 0x00)
+            //get mask with key color (key color is 0xff and render is 0x00)
             __m256i xmm2 = _mm256_cmpeq_epi32(xmm0, xmm4);
 
             //save revert background
             __m256i xmm3 = _mm256_and_si256(xmm1, xmm2);
 
-            //inverted mask (key color is 0x00 and render is 0xFF)
+            //inverted mask (key color is 0x00 and render is 0xff)
             xmm2 = _mm256_xor_si256(xmm2, xmm5);
 
             //make source with off key color (0x00XX)
@@ -6287,10 +6287,10 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
             __m256i src = _mm256_loadu_si256((const __m256i*)imgPixels);
             __m256i dst = _mm256_loadu_si256((const __m256i*)dstPixels);
 
-            //get mask with key color (key color is 0xFF and render is 0x00)
+            //get mask with key color (key color is 0xff and render is 0x00)
             __m256i mask = _mm256_cmpeq_epi32(src, amask);
 
-            //inverted mask (key color is 0x00 and render is 0xFF)
+            //inverted mask (key color is 0x00 and render is 0xff)
             mask = _mm256_xor_si256(mask, bmask);
 
             //make source with off key color (0x00XX)

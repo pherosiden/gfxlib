@@ -63,7 +63,7 @@ namespace juliaSet {
                     if ((newre * newre + newim * newim) > 4) break;
                 }
 
-                *pixels++ = (i & 0xFF);
+                *pixels++ = (i & 0xff);
             }
         }
 
@@ -109,7 +109,7 @@ namespace juliaSet {
                     if ((newre * newre + newim * newim) > 4) break;
                 }
 
-                *pixels++ = (i & 0xFF);
+                *pixels++ = (i & 0xff);
             }
         }
 
@@ -574,6 +574,7 @@ namespace rainEffect {
     #define DENSITY_SET     6
     #define MAXIMO          150
 
+    uint8_t     aborts = 0;
     uint8_t*    vmem = NULL;
     uint8_t     vbuff[IMAGE_SIZE] = { 0 };
     uint8_t     densityAdd = 0;
@@ -622,7 +623,7 @@ namespace rainEffect {
         48,52,55,58,61,63,66,68,7,72,73,74,
         75,75,75,74,73,72,7,68,66,63,61,58,
         55,52,48,45,42,39,37,34,32,3,28,27,
-        26,25,0xFF
+        26,25,0xff
     };
 
     const uint16_t lkpCol[] = {
@@ -634,11 +635,13 @@ namespace rainEffect {
         133,130,127,124,121,118,115,111,108,104,100, 96,
          92, 88, 84, 80, 76, 72, 68, 64, 60, 56, 52, 49,
          45, 42, 39, 36, 33, 30, 27, 25, 23, 21, 20, 18,
-         17, 16, 16, 15, 0xFF
+         17, 16, 16, 15, 0xff
     };
 
     void putFrame()
     {
+        if (aborts) return;
+
 #ifdef _USE_ASM
         _asm {
             lea     esi, vbuff
@@ -723,6 +726,9 @@ namespace rainEffect {
         }
 #endif
         render();
+        readKeys();
+        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+        if (keyDown(SDL_SCANCODE_RETURN)) aborts = 1;
         delay(FPS_90);
     }
 
@@ -999,9 +1005,9 @@ namespace rainEffect {
         }
 #else
         calcRandValue();
-        *rnd1 = (randVal & 0xFF) + 32;
+        *rnd1 = (randVal & 0xff) + 32;
         calcRandValue();
-        *rnd2 = (randVal & 0xFF) + 36;
+        *rnd2 = (randVal & 0xff) + 36;
 #endif
     }
 
@@ -1072,14 +1078,14 @@ namespace rainEffect {
         lp0:
             mov     si, [tblFil + ebx]
             mov     cx, [lkpFil + esi]
-            cmp     cx, 0xFF
+            cmp     cx, 0xff
             jnz     lp1
             mov     [tblFil + ebx], 0
             jmp     lp0
         lp1:
             mov     si, [tblCol + ebx]
             mov     dx, [lkpCol + esi]
-            cmp     dx, 0xFF
+            cmp     dx, 0xff
             jnz     lp2
             mov     [tblCol + ebx], 0
             jmp     lp1
@@ -1098,7 +1104,7 @@ namespace rainEffect {
         {
             si = tblFil[val];
             cx = lkpFil[si];
-            if (cx != 0xFF) break;
+            if (cx != 0xff) break;
             tblFil[val] = 0;
         }
 
@@ -1106,7 +1112,7 @@ namespace rainEffect {
         {
             si = tblCol[val];
             dx = lkpCol[si];
-            if (dx != 0xFF) break;
+            if (dx != 0xff) break;
             tblCol[val] = 0;
         }
 
@@ -1166,11 +1172,9 @@ namespace rainEffect {
                 putFrame();
                 stabylize();
                 putFrame();
+                if (aborts) return;
             }
             idx += 25;
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
 
         for (i = 0; i < 40; i++)
@@ -1186,11 +1190,9 @@ namespace rainEffect {
                 putFrame();
                 stabylize();
                 putFrame();
+                if (aborts) return;
             }
             idx -= 20;
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
     }
 
@@ -1208,19 +1210,15 @@ namespace rainEffect {
                 touch(100);
                 stabylize();
                 putFrame();
+                if (aborts) return;
             }
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
 
         for (i = 0; i < 5; i++)
         {
             stabylize();
             putFrame();
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            if (aborts) return;
         }
     }
 
@@ -1239,18 +1237,14 @@ namespace rainEffect {
             bigTouch(-4000);
             stabylize2();
             putFrame();
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            if (aborts) return;
         }
 
         for (i = 0; i < 20; i++)
         {
             stabylize2();
             putFrame();
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            if (aborts) return;
         }
     }
 
@@ -1265,29 +1259,22 @@ namespace rainEffect {
             {
                 stabylize();
                 putFrame();
+                if (aborts) return;
             }
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
             putPoint(-2000, 80, 150);
             for (j = 0; j < 30; j++)
             {
                 stabylize();
                 putFrame();
+                if (aborts) return;
             }
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
 
         for (i = 0; i < 80; i++)
         {
             stabylize();
             putFrame();
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            if (aborts) return;
         }
     }
 
@@ -1327,9 +1314,7 @@ namespace rainEffect {
             }
 
             printFrame(B);
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            if (aborts) return;
         }
     }
 
@@ -1345,13 +1330,8 @@ namespace rainEffect {
                 putFrame();
                 stabylize();
                 putFrame();
-                readKeys();
-                if (keyDown(SDL_SCANCODE_RETURN)) break;
-                if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+                if (aborts) return;
             }
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
     }
 
@@ -1375,6 +1355,7 @@ namespace rainEffect {
         densityAdd = DENSITY_INIT;
         vmem = (uint8_t*)getDrawBuffer();
         memset(&vmem[IMAGE_WIDTH * IMAGE_MIDY], 0x63, IMAGE_WIDTH);
+
         setupPalette();
         printFrame(1);
         stabylize();
@@ -1383,59 +1364,27 @@ namespace rainEffect {
             randVal = SEMILLA_INIT;
             densityAdd = DENSITY_INIT;
             P001();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P002();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             densityAdd = DENSITY_SET;
             P003();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             printFrame(100);
             P003();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             printFrame(100);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             densityAdd = DENSITY_INIT;
             P004();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             printFrame(100);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             clearSinus();
             P005(4, 2);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P005(3, 2);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P005(2, 2);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P005(4, 1);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P005(4, 1);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P005(3, 1);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             densityAdd = DENSITY_SET;
             P006(1, 0);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P006(1, 1);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             P006(0, 1);
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-        } while (!keyDown(SDL_SCANCODE_RETURN) && !keyDown(SDL_SCANCODE_ESCAPE));
+        } while (!aborts);
         cleanup();
     }
 }
@@ -1604,7 +1553,7 @@ namespace waterEffect {
             mov     [water + edi], ax
         }
 #else
-        const uint16_t i = idx & 0xFF;
+        const uint16_t i = idx & 0xff;
         const uint16_t nx = costab[i];
         const uint16_t ny = sintab[i];
         water[0][ny][nx] = 500;
@@ -2108,8 +2057,8 @@ namespace phongShader {
                 osy = vl[i] >> 8;
                 for (j = xl[i] >> 8; j <= xr[i] >> 8; j++)
                 {
-                    u = (osx + xofs[j - (xl[i] >> 8)]) & 0xFF;
-                    v = (osy + yofs[j - (xl[i] >> 8)]) & 0xFF;
+                    u = (osx + xofs[j - (xl[i] >> 8)]) & 0xff;
+                    v = (osy + yofs[j - (xl[i] >> 8)]) & 0xff;
                     vbuff[i + y1][j] = texture[v][u];
                 }
             }
@@ -2122,8 +2071,8 @@ namespace phongShader {
                 osy = vr[i] >> 8;
                 for (j = xr[i] >> 8; j <= xl[i] >> 8; j++)
                 {
-                    u = (osx + xofs[j - (xr[i] >> 8)]) & 0xFF;
-                    v = (osy + yofs[j - (xr[i] >> 8)]) & 0xFF;
+                    u = (osx + xofs[j - (xr[i] >> 8)]) & 0xff;
+                    v = (osy + yofs[j - (xr[i] >> 8)]) & 0xff;
                     vbuff[i + y1][j] = texture[v][u];
                 }
             }
@@ -2625,8 +2574,8 @@ namespace fireDown {
         do {
             if (frames > 800) frames = 0;
 
-            const int16_t x = IMAGE_MIDX + sinTab[(frames / 3) & 0xFF];
-            const int16_t y = 80 - (sinTab[(frames + 60) & 0xFF] >> 1);
+            const int16_t x = IMAGE_MIDX + sinTab[(frames / 3) & 0xff];
+            const int16_t y = 80 - (sinTab[(frames + 60) & 0xff] >> 1);
 
             for (i = 0; i < 4; i++)
             {
@@ -2985,8 +2934,8 @@ namespace fireTexture2 {
     #define YSTR	2
     #define ZSTR	-1
 
-    #define SIN(i)		(stab[i & 0xFF])
-    #define COS(i)		(stab[(i + 192) & 0xFF])
+    #define SIN(i)		(stab[i & 0xff])
+    #define COS(i)		(stab[(i + 192) & 0xff])
 
     const int16_t points[][3] = {
         {-32, -32, -32}, {-32, -32, 32}, {32, -32, 32}, {32, -32, -32},
@@ -3239,8 +3188,8 @@ namespace fireTexture3 {
     #define YSTR    2
     #define ZSTR    -1
 
-    #define SIN(i)  (stab[i & 0xFF])
-    #define COS(i)  (stab[(i + 192) & 0xFF])
+    #define SIN(i)  (stab[i & 0xff])
+    #define COS(i)  (stab[(i + 192) & 0xff])
 
     const int16_t points[][3] = {
         {-25, -25, -25}, {-25, -25, 25}, {25, -25, 25}, {25, -25, -25},
@@ -4545,7 +4494,7 @@ namespace bitmapRotate {
         makeTables();
 
         do {
-            drawScreen(x, y, dist, rot & 0xFF);
+            drawScreen(x, y, dist, rot & 0xff);
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_60);
 
@@ -4716,7 +4665,7 @@ namespace intro16k {
 
     int32_t exSin(int16_t x)
     {
-        return sinTab[(x >> 2) & 0xFF] * (4 - (x & 3)) + sinTab[((x >> 2) + 1) & 0xFF] * (x & 3);
+        return sinTab[(x >> 2) & 0xff] * (4 - (x & 3)) + sinTab[((x >> 2) + 1) & 0xff] * (x & 3);
     }
 
     void multMatrix(int32_t m1[][3], int32_t m2[][3])
@@ -4744,8 +4693,8 @@ namespace intro16k {
         memset(m1, 0, sizeof(m1));
         memset(m2, 0, sizeof(m2));
 
-        int16_t asin = sinTab[a & 0xFF];
-        int16_t acos = sinTab[(a + 64) & 0xFF];
+        int16_t asin = sinTab[a & 0xff];
+        int16_t acos = sinTab[(a + 64) & 0xff];
         
         m1[0][0] = acos;
         m1[0][1] = -asin;
@@ -4753,8 +4702,8 @@ namespace intro16k {
         m1[1][1] = acos;
         m1[2][2] = 64;
 
-        asin = sinTab[b & 0xFF];
-        acos = sinTab[(b + 64) & 0xFF];
+        asin = sinTab[b & 0xff];
+        acos = sinTab[(b + 64) & 0xff];
         m2[0][0] = acos;
         m2[0][2] = -asin;
         m2[2][0] = asin;
@@ -4762,8 +4711,8 @@ namespace intro16k {
         m2[1][1] = 64;
         multMatrix(m1, m2);
 
-        asin = sinTab[c & 0xFF];
-        acos = sinTab[(c + 64) & 0xFF];
+        asin = sinTab[c & 0xff];
+        acos = sinTab[(c + 64) & 0xff];
         m2[1][1] = acos;
         m2[1][2] = -asin;
         m2[2][1] = asin;
@@ -5028,23 +4977,23 @@ namespace intro16k {
         for (i = 0; i < firstIndex; i++)
         {
             val = 127 - rgbpal[i].r;
-            val = ((((val << 8) + sat) & 0xFF) * val) << 2;
+            val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].r;
-            col = ((((val & 0xFF00) + col) & 0xFF) * br1) >> 8;
+            col = ((((val & 0xFF00) + col) & 0xff) * br1) >> 8;
             if (col > 0x3F) col = 0x3F;
             outrgb[i].r = col;
 
             val = 127 - rgbpal[i].g;
-            val = ((((val << 8) + sat) & 0xFF) * val) << 2;
+            val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].g;
-            col = ((((val & 0xFF00) + col) & 0xFF) * br1) >> 8;
+            col = ((((val & 0xFF00) + col) & 0xff) * br1) >> 8;
             if (col > 0x3F) col = 0x3F;
             outrgb[i].g = col;
 
             val = 127 - rgbpal[i].b;
-            val = ((((val << 8) + sat) & 0xFF) * val) << 2;
+            val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].b;
-            col = ((((val & 0xFF00) + col) & 0xFF) * br1) >> 8;
+            col = ((((val & 0xFF00) + col) & 0xff) * br1) >> 8;
             if (col > 0x3F) col = 0x3F;
             outrgb[i].b = col;
         }
@@ -5052,23 +5001,23 @@ namespace intro16k {
         for (i = firstIndex; i < 256; i++)
         {
             val = 127 - rgbpal[i].r;
-            val = ((((val << 8) + sat) & 0xFF) * val) << 2;
+            val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].r;
-            col = ((((val & 0xFF00) + col) & 0xFF) * br2) >> 8;
+            col = ((((val & 0xFF00) + col) & 0xff) * br2) >> 8;
             if (col > 0x3F) col = 0x3F;
             outrgb[i].r = col;
 
             val = 127 - rgbpal[i].g;
-            val = ((((val << 8) + sat) & 0xFF) * val) << 2;
+            val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].g;
-            col = ((((val & 0xFF00) + col) & 0xFF) * br2) >> 8;
+            col = ((((val & 0xFF00) + col) & 0xff) * br2) >> 8;
             if (col > 0x3F) col = 0x3F;
             outrgb[i].g = col;
 
             val = 127 - rgbpal[i].b;
-            val = ((((val << 8) + sat) & 0xFF) * val) << 2;
+            val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].b;
-            col = ((((val & 0xFF00) + col) & 0xFF) * br2) >> 8;
+            col = ((((val & 0xFF00) + col) & 0xff) * br2) >> 8;
             if (col > 0x3F) col = 0x3F;
             outrgb[i].b = col;
         }
@@ -5602,7 +5551,7 @@ namespace intro16k {
 
                 if (c < 12) vbuff[i][j] = texture[row][col];
                 else if (c < 24) vbuff[i][j] = 60 - (c - 16) * (c - 16);
-                else if (c > 64) vbuff[i][j] = 180 - (sinTab[(j * 3 + i * 2) & 0xFF] - sinTab[(i * 5) & 0xFF] - sinTab[(i * 4 - j * 7) & 0xFF]) / 3;
+                else if (c > 64) vbuff[i][j] = 180 - (sinTab[(j * 3 + i * 2) & 0xff] - sinTab[(i * 5) & 0xff] - sinTab[(i * 4 - j * 7) & 0xff]) / 3;
                 else vbuff[i][j] = 0;
             }
         }
@@ -5761,8 +5710,8 @@ namespace intro16k {
 
             for (i = 1; i <= 9; i++)
             {
-                const int16_t cx = 96 + (sinTab[(frames + i * 24) & 0xFF] >> 1) + (sinTab[((i << 4) + frames / 3) & 0xFF] >> 1);
-                const int16_t cy = 32 + (sinTab[((frames << 1) + 100 + i * 20) & 0xFF] >> 2);
+                const int16_t cx = 96 + (sinTab[(frames + i * 24) & 0xff] >> 1) + (sinTab[((i << 4) + frames / 3) & 0xff] >> 1);
+                const int16_t cy = 32 + (sinTab[((frames << 1) + 100 + i * 20) & 0xff] >> 2);
                 makeBlob(cx, cy);
             }
 
@@ -5804,15 +5753,15 @@ namespace intro16k {
         do {
             if (0 <= frames && frames <= 480)
             {
-                vertices[0].x = sinTab[(i << 3) & 0xFF] >> 1;
-                vertices[0].y = sinTab[((i << 3) + 64) & 0xFF] >> 1;
+                vertices[0].x = sinTab[(i << 3) & 0xff] >> 1;
+                vertices[0].y = sinTab[((i << 3) + 64) & 0xff] >> 1;
                 vertices[0].z = (i >> 1) - 80;
             }
             else
             {
-                j = 100 + sinTab[(i * 6 + (i << 1)) & 0xFF] / 3;
-                vertices[0].x = j * sinTab[i & 0xFF] >> 7;
-                vertices[0].y = j * sinTab[(i * 3 + 64) & 0xFF] >> 7;
+                j = 100 + sinTab[(i * 6 + (i << 1)) & 0xff] / 3;
+                vertices[0].x = j * sinTab[i & 0xff] >> 7;
+                vertices[0].y = j * sinTab[(i * 3 + 64) & 0xff] >> 7;
                 vertices[0].z = j - 100;
             }
 
@@ -5822,15 +5771,15 @@ namespace intro16k {
 
             if (0 <= frames && frames <= 480)
             {
-                vertices[0].x = sinTab[(i << 3) & 0xFF] >> 1;
-                vertices[0].y = sinTab[((i << 3) + 64) & 0xFF] >> 1;
+                vertices[0].x = sinTab[(i << 3) & 0xff] >> 1;
+                vertices[0].y = sinTab[((i << 3) + 64) & 0xff] >> 1;
                 vertices[0].z = (i >> 1) - 80;
             }
             else
             {
-                j = 100 + sinTab[(i * 6 + i * 2) & 0xFF] / 3;
-                vertices[0].x = j * sinTab[i & 0xFF] >> 7;
-                vertices[0].y = j * sinTab[(i * 3 + 64) & 0xFF] >> 7;
+                j = 100 + sinTab[(i * 6 + i * 2) & 0xff] / 3;
+                vertices[0].x = j * sinTab[i & 0xff] >> 7;
+                vertices[0].y = j * sinTab[(i * 3 + 64) & 0xff] >> 7;
                 vertices[0].z = j - 100;
             }
 
@@ -5991,13 +5940,13 @@ namespace intro16k {
         for (i = 1; i <= n + 1; i++)
         {
             j = (i << 8) / n;
-            vertices[i].x = sinTab[(j + 64) & 0xFF] * r / 80;
-            vertices[i].y = sinTab[j & 0xFF] * r / 80;
+            vertices[i].x = sinTab[(j + 64) & 0xff] * r / 80;
+            vertices[i].y = sinTab[j & 0xff] * r / 80;
             vertices[i].z = 0;
 
             j = j - 2 + ((i & 1) << 2);
-            vertices[i + n + 1].x = sinTab[(j + 64) & 0xFF] * r >> 6;
-            vertices[i + n + 1].y = sinTab[j & 0xFF] * r >> 6;
+            vertices[i + n + 1].x = sinTab[(j + 64) & 0xff] * r >> 6;
+            vertices[i + n + 1].y = sinTab[j & 0xff] * r >> 6;
             vertices[i + n + 1].z = 0;
         }
 
@@ -6075,7 +6024,7 @@ namespace intro16k {
                 else faces[i].color = 0;
             }
 
-            drawScene(4, 4, IMAGE_MIDX, IMAGE_MIDY + (128 - ((3 * frames / 5) & 0xFF) - sinTab[(3 * frames / 5) & 0xFF]));
+            drawScene(4, 4, IMAGE_MIDX, IMAGE_MIDY + (128 - ((3 * frames / 5) & 0xff) - sinTab[(3 * frames / 5) & 0xff]));
             flipBuffer();
             delay(FPS_90);
             frames++;
@@ -6087,8 +6036,8 @@ namespace intro16k {
         int16_t p = 0;
         if (frames < 256) p = 48;
         else p = 176 + (frames >> 1);
-        if (a < 4 && b < 4) return 64 + sinTab[p & 0xFF] / 3;
-        return 64 + sinTab[(p + 64) & 0xFF] / 3;
+        if (a < 4 && b < 4) return 64 + sinTab[p & 0xff] / 3;
+        return 64 + sinTab[(p + 64) & 0xff] / 3;
     }
 
     void makePlasma(int32_t j, int32_t v, int32_t u)
@@ -6122,7 +6071,7 @@ namespace intro16k {
             int16_t s = j;
             for (int16_t i = 0; i < IMAGE_WIDTH; i++)
             {
-                vbuff[k][i] += (sinTab[s & 0xFF] + 80) >> 3;
+                vbuff[k][i] += (sinTab[s & 0xff] + 80) >> 3;
                 s += v;
             }
             j += u;
@@ -6178,7 +6127,7 @@ namespace intro16k {
 
             for (i = 0; i < 16; i++)
             {
-                j = (i << 6) - (frames & 0xFF);
+                j = (i << 6) - (frames & 0xff);
                 if (j >= 0 && j <= 255)
                 {
                     koef = (exSin(j) << 12) / exSin(j + 256);
@@ -6298,7 +6247,7 @@ namespace intro16k {
                 vcnt += 3;
             }
 
-            for (i = 0; i < vcnt; i++) vertices[i].color = 191 - sinTab[vertices[i].z & 0xFF];
+            for (i = 0; i < vcnt; i++) vertices[i].color = 191 - sinTab[vertices[i].z & 0xff];
 
             drawScene(vcnt, fcnt, IMAGE_MIDX, IMAGE_MIDY);
             if (frames & 32) printString(1, "VOTE!", 224, 172, 192 + beatFunc, 240 + beatFunc, 0);
@@ -6722,8 +6671,8 @@ namespace intro16k {
 
             if (frames < 0)
             {
-                x = 160 + sinTab[(frames / 3) & 0xFF];
-                y = 80 - (sinTab[(frames + 60) & 0xFF] >> 1);
+                x = 160 + sinTab[(frames / 3) & 0xff];
+                y = 80 - (sinTab[(frames + 60) & 0xff] >> 1);
 
                 for (i = 0; i < 4; i++)
                 {
@@ -6739,7 +6688,7 @@ namespace intro16k {
             {
                 deltaZ = 0x3A00;
                 genMatrix(frames, frames << 1, frames << 2);
-                drawScene(4, 4, IMAGE_WIDTH - (frames >> 1) + sinTab[(frames + 40) & 0xFF], IMAGE_MIDY + sinTab[frames & 0xFF]);
+                drawScene(4, 4, IMAGE_WIDTH - (frames >> 1) + sinTab[(frames + 40) & 0xff], IMAGE_MIDY + sinTab[frames & 0xff]);
             }
 
             i = 0;
@@ -8128,7 +8077,7 @@ namespace fireEffect4 {
                 for (int16_t j = 0; j < IMAGE_MIDX; j++)
                 {
                     const uint16_t col = vbuff[i][j];
-                    vmem[i][j + k * IMAGE_MIDX] = (col << 8) + (col & 0xFF);
+                    vmem[i][j + k * IMAGE_MIDX] = (col << 8) + (col & 0xff);
                 }
             }
         }
@@ -8280,7 +8229,7 @@ namespace fireEffect5 {
                 for (int16_t j = 0; j < IMAGE_MIDX; j++)
                 {
                     const uint16_t col = vbuff[i][j];
-                    vmem[i][j + k * IMAGE_MIDX] = (col << 8) + (col & 0xFF);
+                    vmem[i][j + k * IMAGE_MIDX] = (col << 8) + (col & 0xff);
                 }
             }
         }
@@ -9308,7 +9257,7 @@ namespace holeEffect3 {
 
                 while (i < 360)
                 {
-                    calcPoint(art, cosx[(x + (IMAGE_HEIGHT - j)) & 0xFF], sinx[(y + (IMAGE_HEIGHT - j)) & 0xFF], j, i);
+                    calcPoint(art, cosx[(x + (IMAGE_HEIGHT - j)) & 0xff], sinx[(y + (IMAGE_HEIGHT - j)) & 0xff], j, i);
                     i += STEP;
                     point++;
                 }
@@ -9693,8 +9642,8 @@ namespace flagsEffect {
         {
             for (int16_t x = 0; x < IMAGE_MIDX; x++)
             {
-                const int16_t xpos = (x << 1) + costab[(index + 125 * (x + y)) & 0xFF];
-                const int16_t ypos = (y << 1) + costab[(index + 3 * x + 125 * y) & 0xFF];
+                const int16_t xpos = (x << 1) + costab[(index + 125 * (x + y)) & 0xff];
+                const int16_t ypos = (y << 1) + costab[(index + 3 * x + 125 * y) & 0xff];
                 if (xpos >= 0 && xpos <= MAX_WIDTH && ypos >= 0 && ypos <= MAX_HEIGHT) vbuff2[ypos][xpos] = vbuff1[y][x];
             }
         }
@@ -9775,8 +9724,8 @@ namespace flagsEffect2 {
                         else col = 15;
                     }
 
-                    const int16_t x = 20 + sintab[(wave + (j + i) * CE) & 0xFF] + i * FX;
-                    const int16_t y = 20 + sintab[(wave + j + i * CE) & 0xFF] + j * FY;
+                    const int16_t x = 20 + sintab[(wave + (j + i) * CE) & 0xff] + i * FX;
+                    const int16_t y = 20 + sintab[(wave + j + i * CE) & 0xff] + j * FY;
                     if (x >=0 && x <= MAX_WIDTH && y >= 0 && y <= MAX_HEIGHT) vmem[y][x] = col;
                     
                 }
@@ -10440,8 +10389,8 @@ namespace zoomOutEffect {
 
         do {
             copyFromBuffer(oldx, oldy);
-            const int16_t x = xpostab[xpos & 0xFF];
-            const int16_t y = ypostab[ypos & 0xFF];
+            const int16_t x = xpostab[xpos & 0xff];
+            const int16_t y = ypostab[ypos & 0xff];
             printGlass(x, y);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_60);
@@ -11497,12 +11446,12 @@ namespace plasmaEffect1 {
 
         for (x = 0; x < 256; x++)
         {
-            wave[x] = sintab[(angle + x) & 0xFF] + sintab[((angle + x) << 1) & 0xFF] + sintab[((angle - x) << 2) & 0xFF];
+            wave[x] = sintab[(angle + x) & 0xff] + sintab[((angle + x) << 1) & 0xff] + sintab[((angle - x) << 2) & 0xff];
         }
 
         for (y = 0; y < IMAGE_HEIGHT; y++)
         {
-            for (x = 0; x < IMAGE_WIDTH; x++) vmem[y][x] = wave[x & 0xFF] + wave[y] + 64;
+            for (x = 0; x < IMAGE_WIDTH; x++) vmem[y][x] = wave[x & 0xff] + wave[y] + 64;
         }
     }
 
@@ -11517,7 +11466,7 @@ namespace plasmaEffect1 {
             drawPlasma();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_60);
-            angle = (angle + 1) & 0xFF;
+            angle = (angle + 1) & 0xff;
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -12351,7 +12300,7 @@ namespace scaleMap {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             if (vx1 < -50 || vx1 > 260) dir = -dir;
 
-            const int16_t vy1 = 25 + sintab[i & 0xFF];
+            const int16_t vy1 = 25 + sintab[i & 0xff];
             const int16_t vy2 = vy1 + IMAGE_MIDY;
             i += 4;
 
@@ -14720,7 +14669,7 @@ namespace waterFall {
         do {
             for (i = 0; i < 256; i++)
             {
-                j = (i + ofs) & 0xFF;
+                j = (i + ofs) & 0xff;
                 if (j)
                 {
                     pal[j].r = i >> 3;
@@ -14791,8 +14740,8 @@ namespace winterEffect {
         {
             perturb();
             pos += rad;
-            flakes[i].y = (((rad & 0xFF) * FASTEST) & 0xFF) + 5;
-            flakes[i].x = (((rad & 0x0F) * flakes[i].y) & 0xFF) + 1;
+            flakes[i].y = (((rad & 0xff) * FASTEST) & 0xff) + 5;
+            flakes[i].x = (((rad & 0x0F) * flakes[i].y) & 0xff) + 1;
             flakes[i].v = pos % IMAGE_WIDTH;
             flakes[i].u = pos % IMAGE_HEIGHT;
         }
@@ -14803,7 +14752,7 @@ namespace winterEffect {
                 perturb();
                 vmem[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH] = vbuff[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH];
                 if (flakes[i].x >= (rad & 0x0F)) flakes[i].v++;
-                if (flakes[i].y >= (rad & 0xFF)) flakes[i].u++;
+                if (flakes[i].y >= (rad & 0xff)) flakes[i].u++;
                 vmem[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH] = (flakes[i].y >> 5) + 240;
             }
 

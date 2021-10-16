@@ -626,12 +626,12 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     {
         uint32_t ofs = 0;
         const uint32_t tectr = frames * 10;
-        const uint16_t x1 = sina[(tectr / 12) & 0xFF];
-        const uint16_t x2 = sina[(tectr / 11) & 0xFF];
-        const uint16_t x3 = sina[frames & 0xFF];
-        const uint16_t y1 = sina[((tectr >> 3) + 64) & 0xFF];
-        const uint16_t y2 = sina[(tectr / 7 + 64) & 0xFF];
-        const uint16_t y3 = sina[(tectr / 12 + 64) & 0xFF];
+        const uint16_t x1 = sina[(tectr / 12) & 0xff];
+        const uint16_t x2 = sina[(tectr / 11) & 0xff];
+        const uint16_t x3 = sina[frames & 0xff];
+        const uint16_t y1 = sina[((tectr >> 3) + 64) & 0xff];
+        const uint16_t y2 = sina[(tectr / 7 + 64) & 0xff];
+        const uint16_t y3 = sina[(tectr / 12 + 64) & 0xff];
 
         //calculate plasma buffer
         for (int32_t y = 0; y < plasma.mHeight; y++)
