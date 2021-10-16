@@ -43,7 +43,7 @@
 //on modern system, don't use this option
 #if !defined(__APPLE__) && !defined(_WIN64)
 #define _USE_ASM
-#pragma message("MMX technology is turned on for optimize performance.")
+#pragma message("MMX technology is turned on for performance.")
 #endif
 
 //GFX version string
@@ -140,8 +140,8 @@
 #ifdef __APPLE__
 #define _rotr8(v, n)            __rorb(v, n)
 #define _rotl8(v, n)            __rolb(v, n)
-#define LOWORD(a)               ((a) & 0xFFFF)
-#define HIWORD(a)               (((a) >> 16) & 0xFFFF)
+#define LOWORD(a)               ((a) & 0xffff)
+#define HIWORD(a)               (((a) >> 16) & 0xffff)
 #endif
 
 //inline common
@@ -175,8 +175,8 @@
 #define RGB_GREY191             0xBFBFBF
 
 //benchmarks snipping code
-#define BENCH_START()           {startClock = clock();}
-#define BENCH_END()             {messageBox(GFX_INFO, "Total time: %lf(s)", double(clock() - startClock) / CLOCKS_PER_SEC);}
+#define BENCH_START()           clock_t startClock = clock();
+#define BENCH_END()             messageBox(GFX_INFO, "Total time: %lu(ms)", clock() - startClock);
 
 #pragma pack(push, 1)
 
@@ -386,9 +386,6 @@ enum PATTERN_TYPE
     PATTERN_TYPE_CLOSE_DOT,                     //closed dot style
     PATTERN_TYPE_UNKNOWN,                       //error type
 };
-
-//benchmarks record time
-extern clock_t  startClock;                     //recording start clock time
 
 //load texture and image functions
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);

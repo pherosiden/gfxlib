@@ -442,7 +442,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         render();
         delay(FPS_90);
     }
-    
+
     //cleanup...
     freeImage(&img);
 }

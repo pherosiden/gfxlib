@@ -111,9 +111,6 @@ uint32_t        totalMemory = 0;                    //total physical memory in M
 uint32_t        availableMemory = 0;                //available physical memory in MB
 uint32_t        videoMemory = 0;                    //total video memory in MB
 
-//benchmark time
-clock_t         startClock = 0;                     //recording start time
-
 //global SDL objects
 SDL_Window*     sdlWindow = NULL;                   //display windows
 SDL_Surface*    sdlSurface = NULL;                  //display windows surface
