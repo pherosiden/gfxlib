@@ -61,8 +61,8 @@ IDI_ICON                ICON                    "gfxicon.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,6,0
- PRODUCTVERSION 1,1,6,0
+ FILEVERSION 1,2,4,0
+ PRODUCTVERSION 1,2,4,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -79,12 +79,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "VNN Studio"
             VALUE "FileDescription", "GFXLIB Demo & Effects"
-            VALUE "FileVersion", "1.1.6.0"
+            VALUE "FileVersion", "1.2.4.0"
             VALUE "InternalName", "gfxlib.exe"
             VALUE "LegalCopyright", "Copyright (C) 1998 - 2021 VNN Studio. All rights reserved."
             VALUE "OriginalFilename", "gfxlib.exe"
             VALUE "ProductName", "GFXLIB Library"
-            VALUE "ProductVersion", "1.1.6.0"
+            VALUE "ProductVersion", "1.2.4.0"
         END
     END
     BLOCK "VarFileInfo"
