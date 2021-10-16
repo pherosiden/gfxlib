@@ -5722,10 +5722,10 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         shl         edx, 2
         movd        mm4, keyColor
         punpckldq   mm4, mm4
-        mov         eax, 0FFFFFFFFh
+        mov         eax, 0ffffffffh
         movd        mm5, eax
         punpckldq   mm5, mm5
-        mov         eax, 0FFFFFFh
+        mov         eax, 0ffffffh
         movd        mm6, eax
         punpckldq   mm6, mm6
     next:
@@ -5883,10 +5883,10 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         shl         edx, 2
         movd        mm4, keyColor
         punpckldq   mm4, mm4
-        mov         eax, 0FFFFFFFFh
+        mov         eax, 0ffffffffh
         movd        mm5, eax
         punpckldq   mm5, mm5
-        mov         eax, 0FFFFFFh
+        mov         eax, 0ffffffh
         movd        mm6, eax
         punpckldq   mm6, mm6
     next:
@@ -6050,10 +6050,10 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         shl         edx, 2
         movd        mm4, keyColor
         punpckldq   mm4, mm4
-        mov         eax, 0FFFFFFFFh
+        mov         eax, 0ffffffffh
         movd        mm5, eax
         punpckldq   mm5, mm5
-        mov         eax, 0FFFFFFh
+        mov         eax, 0ffffffh
         movd        mm6, eax
         punpckldq   mm6, mm6
     next:
@@ -6228,7 +6228,7 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
         mov         ecx, width
     plot:
         mov         eax, [esi]
-        and         eax, 00FFFFFFh
+        and         eax, 00ffffffh
         cmp         eax, keyColor
         je          skip
         mov         eax, [esi]
@@ -9650,7 +9650,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
         sub     esi, 4
         //don't render color key
         lodsd
-        and     eax, 00FFFFFFh
+        and     eax, 00ffffffh
         test    eax, eax
         jz      done
         stosd
@@ -9844,7 +9844,7 @@ void drawButton(GFX_BUTTON* btn)
         mov     ecx, lbWidth
     plot:
         lodsd
-        and     eax, 00FFFFFFh
+        and     eax, 00ffffffh
         test    eax, eax
         jz      skip
         stosd
