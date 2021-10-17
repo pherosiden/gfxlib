@@ -657,8 +657,8 @@ void checkBounds(int32_t a, int32_t c, int32_t *b)
 void lineBob()
 {
     uint32_t frames = 0;
-    const int32_t cwidth = getDrawBufferWidth();
-    const int32_t cheight = getDrawBufferHeight();
+    const int32_t cwidth = getBufferWidth();
+    const int32_t cheight = getBufferHeight();
 
     int32_t x1 = rand() % cwidth;
     int32_t x2 = rand() % cwidth;
@@ -1338,7 +1338,7 @@ void displaySprite(const char *fname)
         //drawing on page 1st
         setActivePage(&page1);
         setVisualPage(&page2);
-        if (v1) putImage(lx, ly, &img1);
+        if (v1) putImage(alignedSize(lx), ly, &img1);
         
         lx = x;
         ly = y;
@@ -1359,13 +1359,13 @@ void displaySprite(const char *fname)
         }
 
         dy++;
-        getImage(x, y, spr.mWidth, spr.mHeight, &img1);
-        putSprite(x, y, 0, &spr);
+        getImage(alignedSize(x), y, spr.mWidth, spr.mHeight, &img1);
+        putSprite(alignedSize(x), y, 0, &spr);
 
         //draw on 2nd page
         setActivePage(&page2);
         setVisualPage(&page1);
-        if (v2) putImage(lx, ly, &img2);
+        if (v2) putImage(alignedSize(lx), ly, &img2);
         
         lx = x;
         ly = y;
@@ -1386,8 +1386,8 @@ void displaySprite(const char *fname)
         }
 
         dy++;
-        getImage(x, y, spr.mWidth, spr.mHeight, &img2);
-        putSprite(x, y, 0, &spr);
+        getImage(alignedSize(x), y, spr.mWidth, spr.mHeight, &img2);
+        putSprite(alignedSize(x), y, 0, &spr);
         delay(FPS_60);
         frames++;
     }
@@ -1448,7 +1448,7 @@ void displayPlasma()
     if (!newImage(160, 120, &src)) return;
 
     //scale plasma image buffer
-    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
+    if (!newImage(getBufferWidth(), getBufferHeight(), &dst)) return;
     initPlasma(sint, cost);
 
     const int32_t cmaxX = getMaxX();
@@ -1459,7 +1459,7 @@ void displayPlasma()
     {
         //create plasma buffer and display on screen
         createPlasma(&dx, &dy, sint, cost, &src);
-        putImage(x, y, &src);
+        putImage(alignedBytes(x), y, &src);
         render();
         delay(FPS_90);
 
@@ -1481,7 +1481,7 @@ void displayPlasma()
     }
     setPalette(pal);
 
-    ypos = getDrawBufferHeight();
+    ypos = getBufferHeight();
 
     //display scale image and scroll text
     do {
@@ -1566,7 +1566,7 @@ void gfxDemoMix()
     if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
     const int32_t introY = centerY - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
 
-    switch (getDrawBufferWidth())
+    switch (getBufferWidth())
     {
         case  640: ratio = 1.0;	 break;
         case  800: ratio = 1.25; break;

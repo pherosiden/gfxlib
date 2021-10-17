@@ -1105,7 +1105,7 @@ void initFractals(int32_t sx, int32_t sy)
 
 void allocBuffer()
 {
-    const uint32_t msize = alignedBytes(alignedSize(cx) * cy * getBytesPerPixel());
+    const uint32_t msize = alignedBytes(cy * alignedSize(cx) * getBytesPerPixel());
     if (msize > dataSize)
     {
         if (data) _mm_free(data);
@@ -1181,7 +1181,7 @@ void gfxFractals()
 
     initThreads();
     initFunctions(fractType);
-    initFractals(getDrawBufferWidth(), getDrawBufferHeight());
+    initFractals(getBufferWidth(), getBufferHeight());
 
     bool redraw = true;
     bool mouseDown = false;
@@ -1303,7 +1303,7 @@ void gfxFractals()
 
         case SDL_SCANCODE_S:
             fractType = !fractType;
-            initFractals(getDrawBufferWidth(), getDrawBufferHeight());
+            initFractals(getBufferWidth(), getBufferHeight());
             initFunctions(fractType);
             redraw = true;
             break;

@@ -27,7 +27,7 @@ void runExit()
 {
     //capture current screen buffer
     GFX_IMAGE img = { 0 };
-    getImage(0, 0, getDrawBufferWidth(), getDrawBufferHeight(), &img);
+    getImage(0, 0, getBufferWidth(), getBufferHeight(), &img);
 
     //decrease rgb and push back to screen
     for (int32_t i = 0; i < 32; i++)
@@ -115,8 +115,8 @@ void runIntro()
     //initialize buffer
     GFX_IMAGE scr = { 0 }, wci = { 0 };
     GFX_IMAGE gxb = { 0 }, utb = { 0 }, trn = { 0 };
-    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &scr)) return;
-    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &trn)) return;
+    if (!newImage(getBufferWidth(), getBufferHeight(), &scr)) return;
+    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &trn)) return;
     if (!newImage(wcb.mWidth, wcb.mHeight, &wci)) return;
     if (!newImage(gfx.mWidth, gfx.mHeight, &gxb)) return;
     if (!newImage(ult.mWidth, ult.mHeight, &utb)) return;
@@ -170,7 +170,7 @@ void runIntro()
                 i0--;
             }
 
-            if (i0 >= -1) putImage(centerX - (wci.mWidth >> 1), centerY - (wci.mHeight >> 1), &wci, BLEND_MODE_ADD);
+            if (i0 >= -1) putImage(alignedSize(centerX - (wci.mWidth >> 1)), centerY - (wci.mHeight >> 1), &wci, BLEND_MODE_ADD);
             if (getElapsedTime(startTime) / 1000 >= tg) i0 = -1;
         }
         //logo GFXLIB
@@ -178,7 +178,7 @@ void runIntro()
         {
             blockOutMidImage(&gxb, &gfx, i1, i1);
             brightnessAlpha(&gxb, uint8_t(255 - i1 / 30.0 * 255.0));
-            putImage(centerX - (gxb.mWidth >> 1), centerY - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
+            putImage(alignedSize(centerX - (gxb.mWidth >> 1)), centerY - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
 
             i1--;
             if (getElapsedTime(startTime) / 1000 >= tu) i1 = 0;
@@ -186,17 +186,17 @@ void runIntro()
         //the ultimate message
         else if (i1 == 0)
         {
-            putImage(centerX - (gfx.mWidth >> 1), centerY - (gfx.mHeight >> 1), &gfx, BLEND_MODE_ALPHA);
+            putImage(alignedSize(centerX - (gfx.mWidth >> 1)), centerY - (gfx.mHeight >> 1), &gfx, BLEND_MODE_ALPHA);
             if ((getElapsedTime(startTime) / 1000 >= tu) && (i2 <= 15))
             {
                 blurImageEx(&utb, &ult, 15 - (i2 & 15));
                 brightnessImage(&utb, &utb, ((i2 & 15) + 1) * 15 + 15);
-                putImage(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
+                putImage(alignedSize(centerX - (ult.mWidth >> 1)), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 i2++;
             }
             else
             {
-                putImage(centerX - (ult.mWidth >> 1), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
+                putImage(alignedSize(centerX - (ult.mWidth >> 1)), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 if (getElapsedTime(startTime) / 1000 >= to) fadeOutCircle(((getElapsedTime(startTime) / 1000.0 - to) / 3.0) * 100.0, 20, 3, 0);
             }
         }
@@ -233,7 +233,7 @@ void runBlocking(int32_t sx, int32_t sy)
         dec--;
         blockOutMidImage(&img2, &fade1, dec << 1, dec << 1);
         brightnessImage(&img2, &img2, uint8_t(255.0 - double(dec) / (fade1.mWidth >> 2) * 255.0));
-        putImage(sx, sy, &img2);
+        putImage(alignedSize(sx), sy, &img2);
         render();
         delay(FPS_60);
     };
@@ -242,7 +242,7 @@ void runBlocking(int32_t sx, int32_t sy)
     const int32_t width  = fade1.mWidth;
     const int32_t height = fade1.mHeight;
 
-    putImage(sx, sy, &fade1);
+    putImage(alignedSize(sx), sy, &fade1);
     render();
     freeImage(&img2);
 
@@ -255,7 +255,7 @@ void runBlocking(int32_t sx, int32_t sy)
     GFX_IMAGE img3 = { 0 };
     const int32_t posx = (width - img2.mWidth) >> 1;
     const int32_t posy = (height - img2.mHeight) >> 1;
-    getImage(sx + posx, sy + posy, img1.mWidth, img1.mHeight, &img3);
+    getImage(alignedSize(sx + posx), sy + posy, img1.mWidth, img1.mHeight, &img3);
 
     //blocking next step
     dec = img1.mWidth >> 3;
@@ -264,8 +264,8 @@ void runBlocking(int32_t sx, int32_t sy)
         dec--;
         blockOutMidImage(&img2, &img1, dec << 1, dec << 1);
         brightnessAlpha(&img2, uint8_t(255 - dec / (img1.mWidth >> 3) * 255.0));
-        putImage(sx + posx, sy + posy, &img3);
-        putImage(sx + posx, sy + posy, &img2, BLEND_MODE_ALPHA);
+        putImage(alignedSize(sx + posx), sy + posy, &img3);
+        putImage(alignedSize(sx + posx), sy + posy, &img2, BLEND_MODE_ALPHA);
         render();
         delay(FPS_60);
     }
@@ -282,8 +282,8 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
     //initialize buffer
     if (!loadImage("assets/gfxspr.png", &img3)) return;
-    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &img1)) return;
-    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &img2)) return;
+    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &img1)) return;
+    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &img2)) return;
        
     //setup lookup table
     int32_t* tables = (int32_t*)calloc(img2.mWidth, sizeof(int32_t));
@@ -312,7 +312,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
         //restore to screen buffer to draw
         restoreDrawBuffer();
-        putImage(sx, sy, &img2);
+        putImage(alignedSize(sx), sy, &img2);
         render();
         delay(FPS_90);
 
@@ -344,7 +344,7 @@ void runCrossFade(int32_t sx, int32_t sy)
 
         //blend image buffer
         blendImage(&img, &fade1, &fade2, val);
-        putImage(sx, sy, &img);
+        putImage(alignedSize(sx), sy, &img);
         render();
         delay(FPS_90);
 
@@ -369,9 +369,9 @@ void runAddImage(int32_t sx, int32_t sy)
         step -= 4;
         changeDrawBuffer(img.mData, img.mWidth, img.mHeight);
         putImage(0, 0, &fade1);
-        putImage(int32_t((320 - cos(step / 160.0) * 320)), 0, &flare, BLEND_MODE_ADD);
+        putImage(alignedSize(int32_t((320 - cos(step / 160.0) * 320))), 0, &flare, BLEND_MODE_ADD);
         restoreDrawBuffer();
-        putImage(sx, sy, &img);
+        putImage(alignedSize(sx), sy, &img);
         render();
         delay(FPS_90);
         clearImage(&img);
@@ -407,7 +407,7 @@ void runRotateImage(int32_t sx, int32_t sy)
 
         //rotate buffer
         rotateImage(&img, &fade2, tables, fade2.mWidth >> 1, fade2.mHeight >> 1, deg % 360, 1);
-        putImage(sx, sy, &img);
+        putImage(alignedSize(sx), sy, &img);
         render();
         delay(FPS_90);
     }
@@ -438,7 +438,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
 
         //rotate buffer
         rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BICUBIC);
-        putImage(sx, sy, &img);
+        putImage(alignedSize(sx), sy, &img);
         render();
         delay(FPS_90);
     }
@@ -450,8 +450,8 @@ void runFastRotateImage(int32_t sx, int32_t sy)
 void runAntiAliased(int32_t sx, int32_t sy)
 {
     //save current midx, midy
-    const int32_t midx = getDrawBufferWidth() >> 1;
-    const int32_t midy = getDrawBufferHeight() >> 1;
+    const int32_t midx = getBufferWidth() >> 1;
+    const int32_t midy = getBufferHeight() >> 1;
 
     //initialize image buffer
     GFX_IMAGE img = { 0 }, dst = { 0 };
@@ -484,7 +484,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
         restoreDrawBuffer();
 
         //fade-out current buffer
-        putImage(sx, sy, &dst);
+        putImage(alignedSize(sx), sy, &dst);
         fadeOutImage(&dst, 4);
         render();
         delay(FPS_90);
@@ -503,7 +503,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //load source image
     GFX_IMAGE scr = { 0 };
-    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &scr)) return;
+    if (!newImage(getBufferWidth(), getBufferHeight(), &scr)) return;
     
     const int32_t centerX = getCenterX();
     const int32_t centerY = getCenterY();
@@ -526,7 +526,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     const int32_t cmaxX = getMaxX();
     const int32_t cmaxY = getMaxY();
-    const int32_t cwidth = getDrawBufferWidth();
+    const int32_t cwidth = getBufferWidth();
 
     //time for record FPS
     uint32_t time = 0, oldTime = 0;
@@ -534,9 +534,9 @@ void runLensFlare(GFX_IMAGE* outImg)
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
         putImage(0, 0, &gfxsky);
-        fillRect(0, 0, cmaxX, cmaxY, rgb(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)), BLEND_MODE_SUB);
+        fillRect(0, 0, alignedSize(cmaxX), cmaxY, rgb(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)), BLEND_MODE_SUB);
 
-        //put all flare image to render buffer
+        //put all flares image to render buffer
         for (int32_t i = 0; i < 16; i++)
         {
             //is show?
@@ -545,12 +545,12 @@ void runLensFlare(GFX_IMAGE* outImg)
                 //merge current image buffer to background
                 const int32_t x = (centerX + ((centerX - mcx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mWidth >> 1);
                 const int32_t y = (centerY + ((centerY - mdx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mHeight >> 1);
-                putImage(x, y, &flares[i], BLEND_MODE_ADD);
+                putImage(alignedSize(x), y, &flares[i], BLEND_MODE_ADD);
             }
         }
 
         //put logo and draw text message
-        putImage(cwidth - gfxlogo.mWidth + 1, 0, &gfxlogo, BLEND_MODE_ALPHA);
+        putImage(alignedSize(cwidth - gfxlogo.mWidth), 1, &gfxlogo, BLEND_MODE_ALPHA);
         writeText(tx, ty, RGB_WHITE, 2, str);
 
         //timing for input and FPS counter
@@ -578,7 +578,7 @@ void runBumpImage()
 {
     //loading source image
     GFX_IMAGE dst = { 0 };
-    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
+    if (!newImage(getBufferWidth(), getBufferHeight(), &dst)) return;
 
     const int32_t centerX = getCenterX();
     const int32_t centerY = getCenterY();
@@ -614,8 +614,8 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     for (int32_t y = 0; y < 256; y++) sina[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
     GFX_IMAGE plasma = { 0 }, screen = { 0 };
-    if (!newImage(getDrawBufferWidth() >> 2, getDrawBufferHeight() >> 2, &plasma)) return;
-    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &screen)) return;
+    if (!newImage(getBufferWidth() >> 2, getBufferHeight() >> 2, &plasma)) return;
+    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &screen)) return;
 
     uint32_t frames = 0;
     uint32_t* data = (uint32_t*)plasma.mData;
@@ -724,7 +724,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
 
         //bilinear scale plasma buffer
         scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BICUBIC);
-        putImage(sx, sy, &screen);
+        putImage(alignedSize(sx), sy, &screen);
         render();
         delay(FPS_90);
         frames++;
@@ -745,11 +745,12 @@ void gfxDemo()
 
     const int32_t centerX = getCenterX();
     const int32_t centerY = getCenterY();
-    const int32_t cwidth = getDrawBufferWidth();
-    const int32_t cheight = getDrawBufferHeight();
+    const int32_t cwidth = getBufferWidth();
+    const int32_t cheight = getBufferHeight();
     
-    writeText(centerX - 8 * (int32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY191, 2, initMsg);
+    writeText(centerX - 8 * (uint32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY191, 2, initMsg);
     render();
+
     if (!initSystemInfo())
     {
         cleanup();
@@ -771,131 +772,132 @@ void gfxDemo()
 
     runIntro();
     putImage(0, 0, &bg);
-    putImage(cwidth - gfxlogo.mWidth + 1, cheight - gfxlogo.mHeight + 1, &gfxlogo, BLEND_MODE_ALPHA);
+    putImage(alignedSize(cwidth - gfxlogo.mWidth), cheight - gfxlogo.mHeight - 1, &gfxlogo, BLEND_MODE_ALPHA);
 
     GFX_IMAGE txt = { 0 };
     const int32_t xc = centerX + 40;
     const int32_t yc = centerY + 40;
-    
-    fillRectPattern(10, 10, xc - 19, yc - 19, RGB_GREY32, getPattern(PATTERN_TYPE_HATCH_X), BLEND_MODE_ADD);
-    fillRect(10, yc, xc - 19, getMaxY() - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
-    fillRect(20, 20, xc - 39, yc - 39, 0);
-    getImage(10, yc, xc - 19, getMaxY() - yc - 9, &txt);
+    const int32_t tx = alignedSize(10);
 
-    writeText(xc + 10,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
-    writeText(xc + 10, 90, RGB_GREY127, 2, "A short show of some abilities");
-    writeText(xc + 10, 100, RGB_GREY127, 2, "GFXLIB does provide. Note that");
-    writeText(xc + 10, 110, RGB_GREY127, 2, "this is only a small amount of");
-    writeText(xc + 10, 120, RGB_GREY127, 2, "all available features.");
-    writeText(xc + 10, 150, RGB_GREY127, 2, "%s", getVideoName());
-    writeText(xc + 10, 160, RGB_GREY127, 2, "Driver Version   : %s", getDriverVersion());
-    writeText(xc + 10, 170, RGB_GREY127, 2, "Video Memory     : %luMB", getVideoMemory());
-    writeText(xc + 10, 180, RGB_GREY127, 2, "Video Mode       : %s", getVideoModeInfo());
-    writeText(xc + 10, 190, RGB_GREY127, 2, "Render System    : %s", getRenderVersion());
-    writeText(xc + 10, 200, RGB_GREY127, 2, "Image Library    : %s", getImageVersion());
-    writeText(xc + 10, 220, RGB_GREY127, 2, "%s", getCpuName());
-    writeText(xc + 10, 230, RGB_GREY127, 2, "CPU Features     : %s", getCpuFeatures());
-    writeText(xc + 10, 240, RGB_GREY127, 2, "CPU Frequency    : %luMHz", getCpuSpeed());
-    writeText(xc + 10, 250, RGB_GREY127, 2, "Physical Memory  : %luMB", getTotalMemory());
-    writeText(xc + 10, 260, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
+    fillRectPattern(alignedSize(10), 10, alignedSize(xc - 23), yc - 19, RGB_GREY32, getPattern(PATTERN_TYPE_HATCH_X), BLEND_MODE_ADD);
+    fillRect(alignedSize(10), yc, alignedSize(xc - 23), getMaxY() - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
+    fillRect(alignedSize(20), 20, alignedSize(xc - 39), yc - 39, 0);
+    getImage(alignedSize(10), yc, alignedSize(xc - 23), getMaxY() - yc - 9, &txt);
+
+    writeText(xc + tx,  70, RGB_GREY127, 2, "GFXLIB %s", GFX_VERSION);
+    writeText(xc + tx,  90, RGB_GREY127, 2, "A short show of some abilities");
+    writeText(xc + tx, 100, RGB_GREY127, 2, "GFXLIB does provide. Note that");
+    writeText(xc + tx, 110, RGB_GREY127, 2, "this is only a small amount of");
+    writeText(xc + tx, 120, RGB_GREY127, 2, "all available features.");
+    writeText(xc + tx, 150, RGB_GREY127, 2, "%s", getVideoName());
+    writeText(xc + tx, 160, RGB_GREY127, 2, "Driver Version   : %s", getDriverVersion());
+    writeText(xc + tx, 170, RGB_GREY127, 2, "Video Memory     : %luMB", getVideoMemory());
+    writeText(xc + tx, 180, RGB_GREY127, 2, "Video Mode       : %s", getVideoModeInfo());
+    writeText(xc + tx, 190, RGB_GREY127, 2, "Render System    : %s", getRenderVersion());
+    writeText(xc + tx, 200, RGB_GREY127, 2, "Image Library    : %s", getImageVersion());
+    writeText(xc + tx, 220, RGB_GREY127, 2, "%s", getCpuName());
+    writeText(xc + tx, 230, RGB_GREY127, 2, "CPU Features     : %s", getCpuFeatures());
+    writeText(xc + tx, 240, RGB_GREY127, 2, "CPU Frequency    : %luMHz", getCpuSpeed());
+    writeText(xc + tx, 250, RGB_GREY127, 2, "Physical Memory  : %luMB", getTotalMemory());
+    writeText(xc + tx, 260, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
     render();
 
     fullSpeed = 1;
-    showText(10, yc, &txt, "Please wait while loading images...");
+    showText(tx, yc, &txt, "Please wait while loading images...");
 
     if (!loadImage("assets/fade1x.png", &fade1)) return;
-    showText(10, yc, &txt, " - fade1x.png");
+    showText(tx, yc, &txt, " - fade1x.png");
 
     if (!loadImage("assets/fade2x.png", &fade2)) return;
-    showText(10, yc, &txt, " - fade2x.png");
+    showText(tx, yc, &txt, " - fade2x.png");
 
     if (!loadImage("assets/flare0.png", &flare)) return;
-    showText(10, yc, &txt, " - flare0.png");
+    showText(tx, yc, &txt, " - flare0.png");
 
-    showText(10, yc, &txt, "");
+    showText(tx, yc, &txt, "");
 
     fullSpeed = 0;
-    showText(10, yc, &txt, "This is an early demonstration of the abilities of");
-    showText(10, yc, &txt, "GFXLIB. What you will see here are only some of");
-    showText(10, yc, &txt, "the image manipulating effects which are currently");
-    showText(10, yc, &txt, "built in. More to come and show you later...");
+    showText(tx, yc, &txt, "This is an early demonstration of the abilities of");
+    showText(tx, yc, &txt, "GFXLIB. What you will see here are only some of");
+    showText(tx, yc, &txt, "the image manipulating effects which are currently");
+    showText(tx, yc, &txt, "built in. More to come and show you later...");
     delay(1000);
-    showText(10, yc, &txt, "Starting...");
+    showText(tx, yc, &txt, "Starting...");
     runBlocking(20, 20);
 
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "What you saw was a combination of the command");
-    showText(10, yc, &txt, "blockOut and the command brightnessImage. The text");
-    showText(10, yc, &txt, "is an alpha mapped image. You may see: working with");
-    showText(10, yc, &txt, "images got very easy in GFXLIB - no half things");
-    showText(10, yc, &txt, "anymore! To the next... press enter!");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "What you saw was a combination of the command");
+    showText(tx, yc, &txt, "blockOut and the command brightnessImage. The text");
+    showText(tx, yc, &txt, "is an alpha mapped image. You may see working with");
+    showText(tx, yc, &txt, "images got very easy in GFXLIB - no half things");
+    showText(tx, yc, &txt, "anymore! To the next... press enter!");
     while (!finished(SDL_SCANCODE_RETURN));
     runAddImage(20, 20);
 
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "This was simply another flag of a draw-operation.");
-    showText(10, yc, &txt, "It was used here to force draw to add the content");
-    showText(10, yc, &txt, "of the image to the background of the image. You");
-    showText(10, yc, &txt, "are also able to subtract the image and to work");
-    showText(10, yc, &txt, "with an alpha map like PNG-images can contain one.");
-    showText(10, yc, &txt, "The next effect - press enter...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "This was simply another flag of a draw-operation.");
+    showText(tx, yc, &txt, "It was used here to force draw to add the content");
+    showText(tx, yc, &txt, "of the image to the background of the image. You");
+    showText(tx, yc, &txt, "are also able to subtract the image and to work");
+    showText(tx, yc, &txt, "with an alpha map like PNG-images can contain one.");
+    showText(tx, yc, &txt, "The next effect - press enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runCrossFade(20, 20);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "This thing is called crossFading or alphaBlending.");
-    showText(10, yc, &txt, "In GFXLIB, the procedure is called 'blendImage'.");
-    showText(10, yc, &txt, "This procedure makes of 2 images another, where");
-    showText(10, yc, &txt, "you can decide which image covers more the other.");
-    showText(10, yc, &txt, "Enter...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "This thing is called crossFading or alphaBlending.");
+    showText(tx, yc, &txt, "In GFXLIB, the procedure is called 'blendImage'.");
+    showText(tx, yc, &txt, "This procedure makes of 2 images another, where");
+    showText(tx, yc, &txt, "you can decide which image covers more the other.");
+    showText(tx, yc, &txt, "Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runFastRotateImage(20, 20);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "This is a smooth rotation. The responsible routine");
-    showText(10, yc, &txt, "for this is called bicubicRotateImage. It doesn't");
-    showText(10, yc, &txt, "seem to be very fast here because delay for show,");
-    showText(10, yc, &txt, "but in this demo the rotation is full optimized.");
-    showText(10, yc, &txt, "You can reach on a INTEL CORE I7-4770K 3.5GHZ up");
-    showText(10, yc, &txt, "to 420 fps at 640x480x32bits. You can see another");
-    showText(10, yc, &txt, "version of rotate image is so fast if only rotate");
-    showText(10, yc, &txt, "and show image, check my source code for optimize");
-    showText(10, yc, &txt, "version using hardware acceleration AVX2. Enter...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "This is a smooth rotation. The responsible routine");
+    showText(tx, yc, &txt, "for this is called bicubicRotateImage. It doesn't");
+    showText(tx, yc, &txt, "seem to be very fast here because delay for show,");
+    showText(tx, yc, &txt, "but in this demo the rotation is full optimized.");
+    showText(tx, yc, &txt, "You can reach on a INTEL CORE I7-4770K 3.5GHZ up");
+    showText(tx, yc, &txt, "to 420 fps at 640x480x32bits. You can see another");
+    showText(tx, yc, &txt, "version of rotate image is so fast if only rotate");
+    showText(tx, yc, &txt, "and show image, check my source code for optimize");
+    showText(tx, yc, &txt, "version using hardware acceleration AVX2. Enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     runScaleUpImage(20, 20);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Much more fancy than the other FX... Yeah, you see");
-    showText(10, yc, &txt, "two effects combined here. Scales and blur image");
-    showText(10, yc, &txt, "are doing their work here. Check the source code");
-    showText(10, yc, &txt, "to see the details. The next... Enter :)");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "Much more fancy than the other FX... Yeah, you see");
+    showText(tx, yc, &txt, "two effects combined here. Scales and blur image");
+    showText(tx, yc, &txt, "are doing their work here. Check the source code");
+    showText(tx, yc, &txt, "to see the details. The next... Enter :)");
     while (!finished(SDL_SCANCODE_RETURN));
     runAntiAliased(20, 20);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Anti-aliased lines, circles and ellipses. Possible");
-    showText(10, yc, &txt, "with GFXLIB and also even faster than seen here");
-    showText(10, yc, &txt, "(just slow for show). Perfect for 3D models and");
-    showText(10, yc, &txt, "similar. Enter for the next...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "Anti-aliased lines, circles and ellipses. Possible");
+    showText(tx, yc, &txt, "with GFXLIB and also even faster than seen here");
+    showText(tx, yc, &txt, "(just slow for show). Perfect for 3D models and");
+    showText(tx, yc, &txt, "similar. Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runPlasmaScale(20, 20);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Plasma effect with hight color, this also combine");
-    showText(10, yc, &txt, "scale up image with bi-cubic interpolation to");
-    showText(10, yc, &txt, "process image with best quality. This version is");
-    showText(10, yc, &txt, "full optimized by using fixed number and SSE2+");
-    showText(10, yc, &txt, "instruction for maximize speed (extremely fast)");
-    showText(10, yc, &txt, "Enter for the next...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "Plasma effect with hight color, this also combine");
+    showText(tx, yc, &txt, "scale up image with bi-cubic interpolation to");
+    showText(tx, yc, &txt, "process image with best quality. This version is");
+    showText(tx, yc, &txt, "full optimized by using fixed number and SSE2+");
+    showText(tx, yc, &txt, "instruction for maximize speed (extremely fast)");
+    showText(tx, yc, &txt, "Enter for the next...");
     while (!finished(SDL_SCANCODE_RETURN));
-    fillRect(20, 20, xc - 39, yc - 39, 0);
+    fillRect(alignedSize(20), 20, alignedSize(xc - 39), yc - 39, 0);
 
     GFX_IMAGE scr = { 0 };
     getImage(0, 0, cwidth, cheight, &scr);
@@ -906,42 +908,42 @@ void gfxDemo()
     newImage(cwidth >> 1, cheight >> 1, &im);
     scaleImage(&im, &old, 0);
     putImage(0, 0, &scr);
-    putImage(20, 20, &im);
+    putImage(alignedSize(20), 20, &im);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "2D bump mapping effect with full screen, this");
-    showText(10, yc, &txt, "effect also combined many images and use sub-");
-    showText(10, yc, &txt, "tract, adding pixels to calculate render buffer.");
-    showText(10, yc, &txt, "Scale image using Bresenham algorithm for fast");
-    showText(10, yc, &txt, "speed of image interpolation. Enter for next...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "2D bump mapping effect with full screen, this");
+    showText(tx, yc, &txt, "effect also combined many images and use sub-");
+    showText(tx, yc, &txt, "tract, adding pixels to calculate render buffer.");
+    showText(tx, yc, &txt, "Scale image using Bresenham algorithm for fast");
+    showText(tx, yc, &txt, "speed of image interpolation. Enter for next...");
     while (!finished(SDL_SCANCODE_RETURN));
     runLensFlare(&old);
     scaleImage(&im, &old, INTERPOLATION_TYPE_BICUBIC);
     putImage(0, 0, &scr);
-    putImage(20, 20, &im);
+    putImage(alignedSize(20), 20, &im);
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "Yeah! Lens flare effect, this effect is simulation");
-    showText(10, yc, &txt, "the lens flare in photo shop. Combined many images");
-    showText(10, yc, &txt, "too and other pixel manipulation such as subtract");
-    showText(10, yc, &txt, "adding for each to render buffer. This is also use");
-    showText(10, yc, &txt, "bi-cubic interpolation with best quality for scale.");
-    showText(10, yc, &txt, "Use hardware mouse tracking events. Next enter...");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "Yeah! Lens flare effect, this effect is simulation");
+    showText(tx, yc, &txt, "the lens flare in photo shop. Combined many images");
+    showText(tx, yc, &txt, "too and other pixel manipulation such as subtract");
+    showText(tx, yc, &txt, "adding for each to render buffer. This is also use");
+    showText(tx, yc, &txt, "bi-cubic interpolation with best quality for scale.");
+    showText(tx, yc, &txt, "Use hardware mouse tracking events. Next enter...");
     while (!finished(SDL_SCANCODE_RETURN));
     
     fullSpeed = 0;
-    showText(10, yc, &txt, "----");
-    showText(10, yc, &txt, "That's all folks! More to come soon. In short time");
-    showText(10, yc, &txt, "that's enought.See from my source code for another");
-    showText(10, yc, &txt, "stuffs.If there occurred something which seems tobe");
-    showText(10, yc, &txt, "a bug or any suggestion, please contact me at:");
-    showText(10, yc, &txt, "https://github.com/pherosiden/gfxlib. Thanks!");
-    showText(10, yc, &txt, "");
-    showText(10, yc, &txt, "Nguyen Ngoc Van -- pherosiden@gmail.com");
-    showText(10, yc, &txt, "");
-    showText(10, yc, &txt, "Enter to exit ;-)");
+    showText(tx, yc, &txt, "----");
+    showText(tx, yc, &txt, "That's all folks! More to come soon. In short time");
+    showText(tx, yc, &txt, "that's enought.See from my source code for another");
+    showText(tx, yc, &txt, "stuffs.If there occurred something which seems tobe");
+    showText(tx, yc, &txt, "a bug or any suggestion, please contact me at:");
+    showText(tx, yc, &txt, "https://github.com/pherosiden/gfxlib. Thanks!");
+    showText(tx, yc, &txt, "");
+    showText(tx, yc, &txt, "Nguyen Ngoc Van -- pherosiden@gmail.com");
+    showText(tx, yc, &txt, "");
+    showText(tx, yc, &txt, "Enter to exit ;-)");
     while (!finished(SDL_SCANCODE_RETURN));
 
     runExit();

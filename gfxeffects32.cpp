@@ -2677,7 +2677,7 @@ void runRayCasting()
     uint32_t time = 0, oldTime = 0;
 
     if (!loadFont("assets/sysfont.xfn", 0)) return;
-    if (!initScreen(SCR_WIDTH + 100, SCR_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;
+    if (!initScreen(alignedSize(SCR_WIDTH + 100), SCR_HEIGHT, 32, 0, "Raycasting [Shader version] -- Keys: Arrows move; Q/Z: vertical lookup; E/C: fly & crouch")) return;
     if (!initData()) return;
 
     //start the main loop

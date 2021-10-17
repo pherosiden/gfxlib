@@ -469,8 +469,8 @@ void        renderBuffer(const void* buffer, int32_t width, int32_t height);
 void*       getDrawBuffer(int32_t* width = NULL, int32_t* height = NULL);
 void        changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
 void        restoreDrawBuffer();
-int32_t     getDrawBufferWidth();
-int32_t     getDrawBufferHeight();
+int32_t     getBufferWidth();
+int32_t     getBufferHeight();
 
 //handle program message
 void        messageBox(int32_t type, const char* fmt, ...);
@@ -604,7 +604,7 @@ static must_inline int32_t alignedSize(int32_t msize)
 }
 
 //32-bytes alignment for AVX2 use
-static must_inline int32_t alignedBytes(int32_t msize)
+static must_inline uint32_t alignedBytes(uint32_t msize)
 {
 	return (msize + 31) & ~0x1F;
 }
