@@ -43,7 +43,7 @@
 //on modern system, don't use this option
 #if !defined(__APPLE__) && !defined(_WIN64)
 #define _USE_ASM
-#pragma message("MMX technology is turned on for performance.")
+#pragma message("MMX technology is turned on. On modern system don't use this option!")
 #endif
 
 //GFX version string

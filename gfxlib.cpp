@@ -1571,10 +1571,10 @@ must_inline void horizLineAlpha(int32_t x, int32_t y, int32_t sx, uint32_t argb)
     const int32_t remainder = sx % 8;
     if (remainder > 0)
     {
+        const uint8_t rcover = 255 - cover;
         for (int32_t i = 0; i < remainder; i++)
         {
             const uint32_t dst = *pixels;
-            const uint8_t rcover = 255 - cover;
             const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
             const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((argb & 0xff00ff00) >> 8) * cover);
             *pixels++ = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
@@ -1817,12 +1817,12 @@ must_inline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
 #else
     //calculate starting address
     const uint8_t cover = argb >> 24;
+    const uint8_t rcover = 255 - cover;
 	uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
     {
         const uint32_t dst = *pixels;
-        const uint8_t rcover = 255 - cover;
         const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
         const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((argb & 0xff00ff00) >> 8) * cover);
         *pixels = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
@@ -1915,7 +1915,7 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     }
 #else
     //align 32-bytes
-    const int32_t align = width >> 5;
+    const int32_t aligned = width >> 5;
     const int32_t remainder = width % 32;
     const int32_t addOffset = texWidth - width;
     
@@ -1930,7 +1930,7 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     for (int32_t i = 0; i < height; i++)
     {
         //loop for 32-bytes aligned
-        for (int32_t j = 0; j < align; j++)
+        for (int32_t j = 0; j < aligned; j++)
         {
             _mm256_stream_si256((__m256i*)dstPixels, xmm0);
             dstPixels += 32;
@@ -4486,7 +4486,7 @@ void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t 
     //range limited
     if (radius > 499)
     {
-        messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499]");
+        messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499] pixels");
         return;
     }
 
@@ -4506,7 +4506,7 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color,
     //range limited
     if (ra > 499 || rb > 499)
     {
-        messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499]");
+        messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499] pixels");
         return;
     }
 
@@ -6631,7 +6631,7 @@ must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t
 {
     const uint32_t* pixel = (uint32_t*)psrc->mData;
     const uint32_t* pixel0 = &pixel[(sy >> 16) * psrc->mWidth + (sx >> 16)];
-    const uint32_t* pixel1 = pixel0 + psrc->mWidth;
+    const uint32_t* pixel1 = &pixel0[psrc->mWidth];
 
     const uint8_t pu = sx >> 8;
     const uint8_t pv = sy >> 8;
@@ -6640,18 +6640,21 @@ must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t
     const uint32_t w1 = pv - w3;
     const uint32_t w0 = 256 - w1 - w2 - w3;
 
+    //zero all
+    const __m128i zero = _mm_setzero_si128();
+
     //load 4 pixels [(x, y),(x + 1, y),(x, y + 1),(x + 1, y + 1)]
     __m128i p12 = _mm_loadl_epi64((const __m128i*)pixel0);
     __m128i p34 = _mm_loadl_epi64((const __m128i*)pixel1);
 
     //convert RGBA RGBA RGBA RGAB to RRRR GGGG BBBB AAAA
     p12 = _mm_unpacklo_epi8(p12, p34);
-    p34 = _mm_unpackhi_epi64(p12, _mm_setzero_si128());
+    p34 = _mm_unpackhi_epi64(p12, zero);
     p12 = _mm_unpacklo_epi8(p12, p34);
 
     //extend to 16bits
-    __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
-    __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
+    __m128i rg = _mm_unpacklo_epi8(p12, zero);
+    __m128i ba = _mm_unpackhi_epi8(p12, zero);
 
     //initialize pixel weights to 16bits integer w4 w3 w2 w1
     __m128i weight = _mm_set_epi32(w3, w1, w2, w0);
@@ -6670,8 +6673,8 @@ must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t
     weight = _mm_srli_epi32(weight, 8);
 
     //convert 32bit->8bit
-    weight = _mm_packus_epi32(weight, _mm_setzero_si128());
-    weight = _mm_packus_epi16(weight, _mm_setzero_si128());
+    weight = _mm_packus_epi32(weight, zero);
+    weight = _mm_packus_epi16(weight, zero);
     return _mm_cvtsi128_si32(weight);
 }
 
@@ -6913,25 +6916,25 @@ must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *s
 
     const uint32_t width = img->mWidth;
     const uint32_t height = img->mHeight;
-    const uint32_t* psrc = (const uint32_t*)img->mData;
+    const ARGB* psrc = (const ARGB*)img->mData;
 
     //calculate 16 around pixels
-    const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
-    const uint8_t *p01 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
-    const uint8_t *p02 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
-    const uint8_t *p03 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-    const uint8_t *p10 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
-    const uint8_t *p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
-    const uint8_t *p12 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
-    const uint8_t *p13 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
-    const uint8_t *p20 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
-    const uint8_t *p21 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
-    const uint8_t *p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
-    const uint8_t *p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-    const uint8_t *p30 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
-    const uint8_t *p31 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
-    const uint8_t *p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
-    const uint8_t *p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
+    const ARGB *p00 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py - 1)];
+    const ARGB *p01 = (const ARGB*)&psrc[clampOffset(width, height, px    , py - 1)];
+    const ARGB *p02 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py - 1)];
+    const ARGB *p03 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py - 1)];
+    const ARGB *p10 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const ARGB *p11 = (const ARGB*)&psrc[clampOffset(width, height, px    , py    )];
+    const ARGB *p12 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const ARGB *p13 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py    )];
+    const ARGB *p20 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py + 1)];
+    const ARGB *p21 = (const ARGB*)&psrc[clampOffset(width, height, px    , py + 1)];
+    const ARGB *p22 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py + 1)];
+    const ARGB *p23 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py + 1)];
+    const ARGB *p30 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py + 2)];
+    const ARGB *p31 = (const ARGB*)&psrc[clampOffset(width, height, px    , py + 2)];
+    const ARGB *p32 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py + 2)];
+    const ARGB *p33 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py + 2)];
 
     //4 pixels weights
     const uint8_t u = sx >> 8, v = sy >> 8;
@@ -6941,17 +6944,38 @@ must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *s
     const int32_t v2 = sintab[256 - v], v3 = sintab[512 - v];
 
     uint32_t dst = 0;
-    uint8_t* pdst = (uint8_t*)&dst;
+    ARGB* pdst = (ARGB*)&dst;
 
     //calculate each pixel channel
-    for (int32_t i = 0; i < 4; i++)
-    {
-        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
-        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
-        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
-        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p32[i] * u2 + p33[i] * u3) * v3;
-        pdst[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
-    }
+    int32_t s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+
+    //a channel
+    s1 = (p00->a * u0 + p01->a * u1 + p02->a * u2 + p03->a * u3) * v0;
+    s2 = (p10->a * u0 + p11->a * u1 + p12->a * u2 + p13->a * u3) * v1;
+    s3 = (p20->a * u0 + p21->a * u1 + p22->a * u2 + p23->a * u3) * v2;
+    s4 = (p30->a * u0 + p31->a * u1 + p32->a * u2 + p33->a * u3) * v3;
+    pdst->a = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+
+    //r channel
+    s1 = (p00->r * u0 + p01->r * u1 + p02->r * u2 + p03->r * u3) * v0;
+    s2 = (p10->r * u0 + p11->r * u1 + p12->r * u2 + p13->r * u3) * v1;
+    s3 = (p20->r * u0 + p21->r * u1 + p22->r * u2 + p23->r * u3) * v2;
+    s4 = (p30->r * u0 + p31->r * u1 + p32->r * u2 + p33->r * u3) * v3;
+    pdst->r = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+
+    //g channel
+    s1 = (p00->g * u0 + p01->g * u1 + p02->g * u2 + p03->g * u3) * v0;
+    s2 = (p10->g * u0 + p11->g * u1 + p12->g * u2 + p13->g * u3) * v1;
+    s3 = (p20->g * u0 + p21->g * u1 + p22->g * u2 + p23->g * u3) * v2;
+    s4 = (p30->g * u0 + p31->g * u1 + p32->g * u2 + p33->g * u3) * v3;
+    pdst->g = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+
+    //b channel
+    s1 = (p00->b * u0 + p01->b * u1 + p02->b * u2 + p03->b * u3) * v0;
+    s2 = (p10->b * u0 + p11->b * u1 + p12->b * u2 + p13->b * u3) * v1;
+    s3 = (p20->b * u0 + p21->b * u1 + p22->b * u2 + p23->b * u3) * v2;
+    s4 = (p30->b * u0 + p31->b * u1 + p32->b * u2 + p33->b * u3) * v3;
+    pdst->b = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
 
     return dst;
 }

@@ -13673,6 +13673,7 @@ namespace star2dEffect {
 
     void run()
     {
+        RGB pal[256] = { 0 };
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "2D-Stars")) return;
         createStar();
 
