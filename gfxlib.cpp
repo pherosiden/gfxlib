@@ -1207,17 +1207,16 @@ void putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode /* = BLEND_MODE
 must_inline uint32_t getPixelMix(int32_t x, int32_t y)
 {
 #ifdef _USE_ASM
-    uint8_t col = 0;
     __asm {
         mov     eax, y
         mul     texWidth
         add     eax, x
         mov     esi, drawBuff
         add     esi, eax
+        xor     eax, eax
         lodsb
-        mov     col, al
     }
-    return col;
+    //eax will auto returned
 #else
     uint8_t* pixels = (uint8_t*)drawBuff;
     return pixels[y * texWidth + x];
@@ -1234,7 +1233,6 @@ uint32_t getPixel(int32_t x, int32_t y)
     if (bitsPerPixel == 8) return getPixelMix(x, y);
         
 #ifdef _USE_ASM
-    uint32_t col = 0;
     __asm {
         mov     eax, y
         mul     texWidth
@@ -1242,10 +1240,10 @@ uint32_t getPixel(int32_t x, int32_t y)
         shl     eax, 2
         mov     esi, drawBuff
         add     esi, eax
+        xor     eax, eax
         lodsd
-        mov     col, eax
     }
-    return col;
+    //eax will auto returned
 #else
     uint32_t* pixel = (uint32_t*)drawBuff;
     return pixel[y * texWidth + x];
@@ -2982,7 +2980,7 @@ void drawLineAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb)
     const int32_t sx = x0 < x1 ? 1 : -1;
     const int32_t dy = abs(y1 - y0);
     const int32_t sy = y0 < y1 ? 1 : -1;
-    const int32_t ed = ((dx + dy) == 0) ? 1 : int32_t(sqrt(double(dx) * dx + double(dy) * dy));
+    const int32_t ed = ((dx + dy) == 0) ? 1 : int32_t(sqrt(sqr(double(dx)) + sqr(double(dy))));
 
     int32_t err = dx - dy;
 
@@ -3053,7 +3051,7 @@ void drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color, in
     }
 }
 
-//Bresenham diagonal line from(x1, y1) to(x2, y2) with added background color
+//Bresenham diagonal line from(x1, y1) to (x2, y2) with added background color
 void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
     //this function only support mixed mode
@@ -3671,7 +3669,7 @@ void drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, 
     const int32_t dy = abs(y1 - y0), sy = (y0 < y1) ? 1 : -1;
     int32_t err = dx - dy, e2 = 0, x2 = 0, y2 = 0;
 
-    const double ed = (dx + dy == 0) ? 1 : sqrt(double(dx) * dx + double(dy) * dy);
+    const double ed = (dx + dy == 0) ? 1 : sqrt(sqr(double(dx)) + sqr(double(dy)));
 
     wd = (wd + 1) / 2;
 
@@ -3741,7 +3739,7 @@ void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t
         do {
             cur = min(dx + xy, -xy - dy);
             ed = max(dx + xy, -xy - dy);
-            ed += 2 * ed * cur * cur / (4 * ed * ed + cur * cur);
+            ed += 2 * ed * sqr(cur) / (4 * sqr(ed) + sqr(cur));
             putPixel(x0, y0, rgba(col, uint8_t(255 * fabs(err - dx - dy - xy) / ed)), BLEND_MODE_ANTIALIASED);
 
             if (x0 == x2 || y0 == y2) break;
@@ -4004,7 +4002,7 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
     
     if (cur != 0.0 && w > 0.0)
     {
-        if (double(sqr(sx)) + sqr(sy) > sqr(xx) + sqr(yy))
+        if (sqr(double(sx)) + sqr(double(sy)) > sqr(xx) + sqr(yy))
         {
             x2 = x0; x0 -= int32_t(dx); y2 = y0; y0 -= int32_t(dy); cur = -cur;
         }
@@ -4044,7 +4042,7 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
         do {
             cur = min(dx - xy, xy - dy);
             ed = max(dx - xy, xy - dy);
-            ed += 2 * ed * cur * cur / (4. * ed * ed + cur * cur);
+            ed += 2 * ed * sqr(cur) / (4.0 * sqr(ed) + sqr(cur));
             x1 = int32_t(255 * fabs(err - dx - dy + xy) / ed);
             if (x1 < 256) putPixel(x0, y0, rgba(col, x1), BLEND_MODE_ANTIALIASED);
 
@@ -4093,7 +4091,7 @@ void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, i
 
     if (cur != 0.0 && w > 0.0)
     {
-        if (double(sqr(sx)) + sqr(sy) > sqr(xx) + sqr(yy))
+        if (sqr(double(sx)) + sqr(double(sy)) > sqr(xx) + sqr(yy))
         {
             x2 = x0;
             x0 -= int32_t(dx);
@@ -4249,7 +4247,8 @@ void drawRotatedEllipseRect(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
 void drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double angle, uint32_t col, int32_t mode /*= BLEND_MODE_NORMAL*/)
 {
     const double s = sin(angle);
-    double xd = double(sqr(ra)), yd = double(sqr(rb));
+    double xd = sqr(double(ra));
+    double yd = sqr(double(rb));
     double zd = (xd - yd) * s;
 
     xd = sqrt(xd - zd * s);
@@ -4296,7 +4295,7 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
         ab = xa * yb - xb * ya;
         ac = xa * yc - xc * ya;
         bc = xb * yc - xc * yb;
-        ex = ab * (ab + ac - 3 * bc) + ac * ac;
+        ex = ab * (ab + ac - 3 * bc) + sqr(ac);
         f = (ex > 0) ? 1 : int32_t(sqrt(1 + 1024 / x1));
         ab *= f; ac *= f; bc *= f; ex *= intmax_t(f) * f;
         xy = 9 * (ab + ac + bc) / 8;
@@ -4368,7 +4367,6 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
     double fy0 = y0, fy1 = 0.0, fy2 = 0.0, fy3 = 0.0;
     double t1 = double(xb) * xb - double(xa) * xc;
     
-
     if (xa == 0)
     {
         if (abs(xc) < 2 * abs(xb)) t[n++] = xc / (2.0 * xb);
@@ -4380,7 +4378,7 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
         t1 = (xb + t2) / xa; if (fabs(t1) < 1.0) t[n++] = t1;
     }
 
-    t1 = double(yb) * yb - double(ya) * yc;
+    t1 = sqr(double(yb)) - double(ya) * yc;
 
     if (ya == 0)
     {

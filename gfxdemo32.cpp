@@ -830,7 +830,7 @@ void gfxDemo()
     showText(tx, yc, &txt, "What you saw was a combination of the command");
     showText(tx, yc, &txt, "blockOut and the command brightnessImage. The text");
     showText(tx, yc, &txt, "is an alpha mapped image. You may see that working");
-    showText(tx, yc, &txt, "with images has gotten very easy in GFXLIB-no");
+    showText(tx, yc, &txt, "with images has gotten very easy in GFXLIB-no");
     showText(tx, yc, &txt, "half-things anymore! Press the enter key!");
     while (!finished(SDL_SCANCODE_RETURN));
     runAddImage(alignedSize(20), 20);
