@@ -19,6 +19,7 @@
 //              License: GNU GPL                                 //
 //===============================================================//
 
+#include <random>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -477,7 +478,7 @@ void        messageBox(int32_t type, const char* fmt, ...);
 void        writeText(int32_t x, int32_t y, uint32_t txtColor, uint32_t mode, const char* format, ...);
 int32_t     drawText(int32_t ypos, int32_t size, const char** str);
 
-void        clearScreen(uint32_t color);
+void        clearScreen(uint32_t color = 0);
 
 //pixels function
 uint32_t    getPixel(int32_t x, int32_t y);
@@ -504,7 +505,7 @@ void        drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, dou
 
 void        drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col);
 void        drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rd, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
-void        drawPoly(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
 void        initProjection(double theta, double phi, double de, double rho = 0);
 void        resetProjectionParams();
@@ -520,6 +521,7 @@ uint8_t*    getPattern(int32_t type);
 void        fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 void        fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 void        fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, double irregularity, double spikeyness, const int32_t numVerts, POINT2D* points);
 
 void        setActivePage(GFX_IMAGE* page);
 void        setVisualPage(GFX_IMAGE* page);
@@ -597,16 +599,16 @@ void        gfxEffects();
 void        gfxFontView();
 void        gfxFractals();
 
-//8-pixels alignment for AVX2 use
+//8/32-pixels alignment for AVX2 use
 static must_inline int32_t alignedSize(int32_t msize)
 {
-    return (msize + 7) & ~7;
+    return (getBytesPerPixel() == 1) ? (msize + 31) & ~31 : (msize + 7) & ~7;
 }
 
 //32-bytes alignment for AVX2 use
 static must_inline uint32_t alignedBytes(uint32_t msize)
 {
-	return (msize + 31) & ~0x1F;
+	return (msize + 31) & ~31;
 }
 
 //convert r,g,b values to 32bits integer value
@@ -819,6 +821,22 @@ static must_inline double frand(double fmin, double fmax)
 static must_inline int32_t fround(double x)
 {
     return (x > 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
+}
+
+static must_inline double uniformrand(const double from, const double to)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> distr(from, to);
+    return distr(gen);
+}
+
+static must_inline double gaussrand(const double min, const double max)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> distr(min, max);
+    return distr(gen);
 }
 
 static must_inline bool pointInBound(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)

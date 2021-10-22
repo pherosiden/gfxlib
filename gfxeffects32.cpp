@@ -739,7 +739,7 @@ void rayCasting()
                         const int32_t d = (y << 8) - (cheight << 7) + (spriteHeight << 7);
                         const int32_t texY = ((d * TEXTURE_HEIGHT) / spriteHeight) >> 8;
                         const uint32_t color = textures[sprite[spriteOrder[i]].data][texY][texX];
-                        if (color & 0x00FFFFFF) renderBuff[y][stripe] = color;
+                        if (color & 0x00ffffff) renderBuff[y][stripe] = color;
                     }
                 }
             }
@@ -748,8 +748,8 @@ void rayCasting()
         //timing for input and FPS counter
         oldTime = time;
         time = getTime();
-        const double frameTime = (time - oldTime) / 1000.0; //frame time is the time this frame has taken, in seconds
-        writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime); //FPS counter
+        const double frameTime = (time - oldTime) / 1000.0;
+        writeText(1, 1, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime);
         render();
 
         //clear current render buffer
@@ -870,64 +870,64 @@ void imageArithmetic()
 
     for (int32_t i = 0; i < size; i++)
     {
-        uint8_t* pdst = (uint8_t*)itdst++;
-        const uint8_t* pimg1 = (const uint8_t*)itimg1++;
-        const uint8_t* pimg2 = (const uint8_t*)itimg2++;
+        ARGB* pdst = (ARGB*)itdst++;
+        const ARGB* pimg1 = (const ARGB*)itimg1++;
+        const ARGB* pimg2 = (const ARGB*)itimg2++;
 
         //average
-        pdst[2] = (pimg2[2] + pimg1[2]) >> 1;
-        pdst[1] = (pimg2[1] + pimg1[1]) >> 1;
-        pdst[0] = (pimg2[0] + pimg1[0]) >> 1;
+        pdst->r = (pimg2->r + pimg1->r) >> 1;
+        pdst->g = (pimg2->g + pimg1->g) >> 1;
+        pdst->b = (pimg2->b + pimg1->b) >> 1;
 
         //adding
-        //pdst[2] = min(pimg2[2] + pimg1[2], 255);
-        //pdst[1] = min(pimg2[1] + pimg1[1], 255);
-        //pdst[0] = min(pimg2[0] + pimg1[0], 255);
+        //pdst->r = min(pimg2->r + pimg1->r, 255);
+        //pdst->g = min(pimg2->g + pimg1->g, 255);
+        //pdst->b = min(pimg2->b + pimg1->b, 255);
 
         //subtract
-        //pdst[2] = min(pimg2[2] - pimg1[2], 0);
-        //pdst[1] = min(pimg2[1] - pimg1[1], 0);
-        //pdst[0] = min(pimg2[0] - pimg1[0], 0);
+        //pdst->r = min(pimg2->r - pimg1->r, 0);
+        //pdst->g = min(pimg2->g - pimg1->g, 0);
+        //pdst->b = min(pimg2->b - pimg1->b, 0);
 
         //multiply
-        //pdst[2] = uint8_t(255 * (pimg2[2] / 255.0 * pimg1[2] / 255.0));
-        //pdst[1] = uint8_t(255 * (pimg2[1] / 255.0 * pimg1[1] / 255.0));
-        //pdst[0] = uint8_t(255 * (pimg2[0] / 255.0 * pimg1[0] / 255.0));
+        //pdst->r = uint8_t(255 * (pimg2->r / 255.0 * pimg1->r / 255.0));
+        //pdst->g = uint8_t(255 * (pimg2->g / 255.0 * pimg1->g / 255.0));
+        //pdst->b = uint8_t(255 * (pimg2->b / 255.0 * pimg1->b / 255.0));
 
         //difference
-        //pdst[2] = abs(pimg1[2] - pimg2[2]);
-        //pdst[1] = abs(pimg1[1] - pimg2[1]);
-        //pdst[0] = abs(pimg1[0] - pimg2[0]);
+        //pdst->r = abs(pimg1->r - pimg2->r);
+        //pdst->g = abs(pimg1->g - pimg2->g);
+        //pdst->b = abs(pimg1->b - pimg2->b);
 
         //min
-        //pdst[2] = min(pimg1[2], pimg2[2]);
-        //pdst[1] = min(pimg1[1], pimg2[1]);
-        //pdst[0] = min(pimg1[0], pimg2[0]);
+        //pdst->r = min(pimg1->r, pimg2->r);
+        //pdst->g = min(pimg1->g, pimg2->g);
+        //pdst->b = min(pimg1->b, pimg2->b);
 
         //max
-        //pdst[2] = max(pimg1[2], pimg2[2]);
-        //pdst[1] = max(pimg1[1], pimg2[1]);
-        //pdst[0] = max(pimg1[0], pimg2[0]);
+        //pdst->r = max(pimg1->r, pimg2->r);
+        //pdst->g = max(pimg1->g, pimg2->g);
+        //pdst->b = max(pimg1->b, pimg2->b);
 
         //amplitude
-        //pdst[2] = uint8_t(sqrt(double(pimg1[2]) * pimg1[2] + double(pimg2[2]) * pimg2[2]) / sqrt(2.0));
-        //pdst[1] = uint8_t(sqrt(double(pimg1[1]) * pimg1[1] + double(pimg2[1]) * pimg2[1]) / sqrt(2.0));
-        //pdst[0] = uint8_t(sqrt(double(pimg1[0]) * pimg1[0] + double(pimg2[0]) * pimg2[0]) / sqrt(2.0));
+        //pdst->r = uint8_t(sqrt(double(pimg1->r) * pimg1->r + double(pimg2->r) * pimg2->r) / sqrt(2.0));
+        //pdst->g = uint8_t(sqrt(double(pimg1->g) * pimg1->g + double(pimg2->g) * pimg2->g) / sqrt(2.0));
+        //pdst->b = uint8_t(sqrt(double(pimg1->b) * pimg1->b + double(pimg2->b) * pimg2->b) / sqrt(2.0));
 
         //and
-        //pdst[2] = pimg1[2] & pimg2[2];
-        //pdst[1] = pimg1[1] & pimg2[1];
-        //pdst[0] = pimg1[0] & pimg2[0];
+        //pdst->r = pimg1->r & pimg2->r;
+        //pdst->g = pimg1->g & pimg2->g;
+        //pdst->b = pimg1->b & pimg2->b;
 
         //or
-        //pdst[2] = pimg1[2] | pimg2[2];
-        //pdst[1] = pimg1[1] | pimg2[1];
-        //pdst[0] = pimg1[0] | pimg2[0];
+        //pdst->r = pimg1->r | pimg2->r;
+        //pdst->g = pimg1->g | pimg2->g;
+        //pdst->b = pimg1->b | pimg2->b;
 
         //xor
-        //pdst[2] = pimg1[2] ^ pimg2[2];
-        //pdst[1] = pimg1[1] ^ pimg2[1];
-        //pdst[0] = pimg1[0] ^ pimg2[0];
+        //pdst->r = pimg1->r ^ pimg2->r;
+        //pdst->g = pimg1->g ^ pimg2->g;
+        //pdst->b = pimg1->b ^ pimg2->b;
     }
 
     //redraw & sleep
@@ -967,12 +967,12 @@ void crossFading()
         //do the image arithmetic
         for (int32_t i = 0; i < size; i++)
         {
-            uint8_t* pdst = (uint8_t*)itdst++;
-            const uint8_t* pimg1 = (const uint8_t*)itimg1++;
-            const uint8_t* pimg2 = (const uint8_t*)itimg2++;
-            pdst[2] = uint8_t(pimg1[2] * weight + pimg2[2] * (1 - weight));
-            pdst[1] = uint8_t(pimg1[1] * weight + pimg2[1] * (1 - weight));
-            pdst[0] = uint8_t(pimg1[0] * weight + pimg2[0] * (1 - weight));
+            ARGB* pdst = (ARGB*)itdst++;
+            const ARGB* pimg1 = (const ARGB*)itimg1++;
+            const ARGB* pimg2 = (const ARGB*)itimg2++;
+            pdst->r = uint8_t(pimg1->r * weight + pimg2->r * (1 - weight));
+            pdst->g = uint8_t(pimg1->g * weight + pimg2->g * (1 - weight));
+            pdst->b = uint8_t(pimg1->b * weight + pimg2->b * (1 - weight));
         }
 
         //render
@@ -1142,8 +1142,8 @@ void juliaExplorer()
                 }
 
                 //extract iteration position for each pixel
-                int32_t it[8] = { 0 };
-                _mm256_storeu_si256((__m256i*)it, iters);
+                alignas(32) int32_t it[8] = { 0 };
+                _mm256_stream_si256((__m256i*)it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
@@ -1377,8 +1377,8 @@ void mandelbrotSet()
             }
 
             //extract iteration position for each pixel
-            int32_t it[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)it, iters);
+            alignas(32) int32_t it[8] = { 0 };
+            _mm256_stream_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
@@ -1545,8 +1545,8 @@ void mandelbrotExporer()
                 }
 
                 //extract iteration position for each pixel
-                int32_t it[8] = { 0 };
-                _mm256_storeu_si256((__m256i*)it, iters);
+                alignas(32) int32_t it[8] = { 0 };
+                _mm256_stream_si256((__m256i*)it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
@@ -1962,20 +1962,20 @@ void imageFillter()
             }
 
             //make target pixel
-            uint8_t* pdst = (uint8_t*)&pixels[y][x];
+            ARGB* pdst = (ARGB*)&pixels[y][x];
 
             //truncate values smaller than zero and larger than 255
-            pdst[2] = clamp(int32_t(factor * red + bias), 0, 255);
-            pdst[1] = clamp(int32_t(factor * green + bias), 0, 255);
-            pdst[0] = clamp(int32_t(factor * blue + bias), 0, 255);
+            pdst->r = clamp(int32_t(factor * red + bias), 0, 255);
+            pdst->g = clamp(int32_t(factor * green + bias), 0, 255);
+            pdst->b = clamp(int32_t(factor * blue + bias), 0, 255);
 
             //make gray
-            pdst[2] = pdst[1] = pdst[0] = uint8_t(0.2126 * pdst[2] + 0.7152 * pdst[1] + 0.0722 * pdst[0]);
+            pdst->r = pdst->g = pdst->b = uint8_t(0.2126 * pdst->r + 0.7152 * pdst->g + 0.0722 * pdst->b);
 
             //take absolute value and truncate to 255
-            //pdst[2] = min(abs(int32_t(fact * red + bias)), 255);
-            //pdst[1] = min(abs(int32_t(fact * green + bias)), 255);
-            //pdst[0] = min(abs(int32_t(fact * blue + bias)), 255);
+            //pdst->r = min(abs(int32_t(fact * red + bias)), 255);
+            //pdst->g = min(abs(int32_t(fact * green + bias)), 255);
+            //pdst->b = min(abs(int32_t(fact * blue + bias)), 255);
         }
     }
 
@@ -2218,7 +2218,7 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
         //cheap shading trick by using brightnessLevel (which doesn't really have to correspond to "brightness") 
         //to alter colors.  You can use logarithmic falloff or linear falloff to produce some interesting effect
         //const uint8_t* color = (const uint8_t*)&wallTexture[offsetX];
-        const uint8_t* color = (const uint8_t*)&wallTexture[offsetY][offsetX];
+        const ARGB* color = (const ARGB*)&wallTexture[offsetY][offsetX];
 
         //while there's a row to draw & not end of drawing area
         while (error >= wallWidth)
@@ -2227,10 +2227,10 @@ void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t 
             if (y >= 0)
             {
                 //modify the pixel
-                uint8_t* pixel = (uint8_t*)&rawPixels[y][x];
-                pixel[2] = uint8_t(color[2] * brightnessLevel);
-                pixel[1] = uint8_t(color[1] * brightnessLevel);
-                pixel[0] = uint8_t(color[0] * brightnessLevel);
+                ARGB* pixel = (ARGB*)&rawPixels[y][x];
+                pixel->r = uint8_t(color->r * brightnessLevel);
+                pixel->g = uint8_t(color->g * brightnessLevel);
+                pixel->b = uint8_t(color->b * brightnessLevel);
             }
             y++;
 
@@ -2610,15 +2610,15 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&rawPixels[row][castColumn];
+                    ARGB* pixel = (ARGB*)&rawPixels[row][castColumn];
 
                     //find offset of tile and column in texture                    
-                    const uint8_t* color = (uint8_t*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
+                    const ARGB* color = (ARGB*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
 
                     //draw the pixel
-                    pixel[2] = uint8_t(color[2] * brightnessLevel);
-                    pixel[1] = uint8_t(color[1] * brightnessLevel);
-                    pixel[0] = uint8_t(color[0] * brightnessLevel);
+                    pixel->r = uint8_t(color->r * brightnessLevel);
+                    pixel->g = uint8_t(color->g * brightnessLevel);
+                    pixel->b = uint8_t(color->b * brightnessLevel);
                 }
             }
         }
@@ -2652,15 +2652,15 @@ void doRayCasting()
                     if (brightnessLevel > 1) brightnessLevel = 1;
 
                     //make target pixel and color
-                    uint8_t* pixel = (uint8_t*)&rawPixels[row][castColumn];
+                    ARGB* pixel = (ARGB*)&rawPixels[row][castColumn];
 
                     //find offset of tile and column in texture
-                    const uint8_t* color = (uint8_t*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];
+                    const ARGB* color = (ARGB*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];
 
                     //draw the pixel
-                    pixel[2] = uint8_t(color[2] * brightnessLevel);
-                    pixel[1] = uint8_t(color[1] * brightnessLevel);
-                    pixel[0] = uint8_t(color[0] * brightnessLevel);
+                    pixel->r = uint8_t(color->r * brightnessLevel);
+                    pixel->g = uint8_t(color->g * brightnessLevel);
+                    pixel->b = uint8_t(color->b * brightnessLevel);
                 }
             }
         }

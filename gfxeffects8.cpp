@@ -9385,7 +9385,7 @@ namespace kaleidoScope {
                     delay(FPS_60);
                 }
             }
-            clearScreen(0);
+            clearScreen();
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -9547,7 +9547,7 @@ namespace kaleidoScope2 {
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-            clearScreen(0);
+            clearScreen();
             if (mode) scrollPalette(0, 255, 64);
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
@@ -10503,7 +10503,7 @@ namespace lineBobEffect {
             readKeys();
             makeFunkyPalette();
             lineBob(cnt);
-            clearScreen(0);
+            clearScreen();
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -13790,7 +13790,7 @@ namespace star3dEffect {
         pal[4].b = 60;
         shiftPalette(pal);
         setPalette(pal);
-        clearScreen(0);
+        clearScreen();
 
         direction = 1;
         speed = 2;

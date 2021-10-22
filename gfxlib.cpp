@@ -713,19 +713,19 @@ void messageBox(int32_t type, const char* fmt, ...)
 }
 
 //get current bits per pixel
-int32_t getBitsPerPixel()
+must_inline int32_t getBitsPerPixel()
 {
     return bitsPerPixel;
 }
 
 //get current bytes per pixel
-int32_t getBytesPerPixel()
+must_inline int32_t getBytesPerPixel()
 {
     return bytesPerPixel;
 }
 
 //get current bytes per line
-int32_t getBytesPerScanline()
+must_inline int32_t getBytesPerScanline()
 {
     return bytesPerScanline;
 }
@@ -1939,6 +1939,7 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         {
             for (int32_t j = 0; j < remainder; j++) *dstPixels++ = color;
         }
+
 
         //next lines
         if (addOffset > 0) dstPixels += addOffset;
@@ -4468,7 +4469,7 @@ void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t r
 }
 
 //draw polygon
-void drawPoly(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
+void drawPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     if (num < 3) return;
     for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col, mode);
@@ -4585,6 +4586,41 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BL
                 horizLine(nodex[i], y, nodex[i + 1] - nodex[i], col, mode);
             }
         }
+    }
+}
+
+//generate random polygon
+void randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, double irregularity, double spikeyness, const int32_t numVerts, POINT2D* points)
+{
+    //valid params
+    spikeyness = clamp(spikeyness, 0, 1) * avgRadius;
+    irregularity = clamp(irregularity, 0, 1) * 2 * M_PI / numVerts;
+    
+    //generate n angle steps
+    double angleSteps[1024] = { 0 };
+    const double lower = (2 * M_PI / numVerts) - irregularity;
+    const double upper = (2 * M_PI / numVerts) + irregularity;
+    double sum = 0;
+
+    for (int32_t i = 0; i < numVerts; i++)
+    {
+        const double tmp = uniformrand(lower, upper);
+        angleSteps[i] = tmp;
+        sum += tmp;
+    }
+
+    //normalize the steps so that point 0 and point n+1 are the same
+    const double koef = sum / (2 * M_PI);
+    for (int32_t i = 0; i < numVerts; i++) angleSteps[i] /= koef;
+
+    //now generate the points
+    double angle = uniformrand(0, 2 * M_PI);
+    for (int32_t i = 0; i < numVerts; i++)
+    {
+        const int32_t rad = int32_t(clamp(gaussrand(avgRadius, spikeyness), 0, 2.0 * avgRadius));
+        points[i].x = cx + rad * cos(angle);
+        points[i].y = cy + rad * sin(angle);
+        angle += angleSteps[i];
     }
 }
 
