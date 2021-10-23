@@ -508,7 +508,7 @@ void        drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, in
 void        drawPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
 void        initProjection(double theta, double phi, double de, double rho = 0);
-void        resetProjectionParams();
+void        resetProjection();
 void        setProjection(PROJECTION_TYPE type);
 void        projette(double x, double y, double z, double *px, double *py);
 void        deplaceEn(double x, double y, double z);

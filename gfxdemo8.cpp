@@ -1258,7 +1258,7 @@ void resetParameters()
     c1 = c2 = c3 = c4 = lines = points = 0;
     gx1 = gx2 = gy1 = gy2 = incX = incY = 0;
     f1 = f2 = f3 = f4 = echX = echY = 0;
-    resetProjectionParams();
+    resetProjection();
 }
 
 void getPixelChar()
@@ -1447,7 +1447,7 @@ void displayPlasma()
 
     int32_t ypos = 0, endPos = 0;
     int32_t x = 0, y = 0, decx = 0, decy = 0;
-    const int32_t size = sizeof(str) / sizeof(str[0]);
+    const int32_t count = sizeof(str) / sizeof(str[0]);
 
     uint32_t frames = 0;
     uint8_t dx = 0, dy = 0;
@@ -1501,7 +1501,7 @@ void displayPlasma()
         createPlasma(&dx, &dy, sint, cost, &src);
         scaleImage(&dst, &src, INTERPOLATION_TYPE_NEARST);
         putImage(0, 0, &dst);
-        endPos = drawText(ypos--, size, str);
+        endPos = drawText(ypos--, count, str);
         if (endPos <= 98) fadeDown(pal);
         render();
         delay(FPS_90);

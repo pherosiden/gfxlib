@@ -8492,7 +8492,7 @@ void projette(double x, double y, double z, double *px, double *py)
 }
 
 //reset projection parameters
-void resetProjectionParams()
+void resetProjection()
 {
     RHO = DE = 0;
     aux1 = aux2 = aux3 = aux4 = 0;
@@ -8696,7 +8696,7 @@ void fadeDown(RGB* pal)
     setPalette(pal);
 }
 
-//convert palette buffer to RGB buffer
+//convert mixed palette buffer to RGB buffer
 void convertPalette(const uint8_t* palette, RGB* color)
 {
     uint8_t* rgb = (uint8_t*)color;
