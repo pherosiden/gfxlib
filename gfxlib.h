@@ -823,7 +823,7 @@ static must_inline int32_t fround(double x)
     return (x > 0) ? int32_t(x + 0.5) : int32_t(x - 0.5);
 }
 
-static must_inline double uniformrand(const double from, const double to)
+static must_inline double uniformRand(const double from, const double to)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -831,7 +831,7 @@ static must_inline double uniformrand(const double from, const double to)
     return distr(gen);
 }
 
-static must_inline double gaussrand(const double min, const double max)
+static must_inline double gaussRand(const double min, const double max)
 {
     std::random_device rd;
     std::mt19937 gen(rd());

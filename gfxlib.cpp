@@ -4604,7 +4604,7 @@ void randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, 
 
     for (int32_t i = 0; i < numVerts; i++)
     {
-        const double tmp = uniformrand(lower, upper);
+        const double tmp = uniformRand(lower, upper);
         angleSteps[i] = tmp;
         sum += tmp;
     }
@@ -4614,10 +4614,10 @@ void randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, 
     for (int32_t i = 0; i < numVerts; i++) angleSteps[i] /= koef;
 
     //now generate the points
-    double angle = uniformrand(0, 2 * M_PI);
+    double angle = uniformRand(0, 2 * M_PI);
     for (int32_t i = 0; i < numVerts; i++)
     {
-        const int32_t rad = int32_t(clamp(gaussrand(avgRadius, spikeyness), 0, 2.0 * avgRadius));
+        const int32_t rad = int32_t(clamp(gaussRand(avgRadius, spikeyness), 0, 2.0 * avgRadius));
         points[i].x = cx + rad * cos(angle);
         points[i].y = cy + rad * sin(angle);
         angle += angleSteps[i];
