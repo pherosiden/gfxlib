@@ -12166,7 +12166,6 @@ namespace rotateMap {
 
             for (j = 0; j < SCALING_FACTOR1; j++)
             {
-                idx2 = (SCALING_FACTOR1 + j + rotation) % SCALING_FACTOR1;
                 polyCoords[idx1 + j][0] = idx1 + j;
                 idx2 = j + 1;
                 idx2 %= SCALING_FACTOR1;
