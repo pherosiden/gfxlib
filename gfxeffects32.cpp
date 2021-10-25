@@ -90,19 +90,19 @@ void juliaSet()
             }
 
             //extract iteration position for each pixel
-            int32_t it[8] = { 0 };
-            _mm512_storeu_epi32(it, iters);
+            alignas(64) int32_t ipos[16] = { 0 };
+            _mm512_stream_si512(it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
-            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[0]  / iterations, 255, (ipos[0]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[2]  / iterations, 255, (ipos[2]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[4]  / iterations, 255, (ipos[4]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[6]  / iterations, 255, (ipos[6]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[8]  / iterations, 255, (ipos[8]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[10] / iterations, 255, (ipos[10] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[12] / iterations, 255, (ipos[12] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[14] / iterations, 255, (ipos[14] < iterations) ? 255 : 0);
         }
     }
     ============================================================================================*/
@@ -143,8 +143,8 @@ void juliaSet()
             }
 
             //extract iteration position for each pixel
-            int32_t it[8] = { 0 };
-            _mm256_storeu_si256((__m256i*)it, iters);
+            alignas(32) int32_t it[8] = { 0 };
+            _mm256_stream_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
@@ -1089,19 +1089,19 @@ void juliaExplorer()
                 }
 
                 //extract iteration position for each pixel
-                int32_t it[8] = { 0 };
-                _mm512_storeu_epi32(it, iters);
+                alignas(64) int32_t ipos[16] = { 0 };
+                _mm512_stream_si512(it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
-                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[0]  / iterations, 255, (ipos[0]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[2]  / iterations, 255, (ipos[2]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[4]  / iterations, 255, (ipos[4]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[6]  / iterations, 255, (ipos[6]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[8]  / iterations, 255, (ipos[8]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[10] / iterations, 255, (ipos[10] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[12] / iterations, 255, (ipos[12] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[14] / iterations, 255, (ipos[14] < iterations) ? 255 : 0);
             }
         }
         ==========================================================================================*/
@@ -1328,19 +1328,19 @@ void mandelbrotSet()
             }
 
             //extract iteration position for each pixel
-            int32_t it[8] = { 0 };
-            _mm512_storeu_epi32(it, iters);
+            alignas(64) int32_t ipos[16] = { 0 };
+            _mm512_stream_si512(it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
-            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[0]  / iterations, 255, (ipos[0]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[2]  / iterations, 255, (ipos[2]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[4]  / iterations, 255, (ipos[4]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[6]  / iterations, 255, (ipos[6]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[8]  / iterations, 255, (ipos[8]  < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[10] / iterations, 255, (ipos[10] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[12] / iterations, 255, (ipos[12] < iterations) ? 255 : 0);
+            *pdst++ = hsv2rgb(255 * ipos[14] / iterations, 255, (ipos[14] < iterations) ? 255 : 0);
         }
     }
     ==========================================================================================*/
@@ -1496,19 +1496,19 @@ void mandelbrotExporer()
                 }
 
                 //extract iteration position for each pixel
-                int32_t it[8] = { 0 };
-                _mm512_storeu_epi32(it, iters);
+                alignas(64) int32_t ipos[16] = { 0 };
+                _mm512_stream_si512(it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
-                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[1] / iterations, 255, (it[1] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[3] / iterations, 255, (it[3] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[5] / iterations, 255, (it[5] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[7] / iterations, 255, (it[7] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[0]  / iterations, 255, (ipos[0]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[2]  / iterations, 255, (ipos[2]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[4]  / iterations, 255, (ipos[4]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[6]  / iterations, 255, (ipos[6]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[8]  / iterations, 255, (ipos[8]  < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[10] / iterations, 255, (ipos[10] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[12] / iterations, 255, (ipos[12] < iterations) ? 255 : 0);
+                *pdst++ = hsv2rgb(255 * ipos[14] / iterations, 255, (ipos[14] < iterations) ? 255 : 0);
             }
         }
         ==========================================================================================*/

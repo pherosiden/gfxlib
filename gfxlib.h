@@ -413,8 +413,8 @@ int32_t     keyDown(int32_t key);
 int32_t     keyPressed(int32_t key);
 int32_t     waitUserInput(int32_t inputMask = INPUT_KEY_PRESSED);
 int32_t     finished(int32_t key);
-int32_t     getInputDataX();
-int32_t     getInputDataY();
+int32_t     getDataX();
+int32_t     getDataY();
 
 //some customize random functions
 void        randomBuffer(void* buff, int32_t count, int32_t range);

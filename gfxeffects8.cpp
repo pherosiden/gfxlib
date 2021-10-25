@@ -46,11 +46,12 @@ namespace juliaSet {
 
         for (int32_t y = 0; y < cheight; y++)
         {
+            const double preim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
             for (int32_t x = 0; x < cwidth; x++)
             {
                 int32_t i = 0;
+                double newim = preim;
                 double newre = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + mx;
-                double newim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -89,14 +90,14 @@ namespace juliaSet {
 
         for (int32_t y = 0; y < cheight; y++)
         {
+            const double pi = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
+
             for (int32_t x = 0; x < cwidth; x++)
             {
                 int32_t i = 0;
                 double newre = 0;
                 double newim = 0;
-
                 const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + mx;
-                const double pi = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -2287,7 +2288,8 @@ namespace plasmaTexture {
             v = vs;
             for (j = 0; j < 128; j++)
             {
-                texture[i][j] = ((uint16_t((lookup[i] + lookup[u] + lookup[j] + lookup[v]) << 8) >> 2) >> 8) + 128;
+                uint16_t tdata = (lookup[i] + lookup[u] + lookup[j] + lookup[v]) << 8;
+                texture[i][j] = (tdata >> 10) + 128;
                 v = (v + 4) % 360;
             }
             u = (u + 3) % 360;
@@ -11562,7 +11564,7 @@ namespace plasmaEffect3 {
 
     void plasmaPalette()
     {
-        for (int16_t i = 0; i <= 255; i++)
+        for (int16_t i = 0; i < 256; i++)
         {
             pal[i].r = uint8_t(32 + 30 * sin(i * M_PI * 2 / 255));
             pal[i].g = uint8_t(32 + 30 * cos(i * M_PI * 2 / 255));

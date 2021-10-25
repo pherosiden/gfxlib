@@ -1339,13 +1339,13 @@ void gfxFractals()
             break;
         
         case SDL_WINDOWEVENT_RESIZED:
-            cx = getInputDataX();
-            cy = getInputDataY();
+            cx = getDataX();
+            cy = getDataY();
             redraw = true;
             break;
 
         case SDL_MOUSEWHEEL:
-            dataY = getInputDataY();
+            dataY = getDataY();
             while (dataY > 0)
             {
                 setScale(scale / 1.1);
@@ -1361,8 +1361,8 @@ void gfxFractals()
 
         case SDL_MOUSEBUTTONDOWN:
             mouseDown = true;
-            msx = getInputDataX();
-            msy = getInputDataY();
+            msx = getDataX();
+            msy = getDataY();
             SDL_SetCursor(handCursor);
             break;
 
@@ -1374,8 +1374,8 @@ void gfxFractals()
         case SDL_MOUSEMOTION:
             if (mouseDown)
             {
-                const int32_t ptx = getInputDataX();
-                const int32_t pty = getInputDataY();
+                const int32_t ptx = getDataX();
+                const int32_t pty = getDataY();
                 shift(double(msx) - ptx, double(msy) - pty);
                 msx = ptx;
                 msy = pty;

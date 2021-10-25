@@ -149,13 +149,13 @@ RGB basePalette[256] = {
 int32_t dataX = 0, dataY = 0;
 
 //get current input data x
-int32_t getInputDataX()
+int32_t getDataX()
 {
     return dataX;
 }
 
 //get current input data y
-int32_t getInputDataY()
+int32_t getDataY()
 {
     return dataY;
 }
@@ -9729,8 +9729,8 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
 
     //create output data buffer
     const uint32_t size = texture->pitch * texture->h;
-    uint32_t* pixels = (uint32_t*)calloc(size, 1);
-    if (!pixels)
+    txout[0] = (uint32_t*)calloc(size, 1);
+    if (!txout[0])
     {
         SDL_FreeSurface(image);
         SDL_FreeSurface(texture);
@@ -9739,8 +9739,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     }
 
     //copy raw data after converted
-    memcpy(pixels, texture->pixels, size);
-    *txout = pixels;
+    memcpy(txout[0], texture->pixels, size);
     *txw = texture->w;
     *txh = texture->h;
     SDL_FreeSurface(image);
@@ -10441,13 +10440,13 @@ void createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IM
 #else
     const uint8_t lx = (*dx) += 2;
     const uint8_t ly = (*dy)--;
-    const uint16_t width = img->mWidth >> 1;
-    const uint16_t height = img->mHeight >> 1;
+    const uint16_t cwidth = img->mWidth >> 1;
+    const uint16_t cheight = img->mHeight >> 1;
 
     uint16_t ofs = 0;
     uint16_t* data = (uint16_t*)img->mData;
 
-    for (uint16_t sy = 0; sy < height; sy++)
+    for (uint16_t sy = 0; sy < cheight; sy++)
     {
         uint16_t val = sy + ly;
         if (val > 255) val -= 255;
@@ -10455,17 +10454,18 @@ void createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IM
         const uint8_t cl = sint[val];
         const uint8_t ch = sint[lx];
 
-        for (uint16_t sx = 0; sx < width; sx++)
+        for (uint16_t sx = 0; sx < cwidth; sx++)
         {
             val = cl + sx;
             if (val > 255) val -= 255;
-            val = (uint8_t(sint[val] + cost[uint8_t(ch + sy)]) >> 1) + 128;
+            val = (sint[val] + cost[(ch + sy) & 0xff]) & 0xff;
+            val = (val >> 1) + 128;
             val = (val << 8) | (val & 0xff);
             data[ofs] = val;
-            data[ofs + width] = val;
+            data[ofs + cwidth] = val;
             ofs++;
         }
-        ofs += width;
+        ofs += cwidth;
     }
 #endif
 }
@@ -10772,7 +10772,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
                     col1++;
                 }
             }
-            pdst[ofs] = uint8_t(col2 / col1);
+            pdst[ofs] = (col2 / col1) & 0xff;
             ofs += 4;
         }
         idx++;
@@ -10792,7 +10792,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
                 col2 += psrc[ofs + (k << 2)];
                 col2 += psrc[ofs - (k << 2)];
             }
-            pdst[ofs] = uint8_t(col2 / col1);
+            pdst[ofs] = (col2 / col1) & 0xff;
             ofs += 4;
         }
         idx++;
@@ -10818,7 +10818,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
                 }
                 col2 += psrc[ofs - (k << 2)];
             }
-            pdst[ofs] = uint8_t(col2 / col1);
+            pdst[ofs] = (col2 / col1) & 0xff;
             ofs += 4;
         }
         idx++;
@@ -10906,22 +10906,21 @@ void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
 #else
     int32_t i = 0;
     int32_t mid = val >> 16;
-    const int32_t blk = val & 0xffff;
-
-    src += intptr_t(val >> 17) + 1;
+    const int32_t block = val & 0xffff;
+    uint32_t* psrc = &src[(val >> 17) + 1];
     
     do {
         count -= mid;
         if (count <= 0)
         {
             mid += count;
-            for (i = 0; i < mid; i++) *dst++ = *src;
+            for (i = 0; i < mid; i++) *dst++ = *psrc;
         }
         else
         {
-            for (i = 0; i < mid; i++) *dst++ = *src;
-            src += mid;
-            mid = blk;
+            for (i = 0; i < mid; i++) *dst++ = *psrc;
+            psrc += mid;
+            mid = block;
         }
     } while (count > 0);
 #endif
@@ -12151,23 +12150,23 @@ int32_t initSystemInfo()
     }
 
     //check CPU speed
-    if (cpuSpeed < 266)
+    if (cpuSpeed < 2000)
     {
-        messageBox(GFX_ERROR, "GFXLIB require CPU speed more than 266 MHz!");
+        messageBox(GFX_ERROR, "GFXLIB require CPU speed more than 2000 MHz!");
         return 0;
     }
 
     //check free memory
-    if (availableMemory < 50)
+    if (availableMemory < 500)
     {
-        messageBox(GFX_ERROR, "GFXLIB require system RAM more than 50 MB!");
+        messageBox(GFX_ERROR, "GFXLIB require system RAM more than 500 MB!");
         return 0;
     }
 
     //check for video RAM
-    if (videoMemory < 32)
+    if (videoMemory < 64)
     {
-        messageBox(GFX_ERROR, "GFXLIB require video RAM more than 32 MB!");
+        messageBox(GFX_ERROR, "GFXLIB require video RAM more than 64 MB!");
         return 0;
     }
 
