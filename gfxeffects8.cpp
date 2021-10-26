@@ -11448,7 +11448,7 @@ namespace plasmaEffect1 {
 
         for (x = 0; x < 256; x++)
         {
-            wave[x] = sintab[(angle + x) & 0xff] + sintab[((angle + x) << 1) & 0xff] + sintab[((angle - x) << 2) & 0xff];
+            wave[x] = sintab[uint8_t(angle + x)] + sintab[uint8_t((angle + x) << 1)] + sintab[uint8_t((angle - x) << 2)];
         }
 
         for (y = 0; y < IMAGE_HEIGHT; y++)
@@ -13674,7 +13674,6 @@ namespace star2dEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "2D-Stars")) return;
         createStar();
 
