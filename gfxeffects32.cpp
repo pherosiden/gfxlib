@@ -1996,7 +1996,7 @@ void imageFillter()
 #define MINI_MAP_WIDTH          5
 
 //brightness value
-#define BASE_LIGHT_VALUE        180
+#define BASE_LIGHT_VALUE        150
 
 //MIN distance to wall
 #define MIN_DISTANCE_TO_WALL    60
@@ -2089,11 +2089,6 @@ static int32_t      ceilingWidth = 0, ceilingHeight = 0;
 
 //show/hide maze
 static bool         showMaze = true;
-
-double arcToRad(double arcAngle)
-{
-    return arcAngle * M_PI / (double)ANGLE180;
-}
 
 void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 {
@@ -2278,6 +2273,7 @@ int32_t initData()
     wallTexture[0] = pWall;
     for (i = 1; i < wallHeight; i++) wallTexture[i] = &wallTexture[0][i * wallWidth];
 
+    //floor texture data
     floorTexture = (uint32_t**)calloc(floorHeight, sizeof(uint32_t*));
     if (!floorTexture)
     {
@@ -2289,6 +2285,7 @@ int32_t initData()
     floorTexture[0] = pFloor;
     for (i = 1; i < floorHeight; i++) floorTexture[i] = &floorTexture[0][i * floorWidth];
 
+    //ceiling texture data
     ceilingTexture = (uint32_t**)calloc(ceilingHeight, sizeof(uint32_t*));
     if (!ceilingTexture)
     {
@@ -2306,7 +2303,7 @@ int32_t initData()
     {
         //populate tables with their radian values.
         //(the addition of 0.0001 is a kludge to avoid divisions by 0. Removing it will produce unwanted holes in the wall when a ray is at 0, 90, 180, or 270 degree angles)
-        radian = arcToRad(i) + 0.0001;
+        radian = (i * M_PI / (ANGLE60 * 3.0)) + 0.0001;
         sinTable[i] = sin(radian);
         isinTable[i] = 1.0 / sinTable[i];
         cosTable[i] = cos(radian);
@@ -2358,7 +2355,7 @@ int32_t initData()
     {
         //we don't have negative angle, so make it start at 0
         //this will give range from column 0 to 319 (PROJECTONPLANEWIDTH) since we only will need to use those range
-        radian = arcToRad(i);
+        radian = i * M_PI / (ANGLE60 * 3.0);
         fishTable[i + ANGLE30] = 1.0 / cos(radian);
     }
 
@@ -2444,7 +2441,7 @@ void doRayCasting()
         if (castArc > ANGLE0 && castArc < ANGLE180)
         {
             //truncate then add to get the coordinate of the FIRST grid (horizontal wall) that is in front of the player (this is in pixel unit)
-            horizontalGrid = playerY / TILE_SIZE * TILE_SIZE + TILE_SIZE;
+            horizontalGrid = (playerY / TILE_SIZE) * TILE_SIZE + TILE_SIZE;
 
             //compute distance to the next horizontal wall
             distToNextHorizontalGrid = TILE_SIZE;
@@ -2460,7 +2457,7 @@ void doRayCasting()
         //else, the ray is facing up
         else
         {
-            horizontalGrid = playerY / TILE_SIZE * TILE_SIZE;
+            horizontalGrid = (playerY / TILE_SIZE) * TILE_SIZE;
             distToNextHorizontalGrid = -TILE_SIZE;
             tmpX = itanTable[castArc] * (intmax_t(horizontalGrid) - playerY);
             intersectionX = tmpX + playerX;
@@ -2506,7 +2503,7 @@ void doRayCasting()
         //FOLLOW X RAY
         if (castArc < ANGLE90 || castArc > ANGLE270)
         {
-            verticalGrid = TILE_SIZE + playerX / TILE_SIZE * TILE_SIZE;
+            verticalGrid = (playerX / TILE_SIZE) * TILE_SIZE + TILE_SIZE;
             distToNextVerticalGrid = TILE_SIZE;
             tmpY = tanTable[castArc] * (intmax_t(verticalGrid) - playerX);
             intersectionY = tmpY + playerY;
@@ -2514,7 +2511,7 @@ void doRayCasting()
         //RAY FACING LEFT
         else
         {
-            verticalGrid = playerX / TILE_SIZE * TILE_SIZE;
+            verticalGrid = (playerX / TILE_SIZE) * TILE_SIZE;
             distToNextVerticalGrid = -TILE_SIZE;
             tmpY = tanTable[castArc] * (intmax_t(verticalGrid) - playerX);
             intersectionY = tmpY + playerY;
@@ -2562,12 +2559,12 @@ void doRayCasting()
         int32_t topOfWall = 0;		//used to compute the top and bottom of the sliver that
         int32_t bottomOfWall = 0;	//will be the staring point of floor and ceiling
 
+        bool isVerticalHit = false; //vertical ray hit
+
         //determine which ray strikes a closer wall
         //if yray distance to the wall is closer, the yDistance will be shorter than the xDistance
         if (distToHorizontalGridBeingHit < distToVerticalGridBeingHit)
         {
-            //the next function call (drawRayOnMap()) is not a part of raycating rendering part, 
-            //it just draws the ray on the overhead map to illustrate the ray casting process
             drawRayOnOverheadMap(int32_t(intersectionX), horizontalGrid);
             distance = distToHorizontalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
@@ -2579,8 +2576,7 @@ void doRayCasting()
         //else, we use xray instead (meaning the vertical wall is closer than the horizontal wall)
         else
         {
-            //the next function call (drawRayOnMap()) is not a part of raycating rendering part, 
-            //it just draws the ray on the overhead map to illustrate the ray casting process
+            isVerticalHit = true;
             drawRayOnOverheadMap(verticalGrid, int32_t(intersectionY));
             distance = distToVerticalGridBeingHit / fishTable[castColumn];
             ratio = PLAYER_PROJECTION_PLAN / distance;
@@ -2594,10 +2590,10 @@ void doRayCasting()
         if (bottomOfWall < 0) bottomOfWall = 0;
         if (topOfWall >= SCR_HEIGHT) topOfWall = SCR_HEIGHT - 1;
 
-        //add simple shading so that farther wall slices appear darker
-        //use arbitrary value of the farthest distance
+        //add simple shading so that farther wall slices appear darker use arbitrary value of the farthest distance
         //trick to give different shades between vertical and horizontal (you could also use different textures for each if you wish to)
-        drawWallSliceRectangleTinted(castColumn, topOfWall, bottomOfWall - topOfWall + 1, offset, BASE_LIGHT_VALUE / floor(distance));
+        if (isVerticalHit) drawWallSliceRectangleTinted(castColumn, topOfWall, (bottomOfWall - topOfWall) + 1, offset, BASE_LIGHT_VALUE / floor(distance));
+        else drawWallSliceRectangleTinted(castColumn, topOfWall, (bottomOfWall - topOfWall) + 1, offset, (BASE_LIGHT_VALUE - 50.0) / floor(distance));
 
         //FLOOR CASTING at the simplest! Try to find ways to optimize this, you can do it!
         if (floorTexture)
@@ -2617,18 +2613,16 @@ void doRayCasting()
                 const int32_t cellY = endY / TILE_SIZE;
 
                 //make sure the tile is within our map
-                if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX >= 0 && cellY > 0 && endX > 0 && endY > 0)
+                if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX > 0 && cellY > 0 && endX > 0 && endY > 0)
                 {
                     //cheap shading trick
-                    double brightnessLevel = BASE_LIGHT_VALUE / actualDistance;
-                    if (brightnessLevel < 0) brightnessLevel = 0;
-                    if (brightnessLevel > 1) brightnessLevel = 1;
-
-                    //make target pixel and color
-                    ARGB* pixels = (ARGB*)&rawPixels[row][castColumn];
+                    const double brightnessLevel = clamp(BASE_LIGHT_VALUE / actualDistance, 0, 1);
 
                     //find offset of tile and column in texture                    
                     const ARGB* color = (ARGB*)&floorTexture[endY % TILE_SIZE][endX % TILE_SIZE];
+
+                    //make target pixel and color
+                    ARGB* pixels = (ARGB*)&rawPixels[row][castColumn];
 
                     //draw the pixels
                     pixels->r = uint8_t(color->r * brightnessLevel);
@@ -2659,15 +2653,13 @@ void doRayCasting()
                 if (cellX < WORLD_MAP_WIDTH && cellY < WORLD_MAP_HEIGHT && cellX > 0 && cellY > 0 && endX > 0 && endY > 0)
                 {
                     //cheap shading trick
-                    double brightnessLevel = BASE_LIGHT_VALUE / diagonalDistance;
-                    if (brightnessLevel < 0) brightnessLevel = 0;
-                    if (brightnessLevel > 1) brightnessLevel = 1;
-
-                    //make target pixel and color
-                    ARGB* pixels = (ARGB*)&rawPixels[row][castColumn];
+                    const double brightnessLevel = clamp((BASE_LIGHT_VALUE - 50.0) / diagonalDistance, 0, 1);
 
                     //find offset of tile and column in texture
                     const ARGB* color = (ARGB*)&ceilingTexture[endY % TILE_SIZE][endX % TILE_SIZE];
+
+                    //make target pixel and color
+                    ARGB* pixels = (ARGB*)&rawPixels[row][castColumn];
 
                     //draw the pixels
                     pixels->r = uint8_t(color->r * brightnessLevel);
@@ -2827,7 +2819,7 @@ void runRayCasting()
         else if (playerHeight >= WALL_HEIGHT - 5) playerHeight = WALL_HEIGHT - 5;
 
         //show/hide maze
-        if (keyDown(SDL_SCANCODE_TAB)) showMaze = !showMaze;
+        if (keyPressed(SDL_SCANCODE_TAB)) showMaze = !showMaze;
 
         //correct frames rate
         delay(FPS_30);

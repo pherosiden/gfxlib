@@ -14809,7 +14809,7 @@ namespace rayCastingEffect {
 
     RGB pal[SIZE_256] = { 0 };
 
-    uint8_t showMaze = 0;
+    uint8_t showMaze = 1;
     uint8_t maze[32][32] = { 0 };
     uint8_t shade[16][SIZE_256] = { 0 };
     uint8_t walls[SIZE_128][SIZE_128] = { 0 };
@@ -15195,7 +15195,7 @@ namespace rayCastingEffect {
 
     void run()
     {
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ray-Casting -- Keys: Arrows: move; TAB: show maze")) return;
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ray-Casting -- Keys: Arrows: move; TAB: show/hide maze")) return;
         if (!loadMaze("assets/maze.dat")) return;
         if (!loadPNG(walls[0], pal, "assets/wallr.png")) return;
         if (!loadPNG(floors[0], pal, "assets/floor.png")) return;
