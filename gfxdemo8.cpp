@@ -673,7 +673,7 @@ void lineBob()
     const int32_t cmaxX = getMaxX();
     const int32_t cmaxY = getMaxY();
 
-    while (frames < 5000 && !finished(SDL_SCANCODE_RETURN))
+    while (frames < 4000 && !finished(SDL_SCANCODE_RETURN))
     {
         x1 += dx1;
         x2 += dx2;
@@ -715,15 +715,25 @@ void graphDemo13()
         }
     }
 
-    rotatePalette(16, 207, 192, FPS_60);
+    rotatePalette(16, 207, 192, FPS_90);
     clearScreen();
 
-    POINT2D genpoints[30] = { 0 };
-    uint32_t frames = 16;
-    while (frames++ < 200 && !finished(SDL_SCANCODE_RETURN))
+    uint32_t frames = 0;
+    POINT2D randPoints[30] = { 0 };
+    
+    while (frames++ < 20 && !finished(SDL_SCANCODE_RETURN))
     {
-        randomPolygon(400, 300, 150, 0.7, 0.4, 20, genpoints);
-        fillPolygon(genpoints, 20, frames % 192);
+        randomPolygon(400, 300, 150, 0.7, 0.4, 20, randPoints);
+        fillPolygon(randPoints, 20, 50);
+
+        for (int32_t j = 0; j <= cmaxY; j++)
+        {
+            for (int32_t i = 0; i <= cmaxX; i++)
+            {
+                if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) >> 2) % 192);
+            }
+        }
+
         render();
         delay(500);
         clearScreen();
@@ -731,7 +741,7 @@ void graphDemo13()
 
     makeRainbowPalette();
     for (int32_t y = 0; y < cmaxY; y++) horizLine(0, y, cmaxX, 1 + uint32_t(y / 1.87) % 255);
-    rotatePalette(1, 255, 255, FPS_60);
+    rotatePalette(1, 255, 255, FPS_90);
 }
 
 double FX1(double x, double y)
@@ -1145,8 +1155,8 @@ void dessineFonction()
 
             projette(x, y, z, &projX, &projY);
             
-            int32_t courX = int32_t((projX - f1) * echX + c1);
-            int32_t courY = int32_t((projY - f3) * echY + c3);
+            const int32_t courX = int32_t((projX - f1) * echX + c1);
+            const int32_t courY = int32_t((projY - f3) * echY + c3);
             
             visibilite(courX, courY, &visiCour);
             
@@ -1427,7 +1437,7 @@ void displayPlasma()
         "If you have some improvements, additions,",
         "bug reports or something else, please contact me",
         "",
-        "(c) 1998-2002 by Nguyen Ngoc Van",
+        "(c) 1998-2021 by Nguyen Ngoc Van",
         "Email: pherosiden@gmail.com",
         "",
         "Greets fly to:",
@@ -1533,7 +1543,7 @@ void gfxDemoMix()
         "GFXLIB Library Demo",
         "Full supports 8/15/16/24/32 bits color",
         "Load/Save BMP & PNG 32 bits image",
-        "Copyright (c) 1998 - 2002 by Nguyen Ngoc Van",
+        "Copyright (c) 1998 - 2021 by Nguyen Ngoc Van",
         "Please wait to continue..."
     };
 
@@ -1541,14 +1551,14 @@ void gfxDemoMix()
         "Khoa Co6ng Nghe65 Tho6ng Tin - Kho1a 2000",
         "Tru7o72ng D9a5i Ho5c Ky4 Thua65t TP.HCM - HUTECH",
         "Thu7 Vie65n D9o62 Ho5a VESA 8/15/16/24/32 bits Ma2u",
-        "Copyright (c) 1998 - 2002 by Nguye64n Ngo5c Va6n",
-        "Trang chu3: http://codedemo.net"
+        "Copyright (c) 1998 - 2021 by Nguye64n Ngo5c Va6n",
+        "Trang chu3: https://github.com/pherosiden/"
     };
 
     const int32_t numTitles = sizeof(msgTitle) / sizeof(msgTitle[0]);
 
-    char msgScroll[] = "*** Ca1m o7n ca1c ba5n d9a4 su73 du5ng chu7o7ng tri2nh na2y. Ba5n co1 the63 ta3i toa2n bo65 ma4 nguo62n cu3a chu7o7ng tri2nh ta5i d9i5a chi3 http://codedemo.net. Chu1c Ca1c Ba5n Tha2nh Co6ng       ";
-    char msgBanner[] = "Light Banner (c) 1998 - 2002 Nguye64n Ngo5c Va6n";
+    char msgScroll[] = "*** Ca1m o7n ca1c ba5n d9a4 su73 du5ng chu7o7ng tri2nh na2y. Ba5n co1 the63 ta3i toa2n bo65 ma4 nguo62n cu3a chu7o7ng tri2nh ta5i d9i5a chi3 https://github.com/pherosiden/gfxlib. Chu1c Ca1c Ba5n Tha2nh Co6ng       ";
+    char msgBanner[] = "Light Banner (c) 1998 - 2021 Nguye64n Ngo5c Va6n";
     char msgLoading[] = "D9ang ta3i du74 lie65u a3nh PNG & BMP 32bit ma2u, vui lo2ng d9o75i mo65t la1t....";
 
     if (!initScreen(800, 600, 32, 0, "GFX-Demo8")) return;

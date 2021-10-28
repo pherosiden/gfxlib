@@ -1739,7 +1739,7 @@ void tunnelDemo()
     {
         for (int32_t x = 0; x < SCR_WIDTH; x++)
         {
-            distBuff[y][x] = int32_t(ratio * th / sqrt(sqr(double(x) - mwidth) + sqr(double(y) - mheight))) % th;
+            distBuff[y][x] = int32_t(ratio * th / sqrt(sqr(double(x) - mwidth) + sqr(double(y) - mheight)));
             angleBuff[y][x] = int32_t(scale * tw * atan2(double(y) - mheight, double(x) - mwidth) / M_PI);
         }
     }
@@ -1750,7 +1750,7 @@ void tunnelDemo()
         const double animation = getTime() / 1000.0;
 
         //calculate the shift values out of the animation value
-        const int32_t shiftX = int32_t(tw * animation * 0.5);
+        const int32_t shiftX = int32_t(tw * animation * 0.3);
         const int32_t shiftY = int32_t(th * animation * 0.5);
 
         for (int32_t y = 0; y < SCR_HEIGHT; y++)
@@ -1948,10 +1948,10 @@ void imageFillter()
                 {
                     const int32_t dx = (x - FILTER_WIDTH / 2 + fx + tw) % tw;
                     const int32_t dy = (y - FILTER_HEIGHT / 2 + fy + th) % th;
-                    const uint8_t* pixel = (const uint8_t*)&image[dy][dx];
-                    red   += pixel[2] * filter[fy][fx];
-                    green += pixel[1] * filter[fy][fx];
-                    blue  += pixel[0] * filter[fy][fx];
+                    const ARGB* pixel = (const ARGB*)&image[dy][dx];
+                    red   += pixel->r * filter[fy][fx];
+                    green += pixel->g * filter[fy][fx];
+                    blue  += pixel->b * filter[fy][fx];
                 }
             }
 
@@ -2090,10 +2090,11 @@ static int32_t      ceilingWidth = 0, ceilingHeight = 0;
 //show/hide maze
 static bool         showMaze = true;
 
+//Bresenham draw line with buffer
 void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
 {
     //validate range
-    if (x1 < 0 || x1 > SCR_WIDTH - 1 || x2 < 0 || x2 > SCR_WIDTH - 1 || y1 < 0 || y1 > SCR_HEIGHT - 1 || y2 < 0 || y2 > SCR_HEIGHT - 1) return;
+    if (x1 < 0 || x1 >= SCR_WIDTH || x2 < 0 || x2 >= SCR_WIDTH || y1 < 0 || y1 >= SCR_HEIGHT || y2 < 0 || y2 >= SCR_HEIGHT) return;
 
     const int32_t dx = abs(x2 - x1); //the difference between the x's
     const int32_t dy = abs(y2 - y1); //the difference between the y's
@@ -2146,7 +2147,7 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     for (int32_t currPixel = 0; currPixel < numPixels; currPixel++)
     {
         //draw the current pixel to screen buffer
-        rawPixels[y % SCR_HEIGHT][x % SCR_WIDTH] = color;
+        rawPixels[y][x] = color;
         num += addNum;  //increase the numerator by the top of the fraction
 
         if (num >= den) //check if numerator >= denominator
@@ -2161,6 +2162,7 @@ void drawLineBuffer(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col
     }
 }
 
+//draw walls slice tinted
 void drawWallSliceRectangleTinted(int32_t x, int32_t y, int32_t height, int32_t offset, double brightnessLevel)
 {
     //range check
@@ -2243,6 +2245,7 @@ void drawFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint
     }
 }
 
+//initialize some texture data
 int32_t initData()
 {
     int32_t i = 0;
@@ -2372,13 +2375,12 @@ void drawOverheadMap()
     {
         for (int32_t col = 0; col < WORLD_MAP_WIDTH; col++)
         {
-            if (worldMap[row][col]) drawFillRectangle(col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB_BLACK);
+            if (worldMap[row][col]) drawFillRectangle(col * MINI_MAP_WIDTH, row * MINI_MAP_WIDTH, MINI_MAP_WIDTH, MINI_MAP_WIDTH, RGB_DARK_GREY);
         }
     }
 }
 
-//draw ray on the overhead map (for illustration purpose)
-//this is not part of the ray-casting process
+//draw ray on the overhead map
 void drawRayOnOverheadMap(int32_t x, int32_t y)
 {
     if (!showMaze) return;
@@ -2387,8 +2389,7 @@ void drawRayOnOverheadMap(int32_t x, int32_t y)
     drawLineBuffer(playerMapX, playerMapY, x * MINI_MAP_WIDTH / TILE_SIZE, y * MINI_MAP_WIDTH / TILE_SIZE, RGB_GREEN);
 }
 
-//draw player POV on the overhead map (for illustration purpose)
-//this is not part of the ray-casting process
+//draw player POV on the overhead map
 void drawPlayerPOVOnOverheadMap()
 {
     if (!showMaze) return;
@@ -2397,6 +2398,7 @@ void drawPlayerPOVOnOverheadMap()
     drawLineBuffer(playerMapX, playerMapY, int32_t(playerMapX + cosTable[playerArc] * 10), int32_t(playerMapY + sinTable[playerArc] * 10), RGB_RED);
 }
 
+//start ray casting
 void doRayCasting()
 {
     //horizontal or vertical coordinate of intersection theoretically, this will be multiple of TILE_SIZE

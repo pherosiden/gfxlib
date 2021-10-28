@@ -154,26 +154,26 @@
 
 //RGB common colors
 #define RGB_BLACK               0x000000
-#define RGB_WHITE               0xFFFFFF
-#define RGB_RED                 0xFF0000
-#define RGB_GREEN               0x00FF00
-#define RGB_BLUE                0x0000FF
-#define RGB_YELLOW              0xFFFF00
-#define RGB_CYAN                0x00FFFF
-#define RGB_MAGENTA             0xFF00FF
+#define RGB_WHITE               0xffffff
+#define RGB_RED                 0xff0000
+#define RGB_GREEN               0x00ff00
+#define RGB_BLUE                0x0000ff
+#define RGB_YELLOW              0xffff00
+#define RGB_CYAN                0x00ffff
+#define RGB_MAGENTA             0xff00ff
 #define RGB_PURPLE              0x800080
 #define RGB_MAROON              0x800000
-#define RGB_DARK_RED            0xC00000
+#define RGB_DARK_RED            0xc00000
 #define RGB_DARK_GREY           0x808080
-#define RGB_LIGHT_GREY          0xC0C0C0
+#define RGB_LIGHT_GREY          0xc0c0c0
 #define RGB_DARK_GREEN          0x008000
 #define RGB_NAVY                0x000080
 #define RGB_TEAL                0x008080
 #define RGB_OLIVE               0x808000
 #define RGB_GREY32              0x202020
 #define RGB_GREY64              0x404040
-#define RGB_GREY127             0x7F7F7F
-#define RGB_GREY191             0xBFBFBF
+#define RGB_GREY127             0x7f7f7f
+#define RGB_GREY191             0xbfbfbf
 
 //benchmarks snipping code
 #define BENCH_START()           clock_t startClock = clock();
@@ -361,15 +361,6 @@ enum PROJECTION_TYPE
     PROJECTION_TYPE_PERSPECTIVE,                //perspective projection
     PROJECTION_TYPE_PARALLELE,                  //paralleled projection
     PROJECTION_TYPE_UNKNOWN,                    //error projection
-};
-
-//projection parameters
-enum PROJECTION_PARAMS
-{
-    PROJECTION_PARAMS_THETA,                    //theta angle
-    PROJECTION_PARAMS_PHI,                      //phi angle
-    PROJECTION_PARAMS_DE,                       //deplane ending
-    PROJECTION_PARAMS_UNKNOWN,                  //error params
 };
 
 //filled pattern type
@@ -599,13 +590,13 @@ void        gfxEffects();
 void        gfxFontView();
 void        gfxFractals();
 
-//8/32-pixels alignment for AVX2 use
+//8/32-pixels alignment for AVX2 use (size = (32 / bytesPerPixel) - 1)
 static must_inline int32_t alignedSize(int32_t msize)
 {
     return (getBytesPerPixel() == 1) ? (msize + 31) & ~31 : (msize + 7) & ~7;
 }
 
-//32-bytes alignment for AVX2 use
+//32-bytes alignment for AVX2 use (all memory must be 32 bytes aligned)
 static must_inline uint32_t alignedBytes(uint32_t msize)
 {
 	return (msize + 31) & ~31;
@@ -729,14 +720,14 @@ static must_inline uint32_t hsv2rgb(int32_t hi, int32_t si, int32_t vi)
 //converts an RGB color to HSV color
 static must_inline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
 {
-    double r = ri / 256.0;
-    double g = gi / 256.0;
-    double b = bi / 256.0;
+    const double r = ri / 256.0;
+    const double g = gi / 256.0;
+    const double b = bi / 256.0;
 
-    double dmax = max(r, max(g, b));
-    double dmin = min(r, min(g, b));
-
-    double v = dmax;
+    const double dmax = max(r, max(g, b));
+    const double dmin = min(r, min(g, b));
+    const double v = dmax;
+    
     double h = 0, s = 0;
 
     if (dmax != 0.0)
@@ -767,13 +758,13 @@ static must_inline HSV rgb2hsv(uint8_t ri, uint8_t gi, uint8_t bi)
 //convert an RGB color to HSL color
 static must_inline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
 {
-    double r = ri / 255.0;
-    double g = gi / 255.0;
-    double b = bi / 255.0;
+    const double r = ri / 255.0;
+    const double g = gi / 255.0;
+    const double b = bi / 255.0;
 
-    double dmax = max(r, max(g, b));
-    double dmin = min(r, min(g, b));
-    double l = (dmax + dmin) / 2;
+    const double dmax = max(r, max(g, b));
+    const double dmin = min(r, min(g, b));
+    const double l = (dmax + dmin) / 2;
 
     double h = 0, s = 0;
 
@@ -783,11 +774,11 @@ static must_inline HSL rgb2hsl(uint8_t ri, uint8_t gi, uint8_t bi)
     }
     else
     {
-        double d = dmax - dmin;
-        s = (l > 0.5) ? d / (2 - dmax - dmin) : d / (dmax + dmin);
-        if (r == dmax) h = (g - b) / d + (g < b ? 6 : 0);
-        if (g == dmax) h = (b - r) / d + 2;
-        if (b == dmax) h = (r - g) / d + 4;
+        const double dt = dmax - dmin;
+        s = (l > 0.5) ? dt / (2 - dmax - dmin) : dt / (dmax + dmin);
+        if (r == dmax) h = (g - b) / dt + (g < b ? 6 : 0);
+        if (g == dmax) h = (b - r) / dt + 2;
+        if (b == dmax) h = (r - g) / dt + 4;
         h /= 6;
     }
 
@@ -831,7 +822,7 @@ static must_inline double uniformRand(const double from, const double to)
     return distr(gen);
 }
 
-static must_inline double gaussRand(const double min, const double max)
+static must_inline double gaussianRand(const double min, const double max)
 {
     std::random_device rd;
     std::mt19937 gen(rd());

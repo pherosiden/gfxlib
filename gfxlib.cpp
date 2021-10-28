@@ -3128,6 +3128,7 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 #else
     const int32_t dx = abs(x2 - x1);
     const int32_t dy = abs(y2 - y1);
+
     int32_t x = x1;
     int32_t y = y1;
     int32_t addx1 = 0, addx2 = 0;
@@ -3178,7 +3179,7 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 
     for (curpixel = 0; curpixel < numpixels; curpixel++)
     {
-        putPixelBob(x % texWidth, y % texHeight);
+        putPixelBob(x, y);
         num += numadd;
         if (num >= den)
         {
@@ -3868,10 +3869,10 @@ void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x
         ab = xa * yb - xb * ya;
         ac = xa * yc - xc * ya;
         bc = xb * yc - xc * yb;
-        ip = 4 * ab * bc - ac * ac;
-        ex = ab * (ab + ac - 3 * bc) + ac * ac;
+        ip = 4 * ab * bc - sqr(ac);
+        ex = ab * (ab + ac - 3 * bc) + sqr(ac);
         f = (ex > 0) ? 1 : int32_t(sqrt(1 + 1024 / x1));
-        ab *= f; ac *= f; bc *= f; ex *= intmax_t(f) * f;
+        ab *= f; ac *= f; bc *= f; ex *= sqr(intmax_t(f));
         xy = 9 * (ab + ac + bc) / 8;
         ba = 8 * (xa - ya);
         dx = 27 * (8 * ab * (yb * yb - ya * yc) + ex * (ya + 2 * yb + yc)) / 64 - ya * ya * (xy - ya);
@@ -4008,8 +4009,8 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
             x2 = x0; x0 -= int32_t(dx); y2 = y0; y0 -= int32_t(dy); cur = -cur;
         }
 
-        xx = 2.0 * (4.0 * w * sx * xx + dx * dx);
-        yy = 2.0 * (4.0 * w * sy * yy + dy * dy);
+        xx = 2.0 * (4.0 * w * sx * xx + sqr(dx));
+        yy = 2.0 * (4.0 * w * sy * yy + sqr(dy));
         sx = x0 < x2 ? 1 : -1;
         sy = y0 < y2 ? 1 : -1;
         xy = -2.0 * sx * sy * (2.0 * w * xy + dx * dy);
@@ -4101,8 +4102,8 @@ void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, i
             cur = -cur;
         }
 
-        xx = 2.0 * (4.0 * w * sx * xx + dx * dx);
-        yy = 2.0 * (4.0 * w * sy * yy + dy * dy);
+        xx = 2.0 * (4.0 * w * sx * xx + sqr(dx));
+        yy = 2.0 * (4.0 * w * sy * yy + sqr(dy));
         sx = x0 < x2 ? 1 : -1;
         sy = y0 < y2 ? 1 : -1;
         xy = -2.0 * sx * sy * (2.0 * w * xy + dx * dy);
@@ -4615,9 +4616,12 @@ void randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, 
 
     //now generate the points
     double angle = uniformRand(0, 2 * M_PI);
+    const double radius = 2.0 * avgRadius;
+
     for (int32_t i = 0; i < numVerts; i++)
     {
-        const int32_t rad = int32_t(clamp(gaussRand(avgRadius, spikeyness), 0, 2.0 * avgRadius));
+        const double gaussValue = gaussianRand(avgRadius, spikeyness);
+        const double rad = clamp(gaussValue, 0, radius);
         points[i].x = cx + rad * cos(angle);
         points[i].y = cy + rad * sin(angle);
         angle += angleSteps[i];

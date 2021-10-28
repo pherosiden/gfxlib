@@ -58,7 +58,7 @@ void showText(int32_t sx, int32_t sy, GFX_IMAGE *img, const char *str)
 
     char msg[2] = { 0 };
     int32_t x, y, i, len;
-        
+
     //make scrolling text
     memcpy(&texts[0][0], &texts[1][0], sizeof(texts) - sizeof(texts[0]));
     strcpy(texts[MAX_TEXT_LINE - 1], str);
@@ -115,6 +115,7 @@ void runIntro()
     //initialize buffer
     GFX_IMAGE scr = { 0 }, wci = { 0 };
     GFX_IMAGE gxb = { 0 }, utb = { 0 }, trn = { 0 };
+
     if (!newImage(getBufferWidth(), getBufferHeight(), &scr)) return;
     if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &trn)) return;
     if (!newImage(wcb.mWidth, wcb.mHeight, &wci)) return;

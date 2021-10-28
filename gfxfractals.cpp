@@ -1105,6 +1105,7 @@ void initFractals(int32_t sx, int32_t sy)
 
 void allocBuffer()
 {
+    //must be 32-bytes alignment for AVX2 use
     const uint32_t msize = alignedBytes(cy * alignedSize(cx) * getBytesPerPixel());
     if (msize > dataSize)
     {
