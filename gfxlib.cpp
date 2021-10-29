@@ -5,8 +5,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.4                                   //
-//          Last Update: 2021-10-12                              //
+//              Version: 1.2.5                                   //
+//          Last Update: 2021-10-29                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -1199,6 +1199,7 @@ void putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode /* = BLEND_MODE
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -1627,6 +1628,7 @@ void horizLine(int32_t x, int32_t y, int32_t sx, uint32_t color, int32_t mode /*
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -1873,6 +1875,7 @@ void vertLine(int32_t x, int32_t y, int32_t sy, uint32_t color, int32_t mode /* 
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -2186,6 +2189,174 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
 #endif
 }
 
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
+{
+#ifdef _USE_ASM
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        movd        mm1, color
+    again:
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
+    plot:
+        movq        mm0, [edi]
+        pand        mm0, mm1
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          end
+        movd        mm0, [edi]
+        pand        mm0, mm1
+        movd        [edi], mm0
+        add         edi, 4
+    end:
+        add         edi, ebx
+        dec         height
+        jnz         again
+        emms
+    }
+#else
+    //aligned 32-bytes
+    const int32_t align = width >> 3;
+    const int32_t remainder = width % 8;
+    const int32_t addOfs = texWidth - width;
+
+	//calculate starting address
+	ARGB* pdata = (ARGB*)drawBuff;
+	ARGB* pixels = &pdata[texWidth * y + x];
+
+	//initialize vector color
+	const __m256i ymm0 = _mm256_set1_epi32(color);
+
+    //lines-by-lines
+    for (int32_t i = 0; i < height; i++)
+    {
+        //loop for 32-bytes aligned
+        for (int32_t j = 0; j < align; j++)
+        {
+            __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
+            ymm1 = _mm256_and_si256(ymm1, ymm0);
+            _mm256_stream_si256((__m256i*)pixels, ymm1);
+            pixels += 8;
+        }
+
+        //have unaligned bytes
+        if (remainder > 0)
+        {
+            const ARGB* pcol = (const ARGB*)&color;
+            for (int32_t j = 0; j < remainder; j++)
+            {
+                pixels->b = pixels->b & pcol->b;
+                pixels->g = pixels->g & pcol->g;
+                pixels->r = pixels->r & pcol->r;
+                pixels++;
+            }
+        }
+
+        //next line
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
+//fill rectangle with corners (x1,y1) and (width,height) and color
+void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color)
+{
+#ifdef _USE_ASM
+    __asm {
+        mov         edi, drawBuff
+        mov         eax, y
+        mul         texWidth
+        add         eax, x
+        shl         eax, 2
+        add         edi, eax
+        mov         ebx, texWidth
+        sub         ebx, width
+        shl         ebx, 2
+        movd        mm1, color
+    again:
+        mov         ecx, width
+        shr         ecx, 1
+        jz          once
+        punpckldq   mm1, mm1
+    plot:
+        movq        mm0, [edi]
+        pxor        mm0, mm1
+        movq        [edi], mm0
+        add         edi, 8
+        dec         ecx
+        jnz         plot
+    once:
+        test        width, 1
+        jz          end
+        movd        mm0, [edi]
+        pxor        mm0, mm1
+        movd        [edi], mm0
+        add         edi, 4
+    end:
+        add         edi, ebx
+        dec         height
+        jnz         again
+        emms
+    }
+#else
+    //aligned 32-bytes
+    const int32_t align = width >> 3;
+    const int32_t remainder = width % 8;
+    const int32_t addOfs = texWidth - width;
+
+	//calculate starting address
+	ARGB* pdata = (ARGB*)drawBuff;
+	ARGB* pixels = &pdata[texWidth * y + x];
+
+	//initialize vector color
+	const __m256i ymm0 = _mm256_set1_epi32(color);
+
+    //lines-by-lines
+    for (int32_t i = 0; i < height; i++)
+    {
+        //loop for 32-bytes aligned
+        for (int32_t j = 0; j < align; j++)
+        {
+            __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
+            ymm1 = _mm256_xor_si256(ymm1, ymm0);
+            _mm256_stream_si256((__m256i*)pixels, ymm1);
+            pixels += 8;
+        }
+
+        //have unaligned bytes
+        if (remainder > 0)
+        {
+            const ARGB* pcol = (const ARGB*)&color;
+            for (int32_t j = 0; j < remainder; j++)
+            {
+                pixels->b = pixels->b ^ pcol->b;
+                pixels->g = pixels->g ^ pcol->g;
+                pixels->r = pixels->r ^ pcol->r;
+                pixels++;
+            }
+        }
+
+        //next line
+        if (addOfs > 0) pixels += addOfs;
+    }
+#endif
+}
+
 //fill rectangle with corners (x1,y1) and (width,height) and blending pixel
 void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb)
 {
@@ -2337,7 +2508,7 @@ void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t colo
         return;
     }
 
-    //height color mode
+    //heigh color mode
     switch (mode)
     {
     case BLEND_MODE_NORMAL:
@@ -2352,11 +2523,20 @@ void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t colo
         fillRectSub(lx, ly, lwidth, lheight, color);
         break;
 
+    case BLEND_MODE_AND:
+        fillRectAnd(lx, ly, lwidth, lheight, color);
+        break;
+
+    case BLEND_MODE_XOR:
+        fillRectXor(lx, ly, lwidth, lheight, color);
+        break;
+
     case BLEND_MODE_ALPHA:
         fillRectAlpha(lx, ly, lwidth, lheight, color);
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -2834,6 +3014,7 @@ void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -5524,6 +5705,266 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
 #endif
 }
 
+//put GFX image with logical and background color
+void putImageAnd(int32_t x, int32_t y, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth  = img->mWidth;
+
+    __asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    again:
+        mov     ecx, width
+        shr     ecx, 1
+        jz      once
+    plot:
+        movq    mm0, [esi]
+        pand    mm0, [edi]
+        movq    [edi], mm0
+        add     esi, 8
+        add     edi, 8
+        dec     ecx
+        jnz     plot
+    once:
+        test    width, 1
+        jz      end
+        movd    mm0, [esi]
+        pand    mm0, [edi]
+        movd    [edi], mm0
+        add     esi, 4
+        add     edi, 4
+    end:
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     again
+        emms
+    }
+#else
+    //32-bytes alignment
+    const int32_t aligned = width >> 3;
+    const int32_t remainder = width % 8;
+
+    //calculate next offset
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
+
+    //calculate starting address
+	ARGB* dstData = (ARGB*)drawBuff;
+	ARGB* srcData = (ARGB*)img->mData;
+	ARGB* dstPixels = &dstData[texWidth * ly + lx];
+	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+
+    //line-by-line
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < aligned; j++)
+        {
+            //load source and destination
+            const __m256i src = _mm256_stream_load_si256((const __m256i*)srcPixels);
+            const __m256i dst = _mm256_stream_load_si256((const __m256i*)dstPixels);
+
+            //sub 32-bytes data with saturation and store
+            const __m256i res = _mm256_and_si256(src, dst);
+            _mm256_stream_si256((__m256i*)dstPixels, res);
+
+            //next 8 pixels
+            dstPixels += 8;
+            srcPixels += 8;
+        }
+
+        //have unaligned bytes
+        if (remainder > 0)
+        {
+            for (int32_t j = 0; j < remainder; j++)
+            {
+                dstPixels->r = srcPixels->r & dstPixels->r;
+                dstPixels->g = srcPixels->g & dstPixels->g;
+                dstPixels->b = srcPixels->b & dstPixels->b;
+                dstPixels++;
+                srcPixels++;
+            }
+        }
+
+        //next line
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) srcPixels += addImgOffs;
+    }
+#endif
+}
+
+//put GFX image with logical xor background color
+void putImageXor(int32_t x, int32_t y, GFX_IMAGE* img)
+{
+    //calculate new position
+    const int32_t x1 = (x + img->mWidth) - 1;
+    const int32_t y1 = (y + img->mHeight) - 1;
+
+    //clip image to context boundaries
+    const int32_t lx = (x >= cminX) ? x : cminX;
+    const int32_t ly = (y >= cminY) ? y : cminY;
+    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
+    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
+
+    //validate boundaries
+    if (lx >= lx1) return;
+    if (ly >= ly1) return;
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (!width || !height) return;
+
+#ifdef _USE_ASM
+    void* imgData = img->mData;
+    const int32_t imgWidth  = img->mWidth;
+
+    __asm {
+        mov     edi, drawBuff
+        mov     eax, ly
+        mul     texWidth
+        add     eax, lx
+        shl     eax, 2
+        add     edi, eax
+        mov     esi, imgData
+        mov     eax, ly
+        sub     eax, y
+        mul     imgWidth
+        mov     ebx, lx
+        sub     ebx, x
+        add     eax, ebx
+        shl     eax, 2
+        add     esi, eax
+        mov     ebx, texWidth
+        sub     ebx, width
+        shl     ebx, 2
+        mov     edx, imgWidth
+        sub     edx, width
+        shl     edx, 2
+    again:
+        mov     ecx, width
+        shr     ecx, 1
+        jz      once
+    plot:
+        movq    mm0, [esi]
+        pxor    mm0, [edi]
+        movq    [edi], mm0
+        add     esi, 8
+        add     edi, 8
+        dec     ecx
+        jnz     plot
+    once:
+        test    width, 1
+        jz      end
+        movd    mm0, [esi]
+        pxor    mm0, [edi]
+        movd    [edi], mm0
+        add     esi, 4
+        add     edi, 4
+    end:
+        add     edi, ebx
+        add     esi, edx
+        dec     height
+        jnz     again
+        emms
+    }
+#else
+    //32-bytes alignment
+    const int32_t aligned = width >> 3;
+    const int32_t remainder = width % 8;
+
+    //calculate next offset
+    const int32_t addDstOffs = texWidth - width;
+    const int32_t addImgOffs = img->mWidth - width;
+
+    //calculate starting address
+	ARGB* dstData = (ARGB*)drawBuff;
+	ARGB* srcData = (ARGB*)img->mData;
+	ARGB* dstPixels = &dstData[texWidth * ly + lx];
+	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+
+    //line-by-line
+    for (int32_t i = 0; i < height; i++)
+    {
+        for (int32_t j = 0; j < aligned; j++)
+        {
+            //load source and destination
+            const __m256i src = _mm256_stream_load_si256((const __m256i*)srcPixels);
+            const __m256i dst = _mm256_stream_load_si256((const __m256i*)dstPixels);
+
+            //sub 32-bytes data with saturation and store
+            const __m256i res = _mm256_xor_si256(src, dst);
+            _mm256_stream_si256((__m256i*)dstPixels, res);
+
+            //next 8 pixels
+            dstPixels += 8;
+            srcPixels += 8;
+        }
+
+        //have unaligned bytes
+        if (remainder > 0)
+        {
+            for (int32_t j = 0; j < remainder; j++)
+            {
+                dstPixels->r = srcPixels->r ^ dstPixels->r;
+                dstPixels->g = srcPixels->g ^ dstPixels->g;
+                dstPixels->b = srcPixels->b ^ dstPixels->b;
+                dstPixels++;
+                srcPixels++;
+            }
+        }
+
+        //next line
+        if (addDstOffs > 0) dstPixels += addDstOffs;
+        if (addImgOffs > 0) srcPixels += addImgOffs;
+    }
+#endif
+}
+
 //put GFX image with transparent color (must be RGBA format)
 void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
 {
@@ -5723,11 +6164,20 @@ void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE
         putImageSub(x, y, img);
         break;
 
+    case BLEND_MODE_AND:
+        putImageAnd(x, y, img);
+        break;
+
+    case BLEND_MODE_XOR:
+        putImageXor(x, y, img);
+        break;
+
     case BLEND_MODE_ALPHA:
         putImageAlpha(x, y, img);
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -6556,6 +7006,7 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown blend mode:%d", mode);
         break;
     }
 }
@@ -8404,6 +8855,7 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown scale type:%d", type);
         break;
     }
 }
@@ -8438,6 +8890,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type /* 
         break;
 
     default:
+        messageBox(GFX_WARNING, "Unknown rotate type:%d", type);
         break;
     }
 }

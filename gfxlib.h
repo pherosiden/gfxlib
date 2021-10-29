@@ -7,8 +7,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.4                                   //
-//          Last Update: 2021-10-12                              //
+//              Version: 1.2.5                                   //
+//          Last Update: 2021-10-29                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -48,8 +48,8 @@
 #endif
 
 //GFX version string
-#define GFX_VERSION             "v21.10.12"
-#define GFX_BUILD_ID            20211012
+#define GFX_VERSION             "v21.10.29"
+#define GFX_BUILD_ID            20211029
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
@@ -340,6 +340,8 @@ enum BLEND_MODE {
     BLEND_MODE_NORMAL,                          //this is a normal mode
     BLEND_MODE_ADD,                             //add with background color
     BLEND_MODE_SUB,                             //sub with background color
+    BLEND_MODE_AND,                             //logical and with background color (only for fillRect and putImage functions)
+    BLEND_MODE_XOR,                             //logical xor with background color (only for fillRect and putImage functions)
     BLEND_MODE_ALPHA,                           //alpha blending with background color
     BLEND_MODE_ANTIALIASED                      //anti-aliased edge (use for line, circle, ellipse, cubic, bezier curve)
 };

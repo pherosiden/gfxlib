@@ -204,7 +204,6 @@ void fireDemo1()
 
     //get drawing buffer
     uint32_t* frameBuff = (uint32_t*)getDrawBuffer();
-    if (!frameBuff) return;
 
     while (!finished(SDL_SCANCODE_RETURN))
     {
@@ -249,7 +248,7 @@ void fireDemo1()
 
         //Update the texture and render it.
         render();
-        delay(FPS_30);
+        delay(FPS_90);
     }
 
     cleanup();
@@ -269,16 +268,6 @@ void fireDemo2()
     pixels[0] = (uint32_t*)getDrawBuffer();
     for (int32_t i = 1; i < SCR_HEIGHT; i++) pixels[i] = &pixels[0][i * SCR_WIDTH];
 
-    //validation screen height
-    if (SCR_HEIGHT < 1)
-    {
-        free(pixels);
-        return;
-    }
-
-    //the time of this and the previous frame, for timing
-    uint32_t time = getTime(), oldTime = 0;
-
     //make sure the fire buffer is zero in the beginning
     memset(fires, 0, sizeof(fires));
 
@@ -290,19 +279,14 @@ void fireDemo2()
         //saturation is always the maximum: 255
         //lightness is 0..255 for x=0..128, and 255 for x=128..255
         //set the palette to the calculated RGB value
-        palette[x] = hsl2rgb(x / 3, 255, min(255, x * 2));
+        palette[x] = hsl2rgb(x / 3, 255, min(255, x << 1));
     }
 
     //start the loop (one frame per loop)
     while (!finished(SDL_SCANCODE_RETURN))
     {
-        //timing: set to maximum 50 milliseconds per frame = 20 frames per second
-        oldTime = time;
-        waitFor(oldTime, 50);
-        time = getTime();
-
         //randomize the bottom row of the fire buffer
-        for (int32_t x = 0; x < SCR_WIDTH; x++) fires[SCR_HEIGHT - 1][x] = abs(32768 + rand()) % 256;
+        for (int32_t x = 0; x < SCR_WIDTH; x++) fires[SCR_HEIGHT - 1][x] = abs(32768 + rand()) & 0xff;
 
         //do the fire calculations for every pixel, from top to bottom
         for (int32_t y = 0; y < SCR_HEIGHT - 1; y++)
@@ -310,10 +294,10 @@ void fireDemo2()
             for (int32_t x = 0; x < SCR_WIDTH; x++)
             {
                 fires[y][x] = ((
-                fires[(y + 1) % SCR_HEIGHT][(x - 1 + SCR_WIDTH) % SCR_WIDTH] +
-                fires[(y + 1) % SCR_HEIGHT][(x             ) % SCR_WIDTH] +
-                fires[(y + 1) % SCR_HEIGHT][(x + 1         ) % SCR_WIDTH] +
-                fires[(y + 2) % SCR_HEIGHT][(x             ) % SCR_WIDTH]) * 32 / 129) % 256;
+                    fires[(y + 1) % SCR_HEIGHT][(x - 1 + SCR_WIDTH) % SCR_WIDTH] +
+                    fires[(y + 1) % SCR_HEIGHT][(x                ) % SCR_WIDTH] +
+                    fires[(y + 1) % SCR_HEIGHT][(x + 1            ) % SCR_WIDTH] +
+                    fires[(y + 2) % SCR_HEIGHT][(x                ) % SCR_WIDTH]) * 32 / 129) & 0xff;
             }
         }
 
@@ -325,6 +309,7 @@ void fireDemo2()
 
         //draw the buffer
         render();
+        delay(FPS_90);
     }
 
     free(pixels);
@@ -335,6 +320,7 @@ void fireDemo2()
 
 #define TEXTURE_WIDTH		64
 #define TEXTURE_HEIGHT		64
+#define TEXTURE_COUNT		11
 #define MAP_WIDTH			24
 #define MAP_HEIGHT			24
 #define NUM_SPRITES			19
@@ -443,7 +429,7 @@ void rayCasting()
     int32_t tw = 0, th = 0, i = 0;
     uint32_t* pbuffs[11] = { 0 };
 
-    const char* fname[] = {
+    const char* fname[TEXTURE_COUNT] = {
         "assets/eagle.png",
         "assets/redbrick.png",
         "assets/purplestone.png",
@@ -462,10 +448,10 @@ void rayCasting()
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Ray-casting [Fast version] -- Keys: Use arrows to move your works!")) return;
 
     //matrix textures
-    uint32_t** textures[11] = { 0 };
+    uint32_t** textures[TEXTURE_COUNT] = { 0 };
 
     //load some textures
-    for (i = 0; i < 11; i++)
+    for (i = 0; i < TEXTURE_COUNT; i++)
     {
         if (!loadTexture(&pbuffs[i], &tw, &th, fname[i])) return;
         textures[i] = (uint32_t**)calloc(th, sizeof(uint32_t*));
@@ -630,8 +616,8 @@ void rayCasting()
             int32_t drawEnd = mlineHeight + mheight;
             if (drawEnd > SCR_HEIGHT) drawEnd = SCR_HEIGHT;
 
-            //texturing calculations
-            const int32_t texNum = miniMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+            //texturing calculations, 1 subtracted from it so that texture 0 can be used!
+            const int32_t texNum = (miniMap[mapX][mapY] - 1) % TEXTURE_COUNT;
 
             //calculate value of wallX
             double wallX = 0;
@@ -856,7 +842,6 @@ void imageArithmetic()
 
     const int32_t size = w * h;
     uint32_t* result = (uint32_t*)getDrawBuffer();
-    if (!result) return;
     
     uint32_t* itdst = result;
     uint32_t* itimg1 = image1;
@@ -948,25 +933,24 @@ void crossFading()
     
     const int32_t size = w * h;
     uint32_t* result = (uint32_t*)getDrawBuffer();
-    if (!result) return;
 
     while (!finished(SDL_SCANCODE_RETURN))
     {
-        uint32_t* itdst = result;
-        uint32_t* itimg1 = image1;
-        uint32_t* itimg2 = image2;
+        ARGB* pdst = (ARGB*)result;
+        const ARGB* pimg1 = (const ARGB*)image1;
+        const ARGB* pimg2 = (const ARGB*)image2;
 
         const double weight = (1.0 + cos(getTime() / 1000.0)) / 2.0;
 
-        //do the image arithmetic
+        //do the blending pixels
         for (int32_t i = 0; i < size; i++)
         {
-            ARGB* pdst = (ARGB*)itdst++;
-            const ARGB* pimg1 = (const ARGB*)itimg1++;
-            const ARGB* pimg2 = (const ARGB*)itimg2++;
             pdst->r = uint8_t(pimg1->r * weight + pimg2->r * (1 - weight));
             pdst->g = uint8_t(pimg1->g * weight + pimg2->g * (1 - weight));
             pdst->b = uint8_t(pimg1->b * weight + pimg2->b * (1 - weight));
+            pdst++;
+            pimg1++;
+            pimg2++;
         }
 
         //render

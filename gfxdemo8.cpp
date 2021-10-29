@@ -291,9 +291,9 @@ void graphDemo5(int32_t xi, int32_t yi, int32_t r, int32_t xr, int32_t yr)
     {
         for (int32_t j = 1; j <= 6; j++)
         {
-            const int32_t k = !(n % 2) ? 2 : 1;
             double angle = 0.0;
-
+            const int32_t k = !(n % 2) ? 2 : 1;
+            
             for (int32_t i = 0; i <= 15 * n * k; i++)
             {
                 const double e = r / 5.0 * sin(angle * n * j) + r * sin(n * angle);
@@ -323,6 +323,7 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
    
     int32_t i = 0;
     double alpha = 0.0;
+
     for (i = 0; i < 120; i++)
     {
         const double val = 66 * sqrt(fabs(cos(3 * alpha))) + 12 * sqrt(fabs(cos(9 * alpha)));
@@ -491,6 +492,7 @@ void graphDemo9(int32_t xc, int32_t yc, double rd)
 
     double ls = 0;
     int32_t i = 0;
+
     for (int32_t re = 0; re < 3; re++)
     {
         const int32_t ste = data[3 * re];
