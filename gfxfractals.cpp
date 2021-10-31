@@ -1179,7 +1179,7 @@ void shift(double sx, double sy)
 void gfxFractals()
 {
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Fractals Explorer", 1)) return;
-
+    
     initThreads();
     initFunctions(fractType);
     initFractals(getBufferWidth(), getBufferHeight());

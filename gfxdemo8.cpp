@@ -706,14 +706,16 @@ void graphDemo13()
     makeLinearPalette();
     fillPolygon(points, sizeof(points) / sizeof(points[0]), 50);
 
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
     const int32_t cmaxX = getMaxX();
     const int32_t cmaxY = getMaxY();
 
-    for (int32_t j = 50; j < cmaxY - 50; j++)
+    for (int32_t j = 50; j <= cmaxY - 50; j++)
     {
-        for (int32_t i = 50; i < cmaxX - 50; i++)
+        for (int32_t i = 50; i <= cmaxX - 50; i++)
         {
-            if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) / 4) % 192);
+            if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) >> 2) % 192);
         }
     }
 
@@ -723,9 +725,9 @@ void graphDemo13()
     uint32_t frames = 0;
     POINT2D randPoints[30] = { 0 };
     
-    while (frames++ < 20 && !finished(SDL_SCANCODE_RETURN))
+    while (frames++ < 20)
     {
-        randomPolygon(400, 300, 150, 0.7, 0.4, 20, randPoints);
+        randomPolygon(cx, cy, 150, 0.7, 0.4, 20, randPoints);
         fillPolygon(randPoints, 20, 50);
 
         for (int32_t j = 0; j <= cmaxY; j++)
@@ -739,6 +741,10 @@ void graphDemo13()
         render();
         delay(500);
         clearScreen();
+
+        readKeys();
+        if (keyDown(SDL_SCANCODE_RETURN)) break;
+        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
     }
 
     makeRainbowPalette();
@@ -1417,6 +1423,7 @@ void displaySprite(const char *fname)
         frames++;
     }
 
+    //restore and cleanup...
     changeDrawBuffer(oldBuffer, oldWidth, oldHeight);
     freeImage(&img1);
     freeImage(&img2);

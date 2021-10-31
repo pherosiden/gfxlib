@@ -1387,8 +1387,8 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
-	uint8_t* pdata = (uint8_t*)drawBuff;
-	uint8_t* pixels = &pdata[texWidth * y + x];
+	ARGB* pdata = (ARGB*)drawBuff;
+	ARGB* pixels = &pdata[texWidth * y + x];
     
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
@@ -1396,7 +1396,7 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
         __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
         ymm1 = _mm256_adds_epu8(ymm1, ymm0);
         _mm256_stream_si256((__m256i*)pixels, ymm1);
-        pixels += 32;
+        pixels += 8;
     }
 
     //have unaligned bytes?
@@ -1406,10 +1406,10 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
         const ARGB* rgb = (const ARGB*)&color;
         for (int32_t i = 0; i < remainder; i++)
         {
-            pixels[0] = min(pixels[0] + rgb->b, 255);
-            pixels[1] = min(pixels[1] + rgb->g, 255);
-            pixels[2] = min(pixels[2] + rgb->r, 255);
-            pixels += 4;
+            pixels->r = min(pixels->r + rgb->r, 255);
+            pixels->g = min(pixels->g + rgb->g, 255);
+            pixels->b = min(pixels->b + rgb->b, 255);
+            pixels++;
         }
     }
 #endif
@@ -1451,8 +1451,8 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
-	uint8_t* pdata = (uint8_t*)drawBuff;
-	uint8_t* pixels = &pdata[texWidth * y + x];
+	ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
 
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
@@ -1460,7 +1460,7 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
         __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
         ymm1 = _mm256_subs_epu8(ymm1, ymm0);
         _mm256_stream_si256((__m256i*)pixels, ymm1);
-        pixels += 32;
+        pixels += 8;
     }
 
     //have unaligned bytes?
@@ -1470,10 +1470,10 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
         const ARGB* rgb = (const ARGB*)&color;
         for (int32_t i = 0; i < remainder; i++)
         {
-            pixels[0] = max(pixels[0] - rgb->b, 0);
-            pixels[1] = max(pixels[1] - rgb->g, 0);
-            pixels[2] = max(pixels[2] - rgb->r, 0);
-            pixels += 4;
+            pixels->r = max(pixels->r - rgb->r, 0);
+            pixels->g = max(pixels->g - rgb->g, 0);
+            pixels->b = max(pixels->b - rgb->b, 0);
+            pixels++;
         }
     }
 #endif
