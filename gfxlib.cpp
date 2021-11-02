@@ -9051,14 +9051,13 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 void fadeIn(RGB* dest, uint32_t ms)
 {
     RGB src[256] = { 0 };
-    int32_t i = 0, j = 0, k = 0;
-    
     getPalette(src);
-    for (i = 63; i >= 0; i--)
+
+    for (int32_t i = 63; i >= 0; i--)
     {
-        for (j = 0; j < 256; j++)
+        for (int32_t j = 0; j < 256; j++)
         {
-            k = i << 2;
+            int32_t k = i << 2;
             if (dest[j].r > k && src[j].r < 252) src[j].r += 4;
             if (dest[j].g > k && src[j].g < 252) src[j].g += 4;
             if (dest[j].b > k && src[j].b < 252) src[j].b += 4;
@@ -9075,14 +9074,13 @@ void fadeIn(RGB* dest, uint32_t ms)
 void fadeOut(RGB* dest, uint32_t ms)
 {
     RGB src[256] = { 0 };
-    int32_t i = 0, j = 0, k = 0;
-    
     getPalette(src);
-    for (i = 63; i >= 0; i--)
+
+    for (int32_t i = 63; i >= 0; i--)
     {
-        for (j = 0; j < 256; j++)
+        for (int32_t j = 0; j < 256; j++)
         {
-            k = i << 2;
+            int32_t k = i << 2;
             if (dest[j].r < k && src[j].r > 4) src[j].r -= 4;
             if (dest[j].g < k && src[j].g > 4) src[j].g -= 4;
             if (dest[j].b < k && src[j].b > 4) src[j].b -= 4;
@@ -9099,12 +9097,11 @@ void fadeOut(RGB* dest, uint32_t ms)
 void fadeMax(uint32_t ms)
 {
     RGB src[256] = { 0 };
-    int32_t i = 0, j = 0;
-    
     getPalette(src);
-    for (i = 0; i < 64; i++)
+
+    for (int32_t i = 0; i < 64; i++)
     {
-        for (j = 0; j < 256; j++)
+        for (int32_t j = 0; j < 256; j++)
         {
             if (src[j].r < 252) src[j].r += 4; else src[j].r = 255;
             if (src[j].g < 252) src[j].g += 4; else src[j].g = 255;
@@ -9122,12 +9119,11 @@ void fadeMax(uint32_t ms)
 void fadeMin(uint32_t ms)
 {
     RGB src[256] = { 0 };
-    int32_t i = 0, j = 0;
-    
     getPalette(src);
-    for (i = 0; i < 64; i++)
+
+    for (int32_t i = 0; i < 64; i++)
     {
-        for (j = 0; j < 256; j++)
+        for (int32_t j = 0; j < 256; j++)
         {
             if (src[j].r > 4) src[j].r -= 4; else src[j].r = 0;
             if (src[j].g > 4) src[j].g -= 4; else src[j].g = 0;
@@ -9171,13 +9167,13 @@ void convertPalette(const uint8_t* palette, RGB* color)
 //convert current RGB palette to RGB32
 void shiftPalette(RGB* pal)
 {
-    uint8_t* rgb = (uint8_t*)pal;
+    RGB* rgb = (RGB*)pal;
     for (int32_t i = 0; i < 256; i++)
     {
-        rgb[0] <<= 2;
-        rgb[1] <<= 2;
-        rgb[2] <<= 2;
-        rgb += 4;
+        rgb->r <<= 2;
+        rgb->g <<= 2;
+        rgb->b <<= 2;
+        rgb++;
     }
 }
 
