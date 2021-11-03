@@ -9013,16 +9013,19 @@ void getPalette(RGB* pal)
 void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 {
     RGB tmp = { 0 };
+
     RGB pal[256] = { 0 };
-    
     getPalette(pal);
+
+    //how many steps to rotated
+    const uint32_t steps = (to - from) * sizeof(RGB);
 
     if (loop > 0)
     {
         while (loop--)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
-            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], steps);
             memcpy(&pal[to], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(ms);
@@ -9036,7 +9039,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
         while (true)
         {
             memcpy(&tmp, &pal[from], sizeof(RGB));
-            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], steps);
             memcpy(&pal[to], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(ms);
@@ -9318,14 +9321,17 @@ void makeRainbowPalette()
 void scrollPalette(int32_t from, int32_t to, int32_t step)
 {
     RGB tmp = { 0 };
-    RGB pal[256] = { 0 };
 
+    RGB pal[256] = { 0 };
     getPalette(pal);
+
+    //how many steps to rotated
+    const uint32_t steps = (to - from) * sizeof(RGB);
 
     while (step--)
     {
         memcpy(&tmp, &pal[from], sizeof(tmp));
-        memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
+        memcpy(&pal[from], &pal[from + 1], steps);
         memcpy(&pal[to], &tmp, sizeof(tmp));
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;;
@@ -9350,7 +9356,7 @@ void insertChar(char* str, uint8_t chr, int32_t pos)
 }
 
 //delete character of string
-void strDelete(char* str, int32_t i, int32_t num)
+void strDelete(char* str, int32_t i, uint32_t num)
 {
     if (i < 0 || i >= int32_t(strlen(str))) return;
     memmove(&str[i + 1], &str[i + num], strlen(str) - i - 1);
@@ -9360,9 +9366,11 @@ void strDelete(char* str, int32_t i, int32_t num)
 void schRepl(char* str, const char* schr, uint8_t repl)
 {
     int32_t pos = strPos(str, schr);
+    const uint32_t length = uint32_t(strlen(schr));
+
     while (pos >= 0)
     {
-        strDelete(str, pos, int32_t(strlen(schr)));
+        strDelete(str, pos, length);
         insertChar(str, repl, pos);
         pos = strPos(str, schr);
     }
@@ -10520,9 +10528,11 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
 
     const int32_t msHeight = msPointer.mHeight;
     const int32_t msWidth = msPointer.mWidth / 9;
+    const uint32_t msize = msWidth * msHeight;
+    const uint32_t bytesLine = msWidth * bytesPerPixel;
 
     //allocate memory for mouse under background
-    mi->msUnder = (uint8_t*)calloc(intptr_t(msWidth) * msHeight, bytesPerPixel);
+    mi->msUnder = (uint8_t*)calloc(msize, bytesPerPixel);
     if (!mi->msUnder)
     {
         messageBox(GFX_ERROR, "Error alloc memory!");
@@ -10536,7 +10546,7 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
     //copy mouse cursors
     for (int32_t i = 0; i < MOUSE_SPRITE_COUNT; i++)
     {
-        mbm[i].mbData = (uint8_t*)calloc(intptr_t(msWidth) * msHeight, bytesPerPixel);
+        mbm[i].mbData = (uint8_t*)calloc(msize, bytesPerPixel);
         if (!mbm[i].mbData)
         {
             messageBox(GFX_ERROR, "Error create mouse sprite:%d!", i);
@@ -10551,10 +10561,10 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
         //copy data from mouse image to gfx mouse struct
         for (int32_t y = 0; y < msHeight; y++)
         {
-            uint8_t* dst = &mbm[i].mbData[y * msWidth * bytesPerPixel];
+            uint8_t* dst = &mbm[i].mbData[y * bytesLine];
             const uint8_t* psrc = (const uint8_t*)msPointer.mData;
             const uint8_t* src = &psrc[(i * msWidth + y * msPointer.mWidth) * bytesPerPixel];
-            memcpy(dst, src, intptr_t(bytesPerPixel) * msWidth);
+            memcpy(dst, src, bytesLine);
         }
     }
 
@@ -10575,6 +10585,8 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
     
     const int32_t btnHeight = img.mHeight;
     const int32_t btnWidth = img.mWidth / BUTTON_STATE_COUNT;
+    const uint32_t msize = btnWidth * btnHeight;
+    const uint32_t bytesLine = btnWidth * bytesPerPixel;
 
     btn->btWidth = btnWidth;
     btn->btHeight = btnHeight;
@@ -10582,7 +10594,7 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
     //create button
     for (int32_t i = 0; i < BUTTON_STATE_COUNT; i++)
     {
-        btn->btData[i] = (uint8_t*)calloc(intptr_t(btnWidth) * btnHeight, bytesPerPixel);
+        btn->btData[i] = (uint8_t*)calloc(msize, bytesPerPixel);
         if (!btn->btData[i])
         {
             messageBox(GFX_ERROR, "Error create button:%d!", i);
@@ -10592,10 +10604,10 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
         //copy button data
         for (int32_t y = 0; y < btnHeight; y++)
         {
-            uint8_t* dst = &btn->btData[i][y * btnWidth * bytesPerPixel];
+            uint8_t* dst = &btn->btData[i][y * bytesLine];
             const uint8_t* psrc = (const uint8_t*)img.mData;
             const uint8_t* src = &psrc[(i * btnWidth + y * img.mWidth) * bytesPerPixel];
-            memcpy(dst, src, intptr_t(bytesPerPixel) * btnWidth);
+            memcpy(dst, src, bytesLine);
         }
     }
 
@@ -10969,13 +10981,16 @@ void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
     const double dstInc = 0.02;
     const double preCalc = M_PI / (maxAng >> 2);
 
+    const int32_t dcx = dimg->mWidth >> 1;
+    const int32_t dcy = dimg->mHeight >> 1;
+
     double z = 250.0;
     double dst = 1.0;
     double ang = maxAng - 1.0;
     
     do {
-        int32_t x = fround(z * sin(ang * preCalc)) + (dimg->mWidth >> 1);
-        int32_t y = fround(z * cos(ang * preCalc)) + (dimg->mHeight >> 1);
+        int32_t x = fround(z * sin(ang * preCalc)) + dcx;
+        int32_t y = fround(z * cos(ang * preCalc)) + dcy;
 
         ang -= angDec;
         if (ang < 0)
@@ -11209,6 +11224,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
     int32_t col1 = 0, col2 = 0;
     int32_t tsize = nsize - (blur << 1);
 
+    //compute each a,r,g,b channel
     for (i = 0; i < 4; i++)
     {
         ofs = idx;
@@ -11234,6 +11250,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
     idx += (blur - 1) << 2;
     col1 = (blur << 1) + 1;
 
+    //compute each a,r,g,b channel
     for (i = 0; i < 4; i++)
     {
         ofs = idx;
@@ -11255,6 +11272,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
     tsize <<= 2;
     idx += tsize;
 
+    //compute each a,r,g,b channel
     for (i = 0; i < 4; i++)
     {
         ofs = idx;
