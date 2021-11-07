@@ -7405,25 +7405,25 @@ must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *s
 
     const uint32_t width = img->mWidth;
     const uint32_t height = img->mHeight;
-    const ARGB* psrc = (const ARGB*)img->mData;
+    const uint32_t* psrc = (const uint32_t*)img->mData;
 
     //calculate 16 around pixels
-    const ARGB *p00 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py - 1)];
-    const ARGB *p01 = (const ARGB*)&psrc[clampOffset(width, height, px    , py - 1)];
-    const ARGB *p02 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py - 1)];
-    const ARGB *p03 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py - 1)];
-    const ARGB *p10 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py    )];
-    const ARGB *p11 = (const ARGB*)&psrc[clampOffset(width, height, px    , py    )];
-    const ARGB *p12 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py    )];
-    const ARGB *p13 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py    )];
-    const ARGB *p20 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py + 1)];
-    const ARGB *p21 = (const ARGB*)&psrc[clampOffset(width, height, px    , py + 1)];
-    const ARGB *p22 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py + 1)];
-    const ARGB *p23 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py + 1)];
-    const ARGB *p30 = (const ARGB*)&psrc[clampOffset(width, height, px - 1, py + 2)];
-    const ARGB *p31 = (const ARGB*)&psrc[clampOffset(width, height, px    , py + 2)];
-    const ARGB *p32 = (const ARGB*)&psrc[clampOffset(width, height, px + 1, py + 2)];
-    const ARGB *p33 = (const ARGB*)&psrc[clampOffset(width, height, px + 2, py + 2)];
+    const uint8_t *p00 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py - 1)];
+    const uint8_t *p01 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py - 1)];
+    const uint8_t *p02 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py - 1)];
+    const uint8_t *p03 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py - 1)];
+    const uint8_t *p10 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py    )];
+    const uint8_t *p11 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py    )];
+    const uint8_t *p12 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py    )];
+    const uint8_t *p13 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py    )];
+    const uint8_t *p20 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 1)];
+    const uint8_t *p21 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 1)];
+    const uint8_t *p22 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 1)];
+    const uint8_t *p23 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 1)];
+    const uint8_t *p30 = (const uint8_t*)&psrc[clampOffset(width, height, px - 1, py + 2)];
+    const uint8_t *p31 = (const uint8_t*)&psrc[clampOffset(width, height, px    , py + 2)];
+    const uint8_t *p32 = (const uint8_t*)&psrc[clampOffset(width, height, px + 1, py + 2)];
+    const uint8_t *p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
 
     //4 pixels weights
     const uint8_t u = sx >> 8, v = sy >> 8;
@@ -7432,41 +7432,20 @@ must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *s
     const int32_t v0 = sintab[256 + v], v1 = sintab[v];
     const int32_t v2 = sintab[256 - v], v3 = sintab[512 - v];
 
-    uint32_t dst = 0;
-    ARGB* pdst = (ARGB*)&dst;
+    uint32_t color = 0;
+    uint8_t* pcol = (uint8_t*)&color;
 
-    //calculate each pixel channel
-    int32_t s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+    //a,r,g,b channel
+    for (int32_t i = 0; i < 4; i++)
+    {
+        const int32_t s1 = (p00[i] * u0 + p01[i] * u1 + p02[i] * u2 + p03[i] * u3) * v0;
+        const int32_t s2 = (p10[i] * u0 + p11[i] * u1 + p12[i] * u2 + p13[i] * u3) * v1;
+        const int32_t s3 = (p20[i] * u0 + p21[i] * u1 + p22[i] * u2 + p23[i] * u3) * v2;
+        const int32_t s4 = (p30[i] * u0 + p31[i] * u1 + p32[i] * u2 + p33[i] * u3) * v3;
+        pcol[i] = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
+    }
 
-    //a channel
-    s1 = (p00->a * u0 + p01->a * u1 + p02->a * u2 + p03->a * u3) * v0;
-    s2 = (p10->a * u0 + p11->a * u1 + p12->a * u2 + p13->a * u3) * v1;
-    s3 = (p20->a * u0 + p21->a * u1 + p22->a * u2 + p23->a * u3) * v2;
-    s4 = (p30->a * u0 + p31->a * u1 + p32->a * u2 + p33->a * u3) * v3;
-    pdst->a = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
-
-    //r channel
-    s1 = (p00->r * u0 + p01->r * u1 + p02->r * u2 + p03->r * u3) * v0;
-    s2 = (p10->r * u0 + p11->r * u1 + p12->r * u2 + p13->r * u3) * v1;
-    s3 = (p20->r * u0 + p21->r * u1 + p22->r * u2 + p23->r * u3) * v2;
-    s4 = (p30->r * u0 + p31->r * u1 + p32->r * u2 + p33->r * u3) * v3;
-    pdst->r = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
-
-    //g channel
-    s1 = (p00->g * u0 + p01->g * u1 + p02->g * u2 + p03->g * u3) * v0;
-    s2 = (p10->g * u0 + p11->g * u1 + p12->g * u2 + p13->g * u3) * v1;
-    s3 = (p20->g * u0 + p21->g * u1 + p22->g * u2 + p23->g * u3) * v2;
-    s4 = (p30->g * u0 + p31->g * u1 + p32->g * u2 + p33->g * u3) * v3;
-    pdst->g = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
-
-    //b channel
-    s1 = (p00->b * u0 + p01->b * u1 + p02->b * u2 + p03->b * u3) * v0;
-    s2 = (p10->b * u0 + p11->b * u1 + p12->b * u2 + p13->b * u3) * v1;
-    s3 = (p20->b * u0 + p21->b * u1 + p22->b * u2 + p23->b * u3) * v2;
-    s4 = (p30->b * u0 + p31->b * u1 + p32->b * u2 + p33->b * u3) * v3;
-    pdst->b = clamp((s1 + s2 + s3 + s4) >> 16, 0, 255);
-
-    return dst;
+    return color;
 }
 
 //fast calculate pixel at center, don't care boundary
@@ -11300,7 +11279,7 @@ void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
 //FX-effect: brightness image buffer
 void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 {
-    uint32_t* psrc = (uint32_t*)src->mData;
+    ARGB* psrc = (ARGB*)src->mData;
     const uint32_t nsize = src->mSize >> 2;
 
     //only support fro rgb mode
@@ -11334,10 +11313,9 @@ void brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright)
 #else
     for (uint32_t i = 0; i < nsize; i++)
     {
-        ARGB* col = (ARGB*)psrc;
-        col->r = (col->r * bright) >> 8;
-        col->g = (col->g * bright) >> 8;
-        col->b = (col->b * bright) >> 8;
+        psrc->r = (psrc->r * bright) >> 8;
+        psrc->g = (psrc->g * bright) >> 8;
+        psrc->b = (psrc->b * bright) >> 8;
         psrc++;
     }
 #endif
@@ -11400,7 +11378,7 @@ void blockOutMid(uint32_t* dst, uint32_t* src, int32_t count, int32_t val)
 //FX-effect: brightness alpha buffer
 void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
 {
-    uint32_t* data = (uint32_t*)img->mData;
+    ARGB* data = (ARGB*)img->mData;
     const uint32_t nsize = img->mSize >> 2;
     
     //only support 32bit color
@@ -11423,8 +11401,7 @@ void brightnessAlpha(GFX_IMAGE* img, uint8_t bright)
 #else
     for (uint32_t i = 0; i < nsize; i++)
     {
-        ARGB *col = (ARGB*)data;
-        col->a = uint16_t(col->a * bright) >> 8;
+        data->a = uint16_t(data->a * bright) >> 8;
         data++;
     }
 #endif

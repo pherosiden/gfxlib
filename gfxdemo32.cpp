@@ -161,13 +161,13 @@ void runIntro()
             if (i0 > 15)
             {
                 blurImageEx(&wci, &wcb, i0 & 15);
-                brightnessImage(&wci, &wci, (16 - (i0 & 15)) * 15 + 15);
+                brightnessImage(&wci, &wci, 15 + (16 - (i0 & 15)) * 15);
                 i0--;
             }
             else if ((getElapsedTime(startTime) / 1000 >= tw + 3.0) && (i0 >= 0))
             {
                 blurImageEx(&wci, &wcb, 15 - (i0 & 15));
-                brightnessImage(&wci, &wci, ((i0 & 15) + 1) * 15 + 15);
+                brightnessImage(&wci, &wci, 15 + ((i0 & 15) + 1) * 15);
                 i0--;
             }
 
@@ -178,7 +178,7 @@ void runIntro()
         else if ((getElapsedTime(startTime) / 1000 >= tg) && (i1 > 0))
         {
             blockOutMidImage(&gxb, &gfx, i1, i1);
-            brightnessAlpha(&gxb, uint8_t(255 - i1 / 30.0 * 255.0));
+            brightnessAlpha(&gxb, uint8_t(255.0 - double(i1) / 30.0 * 255.0));
             putImage(alignedSize(centerX - (gxb.mWidth >> 1)), centerY - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
 
             i1--;
@@ -191,7 +191,7 @@ void runIntro()
             if ((getElapsedTime(startTime) / 1000 >= tu) && (i2 <= 15))
             {
                 blurImageEx(&utb, &ult, 15 - (i2 & 15));
-                brightnessImage(&utb, &utb, ((i2 & 15) + 1) * 15 + 15);
+                brightnessImage(&utb, &utb, 15 + ((i2 & 15) + 1) * 15);
                 putImage(alignedSize(centerX - (ult.mWidth >> 1)), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 i2++;
             }
@@ -264,7 +264,7 @@ void runBlocking(int32_t sx, int32_t sy)
     {
         dec--;
         blockOutMidImage(&img2, &img1, dec << 1, dec << 1);
-        brightnessAlpha(&img2, uint8_t(255 - dec / (img1.mWidth >> 3) * 255.0));
+        brightnessAlpha(&img2, uint8_t(255.0 - double(dec) / (img1.mWidth >> 3) * 255.0));
         putImage(sx + posx, sy + posy, &img3);
         putImage(sx + posx, sy + posy, &img2, BLEND_MODE_ALPHA);
         render();

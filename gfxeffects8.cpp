@@ -138,10 +138,10 @@ namespace fadePalette {
 
         if (!loadPNG(vbuff, src, "assets/arnold.png")) return;
         setPalette(dst);
-        fadeIn(src, FPS_60);
-        fadeMax(FPS_60);
-        fadeOut(src, FPS_60);
-        fadeMin(FPS_60);
+        fadeIn(src, FPS_90);
+        fadeMax(FPS_90);
+        fadeOut(src, FPS_90);
+        fadeMin(FPS_90);
         cleanup();
     }
 }
@@ -239,19 +239,19 @@ namespace bumpMap {
         setPalette(rgb);
     }
 
-    void bumpScreen(int16_t x, int16_t y)
+    void bumpScreen(int16_t lx, int16_t ly)
     {
-        for (int16_t i = 1; i < MAX_HEIGHT; i++)
+        for (int16_t y = 1; y < MAX_HEIGHT; y++)
         {
-            for (int16_t j = 1; j < MAX_WIDTH; j++)
+            for (int16_t x = 0; x <= MAX_WIDTH; x++)
             {
-                int16_t nx = vbuff2[i][j - 1] - vbuff2[i][j + 1];
-                int16_t ny = vbuff2[i - 1][j] - vbuff2[i + 1][j];
-                nx = nx - j + x + 128;
-                ny = ny - i + y + 128;
+                int16_t nx = vbuff2[y][x - 1] - vbuff2[y][x + 1];
+                int16_t ny = vbuff2[y - 1][x] - vbuff2[y + 1][x];
+                nx = nx - x + lx + 128;
+                ny = ny - y + ly + 128;
                 if (nx < 0 || nx > 255) nx = 0;
                 if (ny < 0 || ny > 255) ny = 0;
-                vbuff1[i][j] = dbuff[nx][ny] + 120;
+                vbuff1[y][x] = dbuff[ny][nx] + 120;
             }
         }
     }
@@ -271,7 +271,7 @@ namespace bumpMap {
             getMouseState(&x, &y, &lmb, NULL);
             bumpScreen(x >> 1, y >> 1);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
         showMouseCursor(SDL_ENABLE);
         cleanup();
@@ -331,7 +331,7 @@ namespace fireBump {
         do {
             autoBump();
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -394,7 +394,7 @@ namespace circleEffect {
             memcpy(vbuff2, vbuff3, IMAGE_SIZE);
             for (int16_t i = 0; i < 38; i++) paintCircle(x >> 1, y >> 1, i);
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
         showMouseCursor(SDL_ENABLE);
         cleanup();
@@ -498,7 +498,7 @@ namespace crossFade {
                     if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 }
                 setPalette(pal);
-                delay(FPS_60);
+                delay(FPS_90);
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -524,7 +524,7 @@ namespace crossFade {
                     if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 }
                 setPalette(pal);
-                delay(FPS_60);
+                delay(FPS_90);
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -783,15 +783,15 @@ namespace rainEffect {
             eax += *(uint32_t*)&vbuff[si + 2];
             eax += *(uint32_t*)&vbuff[si - 2];
             eax = _rotr(eax, 16);
-            eax = (eax & 0xFFFF0000) + (int16_t(eax) >> 1);
+            eax = (eax & 0xffff0000) + (int16_t(eax) >> 1);
             eax = _rotr(eax, 16);
-            eax = (eax & 0xFFFF0000) + (int16_t(eax) >> 1);
+            eax = (eax & 0xffff0000) + (int16_t(eax) >> 1);
             eax -= *(uint32_t*)&vbuff[di];
 
             uint32_t edx = eax;
-            edx = (edx & 0xFFFF0000) + (int16_t(edx) >> densityAdd);
+            edx = (edx & 0xffff0000) + (int16_t(edx) >> densityAdd);
             edx = _rotr(edx, 16);
-            edx = (edx & 0xFFFF0000) + (int16_t(edx) >> densityAdd);
+            edx = (edx & 0xffff0000) + (int16_t(edx) >> densityAdd);
             edx = _rotr(edx, 16);
             eax -= edx;
             *(uint32_t*)&vbuff[di] = eax;
@@ -981,7 +981,7 @@ namespace rainEffect {
         }
 #else
         randVal++;
-        randVal = ((randVal * 32719 + 3) % 32749) + 0xF000;
+        randVal = ((randVal * 32719 + 3) % 32749) + 0xf000;
 #endif
     }
 
@@ -1729,7 +1729,7 @@ namespace skyEffect {
             }
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_30);
+            delay(FPS_60);
 
             for (x = 0; x < 2; x++)
             {
@@ -2149,7 +2149,7 @@ namespace phongShader {
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             memset(vbuff, 0, IMAGE_SIZE);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -2453,7 +2453,7 @@ namespace plasmaTexture {
             memset(vbuff, 0, IMAGE_SIZE);
             drawCube();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -2618,7 +2618,7 @@ namespace fireDown {
 
             blurBuffer();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN));
     }
@@ -2922,7 +2922,7 @@ namespace fireTexture {
             motionBlur();
             drawCube();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -3147,7 +3147,7 @@ namespace fireTexture2 {
 
             motionBlur();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
     }
 
@@ -3400,7 +3400,7 @@ namespace fireTexture3 {
 
             motionBlur();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
     }
 
@@ -3595,7 +3595,7 @@ namespace tunnelEffect {
             makeTunnel();
             tunnelBlur();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
     }
 
@@ -3646,14 +3646,14 @@ namespace textureMappingEffect {
     TPoint center1[MAXP] = { 0 };
     TPoint center2[MAXP] = { 0 };
 
-    int16_t miny, maxy;
-    int16_t clipx, clipy;
+    int16_t miny = 0, maxy = 0;
+    int16_t clipx = 0, clipy = 0;
 
     int16_t order[MAXP] = { 0 };
     int16_t lookup[360][2] = { 0 };
 
-    int16_t left[400][3] = { 0 };
-    int16_t right[400][3] = { 0 };
+    int16_t left[402][3] = { 0 };
+    int16_t right[402][3] = { 0 };
 
     uint8_t texture[SIZE_128][SIZE_128] = { 0 };
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -3689,7 +3689,7 @@ namespace textureMappingEffect {
     void rotatePoints(int16_t x, int16_t y, int16_t z)
     {
         int16_t i = 0, j = 0;
-        int16_t a = 0, b = 0, c = 0;
+        int32_t a = 0, b = 0, c = 0;
 
         for (i = 0; i < MAXP; i++)
         {
@@ -4142,7 +4142,7 @@ namespace textureMappingEffect {
         for (y = 0; y <= height; y++)
         {
             ofs = ytop + y;
-            if (ofs > MAX_HEIGHT) ofs = MAX_HEIGHT;
+            if (ofs > IMAGE_HEIGHT) ofs = IMAGE_HEIGHT;
 
             left[ofs + IMAGE_HEIGHT][0] = x >> 6;
             left[ofs + IMAGE_HEIGHT][1] = px >> 6;
@@ -4199,7 +4199,7 @@ namespace textureMappingEffect {
         for (y = 0; y <= height; y++)
         {
             ofs = ytop + y;
-            if (ofs > MAX_HEIGHT) ofs = MAX_HEIGHT;
+            if (ofs > IMAGE_HEIGHT) ofs = IMAGE_HEIGHT;
 
             right[ofs + IMAGE_HEIGHT][0] = x >> 6;
             right[ofs + IMAGE_HEIGHT][1] = px >> 6;
@@ -4225,10 +4225,10 @@ namespace textureMappingEffect {
 
         for (int16_t y = miny; y <= maxy; y++)
         {
+            const int16_t lx1 = left[y + IMAGE_HEIGHT][0];
             int16_t px1 = left[y + IMAGE_HEIGHT][1] << 7;
             int16_t py1 = left[y + IMAGE_HEIGHT][2] << 7;
-            const int16_t lx1 = left[y + IMAGE_HEIGHT][0];
-
+            
             const int16_t lx2 = right[y + IMAGE_HEIGHT][0];
             const int16_t px2 = right[y + IMAGE_HEIGHT][1] << 7;
             const int16_t py2 = right[y + IMAGE_HEIGHT][2] << 7;
@@ -4280,9 +4280,9 @@ namespace textureMappingEffect {
 
     void textureMapPoly(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, int16_t x4, int16_t y4)
     {
-        miny = 32767;
         maxy = 0;
-
+        miny = 32767;
+        
         if (y1 < miny) miny = y1;
         if (y1 > maxy) maxy = y1;
         if (y2 < miny) miny = y2;
@@ -4318,7 +4318,7 @@ namespace textureMappingEffect {
             if (trans[i][0].z + ZOFS < 0 && trans[i][1].z + ZOFS < 0 && trans[i][2].z + ZOFS < 0 && trans[i][3].z + ZOFS < 0)
             {
                 int16_t temp = trans[i][0].z + ZOFS;
-                int16_t nx = trans[i][0].x;
+                int32_t nx = trans[i][0].x;
                 const int16_t x1 = ((nx << 8) + (nx >> 8)) / temp + XOFS;
                 nx = trans[i][0].y;
                 const int16_t y1 = ((nx << 8) + (nx >> 8)) / temp + YOFS;
@@ -4386,11 +4386,10 @@ namespace textureMappingEffect {
     {
         int16_t deg1 = 0;
         int16_t deg2 = 0;
-        int16_t i, j;
 
-        for (i = 0; i < MAXP; i++)
+        for (int16_t i = 0; i < MAXP; i++)
         {
-            for (j = 0; j < 4; j++)
+            for (int16_t j = 0; j < 4; j++)
             {
                 lines[i][j].x = faces[i][j][0] << 3;
                 lines[i][j].y = faces[i][j][1] << 3;
@@ -4412,7 +4411,7 @@ namespace textureMappingEffect {
             drawPoints();
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
-            delay(FPS_60);
+            delay(FPS_90);
             deg1 = (deg1 + 1) % 360;
             deg2 = (deg2 + 1) % 360;
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -4421,7 +4420,7 @@ namespace textureMappingEffect {
 }
 
 namespace bitmapRotate {
-    int16_t sinTab[256] = { 0 };
+    int16_t sintab[256] = { 0 };
     int16_t costab[256] = { 0 };
     int16_t sin2tab[256] = { 0 };
     int16_t cos2tab[256] = { 0 };
@@ -4437,7 +4436,7 @@ namespace bitmapRotate {
         for (i = 0; i < 256; i++)
         {
             angle = i * M_PI / 128;
-            sinTab[i]  = int16_t(sin(angle) * 256);
+            sintab[i]  = int16_t(sin(angle) * 256);
             costab[i]  = int16_t(cos(angle) * 256);
             sin2tab[i] = int16_t(sin(angle + M_PI / 2) * 256 * 1.2);
             cos2tab[i] = int16_t(cos(angle + M_PI / 2) * 256 * 1.2);
@@ -4450,7 +4449,7 @@ namespace bitmapRotate {
         uint16_t i, j, w, h, a, b;
 
         d1x = costab[rot] * scale >> 8;
-        d1y = sinTab[rot] * scale >> 8;
+        d1y = sintab[rot] * scale >> 8;
 
         d2x = cos2tab[rot] * scale >> 8;
         d2y = sin2tab[rot] * scale >> 8;
@@ -4498,7 +4497,7 @@ namespace bitmapRotate {
         do {
             drawScreen(x, y, dist, rot & 0xff);
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
 
             y += 128;
             rot += dir;
@@ -5488,7 +5487,7 @@ namespace intro16k {
 #else
         for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
         {
-            for (int16_t j = 0; j < IMAGE_WIDTH; j++) vbuff[i][j] = texture[i & 0x7F][j & 0x7F] << 1;
+            for (int16_t j = 0; j < IMAGE_WIDTH; j++) vbuff[i][j] = texture[i & 0x7f][j & 0x7f] << 1;
         }
 #endif
     }
@@ -5607,7 +5606,7 @@ namespace intro16k {
         {
             for (int16_t j = 0; j < SIZE_128; j++)
             {
-                int16_t col = (blobs[i & 0x7F][j & 0x7F] << 1) + vbuff[y + i][x + j];
+                int16_t col = (blobs[i & 0x7f][j & 0x7f] << 1) + vbuff[y + i][x + j];
                 if (col > 255) col = 255;
                 vbuff[y + i][x + j] = uint8_t(col);
             }
@@ -6333,9 +6332,9 @@ namespace intro16k {
     {
         for (int16_t i = 0; i < 256; i++)
         {
-            rgbpal[i].r = (i >> 1) & 0x7F;
-            rgbpal[i].g = i & 0x7F;
-            rgbpal[i].b = (i << 1) & 0x7F;
+            rgbpal[i].r = (i >> 1) & 0x7f;
+            rgbpal[i].g = i & 0x7f;
+            rgbpal[i].b = (i << 1) & 0x7f;
         }
 
         frames = 0;
@@ -6680,8 +6679,8 @@ namespace intro16k {
                 {
                     particles[cnt].cx = (x << 5) + random(100);
                     particles[cnt].cy = (y << 5) + random(100);
-                    particles[cnt].dx = -16383 + random(32767);
-                    particles[cnt].dy = -16383 + random(32767);
+                    particles[cnt].dx = random(32767) - 16383;
+                    particles[cnt].dy = random(32767) - 16383;
                     particles[cnt].life = 10 + random(400);
                     cnt++;
                 }
@@ -6774,8 +6773,8 @@ namespace textScrolling {
     #define LEN 	    256
     #define SIZE 	    2
     #define CURVE 	    2
-    #define SCR_WIDTH 	    (309 / SIZE)
-    #define SCR_HEIGHT 	    8
+    #define SCR_WIDTH   (309 / SIZE)
+    #define SCR_HEIGHT  8
     #define SPEED 	    -1
 
     const uint8_t mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
@@ -6799,15 +6798,12 @@ namespace textScrolling {
 
     void scrollText()
     {
-        uint16_t x = 0, y = 0;
-
-        uint16_t j = 0;
         uint16_t pos = 0;
+        uint16_t x = 0, y = 0, j = 0;
+        const uint16_t len = uint16_t(strlen(text));
         
         do {
-            uint16_t c = text[pos++];
-
-            if (pos >= uint16_t(strlen(text))) pos = 0;
+            uint16_t c = text[pos];
 
             for (uint16_t i = 0; i < SCR_HEIGHT; i++)
             {
@@ -6834,11 +6830,15 @@ namespace textScrolling {
 
                 j = (j + SPEED) % LEN;
                 renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-                delay(FPS_60);
+                delay(FPS_90);
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             }
+
+            pos++;
+            if (pos >= len) pos = 0;
+
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -6967,7 +6967,7 @@ namespace EMS {
         do {
             EMS2RAM(vmem, handle[i]);
             render();
-            delay(FPS_60);
+            delay(FPS_90);
             if (i++ >= 14) i = 0;
         } while (!finished(SDL_SCANCODE_RETURN));
 
@@ -7212,7 +7212,7 @@ namespace fillterEffect {
             if (keyDown(SDL_SCANCODE_ESCAPE))   quit();
             drawPicture();
             renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -7595,7 +7595,7 @@ namespace fireworkEffect {
             for (i = 0; i < NUM_ARROWS; i++) handleArrow(arrows[i]);
             if (cnt > 1000) cnt = 0;
             render();
-            delay(FPS_30);
+            delay(FPS_60);
         } while (!finished(SDL_SCANCODE_RETURN));
 
         cleanup();
@@ -7773,7 +7773,7 @@ namespace fireEffect {
         {
             doFire();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
 
         for (i = 0; i < IMAGE_WIDTH; i++) vbuff[MAX_HEIGHT][i] = 0;
@@ -7782,7 +7782,7 @@ namespace fireEffect {
         {
             doQuit();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         }
         cleanup();
     }
@@ -8380,7 +8380,7 @@ namespace fireEffect6 {
             }
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             readKeys();
 
             if (!random(150) || keyDown(SDL_SCANCODE_SPACE)) memset(&flames[random(WIDTH - 10)], 255, 10);
@@ -8465,7 +8465,7 @@ namespace fireEffect7 {
             interpolation();
             putFire();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -8682,7 +8682,7 @@ namespace holeEffect1 {
             }
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -8777,7 +8777,7 @@ namespace holeEffect2 {
             y = YMOV + (y % 256);
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             memset(vmem, 0, IMAGE_SIZE);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -9276,7 +9276,7 @@ namespace holeEffect3 {
             memset(vbuff, 0, IMAGE_SIZE);
             drawHole(art);
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             readKeys();
             if (keyDown(SDL_SCANCODE_1)) art = 0;
             if (keyDown(SDL_SCANCODE_2)) art = 1;
@@ -9384,7 +9384,7 @@ namespace kaleidoScope {
                     if (hc > END_COLOR) hc = START_COLOR;
 
                     render();
-                    delay(FPS_60);
+                    delay(FPS_90);
                 }
             }
             clearScreen();
@@ -9662,7 +9662,7 @@ namespace flagsEffect {
             displayMap();
             putImage();
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             memset(vbuff2, 0, IMAGE_SIZE);
             index += FSPEED;
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -9734,7 +9734,7 @@ namespace flagsEffect2 {
             }
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             memset(vmem, 0, IMAGE_SIZE);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -9783,7 +9783,7 @@ namespace lakeEffect {
             calcWater();
             memcpy(&dbuff[IMAGE_HEIGHT - STARTY][0], water, STARTY * IMAGE_WIDTH);
             renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -9998,7 +9998,7 @@ namespace landScapeEffect {
             }
 
             renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
         showMouseCursor(SDL_ENABLE);
         cleanup();
@@ -10089,7 +10089,7 @@ namespace lensEffect {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             circleStretch(x - RDS, y - RDS, x, y, RDS);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
 
             x += xadd;
             y += yadd;
@@ -10241,7 +10241,7 @@ namespace zoomInEffect {
 
             construct(m, x, y);
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
         showMouseCursor(SDL_ENABLE);
         cleanup();
@@ -10395,7 +10395,7 @@ namespace zoomOutEffect {
             const int16_t y = ypostab[ypos & 0xff];
             printGlass(x, y);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             oldx = x;
             oldy = y;
             xpos += xadd;
@@ -11124,7 +11124,7 @@ namespace pixelMorphing {
         }
 
         renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-        delay(FPS_60);
+        delay(FPS_90);
     }
 
     void doPicture()
@@ -11467,7 +11467,7 @@ namespace plasmaEffect1 {
         do {
             drawPlasma();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             angle = (angle + 1) & 0xff;
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -11553,7 +11553,7 @@ namespace plasmaEffect2 {
             pixelBob(&bob1x, &bob1y);
             pixelBob(&bob2x, &bob2y);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -11589,7 +11589,7 @@ namespace plasmaEffect3 {
             memcpy(&pal[255], &tmp, sizeof(RGB));
             setPalette(pal);
             render();
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -11682,7 +11682,7 @@ namespace plasmaEffect4 {
         do {
             showPlasma();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             changeAngle();
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -11785,7 +11785,7 @@ namespace plasmaEffect5 {
             memcpy(&pal[x], &pal[x + 1], y * sizeof(RGB));
             memcpy(&pal[y], &tmp, sizeof(RGB));
             setPalette(pal);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -11894,7 +11894,7 @@ namespace rippleEffect {
             updateWave();
             drawRipples();
             renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
 
         cleanup();
@@ -12205,7 +12205,7 @@ namespace rotateMap {
             qsort(drawOrder, vertices, 2, compare);
             drawFaces();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             memset(vbuff, 0, IMAGE_SIZE);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -12284,7 +12284,7 @@ namespace scaleMap {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, IMAGE_MIDX - (x >> 1), IMAGE_MIDY - (y >> 1), IMAGE_MIDX - (x >> 1) + x, IMAGE_MIDY - (y >> 1) + y);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             if (z < 16 || z > 114) zadd = -zadd;
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12322,7 +12322,7 @@ namespace scaleMap {
 
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, x1, y1, x2, y2);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         } while (!keyDown(SDL_SCANCODE_RETURN) && !keyDown(SDL_SCANCODE_1) && !keyDown(SDL_SCANCODE_3));
@@ -12337,7 +12337,7 @@ namespace scaleMap {
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, 40, IMAGE_MIDY - costab[i], 140, IMAGE_MIDY + costab[i]);
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, 230 - costab[i], 50, 230 + costab[i], 150);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             i = (i + 6) % 256;
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12564,7 +12564,7 @@ namespace shadePattern {
                 points[arrpos].y = newy;
                 drawShadeBob(newx, newy);
                 renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-                delay(FPS_60);
+                delay(FPS_90);
                 oldx = newx;
                 oldy = newy;
                 arrpos++;
@@ -12596,7 +12596,7 @@ namespace shadePattern {
         do {
             drawShadeBob(points[arrpos].x, points[arrpos].y);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             arrpos++;
             if (arrpos >= arrmax) arrpos = 0;
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -12616,11 +12616,11 @@ namespace shadeBobSin {
 
     int16_t clear, reg;
     int16_t orgx, orgy;
-    int16_t ux[1000] = { 0 };
-    int16_t uy[1000] = { 0 };
+    int16_t ux[1001] = { 0 };
+    int16_t uy[1001] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    int16_t range(int16_t x, int16_t y)
+    inline int16_t range(int16_t x, int16_t y)
     {
         return (x >= 0 && x <= MAX_WIDTH && y >= 0 && y <= MAX_HEIGHT);
     }
@@ -12630,8 +12630,8 @@ namespace shadeBobSin {
         const double sinx = sin(alpha);
         const double cosx = cos(alpha);
 
-        const int16_t x = int16_t(orgx + rx * cosx * cosx * sinx * sinx * cosx);
-        const int16_t y = int16_t(orgy + ry * sinx * sinx * sinx * cosx * cosx);
+        const int16_t x = int16_t(orgx + rx * pow(cosx, 3) * pow(sinx, 2));
+        const int16_t y = int16_t(orgy + ry * pow(sinx, 3) * pow(cosx, 2));
 
         ux[reg] = x;
         uy[reg] = y;
@@ -12663,6 +12663,8 @@ namespace shadeBobSin {
             x = ux[reg + 1];
             y = uy[reg + 1];
         }
+
+        if (!x && !y) return;
 
         for (int16_t i = y - 2; i <= y + 2; i++)
         {
@@ -12716,15 +12718,19 @@ namespace shadeBobSin {
             outDraw();
             inDraw();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
+
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+
             reg++;
             if (reg > 999) reg = 0;
+
             alpha += 0.001;
             rx += 0.05;
             ry += rx * 0.0001;
             clear--;
+            
         } while (clear);
 
         for (y = 0; y < IMAGE_MIDY; y++)
@@ -12732,7 +12738,7 @@ namespace shadeBobSin {
             for (x = 0; x < IMAGE_WIDTH; x++) vbuff[y][x] = 0;
             for (x = 0; x < IMAGE_WIDTH; x++) vbuff[MAX_HEIGHT - y][x] = 0;
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12833,7 +12839,7 @@ namespace snowFall {
 
             updateFlakes();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -13328,7 +13334,7 @@ namespace softFire {
             }
 
             render();
-            delay(FPS_60);
+            delay(FPS_90);
             readKeys();
             if (keyDown(SDL_SCANCODE_A) && incx < 74) incx += 4;
             if (keyDown(SDL_SCANCODE_S) && incx > 4) incx -= 4;
@@ -13680,7 +13686,7 @@ namespace star2dEffect {
         do {
             moveStar();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -13805,7 +13811,7 @@ namespace star3dEffect {
             calcStars();
             drawStars();
             render();
-            delay(FPS_60);
+            delay(FPS_90);
             clearStars();
             moveStars(direction);
             readKeys();
@@ -13852,13 +13858,15 @@ namespace fontEffect1 {
             fread(&tx, 1, 1, fp);
             fread(&ty, 1, 1, fp);
 
-            chars[ch - 32] = (uint8_t*)calloc(intptr_t(tx) * ty, 1);
+            const uint16_t size = tx * ty;
+
+            chars[ch - 32] = (uint8_t*)calloc(size, 1);
             if (!chars[ch - 32]) exit(1);
 
             chrinfo[ch - 32][0] = tx;
             chrinfo[ch - 32][1] = ty;
             chrinfo[ch - 32][2] = 1;
-            fread(chars[ch - 32], intptr_t(tx) * ty, 1, fp);
+            fread(chars[ch - 32], size, 1, fp);
         }
 
         fclose(fp);
@@ -13967,14 +13975,15 @@ namespace fontEffect2 {
             fread(&chr, 1, 1, fp);
             fread(&w, 1, 1, fp);
             fread(&h, 1, 1, fp);
+            const uint16_t size = w * h;
 
-            chars[chr - 32] = (uint8_t*)calloc(intptr_t(w) * h, 1);
+            chars[chr - 32] = (uint8_t*)calloc(size, 1);
             if (!chars[chr - 32]) exit(1);
 
             chrinfo[chr - 32][0] = w;
             chrinfo[chr - 32][1] = h;
             chrinfo[chr - 32][2] = 1;
-            fread(chars[chr - 32], intptr_t(w) * h, 1, fp);
+            fread(chars[chr - 32], size, 1, fp);
         }
 
         fclose(fp);
@@ -14059,7 +14068,7 @@ namespace fontEffect2 {
             calcPos();
             drawBitmap(bitmap[0]);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             index = (index + 4) % 230;
         } while (!finished(SDL_SCANCODE_RETURN));
 
@@ -14098,14 +14107,15 @@ namespace fontEffect3 {
             fread(&chr, 1, 1, fp);
             fread(&width, 1, 1, fp);
             fread(&height, 1, 1, fp);
+            const uint16_t size = width * height;
 
-            chars[chr - 32] = (uint8_t*)calloc(intptr_t(width) * height, 1);
+            chars[chr - 32] = (uint8_t*)calloc(size, 1);
             if (!chars[chr - 32]) return 0;
 
             chrinfo[chr - 32][0] = width;
             chrinfo[chr - 32][1] = height;
             chrinfo[chr - 32][2] = 1;
-            fread(chars[chr - 32], intptr_t(width) * height, 1, fp);
+            fread(chars[chr - 32], size, 1, fp);
         }
 
         fclose(fp);
@@ -14175,7 +14185,7 @@ namespace fontEffect3 {
             newRows(text[newrow], row, MAX_WIDTH);
             memcpy(&vmem[sintab[index]][0], bitmap, 9600);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
             index = (index + 2) % IMAGE_MIDY;
         } while (!finished(SDL_SCANCODE_RETURN));
 
@@ -14245,7 +14255,7 @@ namespace thunderBoltEffect {
         int16_t i = 0, j = 0;
         RGB flash[256] = { 0 };
 
-        memcpy(flash, pal, 256 * sizeof(RGB));
+        memcpy(flash, pal, 1024);
         flash[0].r = 255;
         flash[0].g = 255;
         flash[0].b = 255;
@@ -14283,7 +14293,7 @@ namespace thunderBoltEffect {
             processItem(random(100) + 110, 0, 10, dx);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             flashPalette(dst);
-            memcpy(dst, src, 256 * sizeof(RGB));
+            memcpy(dst, src, 1024);
             memset(vmem, 0, IMAGE_SIZE);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -14353,7 +14363,8 @@ namespace scrollingEffect {
     void scrollText()
     {
         uint16_t pos = 0;
-        
+        uint16_t len = uint16_t(strlen(scrolledText));
+
         do {
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -14379,11 +14390,11 @@ namespace scrollingEffect {
                 }
 
                 renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-                delay(FPS_60);
+                delay(FPS_90);
             }
 
             pos++;
-            if (pos >= uint16_t(strlen(scrolledText))) pos = 0;
+            if (pos >= len) pos = 0;
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -14512,7 +14523,7 @@ namespace voxelEffect {
             memcpy(vbuff, sky, IMAGE_SIZE);
             drawView();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_60);
+            delay(FPS_90);
 
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -14638,7 +14649,7 @@ namespace rippleEffect2 {
                 heighest[j] = uint8_t(lasth);
             }
             render();
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -14791,7 +14802,7 @@ namespace wormEffect {
             for (int16_t i = 1; i < 16; i++) memcpy(&pal[(i - 1) << 4], &pal[i << 4], sizeof(tmp));
             memcpy(&pal[240], tmp, sizeof(tmp));
             setPalette(pal);
-            delay(FPS_60);
+            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
     }
