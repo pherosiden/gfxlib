@@ -36,7 +36,6 @@ namespace juliaSet {
 
         int32_t mwidth = 0, mheight = 0;
         uint8_t* pixels = (uint8_t*)getDrawBuffer(&mwidth, &mheight);
-        if (!pixels) return;
 
         mwidth >>= 1;
         mheight >>= 1;
@@ -80,7 +79,6 @@ namespace juliaSet {
 
         int32_t mwidth = 0, mheight = 0;
         uint8_t* pixels = (uint8_t*)getDrawBuffer(&mwidth, &mheight);
-        if (!pixels) return;
 
         mwidth >>= 1;
         mheight >>= 1;
@@ -134,7 +132,6 @@ namespace fadePalette {
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO")) return;
         uint8_t* vbuff = (uint8_t*)getDrawBuffer();
-        if (!vbuff) return;
 
         if (!loadPNG(vbuff, src, "assets/arnold.png")) return;
         setPalette(dst);
@@ -3689,7 +3686,7 @@ namespace textureMappingEffect {
     void rotatePoints(int16_t x, int16_t y, int16_t z)
     {
         int16_t i = 0, j = 0;
-        int32_t a = 0, b = 0, c = 0;
+        int16_t a = 0, b = 0, c = 0;
 
         for (i = 0; i < MAXP; i++)
         {
@@ -5546,8 +5543,8 @@ namespace intro16k {
         {
             for (j = 0; j < IMAGE_WIDTH; j++)
             {
-                const int16_t col = j & 0x7F;
-                const int16_t row = i & 0x7F;
+                const int16_t col = j & 0x7f;
+                const int16_t row = i & 0x7f;
                 const uint8_t c = vbuff[i][j];
 
                 if (c < 12) vbuff[i][j] = texture[row][col];
@@ -9606,8 +9603,8 @@ namespace fastCircleFill {
 }
 
 namespace flagsEffect {
-    #define AMPLI 6
-    #define FSPEED 4
+    #define AMPLI   6
+    #define FSPEED  4
 
     uint16_t index = 0;
     uint16_t costab[256] = { 0 };
@@ -9856,11 +9853,11 @@ namespace landScapeGeneration {
 }
 
 namespace landScapeEffect {
-    #define DENT        3
-    #define ROUGH       26
-    #define HMAX        128
-    #define XMAX        (320 / DENT)
-    #define YMAX        (120 / DENT)
+    #define DENT    3
+    #define ROUGH   26
+    #define HMAX    128
+    #define XMAX    (320 / DENT)
+    #define YMAX    (120 / DENT)
 
     uint8_t dbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -14479,7 +14476,7 @@ namespace voxelEffect {
     {
         for (int16_t i = 0; i < IMAGE_WIDTH; i++)
         {
-            const int16_t a = (angle + i + 1888) & 0x7FF;
+            const int16_t a = (angle + i + 1888) & 0x7ff;
             ray(a, x, y, i);
         }
     }
@@ -14540,8 +14537,8 @@ namespace voxelEffect {
                 y -= 2 * sintab[angle] << 1;
             }
 
-            if (keyDown(SDL_SCANCODE_LEFT)) angle = (angle + 4064) & 0x7FF;
-            if (keyDown(SDL_SCANCODE_RIGHT)) angle = (angle + 32) & 0x7FF;
+            if (keyDown(SDL_SCANCODE_LEFT)) angle = (angle + 4064) & 0x7ff;
+            if (keyDown(SDL_SCANCODE_RIGHT)) angle = (angle + 32) & 0x7ff;
             if (keyDown(SDL_SCANCODE_A)) dst = 80;
             else if (keyDown(SDL_SCANCODE_S)) dst = -100;
             else dst = 0;
@@ -14665,7 +14662,7 @@ namespace waterFall {
             const uint16_t s = (128 + random(128)) << 3;
             for (int16_t y = 0; y < IMAGE_WIDTH; y++)
             {
-                if (!(r & 0xFF00)) putPixel(x, y, 1);
+                if (!(r & 0xff00)) putPixel(x, y, 1);
                 else putPixel(x, y, r >> 8);
                 r += s;
             }
@@ -14753,7 +14750,7 @@ namespace winterEffect {
             perturb();
             pos += rad;
             flakes[i].y = (((rad & 0xff) * FASTEST) & 0xff) + 5;
-            flakes[i].x = (((rad & 0x0F) * flakes[i].y) & 0xff) + 1;
+            flakes[i].x = (((rad & 0x0f) * flakes[i].y) & 0xff) + 1;
             flakes[i].v = pos % IMAGE_WIDTH;
             flakes[i].u = pos % IMAGE_HEIGHT;
         }
@@ -14763,7 +14760,7 @@ namespace winterEffect {
             {
                 perturb();
                 vmem[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH] = vbuff[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH];
-                if (flakes[i].x >= (rad & 0x0F)) flakes[i].v++;
+                if (flakes[i].x >= (rad & 0x0f)) flakes[i].v++;
                 if (flakes[i].y >= (rad & 0xff)) flakes[i].u++;
                 vmem[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH] = (flakes[i].y >> 5) + 240;
             }
@@ -14941,11 +14938,11 @@ namespace rayCastingEffect {
         uint16_t ax, py;
 
         int32_t cy = verts;
-        uint16_t px = horiz & 0x7F;
+        uint16_t px = horiz & 0x7f;
 
         for (cx = hmh; cx < hph; cx++)
         {
-            py = (cy >> 16) & 0x7F;
+            py = (cy >> 16) & 0x7f;
             bx = walls[py][px];
             vbuff[cx][vofs] = shade[dark][bx];
             cy += pass;
@@ -14954,8 +14951,8 @@ namespace rayCastingEffect {
         for (bx = hph; bx < IMAGE_HEIGHT; bx++)
         {
             cx = magic / (bx - IMAGE_MIDY);
-            py = (((cx * siny) >> 20) + px128) & 0x7F;
-            px = (((cx * cosy) >> 20) + py128) & 0x7F;
+            py = (((cx * siny) >> 20) + px128) & 0x7f;
+            px = (((cx * cosy) >> 20) + py128) & 0x7f;
             cx >>= 10;
             if (cx > 15) cx = 15;
             else if (cx > 0) cx--;
