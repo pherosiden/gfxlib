@@ -7,8 +7,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.5                                   //
-//          Last Update: 2021-10-29                              //
+//              Version: 1.2.6                                   //
+//          Last Update: 2021-11-17                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -48,8 +48,8 @@
 #endif
 
 //GFX version string
-#define GFX_VERSION             "v21.10.29"
-#define GFX_BUILD_ID            20211029
+#define GFX_VERSION             "v21.11.17"
+#define GFX_BUILD_ID            20211117
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
@@ -312,25 +312,25 @@ typedef struct
     uint8_t a;
 } ARGB;
 
-//rotate clip data
+// rotate clip data
 typedef struct
 {
-    int32_t srcw, srch;
-    int32_t dstw, dsth;
-    int32_t srcx, srcy;
+    int32_t srcw, srch;                         // source width and height
+    int32_t dstw, dsth;                         // destination width and height
+    int32_t srcx, srcy;                         // source strart x, y
 
-    int32_t ax, ay;
-    int32_t bx, by;
-    int32_t cx, cy;
+    int32_t ax, ay;                             // left, right
+    int32_t bx, by;                             // top, bottom
+    int32_t cx, cy;                             // center x, y
 
-    int32_t boundWidth;
-    int32_t currUp0, currUp1;
-    int32_t currDown0, currDown1;
+    int32_t boundWidth;                         // boundary width (pixels units)
+    int32_t currUp0, currUp1;                   // current up
+    int32_t currDown0, currDown1;               // current down
 
-    int32_t yUp, yDown;
+    int32_t yUp, yDown;                         // y top and down
 
-    int32_t outBound0, outBound1;
-    int32_t inBound0, inBound1;
+    int32_t outBound0, outBound1;               // in-bound and out-bound
+    int32_t inBound0, inBound1;                 // in-bound and out-bound
 } ROTATE_CLIP;
 
 #pragma pack(pop)
@@ -840,10 +840,8 @@ static must_inline bool pointInBound(const ROTATE_CLIP* clip, const int32_t scx,
 
 static must_inline bool pointInSrc(const ROTATE_CLIP* clip, const int32_t scx, const int32_t scy)
 {
-    return  (((scx >= (clip->boundWidth << 16)) &&
-             ((scx >> 16) < (clip->srcw - clip->boundWidth))) &&
-             ((scy >= (clip->boundWidth << 16)) &&
-             ((scy >> 16) < (clip->srch - clip->boundWidth))));
+    return  (((scx >= (clip->boundWidth << 16)) && ((scx >> 16) < (clip->srcw - clip->boundWidth))) &&
+             ((scy >= (clip->boundWidth << 16)) && ((scy >> 16) < (clip->srch - clip->boundWidth))));
 }
 
 static must_inline void findBeginIn(const ROTATE_CLIP* clip, int32_t* dstx, int32_t* scx, int32_t* scy)

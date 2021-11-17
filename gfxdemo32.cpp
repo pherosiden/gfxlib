@@ -370,7 +370,7 @@ void runAddImage(int32_t sx, int32_t sy)
         step -= 4;
         changeDrawBuffer(img.mData, img.mWidth, img.mHeight);
         putImage(0, 0, &fade1);
-        putImage(alignedSize(int32_t((320 - cos(step / 160.0) * 320))), 0, &flare, BLEND_MODE_ADD);
+        putImage(alignedSize(int32_t(320 - cos(step / 160.0) * 320)), 0, &flare, BLEND_MODE_ADD);
         restoreDrawBuffer();
         putImage(sx, sy, &img);
         render();

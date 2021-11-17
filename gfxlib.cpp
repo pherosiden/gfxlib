@@ -5,8 +5,8 @@
 //            Target OS: cross-platform (x32_64)                 //
 //               Author: Nguyen Ngoc Van                         //
 //               Create: 22/10/2018                              //
-//              Version: 1.2.5                                   //
-//          Last Update: 2021-10-29                              //
+//              Version: 1.2.6                                   //
+//          Last Update: 2021-11-17                              //
 //              Website: http://codedemo.net                     //
 //                Email: pherosiden@gmail.com                    //
 //           References: https://crossfire-designs.de            //
@@ -779,7 +779,7 @@ void changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     oldWidth = texWidth;
     oldHeight = texHeight;
 
-    //update clip point
+    //update new clip view port
     cminX = x1;
     cminY = y1;
     cmaxX = x2;
@@ -792,9 +792,12 @@ void changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     //update center x,y
     centerX = (texWidth >> 1) - 1;
     centerY = (texHeight >> 1) - 1;
+
+    //update row bytes
+    bytesPerScanline = texWidth * bytesPerPixel;
 }
 
-//must call after setViewPort call
+//must call after changeViewPort call
 //!!!changeViewPort and restoreViewPort must be a pair functions!!!
 void restoreViewPort()
 {
@@ -806,6 +809,7 @@ void restoreViewPort()
     texHeight = oldHeight;
     centerX = (texWidth >> 1) - 1;
     centerY = (texHeight >> 1) - 1;
+    bytesPerScanline = texWidth * bytesPerPixel;
 }
 
 //get current view port
@@ -2040,7 +2044,7 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
         mov         ecx, width
         shr         ecx, 1
         jz          once
-        punpckldq   mm1,mm1
+        punpckldq   mm1, mm1
     plot:
         movq        mm0, [edi]
         paddusb     mm0, mm1
@@ -2481,25 +2485,21 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
 void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //calculate new position
-    const int32_t x1 = (x + width) - 1;
-    const int32_t y1 = (y + height) - 1;
+    const int32_t x1 = x + (width - 1);
+    const int32_t y1 = y + (height - 1);
 
     //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
+    const int32_t lx = max(x, cminX);
+    const int32_t ly = max(y, cminY);
+    const int32_t lx1 = min(x1, cmaxX);
+    const int32_t ly1 = min(y1, cmaxY);
 
     //initialize loop variables
     const int32_t lwidth = (lx1 - lx) + 1;
     const int32_t lheight = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lwidth || !lheight) return;
+    if (lwidth <= 0 || lheight <= 0) return;
 
     //mixed mode?
     if (bitsPerPixel == 8)
@@ -2967,25 +2967,21 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
 void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //calculate new position
-    const int32_t x1 = (x + width) - 1;
-    const int32_t y1 = (y + height) - 1;
+    const int32_t x1 = x + (width - 1);
+    const int32_t y1 = y + (height - 1);
 
     //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
+    const int32_t lx = max(x, cminX);
+    const int32_t ly = max(y, cminY);
+    const int32_t lx1 = min(x1, cmaxX);
+    const int32_t ly1 = min(y1, cmaxY);
 
     //initialize loop variables
     const int32_t lwidth = (lx1 - lx) + 1;
     const int32_t lheight = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lwidth || !lheight) return;
+    if (lwidth <= 0 || lheight <= 0) return;
 
     //mixed mode?
     if (bitsPerPixel == 8)
@@ -3375,7 +3371,7 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 }
 
 //pre-calculate lookup table for filled-circle
-void calcCircle(int32_t rd, int32_t* point)
+void calcCircle(int32_t rd, int32_t* points)
 {
     //validate radius
     if (rd <= 0) return;
@@ -3384,7 +3380,7 @@ void calcCircle(int32_t rd, int32_t* point)
     __asm {
         mov     ebx, 1
         sub     ebx, rd
-        mov     edi, point
+        mov     edi, points
         mov     esi, edi
         mov     eax, rd
         shl     eax, 2
@@ -3438,14 +3434,14 @@ void calcCircle(int32_t rd, int32_t* point)
             esi--;
             edi++;
         }
-        point[edi] = ecx;
-        point[esi] = eax;
+        points[edi] = ecx;
+        points[esi] = eax;
     }
 #endif
 }
 
 //pre-calculate lookup table for filled-ellipse
-void calcEllipse(int32_t rx, int32_t ry, int32_t* point)
+void calcEllipse(int32_t rx, int32_t ry, int32_t* points)
 {
     int32_t ra = 0, aa = 0, bb = 0;
     int32_t xa = 0, mx = 0, my = 0;
@@ -3494,7 +3490,7 @@ void calcEllipse(int32_t rx, int32_t ry, int32_t* point)
         mov     aa, eax
         add     ra, eax
     done:
-        mov     edi, point
+        mov     edi, points
         mov     ebx, ry
         sub     ebx, my
         shl     ebx, 2
@@ -3531,7 +3527,7 @@ void calcEllipse(int32_t rx, int32_t ry, int32_t* point)
             ra += (aa - yd);
             aa -= yd;
         }
-        point[ry - my] = -mx;
+        points[ry - my] = -mx;
     }
 #endif
 }
@@ -3542,6 +3538,8 @@ void drawCircleAA(int32_t xm, int32_t ym, int32_t rad, uint32_t argb)
     int32_t y = 0;
     int32_t x = -rad;
     int32_t err = (1 - rad) << 1;
+
+    if (rad <= 0) return;
 
     rad = 1 - err;
 
@@ -3624,21 +3622,21 @@ void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb
     int32_t f = 0;
     uint32_t col = 0;
     double alpha = 0;
-    
-    int32_t a = abs(x1 - x0);
-    const int32_t b = abs(y1 - y0);
 
     //only 32bit support alpha-blend mode
     if (bitsPerPixel <= 8) return;
+    if (x0 <= 0 || y0 <= 0 || x1 <= 0 || y1 <= 0) return;
+
+    int32_t a = abs(x1 - x0);
+    const int32_t b = abs(y1 - y0);
+    
+    //check for line
     if (a <= 0 || b <= 0) return;
 
     int32_t b1 = b & 1;
     double dx = 4.0 * (a - 1.0) * b * b;
     double dy = 4.0 * (b1 + 1.0) * a * a;
     double err = double(b1) * a * a - dx + dy;
-
-    //check for line
-    if (a == 0 || b == 0) return;
 
     if (x0 > x1)
     {
@@ -3711,7 +3709,7 @@ void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb
     {
         while (y0 - y1 < b)
         {
-            alpha = 255 * 4.0 * fabs(err + dx) / b1;
+            alpha = 255.0 * 4 * fabs(err + dx) / b1;
             col = rgba(argb, uint8_t(alpha));
             putPixel(x0, ++y0, col, BLEND_MODE_ANTIALIASED);
             putPixel(x1, y0, col, BLEND_MODE_ANTIALIASED);
@@ -3726,8 +3724,7 @@ void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb
 void drawEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //range checking
-    if (ra <= 0) return;
-    if (rb <= 0) return;
+    if (ra <= 0 || rb <= 0) return;
 
     //alpha mode?
     if (mode == BLEND_MODE_ANTIALIASED)
@@ -3793,7 +3790,7 @@ void drawRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t colo
 void drawRoundRect(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rad, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     int32_t i = 0, j = 0;
-    int32_t point[500] = { 0 };
+    int32_t points[500] = { 0 };
 
     const int32_t x1 = x + width - 1;
     const int32_t y1 = y + height - 1;
@@ -3801,16 +3798,16 @@ void drawRoundRect(int32_t x, int32_t y, int32_t width, int32_t height, int32_t 
 
     if (rad >= mid - 1) rad = mid - 1;
 
-    calcCircle(rad, point);
+    calcCircle(rad, points);
 
-    horizLine(x + rad - point[0], y + 1, width - ((rad - point[0]) << 1), col, mode);
+    horizLine(x + rad - points[0], y + 1, width - ((rad - points[0]) << 1), col, mode);
     vertLine(x, y + rad, height - (rad << 1), col, mode);
-    horizLine(x + rad - point[0], y1 - 1, width - ((rad - point[0]) << 1), col, mode);
+    horizLine(x + rad - points[0], y1 - 1, width - ((rad - points[0]) << 1), col, mode);
     vertLine(x1, y + rad, height - (rad << 1), col, mode);
 
     for (i = 1; i <= rad; i++)
     {
-        for (j = rad - point[i]; j <= rad - point[i - 1]; j++)
+        for (j = rad - points[i]; j <= rad - points[i - 1]; j++)
         {
             putPixel(x + j, y + i, col, mode);
             putPixel(x1 - j, y + i, col, mode);
@@ -3819,7 +3816,7 @@ void drawRoundRect(int32_t x, int32_t y, int32_t width, int32_t height, int32_t 
 
     for (i = 1; i <= rad; i++)
     {
-        for (j = rad - point[i]; j <= rad - point[i - 1]; j++)
+        for (j = rad - points[i]; j <= rad - points[i - 1]; j++)
         {
             putPixel(x + j, y1 - i, col, mode);
             putPixel(x1 - j, y1 - i, col, mode);
@@ -4608,7 +4605,7 @@ void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t r
 {
     int32_t i = 0, j = 0;
     int32_t a = 0, b = 0;
-    int32_t point[500] = { 0 };
+    int32_t points[500] = { 0 };
 
     const int32_t x1 = x + width - 1;
     const int32_t y1 = y + height - 1;
@@ -4616,17 +4613,17 @@ void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t r
 
     if (rad >= mid - 1) rad = mid - 1;
 
-    calcCircle(rad, point);
+    calcCircle(rad, points);
 
-    horizLine(x + rad - point[0], y + 1, width - ((rad - point[0]) << 1), col, mode);
+    horizLine(x + rad - points[0], y + 1, width - ((rad - points[0]) << 1), col, mode);
     vertLine(x, y + rad, height - (rad << 1), col, mode);
-    horizLine(x + rad - point[0], y1 - 1, width - ((rad - point[0]) << 1), col, mode);
+    horizLine(x + rad - points[0], y1 - 1, width - ((rad - points[0]) << 1), col, mode);
     vertLine(x1, y + rad, height - (rad << 1), col, mode);
 
     for (i = 1; i <= rad; i++)
     {
-        a = rad - point[i];
-        b = rad - point[i - 1];
+        a = rad - points[i];
+        b = rad - points[i - 1];
         for (j = a; j <= b; j++)
         {
             putPixel(x + j, y + i, col, mode);
@@ -4636,8 +4633,8 @@ void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t r
 
     for (i = 1; i <= rad; i++)
     {
-        a = rad - point[i];
-        b = rad - point[i - 1];
+        a = rad - points[i];
+        b = rad - points[i - 1];
         for (j = a; j <= b; j++)
         {
             putPixel(x + j, y1 - i, col, mode);
@@ -4645,26 +4642,29 @@ void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t r
         }
     }
 
-    for (i = 1; i <= rad; i++) horizLine(x + rad - point[i - 1] + 1, y + i, width - ((rad << 1) - (point[i - 1] << 1)) - 1, col, mode);
+    for (i = 1; i <= rad; i++) horizLine(x + rad - points[i - 1] + 1, y + i, width - ((rad << 1) - (points[i - 1] << 1)) - 1, col, mode);
     fillRect(x + 1, y + rad + 1, width - 2, height - (rad << 1) - 2, col, mode);
-    for (i = rad; i >= 1; i--) horizLine(x + rad - point[i - 1] + 1, y1 - i, width - ((rad << 1) - (point[i - 1] << 1)) - 1, col, mode);
+    for (i = rad; i >= 1; i--) horizLine(x + rad - points[i - 1] + 1, y1 - i, width - ((rad << 1) - (points[i - 1] << 1)) - 1, col, mode);
 }
 
 //draw polygon
-void drawPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
+void drawPolygon(POINT2D* points, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     if (num < 3) return;
-    for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(point[i].x), int32_t(point[i].y), int32_t(point[i + 1].x), int32_t(point[i + 1].y), col, mode);
-    drawLine(int32_t(point[num - 1].x), int32_t(point[num - 1].y), int32_t(point[0].x), int32_t(point[0].y), col, mode);
+    for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(points[i].x), int32_t(points[i].y), int32_t(points[i + 1].x), int32_t(points[i + 1].y), col, mode);
+    drawLine(int32_t(points[num - 1].x), int32_t(points[num - 1].y), int32_t(points[0].x), int32_t(points[0].y), col, mode);
 }
 
 //fast filled Bresenham circle at (xc,yc) with radius and color
 void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     int32_t i = 0;
-    int32_t point[500] = { 0 };
+    int32_t points[500] = { 0 };
 
     //range limited
+    if (radius <= 0) return;
+
+    //out of range
     if (radius > 499)
     {
         messageBox(GFX_ERROR, "fillCircle: radius must be in [0-499] pixels");
@@ -4672,19 +4672,22 @@ void fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t 
     }
 
     int32_t mc = yc - radius;
-    calcCircle(radius, point);
+    calcCircle(radius, points);
 
-    for (i = 0; i <= radius - 1; i++, mc++) horizLine(xc - point[i], mc, (point[i] << 1), color, mode);
-    for (i = radius - 1; i >= 0; i--, mc++) horizLine(xc - point[i], mc, (point[i] << 1), color, mode);
+    for (i = 0; i <= radius - 1; i++, mc++) horizLine(xc - points[i], mc, (points[i] << 1), color, mode);
+    for (i = radius - 1; i >= 0; i--, mc++) horizLine(xc - points[i], mc, (points[i] << 1), color, mode);
 }
 
 //filled ellipse with color
 void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     int32_t i = 0;
-    int32_t point[500] = { 0 };
+    int32_t points[500] = { 0 };
 
     //range limited
+    if (ra <= 0 || rb <= 0) return;
+
+    //out of range
     if (ra > 499 || rb > 499)
     {
         messageBox(GFX_ERROR, "fillEllipse: ra, rb must be in [0-499] pixels");
@@ -4693,11 +4696,11 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color,
 
     int32_t mc = yc - rb;
 
-    if (ra != rb) calcEllipse(ra, rb, point);
-    else calcCircle(ra, point);
+    if (ra != rb) calcEllipse(ra, rb, points);
+    else calcCircle(ra, points);
 
-    for (i = 0; i <= rb - 1; i++, mc++) horizLine(xc - point[i], mc, point[i] << 1, color, mode);
-    for (i = rb - 1; i >= 0; i--, mc++) horizLine(xc - point[i], mc, point[i] << 1, color, mode);
+    for (i = 0; i <= rb - 1; i++, mc++) horizLine(xc - points[i], mc, points[i] << 1, color, mode);
+    for (i = rb - 1; i >= 0; i--, mc++) horizLine(xc - points[i], mc, points[i] << 1, color, mode);
 }
 
 //fill polygon using Darel Rex Finley algorithm https://alienryderflex.com/polygon_fill/
@@ -4709,23 +4712,23 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color,
 //pt4[] = {{256, 150}, {148, 347}, {327, 329}, {311, 204}, {401, 204}, {418, 240}, {257, 222}, {293, 365}, {436, 383}, {455, 150}};
 //pt5[] = {{287, 76}, {129, 110}, {42, 301}, {78, 353}, {146, 337}, {199, 162}, {391, 180}, {322, 353}, {321, 198}, {219, 370}, {391, 405}, {444, 232}, {496, 440}, {565, 214}};
 //pt6[] = {{659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523}};
-void fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL*/)
+void fillPolygon(POINT2D* points, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL*/)
 {
     int32_t nodex[MAX_POLY_CORNERS] = { 0 };
     int32_t nodes = 0, y = 0, i = 0, j = 0, swap = 0;
     int32_t left = 0, right = 0, top = 0, bottom = 0;
 
     //initialize clipping
-    left = right = int32_t(point[0].x);
-    top = bottom = int32_t(point[0].y);
+    left = right = int32_t(points[0].x);
+    top = bottom = int32_t(points[0].y);
 
     //clipping points
     for (i = 1; i < num; i++)
     {
-        if (point[i].x < left)      left = int32_t(point[i].x);
-        if (point[i].x > right)     right = int32_t(point[i].x);
-        if (point[i].y < top)       top = int32_t(point[i].y);
-        if (point[i].y > bottom)    bottom = int32_t(point[i].y);
+        if (points[i].x < left)      left = int32_t(points[i].x);
+        if (points[i].x > right)     right = int32_t(points[i].x);
+        if (points[i].y < top)       top = int32_t(points[i].y);
+        if (points[i].y > bottom)    bottom = int32_t(points[i].y);
     }
 
     //loop through the rows of the image
@@ -4738,7 +4741,7 @@ void fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode /* = BL
         for (i = 0; i < num; i++)
         {
             //intercept found, record it
-            if ((point[i].y < y && point[j].y >= y) || (point[j].y < y && point[i].y >= y)) nodex[nodes++] = int32_t(point[i].x + (y - point[i].y) / (point[j].y - point[i].y) * (point[j].x - point[i].x));
+            if ((points[i].y < y && points[j].y >= y) || (points[j].y < y && points[i].y >= y)) nodex[nodes++] = int32_t(points[i].x + (y - points[i].y) / (points[j].y - points[i].y) * (points[j].x - points[i].x));
             if (nodes >= MAX_POLY_CORNERS) return;
             j = i;
         }
@@ -4791,7 +4794,7 @@ void randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, 
         sum += tmp;
     }
 
-    //normalize the steps so that point 0 and point n+1 are the same
+    //normalize the steps so that points 0 and points n+1 are the same
     const double koef = sum / (2 * M_PI);
     for (int32_t i = 0; i < numVerts; i++) angleSteps[i] /= koef;
 
@@ -5184,25 +5187,21 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
 void getImage(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img)
 {
     //calculate new position
-    const int32_t x1 = (x + width) - 1;
-    const int32_t y1 = (y + height) - 1;
+    const int32_t x1 = x + (width - 1);
+    const int32_t y1 = y + (height - 1);
 
     //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
+    const int32_t lx = max(x, cminX);
+    const int32_t ly = max(y, cminY);
+    const int32_t lx1 = min(x1, cmaxX);
+    const int32_t ly1 = min(y1, cmaxY);
 
     //initialize loop variables
     const int32_t lwidth = (lx1 - lx) + 1;
     const int32_t lheight = (ly1 - ly) + 1;
 
     //check for loop
-    if (!lwidth || !lheight) return;
+    if (lwidth <= 0|| lheight <= 0) return;
 
     //none image pointer?
     if (!img->mData)
@@ -5227,33 +5226,12 @@ void getImage(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* im
     getImageNormal(lx, ly, lwidth, lheight, img);
 }
 
-//put GFX image to point (x1, y1)
-void putImageMix(int32_t x, int32_t y, GFX_IMAGE* img)
+//put GFX image to points (x1, y1)
+void putImageMix(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov     edi, drawBuff
@@ -5328,33 +5306,12 @@ void putImageMix(int32_t x, int32_t y, GFX_IMAGE* img)
 #endif
 }
 
-//put GFX image to point (x1, y1)
-void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
+//put GFX image to points (x1, y1)
+void putImageNormal(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov     edi, drawBuff
@@ -5443,35 +5400,11 @@ void putImageNormal(int32_t x, int32_t y, GFX_IMAGE* img)
 }
 
 //put GFX image with add background color
-void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
+void putImageAdd(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //only work with rgb mode
-    if (bitsPerPixel <= 8) return;
-
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov     edi, drawBuff
@@ -5576,32 +5509,11 @@ void putImageAdd(int32_t x, int32_t y, GFX_IMAGE* img)
 }
 
 //put GFX image with sub background color
-void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
+void putImageSub(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov     edi, drawBuff
@@ -5706,32 +5618,11 @@ void putImageSub(int32_t x, int32_t y, GFX_IMAGE* img)
 }
 
 //put GFX image with logical and background color
-void putImageAnd(int32_t x, int32_t y, GFX_IMAGE* img)
+void putImageAnd(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov     edi, drawBuff
@@ -5836,32 +5727,11 @@ void putImageAnd(int32_t x, int32_t y, GFX_IMAGE* img)
 }
 
 //put GFX image with logical xor background color
-void putImageXor(int32_t x, int32_t y, GFX_IMAGE* img)
+void putImageXor(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov     edi, drawBuff
@@ -5966,32 +5836,11 @@ void putImageXor(int32_t x, int32_t y, GFX_IMAGE* img)
 }
 
 //put GFX image with transparent color (must be RGBA format)
-void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
+void putImageAlpha(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
-    const int32_t imgWidth  = img->mWidth;
+    const int32_t imgWidth = img->mWidth;
 
     __asm {
         mov         edi, drawBuff
@@ -6142,10 +5991,27 @@ void putImageAlpha(int32_t x, int32_t y, GFX_IMAGE* img)
 //put GFX image to draw buffer (export function)
 void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
+    //calculate new position
+    const int32_t x1 = x + (img->mWidth - 1);
+    const int32_t y1 = y + (img->mHeight - 1);
+
+    //clip image to context boundaries
+    const int32_t lx = max(x, cminX);
+    const int32_t ly = max(y, cminY);
+    const int32_t lx1 = min(x1, cmaxX);
+    const int32_t ly1 = min(y1, cmaxY);
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (width <= 0 || height <= 0) return;
+
     //mixed mode?
     if (bitsPerPixel == 8)
     {
-        putImageMix(x, y, img);
+        putImageMix(x, y, lx, ly, width, height, img);
         return;
     }
 
@@ -6153,27 +6019,27 @@ void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE
     switch (mode)
     {
     case BLEND_MODE_NORMAL:
-        putImageNormal(x, y, img);
+        putImageNormal(x, y, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_ADD:
-        putImageAdd(x, y, img);
+        putImageAdd(x, y, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_SUB:
-        putImageSub(x, y, img);
+        putImageSub(x, y, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_AND:
-        putImageAnd(x, y, img);
+        putImageAnd(x, y, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_XOR:
-        putImageXor(x, y, img);
+        putImageXor(x, y, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_ALPHA:
-        putImageAlpha(x, y, img);
+        putImageAlpha(x, y, lx, ly, width, height, img);
         break;
 
     default:
@@ -6182,30 +6048,9 @@ void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE
     }
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color)
-void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+//put a sprite at points(x1, y1) with key color (don't render key color)
+void putSpriteMix(const int32_t x, const int32_t y, const uint32_t keyColor, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
     const int32_t imgWidth  = img->mWidth;
@@ -6269,30 +6114,9 @@ void putSpriteMix(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color)
-void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+//put a sprite at points(x1, y1) with key color (don't render key color)
+void putSpriteNormal(const int32_t x, const int32_t y, const uint32_t keyColor, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
@@ -6433,30 +6257,9 @@ void putSpriteNormal(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color), add with background color
-void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+//put a sprite at points(x1, y1) with key color (don't render key color), add with background color
+void putSpriteAdd(const int32_t x, const int32_t y, const uint32_t keyColor, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
@@ -6601,30 +6404,9 @@ void putSpriteAdd(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
-void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+//put a sprite at points(x1, y1) with key color (don't render key color), sub with background color
+void putSpriteSub(const int32_t x, const int32_t y, const uint32_t keyColor, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
@@ -6778,30 +6560,9 @@ void putSpriteSub(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color) and blending color
-void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
+//put a sprite at points(x1, y1) with key color (don't render key color) and blending color
+void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
-    //calculate new position
-    const int32_t x1 = (x + img->mWidth) - 1;
-    const int32_t y1 = (y + img->mHeight) - 1;
-
-    //clip image to context boundaries
-    const int32_t lx = (x >= cminX) ? x : cminX;
-    const int32_t ly = (y >= cminY) ? y : cminY;
-    const int32_t lx1 = (x1 <= cmaxX) ? x1 : cmaxX;
-    const int32_t ly1 = (y1 <= cmaxY) ? y1 : cmaxY;
-
-    //validate boundaries
-    if (lx >= lx1) return;
-    if (ly >= ly1) return;
-
-    //initialize loop variables
-    const int32_t width = (lx1 - lx) + 1;
-    const int32_t height = (ly1 - ly) + 1;
-
-    //check for loop
-    if (!width || !height) return;
-
 #ifdef _USE_ASM
     void* imgData = img->mData;
     const int32_t imgWidth = img->mWidth;
@@ -6976,13 +6737,30 @@ void putSpriteAlpha(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img)
 #endif
 }
 
-//put a sprite at point(x1, y1) with key color (don't render key color), sub with background color
+//put a sprite at points(x1, y1) with key color (don't render key color), sub with background color
 void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
+    //calculate new position
+    const int32_t x1 = x + (img->mWidth - 1);
+    const int32_t y1 = y + (img->mHeight - 1);
+
+    //clip image to context boundaries
+    const int32_t lx = max(x, cminX);
+    const int32_t ly = max(y, cminY);
+    const int32_t lx1 = min(x1, cmaxX);
+    const int32_t ly1 = min(y1, cmaxY);
+
+    //initialize loop variables
+    const int32_t width = (lx1 - lx) + 1;
+    const int32_t height = (ly1 - ly) + 1;
+
+    //check for loop
+    if (width <= 0 || height <= 0) return;
+
     //mixed mode?
     if (bitsPerPixel == 8)
     {
-        putSpriteMix(x, y, keyColor, img);
+        putSpriteMix(x, y, keyColor, lx, ly, width, height, img);
         return;
     }
 
@@ -6990,19 +6768,19 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
     switch (mode)
     {
     case BLEND_MODE_NORMAL:
-        putSpriteNormal(x, y, keyColor, img);
+        putSpriteNormal(x, y, keyColor, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_ADD:
-        putSpriteAdd(x, y, keyColor, img);
+        putSpriteAdd(x, y, keyColor, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_SUB:
-        putSpriteSub(x, y, keyColor, img);
+        putSpriteSub(x, y, keyColor, lx, ly, width, height, img);
         break;
 
     case BLEND_MODE_ALPHA:
-        putSpriteAlpha(x, y, keyColor, img);
+        putSpriteAlpha(x, y, keyColor, lx, ly, width, height, img);
         break;
 
     default:
@@ -7011,7 +6789,7 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
     }
 }
 
-//boundary clip point at (x,y)
+//boundary clip points at (x,y)
 must_inline bool clampPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
 {
     bool ret = true;
@@ -7056,7 +6834,7 @@ must_inline uint32_t clampOffset(const int32_t width, const int32_t height, cons
 must_inline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
 {
     const uint32_t* psrc = (const uint32_t*)img->mData;
-    bool insrc = clampPoint(img->mWidth, img->mHeight, &x, &y);
+    const bool insrc = clampPoint(img->mWidth, img->mHeight, &x, &y);
     uint32_t result = psrc[y * img->mWidth + x];
     if (!insrc)
     {
@@ -7118,9 +6896,63 @@ must_inline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, cons
 //bilinear get pixel with FIXED-POINT (signed 16.16)
 must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
+    const int32_t width = psrc->mWidth;
     const uint32_t* pixel = (uint32_t*)psrc->mData;
-    const uint32_t* pixel0 = &pixel[(sy >> 16) * psrc->mWidth + (sx >> 16)];
-    const uint32_t* pixel1 = &pixel0[psrc->mWidth];
+
+#ifdef _USE_ASM
+    __asm {
+        mov         eax, sx
+        mov         edx, sy
+        pxor        mm7, mm7
+        shl         edx, 16
+        shl         eax, 16
+        shr         edx, 24
+        shr         eax, 24
+        movd        mm6, edx
+        movd        mm5, eax
+        mov         edx, sy
+        mov         eax, width
+        shl         eax, 2
+        sar         edx, 16
+        imul        edx, eax
+        add         edx, pixel
+        add         eax, edx
+        mov         ecx, sx
+        sar         ecx, 16
+        movd        mm2, dword ptr[eax + ecx * 4]
+        movd        mm0, dword ptr[eax + ecx * 4 + 4]
+        punpcklwd   mm5, mm5
+        punpcklwd   mm6, mm6
+        movd        mm3, dword ptr[edx + ecx * 4]
+        movd        mm1, dword ptr[edx + ecx * 4 + 4]
+        punpckldq   mm5, mm5
+        punpcklbw   mm0, mm7
+        punpcklbw   mm1, mm7
+        punpcklbw   mm2, mm7
+        punpcklbw   mm3, mm7
+        psubw       mm0, mm2
+        psubw       mm1, mm3
+        psllw       mm2, 8
+        psllw       mm3, 8
+        pmullw      mm0, mm5
+        pmullw      mm1, mm5
+        punpckldq   mm6, mm6
+        paddw       mm0, mm2
+        paddw       mm1, mm3
+        psrlw       mm0, 8
+        psrlw       mm1, 8
+        psubw       mm0, mm1
+        psllw       mm1, 8
+        pmullw      mm0, mm6
+        paddw       mm0, mm1
+        psrlw       mm0, 8
+        packuswb    mm0, mm7
+        movd        eax, mm0
+        emms
+    }
+#else
+    const uint32_t* pixel0 = &pixel[(sy >> 16) * width + (sx >> 16)];
+    const uint32_t* pixel1 = &pixel0[width];
 
     const uint8_t pu = sx >> 8;
     const uint8_t pv = sy >> 8;
@@ -7165,12 +6997,13 @@ must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t
     weight = _mm_packus_epi32(weight, zero);
     weight = _mm_packus_epi16(weight, zero);
     return _mm_cvtsi128_si32(weight);
+#endif
 }
 
 //bilinear get pixel with FIXED-POINT (signed 16.16)
 must_inline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
-    //convert to fixed point
+    //convert to fixed points
     const int32_t lx = sx >> 16;
     const int32_t ly = sy >> 16;
 
@@ -7193,7 +7026,7 @@ must_inline uint32_t bilinearGetPixelBorder(const GFX_IMAGE* psrc, const int32_t
 //general optimize version, fast speed
 must_inline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
-    //convert to fixed point
+    //convert to fixed points
     const int32_t lx = sx >> 16;
     const int32_t ly = sy >> 16;
     const uint8_t u = (sx & 0xffff) >> 8;
@@ -7273,7 +7106,7 @@ must_inline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double x,
     __m128i rg = _mm_unpacklo_epi8(p12, _mm_setzero_si128());
     __m128i ba = _mm_unpackhi_epi8(p12, _mm_setzero_si128());
 
-    //convert floating point weights to 16bits integer w4 w3 w2 w1
+    //convert floating points weights to 16bits integer w4 w3 w2 w1
     __m128i weight = _mm256_cvtpd_epi32(calcWeights(x, y));
 
     //make 32bit -> 2 x 16bits
@@ -7397,7 +7230,7 @@ must_inline uint32_t bicubicGetPixel(const GFX_IMAGE* img, const double sx, cons
     return dst;
 }
 
-//this calculate pixel with boundary so quite slowly (using fixed point)
+//this calculate pixel with boundary so quite slowly (using fixed points)
 must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *sintab, const int32_t sx, const int32_t sy)
 {
     //peek offset at (px,py)
@@ -7555,7 +7388,7 @@ must_inline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *
 //because of several simplifications of the algorithm,
 //the zoom range is restricted between 0.5 and 2. That
 //is: dstwidth must be >= srcwidth/2 and <= 2*srcwidth.
-//smooth is used to calculate average pixel and mid-point
+//smooth is used to calculate average pixel and mid-points
 void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t type)
 {
     if (type == INTERPOLATION_TYPE_SMOOTH)
@@ -8047,7 +7880,7 @@ void scaleImageNormal(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t mode)
 #endif
 }
 
-//nearest neighbor image scaling (using fixed-point)
+//nearest neighbor image scaling (using fixed-points)
 void nearestScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
@@ -8072,7 +7905,7 @@ void nearestScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//average pixels (smooth) image scaling (using fixed-point)
+//average pixels (smooth) image scaling (using fixed-points)
 void smoothScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
@@ -8096,7 +7929,7 @@ void smoothScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     }
 }
 
-//bilinear scale image with fixed-point
+//bilinear scale image with fixed-points
 void bilinearScaleImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 {
     //mapping pointer
@@ -8162,9 +7995,9 @@ void bilinearScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     for (int32_t y = starty; y < endy; y++, srcy += scaley)
     {
         int32_t srcx = errorx;
-        for (int32_t x = 0; x < startx; x++, srcx += scalex) *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
+        for (int32_t x = 0; x < startx; x++, srcx += scalex)    *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
         for (int32_t x = startx; x < endx; x++, srcx += scalex) *pdst++ = bilinearGetPixelCenter(src, srcx, srcy);
-        for (int32_t x = endx; x < dstw; x++, srcx += scalex) *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
+        for (int32_t x = endx; x < dstw; x++, srcx += scalex)   *pdst++ = bilinearGetPixelBorder(src, srcx, srcy);
     }
 
     for (int32_t y = endy; y < dsth; y++, srcy += scaley)
@@ -8254,7 +8087,7 @@ void bicubicScaleImage(const GFX_IMAGE* dst, const GFX_IMAGE* src)
 //maximize optimized version (extremely fast)
 //the tricks we're used:
 //1. lookup table
-//2. fixed-point
+//2. fixed-points
 //3. SSE2 instructions
 //4. separate calculate pixels (inbound and outbound)
 void bicubicScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
@@ -8295,9 +8128,9 @@ void bicubicScaleImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src)
     for (int32_t y = sy; y < ey; y++, srcy += addy)
     {
         int32_t srcx = errorx;
-        for (int32_t x = 0; x < sx; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
-        for (int32_t x = sx; x < ex; x++, srcx += addx) *pdst++ = bicubicGetPixelCenter(src, stable, srcx, srcy);
-        for (int32_t x = ex; x < dstw; x++, srcx += addx) *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
+        for (int32_t x = 0; x < sx; x++, srcx += addx)      *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
+        for (int32_t x = sx; x < ex; x++, srcx += addx)     *pdst++ = bicubicGetPixelCenter(src, stable, srcx, srcy);
+        for (int32_t x = ex; x < dstw; x++, srcx += addx)   *pdst++ = bicubicGetPixelBorder(src, stable, srcx, srcy);
     }
 
     for (int32_t y = ey; y < dsth; y++, srcy += addy)
@@ -8524,31 +8357,17 @@ void bilinearRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const 
 
 //bilinear rotate scan line (sub-routine of full optimize version)
 //improve smooth border when rotating will make image look better
-void bilinearRotateLine(uint32_t* pdst, int32_t boundx0, int32_t inx0, int32_t inx1, int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, int32_t addx, int32_t addy)
+void bilinearRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0, const int32_t inx1, const int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, const int32_t addx, const int32_t addy)
 {
     int32_t x = 0;
-
-    //left border process
-    for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)
-    {
-        const uint32_t color = bilinearGetPixelBorder(psrc, sx, sy);
-        pdst[x] = alphaBlend(pdst[x], color);
-    }
-
-    //center process
-    for (x = inx0; x < inx1; x++, sx += addx, sy += addy) pdst[x] = bilinearGetPixelCenter(psrc, sx, sy);
-
-    //right border process
-    for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)
-    {
-        const uint32_t color = bilinearGetPixelBorder(psrc, sx, sy);
-        pdst[x] = alphaBlend(pdst[x], color);
-    }
+    for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)    pdst[x] = alphaBlend(pdst[x], bilinearGetPixelBorder(psrc, sx, sy));
+    for (x = inx0; x < inx1; x++, sx += addx, sy += addy)       pdst[x] = bilinearGetPixelCenter(psrc, sx, sy);
+    for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)    pdst[x] = alphaBlend(pdst[x], bilinearGetPixelBorder(psrc, sx, sy));
 }
 
 //maximize optimize version (extremely fast)
 //use sticks:
-//1. fixed-point
+//1. fixed-points
 //2. separate inbound and outbound pixel calculation
 //3. SSE2 instructions
 //4. clipping data
@@ -8560,8 +8379,8 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
 
     double sina = 0, cosa = 0;
     sincos(-(angle * M_PI) / 180, &sina, &cosa);
-    const int32_t sini = fround(sina * 65536); //convert to fixed point (no truncated)
-    const int32_t cosi = fround(cosa * 65536); //convert to fixed point (no truncated)
+    const int32_t sini = fround(sina * 65536); //convert to fixed points (no truncated)
+    const int32_t cosi = fround(cosa * 65536); //convert to fixed points (no truncated)
 
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
@@ -8577,10 +8396,10 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
 
     const int32_t dcx = dstw >> 1;
     const int32_t dcy = dsth >> 1;
-    const int32_t scx = srcw << 15; //(srcw >> 1) << 16 convert to fixed point
-    const int32_t scy = srch << 15; //(srch >> 1) << 16 convert to fixed point
+    const int32_t scx = srcw << 15; //(srcw >> 1) << 16 convert to fixed points
+    const int32_t scy = srch << 15; //(srch >> 1) << 16 convert to fixed points
 
-    //rotation point
+    //rotation points
     const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
     const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
 
@@ -8657,7 +8476,7 @@ void bicubicRotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double
 
 //single optimize version
 //sticks used:
-//1. fixed-point
+//1. fixed-points
 //2. lookup table
 void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double angle, const double scalex, const double scaley)
 {
@@ -8706,28 +8525,16 @@ void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
 void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0, const int32_t inx1, const int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, const int32_t addx, const int32_t addy, const int16_t* stable)
 {
     int32_t x = 0;
+    uint32_t color = 0;
 
-    //outbound process
-    for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)
-    {
-        const uint32_t color = bicubicGetPixelBorder(psrc, stable, sx, sy);
-        pdst[x] = alphaBlend(pdst[x], color);
-    }
-
-    //inbound process
-    for (x = inx0; x < inx1; x++, sx += addx, sy += addy) pdst[x] = bicubicGetPixelCenter(psrc, stable, sx, sy);
-
-    //outbound process
-    for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)
-    {
-        const uint32_t color = bicubicGetPixelBorder(psrc, stable, sx, sy);
-        pdst[x] = alphaBlend(pdst[x], color);
-    }
+    for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)    pdst[x] = alphaBlend(pdst[x], bicubicGetPixelBorder(psrc, stable, sx, sy));
+    for (x = inx0; x < inx1; x++, sx += addx, sy += addy)       pdst[x] = bicubicGetPixelCenter(psrc, stable, sx, sy);
+    for (x = inx1; x < boundx1; x++, sx += addx, sy += addy)    pdst[x] = alphaBlend(pdst[x], bicubicGetPixelBorder(psrc, stable, sx, sy));
 }
 
 //maximize optimize version (extremely fast)
 //use sticks:
-//1. fixed-point
+//1. fixed-points
 //2. separate get pixel inbound and outbound of source image
 //3. SSE2 instructions
 //4. lookup table
@@ -8740,8 +8547,8 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
 
     double sina = 0, cosa = 0;
     sincos(-(angle * M_PI) / 180, &sina, &cosa);
-    const int32_t sini = fround(sina * 65536); //convert to fixed point (no truncated)
-    const int32_t cosi = fround(cosa * 65536); //convert to fixed point (no truncated)
+    const int32_t sini = fround(sina * 65536); //convert to fixed points (no truncated)
+    const int32_t cosi = fround(cosa * 65536); //convert to fixed points (no truncated)
 
     const int32_t srcw = src->mWidth;
     const int32_t srch = src->mHeight;
@@ -8757,10 +8564,10 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
 
     const int32_t dcx = dstw >> 1;
     const int32_t dcy = dsth >> 1;
-    const int32_t scx = srcw << 15; //(srcw >> 1) << 16 convert to fixed point
-    const int32_t scy = srch << 15; //(srch >> 1) << 16 convert to fixed point
+    const int32_t scx = srcw << 15; //(srcw >> 1) << 16 convert to fixed points
+    const int32_t scy = srch << 15; //(srch >> 1) << 16 convert to fixed points
 
-    //rotation point
+    //rotation points
     const int32_t cx = scx - int32_t(dcx * rscalex * cosi - dcy * rscaley * sini);
     const int32_t cy = scy - int32_t(dcx * rscalex * sini + dcy * rscaley * cosi); 
 
@@ -8894,7 +8701,7 @@ void initProjection(double theta, double phi, double de, double rho /* = 0 */)
     RHO = rho;
 }
 
-//projection point (x,y,z)
+//projection points (x,y,z)
 void projette(double x, double y, double z, double *px, double *py)
 {
     const double obsX = -x * aux1 + y * aux3;
