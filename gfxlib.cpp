@@ -325,7 +325,7 @@ void sleepFor(uint32_t tmwait)
     int32_t done = 0;
     const uint32_t tmstart = getTime();
 
-    while (getElapsedTime(tmstart) < tmwait && !done)
+    while (!done && getElapsedTime(tmstart) < tmwait)
     {
         SDL_PollEvent(&sdlEvent);
         if (sdlEvent.type == SDL_QUIT) quit();
@@ -6954,8 +6954,8 @@ must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t
     const uint32_t* pixel0 = &pixel[(sy >> 16) * width + (sx >> 16)];
     const uint32_t* pixel1 = &pixel0[width];
 
-    const uint8_t pu = sx >> 8;
-    const uint8_t pv = sy >> 8;
+    const uint32_t pu = uint8_t(sx >> 8);
+    const uint32_t pv = uint8_t(sy >> 8);
     const uint32_t w3 = (pu * pv) >> 8;
     const uint32_t w2 = pu - w3;
     const uint32_t w1 = pv - w3;
@@ -7029,8 +7029,8 @@ must_inline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t 
     //convert to fixed points
     const int32_t lx = sx >> 16;
     const int32_t ly = sy >> 16;
-    const uint8_t u = (sx & 0xffff) >> 8;
-    const uint8_t v = (sy & 0xffff) >> 8;
+    const uint32_t u = uint8_t((sx & 0xffff) >> 8);
+    const uint32_t v = uint8_t((sy & 0xffff) >> 8);
 
     //load the 4 neighboring pixels
     const uint32_t p0 = clampPixels(psrc, lx    , ly    );
@@ -7044,13 +7044,13 @@ must_inline uint32_t bilinearGetPixelFixed(const GFX_IMAGE* psrc, const int32_t 
     const uint32_t w1 = v - w3;
     const uint32_t w0 = 256 - w1 - w2 - w3;
 
-    uint32_t rb = (p0 & 0x00ff00ff) * w0;
+    uint32_t rb = ( p0 & 0x00ff00ff) * w0;
     uint32_t ag = ((p0 & 0xff00ff00) >> 8) * w0;
-    rb += (p1 & 0x00ff00ff) * w2;
+    rb += ( p1 & 0x00ff00ff) * w2;
     ag += ((p1 & 0xff00ff00) >> 8) * w2;
-    rb += (p2 & 0x00ff00ff) * w1;
+    rb += ( p2 & 0x00ff00ff) * w1;
     ag += ((p2 & 0xff00ff00) >> 8) * w1;
-    rb += (p3 & 0x00ff00ff) * w3;
+    rb += ( p3 & 0x00ff00ff) * w3;
     ag += ((p3 & 0xff00ff00) >> 8) * w3;
     return (ag & 0xff00ff00) | ((rb & 0xff00ff00) >> 8);
 }
@@ -7259,7 +7259,7 @@ must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *s
     const uint8_t *p33 = (const uint8_t*)&psrc[clampOffset(width, height, px + 2, py + 2)];
 
     //4 pixels weights
-    const uint8_t u = sx >> 8, v = sy >> 8;
+    const int32_t u = uint8_t(sx >> 8), v = uint8_t(sy >> 8);
     const int32_t u0 = sintab[256 + u], u1 = sintab[u];
     const int32_t u2 = sintab[256 - u], u3 = sintab[512 - u];
     const int32_t v0 = sintab[256 + v], v1 = sintab[v];
@@ -7284,12 +7284,12 @@ must_inline uint32_t bicubicGetPixelFixed(const GFX_IMAGE* img, const int16_t *s
 //fast calculate pixel at center, don't care boundary
 must_inline uint32_t bicubicGetPixelCenter(const GFX_IMAGE* img, const int16_t* stable, const int32_t sx, const int32_t sy)
 {
-    const uint8_t px = sx >> 8, py = sy >> 8;
-    const int16_t u0 = stable[256 + px], u1 = stable[px];
-    const int16_t u2 = stable[256 - px], u3 = stable[512 - px];
+    const int32_t pu = uint8_t(sx >> 8), pv = uint8_t(sy >> 8);
+    const int16_t u0 = stable[256 + pu], u1 = stable[pu];
+    const int16_t u2 = stable[256 - pu], u3 = stable[512 - pu];
 
     const __m128i xpart = _mm_setr_epi16(u0, u1, u2, u3, u0, u1, u2, u3); //U0 U1 U2 U3 U0 U1 U2 U3
-    const __m128i ypart = _mm_setr_epi32(stable[256 + py], stable[py], stable[256 - py], stable[512 - py]);
+    const __m128i ypart = _mm_setr_epi32(stable[256 + pv], stable[pv], stable[256 - pv], stable[512 - pv]);
 
     const uint32_t* psrc = (const uint32_t*)img->mData;
     const uint32_t *pixel0 = (const uint32_t*)&psrc[((sy >> 16) - 1) * img->mWidth + ((sx >> 16) - 1)];

@@ -229,15 +229,14 @@ void runBlocking(int32_t sx, int32_t sy)
 
     //blocking background
     int32_t dec = fade1.mWidth >> 2;
-    while (dec > 0 && !finished(SDL_SCANCODE_RETURN))
-    {
+    do {
         dec--;
         blockOutMidImage(&img2, &fade1, dec << 1, dec << 1);
         brightnessImage(&img2, &img2, uint8_t(255.0 - double(dec) / (fade1.mWidth >> 2) * 255.0));
         putImage(sx, sy, &img2);
         render();
         delay(FPS_60);
-    };
+    } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
 
     //save current background
     const int32_t width  = fade1.mWidth;
@@ -260,8 +259,7 @@ void runBlocking(int32_t sx, int32_t sy)
 
     //blocking next step
     dec = img1.mWidth >> 3;
-    while (dec > 0 && !finished(SDL_SCANCODE_RETURN)) 
-    {
+    do {
         dec--;
         blockOutMidImage(&img2, &img1, dec << 1, dec << 1);
         brightnessAlpha(&img2, uint8_t(255.0 - double(dec) / (img1.mWidth >> 3) * 255.0));
@@ -269,7 +267,7 @@ void runBlocking(int32_t sx, int32_t sy)
         putImage(sx + posx, sy + posy, &img2, BLEND_MODE_ALPHA);
         render();
         delay(FPS_60);
-    }
+    } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&img1);
@@ -298,8 +296,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
     const uint32_t rcolor = rgb(0, 255, 200);
 
     //loop until enter key pressed
-    while (!finished(SDL_SCANCODE_RETURN))
-    {
+    do {
         //redirect render buffer to image buffer
         changeDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
 
@@ -319,7 +316,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
         //save current buffer for next step
         memcpy(img1.mData, img2.mData, img2.mSize);
-    }
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&img1);
@@ -337,8 +334,7 @@ void runCrossFade(int32_t sx, int32_t sy)
     if (!newImage(fade1.mWidth, fade1.mHeight, &img)) return;
 
     //loop until key enter pressed
-    while (!finished(SDL_SCANCODE_RETURN)) 
-    {
+    do {
         //check blending value
         if (i == 0) val = 1;
         else val = (i << 2) - 1;
@@ -352,7 +348,7 @@ void runCrossFade(int32_t sx, int32_t sy)
         //check for change direction
         if (up) i++; else i--;
         if (i == 0 || i == 64) up = !up;
-    }
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&img);
@@ -364,8 +360,7 @@ void runAddImage(int32_t sx, int32_t sy)
     if (!newImage(fade1.mWidth, fade1.mHeight, &img)) return;
 
     int32_t step = 320;
-    while (step > 4 && !finished(SDL_SCANCODE_RETURN))
-    {
+    do {
         //put lens image with adding background pixel
         step -= 4;
         changeDrawBuffer(img.mData, img.mWidth, img.mHeight);
@@ -376,7 +371,7 @@ void runAddImage(int32_t sx, int32_t sy)
         render();
         delay(FPS_90);
         clearImage(&img);
-    }
+    } while (step > 0 && !finished(SDL_SCANCODE_RETURN));
 }
 
 void runRotateImage(int32_t sx, int32_t sy)
@@ -395,23 +390,20 @@ void runRotateImage(int32_t sx, int32_t sy)
     }
 
     //loop step
-    uint32_t deg = 0;
+    uint32_t degree = 0;
 
     //loop until return
-    while (!finished(SDL_SCANCODE_RETURN))
-    {
-        //first step
-        deg++;
-
+    do {
         //copy background
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
         //rotate buffer
-        rotateImage(&img, &fade2, tables, fade2.mWidth >> 1, fade2.mHeight >> 1, deg % 360, 1);
+        rotateImage(&img, &fade2, tables, fade2.mWidth >> 1, fade2.mHeight >> 1, degree % 360, 1);
         putImage(sx, sy, &img);
         render();
         delay(FPS_90);
-    }
+        degree++;
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&img);
@@ -429,11 +421,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
     int32_t degree = 0;
 
     //loop until return
-    while (!finished(SDL_SCANCODE_RETURN))
-    {
-        //first step
-        degree++;
-
+    do {
         //copy background
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
@@ -442,7 +430,8 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         putImage(sx, sy, &img);
         render();
         delay(FPS_90);
-    }
+        degree++;
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&img);
@@ -460,8 +449,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
     if (!newImage(midx, midy, &dst)) return;
 
     //loop until return
-    while (!finished(SDL_SCANCODE_RETURN))
-    {
+    do {
         //redirect drawing to image buffer
         changeDrawBuffer(dst.mData, dst.mWidth, dst.mHeight);
 
@@ -489,7 +477,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
         fadeOutImage(&dst, 4);
         render();
         delay(FPS_90);
-    }
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&img);
@@ -560,7 +548,6 @@ void runLensFlare(GFX_IMAGE* outImg)
 
         //report FPS counter
         writeText(1, 1, RGB_WHITE, 0, "FPS:%.2f", 1.0 / ((time - oldTime) / 1000.0));
-
         render();
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
@@ -586,11 +573,7 @@ void runBumpImage()
 
     //loop until return
     int32_t cnt = 0;
-    while (!finished(SDL_SCANCODE_RETURN)) 
-    {
-        //first step
-        cnt++;
-
+    do {
         //calculate position
         const int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + centerX);
         const int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + centerY);
@@ -601,7 +584,8 @@ void runBumpImage()
         render();
         delay(FPS_90);
         clearImage(&dst);
-    }
+        cnt++;
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
     freeImage(&dst);
@@ -623,8 +607,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     const uint16_t endx = plasma.mWidth >> 1;
 
     //loop until return
-    while (!finished(SDL_SCANCODE_RETURN))
-    {
+    do {
         uint32_t ofs = 0;
         const uint32_t tectr = frames * 10;
         const uint16_t x1 = sina[(tectr / 12) & 0xff];
@@ -729,7 +712,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         render();
         delay(FPS_90);
         frames++;
-    }
+    } while (!finished(SDL_SCANCODE_RETURN));
 
     //clean up...
     freeImage(&plasma);
@@ -822,7 +805,6 @@ void gfxDemo()
     showText(tx, yc, &txt, "GFXLIB. What you'll see here are just a few of the");
     showText(tx, yc, &txt, "image manipulation effects that are currently");
     showText(tx, yc, &txt, "available. There will be more to show you later...");
-    delay(1000);
     showText(tx, yc, &txt, "Starting...");
     runBlocking(alignedSize(20), 20);
 
