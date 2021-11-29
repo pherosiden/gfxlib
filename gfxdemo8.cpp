@@ -1279,7 +1279,7 @@ void resetParameters()
     resetProjection();
 }
 
-void getPixelChar()
+void setPixelChar()
 {
     const GFX_FONT* font = getFont();
     memset(chrPixels, 0, sizeof(chrPixels));
@@ -1928,7 +1928,7 @@ void gfxDemoMix()
 
     clearScreen();
     setPalette(pal2);
-    getPixelChar();
+    setPixelChar();
     makeFont(msgBanner);
     writeText(centerX - (getFontWidth(msgBanner) >> 1), cmaxY - getFontHeight(msgBanner) - 2, 40, 1, msgBanner);
     makeFont(msgScroll);
