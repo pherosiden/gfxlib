@@ -1947,7 +1947,6 @@ void fillRectMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
             for (int32_t j = 0; j < remainder; j++) *dstPixels++ = color;
         }
 
-
         //next lines
         if (addOffset > 0) dstPixels += addOffset;
     }
