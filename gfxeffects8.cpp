@@ -14709,7 +14709,7 @@ namespace winterEffect {
 
     typedef struct {
         int16_t x, y;
-        int16_t u, v;
+        int16_t w, h;
     } TFlakes;
 
     TFlakes     flakes[FLAKES] = { 0 };
@@ -14751,18 +14751,18 @@ namespace winterEffect {
             pos += rad;
             flakes[i].y = (((rad & 0xff) * FASTEST) & 0xff) + 5;
             flakes[i].x = (((rad & 0x0f) * flakes[i].y) & 0xff) + 1;
-            flakes[i].v = pos % IMAGE_WIDTH;
-            flakes[i].u = pos % IMAGE_HEIGHT;
+            flakes[i].w = pos % IMAGE_WIDTH;
+            flakes[i].h = pos / IMAGE_HEIGHT;
         }
 
         do {
             for (i = 0; i < FLAKES; i++)
             {
                 perturb();
-                vmem[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH] = vbuff[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH];
-                if (flakes[i].x >= (rad & 0x0f)) flakes[i].v++;
-                if (flakes[i].y >= (rad & 0xff)) flakes[i].u++;
-                vmem[flakes[i].u % IMAGE_HEIGHT][flakes[i].v % IMAGE_WIDTH] = (flakes[i].y >> 5) + 240;
+                vmem[flakes[i].h % IMAGE_HEIGHT][flakes[i].w % IMAGE_WIDTH] = vbuff[flakes[i].h % IMAGE_HEIGHT][flakes[i].w % IMAGE_WIDTH];
+                if (flakes[i].x >= (rad & 0x0f)) flakes[i].w++;
+                if (flakes[i].y >= (rad & 0xff)) flakes[i].h++;
+                vmem[flakes[i].h % IMAGE_HEIGHT][flakes[i].w % IMAGE_WIDTH] = (flakes[i].y >> 5) + 240;
             }
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
@@ -14860,7 +14860,6 @@ namespace rayCastingEffect {
             inc     cx
             cmp     cx, word ptr hph
             jnz     cycl0
-
             mov     ax, IMAGE_HEIGHT
             cmp     ax, word ptr hph
             je      done
