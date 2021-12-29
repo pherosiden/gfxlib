@@ -7586,7 +7586,7 @@ namespace fireworkEffect {
             if (!arrows[i]) messageBox(GFX_ERROR, "Not enough memory!");
             newArrow(arrows[i]);
         }
-                
+
         do {
             cnt += arrowsPerFrame;
             for (i = 0; i < NUM_ARROWS; i++) handleArrow(arrows[i]);
