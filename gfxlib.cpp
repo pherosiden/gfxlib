@@ -6866,8 +6866,8 @@ must_inline uint32_t alphaBlend(const uint32_t dstCol, const uint32_t srcCol)
         emms
     }
 #else
-    const uint32_t cover = srcCol >> 24;
-    const uint32_t rcover = 255 - cover;
+    const uint8_t cover = srcCol >> 24;
+    const uint8_t rcover = 255 - cover;
     const uint32_t rb = ((dstCol & 0x00ff00ff) * rcover + (srcCol & 0x00ff00ff) * cover);
     const uint32_t ag = (((dstCol & 0xff00ff00) >> 8) * rcover + ((srcCol & 0xff00ff00) >> 8) * cover);
     return ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
@@ -11596,7 +11596,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     //have unaligned bytes
     if (remainder > 0)
     {
-        uint32_t rcover = 255 - cover;
+        uint8_t rcover = 255 - cover;
         for (int32_t i = 0; i < remainder; i++)
         {
             const uint32_t src = *psrc1;

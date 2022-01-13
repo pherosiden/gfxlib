@@ -162,9 +162,9 @@ namespace bumpMap {
             {
                 for (int16_t j = 0; j < SIZE_256; j++)
                 {
-                    const double nx = (i - 128.0) / 128;
-                    const double ny = (j - 128.0) / 128;
-                    double nz = 1 - sqrt(nx * nx + ny * ny);
+                    const double nx = (i - 128.0) / 128.0;
+                    const double ny = (j - 128.0) / 128.0;
+                    double nz = 1.0 - sqrt(nx * nx + ny * ny);
                     if (nz < 0) nz = 0;
                     dbuff[i][j] = uint8_t(nz * 128);
                 }
@@ -4675,7 +4675,6 @@ namespace intro16k {
         {
             for (int16_t j = 0; j < 3; j++)
             {
-                m3[i][j] = 0;
                 for (int16_t k = 0; k < 3; k++) m3[i][j] += m1[i][k] * m2[k][j];
             }
         }
@@ -4755,7 +4754,7 @@ namespace intro16k {
         if (v1 != p2 && v2 != p2) v3 = p2;
         if (v1 != p3 && v2 != p3) v3 = p3;
 
-        int16_t y1  = scenes[v1].y;
+        int16_t y1 = scenes[v1].y;
         const int16_t vc1 = scenes[v1].color;
         const int16_t vc2 = scenes[v2].color;
         const int16_t vc3 = scenes[v3].color;
@@ -5020,18 +5019,13 @@ namespace intro16k {
             outrgb[i].b = col;
         }
 
-        for (i = 0; i < 256; i++)
-        {
-            setrgb[i].r = outrgb[i].r;
-            setrgb[i].g = outrgb[i].g;
-            setrgb[i].b = outrgb[i].b;
-        }
+        memcpy(setrgb, outrgb, 768);
 #endif
         shiftPalette(setrgb);
         setPalette(setrgb);
     }
 
-    void turnelBlur()
+    void tunnelBlur()
     {
 #ifdef _USE_ASM
         _asm {
@@ -5279,15 +5273,9 @@ namespace intro16k {
 #endif
     }
 
-    void initialize()
+    void initBlobs()
     {
-        int16_t i = 0;
-        const int16_t dirTab[][2] = { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1} };
-
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "16K-Intro")) return;
-        initSintab();
-
-        int16_t j = 0;
+        int16_t i, j = 0;
         for (i = 0; i < 4096; i++)
         {
             if (j * j < i) j++;
@@ -5298,14 +5286,21 @@ namespace intro16k {
         {
             for (j = 0; j < 128; j++) blobs[i][j] = uint8_t(range(32 - sqrTab[range((64 - i) * (64 - i) + (64 - j) * (64 - j), 0, 4095)], 0, 32));
         }
+    }
 
-        for (i = 1; i <= 25; i++)
+    void initTextures()
+    {
+        const int16_t dirTab[][2] = { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1} };
+
+        memset(texture, 0, sizeof(texture));
+
+        for (int16_t i = 1; i <= 25; i++)
         {
             int16_t x = random(256);
             int16_t y = random(256);
             int16_t c = random(8);
 
-            for (j = 1; j <= 2000; j++)
+            for (int16_t j = 1; j <= 2000; j++)
             {
                 const int16_t col = (x >> 1) & 127;
                 const int16_t row = (y >> 1) & 127;
@@ -5315,7 +5310,10 @@ namespace intro16k {
                 if (!(j & 1)) c = (c + random(3) - 1) & 7;
             }
         }
+    }
 
+    void initFonts()
+    {
         FILE* fp = fopen("assets/wirefont.fnt", "rb");
         if (!fp)
         {
@@ -5327,7 +5325,17 @@ namespace intro16k {
         fclose(fp);
     }
 
-    void makeTurnel()
+    void initialize()
+    {
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "16K-Intro")) return;
+        
+        initSintab();
+        initBlobs();
+        initTextures();
+        initFonts();
+    }
+
+    void makeTunnel()
     {
 #ifdef _USE_ASM
         _asm {
@@ -5428,8 +5436,8 @@ namespace intro16k {
                 vbuff[y + 1][x + 1] = 240;
             }
 
-            makeTurnel();
-            turnelBlur();
+            makeTunnel();
+            tunnelBlur();
             memcpy(vmem, vbuff, IMAGE_SIZE);
 
             switch (frames / 120)
@@ -5533,11 +5541,11 @@ namespace intro16k {
         memset(vbuff, 0, IMAGE_SIZE);
         drawScene(38, 18, IMAGE_MIDX, IMAGE_MIDY);
 
-        for (i = 0; i < 4; i++) turnelBlur();
+        for (i = 0; i < 4; i++) tunnelBlur();
         drawScene(38, 18, IMAGE_MIDX, IMAGE_MIDY);
 
-        turnelBlur();
-        turnelBlur();
+        tunnelBlur();
+        tunnelBlur();
 
         for (i = 0; i < IMAGE_HEIGHT; i++)
         {
@@ -5920,7 +5928,7 @@ namespace intro16k {
                 printString(1, "DJ MoHaX", 170, 172, 0, 224, 0);
             }
 
-            turnelBlur();
+            tunnelBlur();
             flipBuffer();
             delay(FPS_90);
             frames++;
