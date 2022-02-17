@@ -8531,7 +8531,7 @@ namespace fireEffect8 {
             for (j = 1; j < MAX_WIDTH; j++)
             {
                 if (rdx >= 19200) rdx = 0;
-                if (randomize[rdx] == 1) vbuff[i][j] = 255;
+                if (randomize[rdx] == 1) vbuff[i][j] = 0;
                 rdx++;
             }
         }
@@ -8559,8 +8559,12 @@ namespace fireEffect8 {
         int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
+        memset(vbuff, 0, IMAGE_SIZE);
+        memset(sinus, 0, 1000);
+        memset(randomize, 0, 19200);
 
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
+        
         for (i = 0; i < 1000; i++)
         {
             sinus[i] = sin(i * 0.00628318530718);
@@ -8604,7 +8608,7 @@ namespace fireEffect8 {
 
         for (i = 1; i < MAX_HEIGHT; i++)
         {
-            for (j = 1; j < MAX_WIDTH; j++) vbuff[i][j] = uint8_t(random(254));
+            for (j = 1; j < MAX_WIDTH; j++) vbuff[i][j] = 0;
         }
 
         do {
@@ -8677,7 +8681,7 @@ namespace holeEffect1 {
                     xx = (circles[x][y] + sinx[(y << 3) + i]) - (y << 2);
                     yy = (circles[x + 22][y] + siny[i + 89 + (y << 2)]) - (y << 2);
 
-                    if (xx > 0 && xx < 319 && yy > 0 && yy < 199)
+                    if (xx >= 0 && xx <= 319 && yy >= 0 && yy <= 199)
                     {
                         vmem[yy][xx] = uint8_t(y);
                         xpts[x][y] = xx;
@@ -8764,7 +8768,7 @@ namespace holeEffect2 {
             do {
                 i = 0;
                 do {
-                    drawPoint(cosx[(x + (200 - j)) % 256], sinx[(y + (200 - j)) % 256], j, i, col);
+                    drawPoint(cosx[(x + (200 - j)) & 0xff], sinx[(y + (200 - j)) & 0xff], j, i, col);
                     i += INCANG;
                 } while (i < 360);
 
@@ -8778,8 +8782,8 @@ namespace holeEffect2 {
                 }
             } while (j < 220);
 
-            x = XMOV + (x % 256);
-            y = YMOV + (y % 256);
+            x = XMOV + (x & 0xff);
+            y = YMOV + (y & 0xff);
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
@@ -9275,8 +9279,8 @@ namespace holeEffect3 {
                 ring++;
             }
 
-            x = XST + (x % 256);
-            y = YST + (y % 256);
+            x = XST + (x & 0xff);
+            y = YST + (y & 0xff);
 
             memset(vbuff, 0, IMAGE_SIZE);
             drawHole(art);

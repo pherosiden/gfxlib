@@ -316,7 +316,7 @@ void fireDemo2()
     cleanup();
 }
 
-///////////////////////////////RAY CASTING/////////////////////////////////
+/*=============================RAY CASTING===================================*/
 
 #define TEXTURE_WIDTH		64
 #define TEXTURE_HEIGHT		64
@@ -1966,11 +1966,11 @@ void imageFillter()
     cleanup();
 }
 
-//=================================================================================//
-//                     RAY CASTING WITH SHADER EFFECT                              //
-// Reference: https://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/  //
-// Rewrite to C/C++ by pherosiden@gmail.com                                        //
-//=================================================================================//
+/*=================================================================================*/
+/*                     RAY CASTING WITH SHADER EFFECT                              */
+/* Reference: https://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/  */
+/* Rewrite to C/C++ by pherosiden@gmail.com                                        */
+/*=================================================================================*/
 
 //size of tile (wall height)
 #define TILE_SIZE               128
