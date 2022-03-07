@@ -1300,6 +1300,7 @@ void scrollLed(const char *msg)
     int32_t i = 0, j = 0, k = 0, m = 0;
     const int32_t zx = 5, zy = 3, sy = 50;
     const GFX_FONT* font = getFont();
+    const int32_t len = int32_t(strlen(msg));
 
     drawRoundRect(0, sy, getMaxX() - 1, font->hdr.subData.height << 2, 50, 10);
     
@@ -1326,7 +1327,7 @@ void scrollLed(const char *msg)
             delay(10);
         }
         render();
-        if (++m >= int32_t(strlen(msg))) break;
+        if (++m >= len) break;
     }
 }
 
