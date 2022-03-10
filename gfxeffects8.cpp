@@ -5019,7 +5019,14 @@ namespace intro16k {
             outrgb[i].b = col;
         }
 
-        memcpy(setrgb, outrgb, 768);
+        uint8_t* rgb = (uint8_t*)outrgb;
+        uint8_t* pal = (uint8_t*)setrgb;
+        for (i = 0; i < 256; i++)
+        {
+            memcpy(pal, rgb, sizeof(RGB8));
+            rgb += 3;
+            pal += 4;
+        }
 #endif
         shiftPalette(setrgb);
         setPalette(setrgb);
@@ -15262,7 +15269,7 @@ namespace rayCastingEffect {
 void gfxEffectsMix()
 {
     //mazeGeneration::run();
-    starEffect::run();
+    /*starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
     flagsEffect::run();
@@ -15283,7 +15290,7 @@ void gfxEffectsMix()
     fireTexture3::run();
     tunnelEffect::run();
     textureMappingEffect::run();
-    bitmapRotate::run();
+    bitmapRotate::run();*/
     intro16k::run();
     textScrolling::run();
     fastShowBMP::run();
