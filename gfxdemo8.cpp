@@ -1499,8 +1499,8 @@ void displayPlasma()
         //check limitation
         if (decx) x--; else x++;
         if (decy) y--; else y++;
-        if (x <= 0 || x >= cmaxX - src.mWidth) decx = !decx;
-        if (y <= 0 || y >= cmaxY - src.mHeight) decy = !decy;
+        if (x <= 0 || x >= cmaxX - src.mWidth) decx = ~decx;
+        if (y <= 0 || y >= cmaxY - src.mHeight) decy = ~decy;
         frames++;
     }
 

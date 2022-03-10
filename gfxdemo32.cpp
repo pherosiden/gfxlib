@@ -347,7 +347,7 @@ void runCrossFade(int32_t sx, int32_t sy)
 
         //check for change direction
         if (up) i++; else i--;
-        if (i == 0 || i == 64) up = !up;
+        if (i == 0 || i == 64) up = ~up;
     } while (!finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
