@@ -1001,7 +1001,7 @@ void juliaExplorer()
 
     do
     {
-        /*=================== use fma version below ===============
+        /*=================== use FMA version below ===============
         for (int32_t y = 0; y < SCR_HEIGHT; y++)
         {
             //scan-x
@@ -1025,7 +1025,7 @@ void juliaExplorer()
             }
         }
         ===========================================================
-        ==========AVX - 512 version support INTEL 11th later=======
+        ==========AVX-512 version support INTEL 11th later=========
 
         const __m512d xim = _mm512_set1_pd(cim);
         const __m512d xre = _mm512_set1_pd(cre);
@@ -1243,7 +1243,7 @@ void mandelbrotSet()
     const double mx = -0.5 * SCR_WIDTH * scale - 0.5;
     const double my = -0.5 * SCR_HEIGHT * scale;
 
-    /*=================== use fma version below ========================
+    /*=================== use FMA version below ========================
     for (int32_t y = 0; y < SCR_HEIGHT; y++)
     {
         const double y0 = y * scale + my;
@@ -1266,7 +1266,7 @@ void mandelbrotSet()
         }
     }
     ======================================================================
-    ============AVX - 512 version support INTEL 11th later================
+    ============AVX-512 version support INTEL 11th later==================
 
     const __m512d dd = _mm512_set1_pd(scale);
     const __m512d tx = _mm512_set1_pd(mx);
@@ -1407,7 +1407,7 @@ void mandelbrotExporer()
     //begin main program loop
     do
     {
-        /*======================== use fma version below =====================
+        /*======================== use FMA version below =====================
         for (int32_t y = 0; y < SCR_HEIGHT; y++)
         {
             //scan-x
@@ -1431,7 +1431,7 @@ void mandelbrotExporer()
             }
         }
         ========================================================================
-        ============AVX - 512 version support INTEL 11th later==================
+        ============AVX-512 version support INTEL 11th later====================
 
         const __m512d dd = _mm512_set1_pd(scale);
         const __m512d tx = _mm512_set1_pd(mx);
