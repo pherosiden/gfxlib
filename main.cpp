@@ -6,8 +6,8 @@ int main(int argc, char* args[])
     chdir(dirname(args[0]));
     chdir("../Resources");
 #endif
-    //gfxEffects();
-    //gfxDemoMix();
+    gfxEffects();
+    gfxDemoMix();
     gfxDemo();
     gfxFontView();
     gfxEffectsMix();
