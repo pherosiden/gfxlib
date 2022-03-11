@@ -9296,14 +9296,14 @@ void randomBuffer(void* buff, int32_t count, int32_t range)
     }
 #else
     //check range
-    int32_t val = 0;
+    uint32_t val = 0;
     uint16_t* ptrBuff = (uint16_t*)buff;
-    if (!count || !randSeed || !range) return;
+    if (!count || !randSeed || !range || !ptrBuff) return;
 
     for (int32_t i = 0; i < count; i++)
     {
-        val = factor * randSeed + 1;
-        *ptrBuff++ = ((val >> 16) * range) >> 16;
+        val = randSeed * factor + 1;
+        ptrBuff[i] = ((val >> 16) * range) >> 16;
     }
 
     randSeed = val;
