@@ -15269,7 +15269,7 @@ namespace rayCastingEffect {
 void gfxEffectsMix()
 {
     //mazeGeneration::run();
-    /*starEffect::run();
+    starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
     flagsEffect::run();
@@ -15290,7 +15290,7 @@ void gfxEffectsMix()
     fireTexture3::run();
     tunnelEffect::run();
     textureMappingEffect::run();
-    bitmapRotate::run();*/
+    bitmapRotate::run();
     intro16k::run();
     textScrolling::run();
     fastShowBMP::run();
