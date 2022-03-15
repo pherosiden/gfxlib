@@ -1,5 +1,3 @@
-#include <vector>
-#include <algorithm>
 #include "gfxlib.h"
 
 #define SCR_WIDTH	640
