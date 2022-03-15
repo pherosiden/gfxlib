@@ -5479,7 +5479,7 @@ namespace intro16k {
         _asm {
             xor     ebx, ebx
             lea     edi, vbuff
-            mov     edx, 200
+            mov     edx, IMAGE_HEIGHT
         lp1:
             mov     ecx, IMAGE_WIDTH
         lp2:
@@ -5555,10 +5555,10 @@ namespace intro16k {
 
         for (i = 0; i < IMAGE_HEIGHT; i++)
         {
+            const int16_t row = i & 0x7f;
             for (j = 0; j < IMAGE_WIDTH; j++)
             {
                 const int16_t col = j & 0x7f;
-                const int16_t row = i & 0x7f;
                 const uint8_t c = vbuff[i][j];
 
                 if (c < 12) vbuff[i][j] = texture[row][col];
