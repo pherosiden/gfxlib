@@ -5477,9 +5477,9 @@ namespace intro16k {
     {
 #ifdef _USE_ASM
         _asm {
-            xor     edx, edx
             xor     ebx, ebx
             lea     edi, vbuff
+            mov     edx, IMAGE_HEIGHT
         lp1:
             mov     ecx, IMAGE_WIDTH
         lp2:
@@ -5492,9 +5492,8 @@ namespace intro16k {
             shl     al, 1
             stosb
             loop    lp2
-            inc     edx
-            cmp     edx, IMAGE_HEIGHT
-            jne     lp1
+            dec     edx
+            jnz     lp1
         }
 #else
         for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
@@ -5556,10 +5555,10 @@ namespace intro16k {
 
         for (i = 0; i < IMAGE_HEIGHT; i++)
         {
+            const int16_t row = i & 0x7f;
             for (j = 0; j < IMAGE_WIDTH; j++)
             {
                 const int16_t col = j & 0x7f;
-                const int16_t row = i & 0x7f;
                 const uint8_t c = vbuff[i][j];
 
                 if (c < 12) vbuff[i][j] = texture[row][col];
