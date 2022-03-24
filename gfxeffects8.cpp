@@ -426,7 +426,7 @@ namespace crossFade {
 
                 if (pix1 || pix2)
                 {
-                    uint8_t w = 0;
+                    uint8_t col = 0;
                     uint8_t change = 0;
 
                     const uint8_t r = pal1[pix1].r;
@@ -437,7 +437,7 @@ namespace crossFade {
                     const uint8_t g1 = pal2[pix2].g;
                     const uint8_t b1 = pal2[pix2].b;
 
-                    for (uint8_t k = 0; k <= w; k++)
+                    for (uint8_t k = 0; k <= col; k++)
                     {
                         if (src[k].r == r && src[k].g == g && src[k].b == b && dst[k].r == r1 && dst[k].g == g1 && dst[k].b == b1)
                         {
@@ -448,22 +448,17 @@ namespace crossFade {
 
                     if (!change)
                     {
-                        w++;
-                        if (w > 255)
-                        {
-                            cleanup();
-                            return;
-                        }
+                        col++;
 
-                        src[w].r = pal1[pix1].r;
-                        src[w].g = pal1[pix1].g;
-                        src[w].b = pal1[pix1].b;
+                        src[col].r = r;
+                        src[col].g = g;
+                        src[col].b = b;
 
-                        dst[w].r = pal2[pix2].r;
-                        dst[w].g = pal2[pix2].g;
-                        dst[w].b = pal2[pix2].b;
+                        dst[col].r = r1;
+                        dst[col].g = g1;
+                        dst[col].b = b1;
 
-                        vbuff2[y][x] = w;
+                        vbuff2[y][x] = col;
                     }
                 }
             }
@@ -7996,7 +7991,7 @@ namespace fireEffect3 {
 }
 
 namespace fireEffect4 {
-    uint16_t    delta;
+    uint16_t    delta = 0;
     uint16_t    vbuff[IMAGE_MIDY + 2][IMAGE_MIDX] = { 0 };
     uint16_t    vmem[IMAGE_MIDY][IMAGE_WIDTH] = { 0 };
 
