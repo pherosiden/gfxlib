@@ -158,15 +158,15 @@ namespace bumpMap {
         }
         else
         {
-            for (int16_t i = 0; i < SIZE_256; i++)
+            for (int16_t y = 0; y < SIZE_256; y++)
             {
-                for (int16_t j = 0; j < SIZE_256; j++)
+                for (int16_t x = 0; x < SIZE_256; x++)
                 {
-                    const double nx = (i - 128.0) / 128.0;
-                    const double ny = (j - 128.0) / 128.0;
+                    const double nx = (x - 128.0) / 128.0;
+                    const double ny = (y - 128.0) / 128.0;
                     double nz = 1.0 - sqrt(nx * nx + ny * ny);
                     if (nz < 0) nz = 0;
-                    dbuff[i][j] = uint8_t(nz * 128);
+                    dbuff[y][x] = uint8_t(nz * 128);
                 }
             }
 
@@ -1599,9 +1599,9 @@ namespace skyEffect {
     
     void swapWord(uint8_t* a, uint8_t* b)
     {
-        (*a) ^= (*b);
-        (*b) ^= (*a);
-        (*a) ^= (*b);
+        *a ^= *b;
+        *b ^= *a;
+        *a ^= *b;
     }
 
     void newColor(uint16_t idx, uint16_t x0, uint16_t y0, uint16_t x, uint16_t y, uint16_t x1, uint16_t y1)
@@ -1750,8 +1750,8 @@ namespace phongShader {
     int16_t px[IMAGE_MIDX] = { 0 }, py[IMAGE_MIDX] = { 0 }, pz[IMAGE_MIDX] = { 0 };
     int16_t nx[IMAGE_MIDX] = { 0 }, ny[IMAGE_MIDX] = { 0 }, nz[IMAGE_MIDX] = { 0 };
 
-    int16_t xt1, yt1, zt1;
-    int16_t nvisibles, nverts, nfaces;
+    int16_t xt1 = 0, yt1 = 0, zt1 = 0;
+    int16_t nvisibles = 0, nverts = 0, nfaces = 0;
     uint8_t alpha = 0, beta = 0, gamma = 0;
 
     int16_t dist = 150;
@@ -1796,7 +1796,7 @@ namespace phongShader {
                 rely1 /= nf;
                 relz1 /= nf;
 
-                const double val = sqrt(relx1 * relx1 + rely1 * rely1 + relz1 * relz1);
+                const double val = sqrt(sqr(relx1) + sqr(rely1) + sqr(relz1));
 
                 nx[i] = roundf(relx1 / val * 120);
                 ny[i] = roundf(rely1 / val * 120);
@@ -5612,7 +5612,7 @@ namespace intro16k {
         {
             for (int16_t j = 0; j < SIZE_128; j++)
             {
-                int16_t col = (blobs[i & 0x7f][j & 0x7f] << 1) + vbuff[y + i][x + j];
+                int16_t col = vbuff[y + i][x + j] + (blobs[i][j] << 1);
                 if (col > 255) col = 255;
                 vbuff[y + i][x + j] = uint8_t(col);
             }
