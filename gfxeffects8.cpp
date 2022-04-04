@@ -691,9 +691,7 @@ namespace rainEffect {
             for (uint16_t ax = 0; ax < IMAGE_MIDY; ax++)
             {
                 int16_t val = *(uint16_t*)&vbuff[si];
-                val >>= 7;
-                val += ax;
-                val -= dx;
+                val = (val >> 7) + ax - dx;
                 if (val > 0)
                 {
                     dx += val;
@@ -2837,7 +2835,7 @@ namespace fireTexture {
             if (poly1[y][0] != poly1[y][1]) cinc = (poly2[y][1] - poly2[y][0]) / (poly1[y][1] - poly1[y][0]);
             else cinc = 0;
 
-            for (int16_t x = poly1[y][0]; x != poly1[y][1]; x++)
+            for (int16_t x = poly1[y][0]; x < poly1[y][1]; x++)
             {
                 vbuff[y][x] = col >> 7;
                 col += cinc;
@@ -3018,7 +3016,7 @@ namespace fireTexture2 {
         }
         else xpos[y][y1 < y4] = x4;
 
-        for (y = mny; y != mxy; y++) horzLine(xpos[y][0], xpos[y][1], y, col);
+        for (y = mny; y < mxy; y++) horzLine(xpos[y][0], xpos[y][1], y, col);
     }
 
     void motionBlur()
@@ -3272,7 +3270,7 @@ namespace fireTexture3 {
         }
         else xpos[y][y1 < y4] = x4;
 
-        for (y = mx; y != my; y++) horzLine(xpos[y][0], xpos[y][1], y, col);
+        for (y = mx; y < my; y++) horzLine(xpos[y][0], xpos[y][1], y, col);
     }
 
     void motionBlur()
