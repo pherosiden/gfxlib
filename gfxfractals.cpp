@@ -1222,8 +1222,7 @@ void gfxFractals()
                     (t2 - t1),
                     cpuCores,
                     1000.0 / (intmax_t(t2) - t1),
-                    fullModes[fractType] ? "ALL" : "SINGLE"
-                );
+                    fullModes[fractType] ? "ALL" : "SINGLE");
             }
             else
             {
@@ -1235,8 +1234,7 @@ void gfxFractals()
                     (t2 - t1),
                     cpuCores,
                     1000.0 / (intmax_t(t2) - t1),
-                    fullModes[fractType] ? "ALL" : "SINGLE"
-                );
+                    fullModes[fractType] ? "ALL" : "SINGLE");
             }
 
             //raise windows title details
@@ -1250,8 +1248,7 @@ void gfxFractals()
             INPUT_MOUSE_CLICK   |
             INPUT_MOUSE_MOTION  |
             INPUT_MOUSE_WHEEL   |
-            INPUT_WIN_RESIZED
-        );
+            INPUT_WIN_RESIZED);
 
         switch (input)
         {
