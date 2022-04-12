@@ -4771,7 +4771,7 @@ namespace intro16k {
         }
         else
         {
-            if (y1 >= clipy1) vbuff[yorg + y1][(xorg + scenes[v1].x) % IMAGE_WIDTH] = uint8_t(vc1);
+            if (y1 >= clipy1) vbuff[(yorg + y1) % IMAGE_HEIGHT][(xorg + scenes[v1].x) % IMAGE_WIDTH] = uint8_t(vc1);
 
             x1 = scenes[v1].x << 8;
             x2 = x1;
