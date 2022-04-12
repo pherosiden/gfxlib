@@ -6861,7 +6861,7 @@ namespace textScrolling {
 }
 
 namespace fastShowBMP {
-    uint8_t vbuff[IMAGE_SIZE] = { 0 };
+    uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = {0};
 
     void setRGB(uint8_t* pal)
     {
@@ -6896,13 +6896,28 @@ namespace fastShowBMP {
     void flipScreen()
     {
         uint8_t* vmem = (uint8_t*)getDrawBuffer();
-        uint8_t* pbuff = (uint8_t*)&vbuff[IMAGE_SIZE - IMAGE_WIDTH];
+#ifdef _USE_ASM
+        _asm {
+            mov     edi, vmem
+            lea     esi, vbuff
+            add     esi, IMAGE_SIZE - IMAGE_WIDTH
+            mov     ebx, IMAGE_HEIGHT
+        next:
+            mov     ecx, IMAGE_WIDTH >> 2
+            rep	    movsd
+            sub     esi, IMAGE_WIDTH << 1
+            dec     ebx
+            jnz     next
+        }
+#else
+        uint8_t* pbuff = (uint8_t*)vbuff[MAX_HEIGHT];
         for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
         {
             memcpy(vmem, pbuff, IMAGE_WIDTH);
             pbuff -= IMAGE_WIDTH;
             vmem += IMAGE_WIDTH;
         }
+#endif
         render();
     }
 
@@ -6981,8 +6996,8 @@ namespace EMS {
 }
 
 namespace fillterEffect {
-    RGB         pal[256] = { 0 };
-    uint8_t     gray[256] = { 0 };
+    RGB         pal[SIZE_256] = { 0 };
+    uint8_t     gray[SIZE_256] = { 0 };
     uint8_t     dbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t     vbuff1[IMAGE_HEIGHT][IMAGE_HEIGHT] = { 0 };
     uint8_t     vbuff2[IMAGE_HEIGHT][IMAGE_HEIGHT] = { 0 };
@@ -14512,16 +14527,16 @@ namespace voxelEffect {
         }
 
         for (i = 1; i < 128; i++) dcomp[i - 1] = 2000 / i + IMAGE_MIDY;
-    }
-
-    void run()
-    {
-        initTables();
 
         x = 32767;
         y = 32767;
         dst = 0;
         angle = 600;
+    }
+
+    void run()
+    {
+        initTables();
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Voxel -- Keys: A/S: change height; Arrows: move")) return;
         if (!initMap()) return;
