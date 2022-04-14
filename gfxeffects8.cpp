@@ -3429,8 +3429,8 @@ namespace fireTexture3 {
 }
 
 namespace tunnelEffect {
-    uint8_t brightness = 120;
     RGB     pal[256] = { 0 };
+    uint8_t brightness = 120;
     int32_t xofs[IMAGE_MIDY][IMAGE_WIDTH] = { 0 };
     int32_t yofs[IMAGE_MIDY][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -4771,7 +4771,7 @@ namespace intro16k {
         }
         else
         {
-            if (y1 >= clipy1) vbuff[yorg + y1][(xorg + scenes[v1].x) % IMAGE_WIDTH] = uint8_t(vc1);
+            if (y1 >= clipy1) vbuff[(yorg + y1) % IMAGE_HEIGHT][(xorg + scenes[v1].x) % IMAGE_WIDTH] = uint8_t(vc1);
 
             x1 = scenes[v1].x << 8;
             x2 = x1;
@@ -6154,7 +6154,7 @@ namespace intro16k {
 
             for (i = 0; i < IMAGE_HEIGHT; i++)
             {
-                if (mask[i] < MAX_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, intptr_t(IMAGE_WIDTH) - mask[i]);
+                if (mask[i] < IMAGE_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, intptr_t(IMAGE_WIDTH) - mask[i]);
             }
 
             for (i = 0; i < 5; i++)
