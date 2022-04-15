@@ -552,7 +552,7 @@ void initDemo10(int32_t num, int32_t n)
     switch (num)
     {
     case 1:
-        for (i = 0; i != 120; i++)
+        for (i = 0; i < 120; i++)
         {
             r = 100 * (0.5 + 0.5 * sin(n * a));
             grData[i][0] = int32_t(r * cos(a));
@@ -562,7 +562,7 @@ void initDemo10(int32_t num, int32_t n)
         break;
 
     case 2:
-        for (i = 0; i != 120; i++)
+        for (i = 0; i < 120; i++)
         {
             r = 100 * (0.82 + 0.18 * sin(3.0 * n * a)) * (0.5 + 0.5 * sin(n * a));
             grData[i][0] = int32_t(r * cos(a));
@@ -572,7 +572,7 @@ void initDemo10(int32_t num, int32_t n)
         break;
 
     case 3:
-        for (i = 0; i != 120; i++)
+        for (i = 0; i < 120; i++)
         {
             r = 100 * (0.33 * sin(0.5 * n * a) + sin(n * a));
             grData[i][0] = int32_t(r * cos(2 * a));
@@ -582,7 +582,7 @@ void initDemo10(int32_t num, int32_t n)
         break;
 
     case 4:
-        for (i = 0; i != 120; i++)
+        for (i = 0; i < 120; i++)
         {
             grData[i][0] = int32_t(100 * sin(n * a) * cos(a));
             grData[i][1] = int32_t(100 * sin(n * a + a) * sin(a));
