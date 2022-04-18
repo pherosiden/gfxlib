@@ -7246,7 +7246,7 @@ namespace fireworkEffect {
     #define FADEDOWN_FRAMES     15
     #define	PIXEL_CIRCLE        10
     #define	NUM_CIRCLE          4
-    #define	BRIGHT_ARROW        30
+    #define	BRIGHT_ARROW        15
     #define PIXELS_EXPLODE      ((PIXEL_CIRCLE * (NUM_CIRCLE * NUM_CIRCLE) + PIXEL_CIRCLE * NUM_CIRCLE) >> 1)
 
     typedef struct {
@@ -9710,7 +9710,7 @@ namespace flagsEffect2 {
         for (i = 0; i < 256; i++) sintab[i] = int16_t(sin(8 * M_PI * i / 255) * 10);
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags")) return;
-        makeLinearPalette();
+        makeRainbowPalette();
 
         do
         {
@@ -9741,13 +9741,13 @@ namespace flagsEffect2 {
                     //USA
                     if (i * FX < 120 && j * FY < 85)
                     {
-                        if (((j % 3) == 2 && (i % 7) == 2 && (j % 6) == 2) || (((3 + i) % 7) == 2 && ((j + 3) % 6) == 2)) col = 50;
-                        else col = 10;
+                        if (((j % 3) == 2 && (i % 7) == 2 && (j % 6) == 2) || (((3 + i) % 7) == 2 && ((j + 3) % 6) == 2)) col = 220;
+                        else col = 150;
                     }
                     else
                     {
                         if ((j * FY) % 25 < 12) col = 40;
-                        else col = 50;
+                        else col = 220;
                     }
 
                     const int16_t x = 20 + sintab[(wave + (j + i) * CE) & 0xff] + i * FX;
