@@ -10894,12 +10894,12 @@ namespace mazeGeneration {
 
     void putMaze()
     {
-        for (uint8_t y = Y1; y != Y2; y++) for (uint8_t x = X1; x != X2; x++) drawField(x, y);
+        for (uint8_t y = Y1; y <= Y2; y++) for (uint8_t x = X1; x <= X2; x++) drawField(x, y);
     }
 
     void clearMaze()
     {
-        for (int16_t y = Y1; y <= Y2; y++) for (int16_t x = X1; x <= X2; x++) maze[x][y] = 0;
+        memset(maze[0], 0, sizeof(maze));
     }
 
     void writeMaze()
@@ -11072,8 +11072,8 @@ namespace mazeGeneration {
 
         if (waitUserInput() == SDL_SCANCODE_Y)
         {
-            for (i = 0; i != 32; i++) dbuff[0][i] = 32;
-            for (i = 0; i != 32; i++)
+            for (i = 0; i < 32; i++) dbuff[0][i] = 32;
+            for (i = 0; i < 32; i++)
             {
                 dbuff[i][0 ] = 32;
                 dbuff[i][32] = 13;
@@ -13668,8 +13668,9 @@ namespace starEffect {
 }
 
 namespace star2dEffect {
-    #define MAXSTARS 200
-    #define MAXSPEED 4
+    #define STARCOL     140
+    #define MAXSTARS    200
+    #define MAXSPEED    4
 
     int16_t    starx[MAXSTARS] = { 0 };
     int16_t    stary[MAXSTARS] = { 0 };
@@ -13683,20 +13684,21 @@ namespace star2dEffect {
             starx[i] = random(IMAGE_WIDTH);
             stary[i] = random(IMAGE_HEIGHT);
             speed[i] = random(MAXSPEED) + 1;
-            if (!vmem[stary[i]][starx[i]]) vmem[stary[i]][starx[i]] = 100;
+            if (!vmem[stary[i]][starx[i]]) vmem[stary[i]][starx[i]] = STARCOL;
         }
+        makeLinearPalette();
     }
 
     void moveStar()
     {
         for (int16_t i = 0; i < MAXSTARS; i++)
         {
-            if (vmem[stary[i]][starx[i]] == 100) vmem[stary[i]][starx[i]] = 0;
+            if (vmem[stary[i]][starx[i]] == STARCOL) vmem[stary[i]][starx[i]] = 0;
             else
             {
                 starx[i] += speed[i];
                 if (starx[i] >= IMAGE_WIDTH) starx[i] -= IMAGE_WIDTH;
-                else if (!vmem[stary[i]][starx[i]]) vmem[stary[i]][starx[i]] = 100;
+                else if (!vmem[stary[i]][starx[i]]) vmem[stary[i]][starx[i]] = STARCOL;
             }
         }
     }
@@ -15275,7 +15277,7 @@ namespace rayCastingEffect {
 
 void gfxEffectsMix()
 {
-    //mazeGeneration::run();
+    mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
