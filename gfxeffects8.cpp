@@ -11053,7 +11053,7 @@ namespace mazeGeneration {
         int32_t keyCode = 0;
 
         if (!loadFont("assets/sysfont.xfn", 0)) return;
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Maze-Generation")) return;
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Maze-Generation - Keys: spacer change maze; enter save maze")) return;
 
         do {
             clearMaze();
