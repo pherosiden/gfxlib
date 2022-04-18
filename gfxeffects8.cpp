@@ -9707,9 +9707,10 @@ namespace flagsEffect2 {
         uint16_t wave = 0;
         uint8_t col = 0;
 
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags")) return;
-
         for (i = 0; i < 256; i++) sintab[i] = int16_t(sin(8 * M_PI * i / 255) * 10);
+
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags")) return;
+        makeLinearPalette();
 
         do
         {
@@ -9740,13 +9741,13 @@ namespace flagsEffect2 {
                     //USA
                     if (i * FX < 120 && j * FY < 85)
                     {
-                        if (((j % 3) == 2 && (i % 7) == 2 && (j % 6) == 2) || (((3 + i) % 7) == 2 && ((j + 3) % 6) == 2)) col = 15;
-                        else col = 1;
+                        if (((j % 3) == 2 && (i % 7) == 2 && (j % 6) == 2) || (((3 + i) % 7) == 2 && ((j + 3) % 6) == 2)) col = 50;
+                        else col = 10;
                     }
                     else
                     {
-                        if ((j * FY) % 25 < 12) col = 4;
-                        else col = 15;
+                        if ((j * FY) % 25 < 12) col = 40;
+                        else col = 50;
                     }
 
                     const int16_t x = 20 + sintab[(wave + (j + i) * CE) & 0xff] + i * FX;
