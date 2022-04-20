@@ -471,7 +471,11 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
 
         //set default palette
         shiftPalette(basePalette);
-        SDL_SetPaletteColors(sdlSurface->format->palette, basePalette, 0, 256);
+        if (SDL_SetPaletteColors(sdlSurface->format->palette, basePalette, 0, 256))
+        {
+            messageBox(GFX_ERROR, "Failed to initialize palette colors!");
+            return 0;
+        }
     }
     else
     {
