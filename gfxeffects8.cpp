@@ -15276,6 +15276,49 @@ namespace rayCastingEffect {
     }
 }
 
+namespace chain4Effect {
+
+    RGB pal[256] = { 0 };
+    uint8_t vbuff[400][640] = { 0 };
+    uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
+    
+    void initChain4()
+    {
+        if (!loadPNG(vbuff[0], pal, "assets/chen.png")) return;
+        setPalette(pal);
+        for (int16_t y = 0; y < IMAGE_HEIGHT; y++) memcpy(vmem[y], vbuff[y], IMAGE_WIDTH);
+    }
+
+    void moveTo(uint16_t x, uint16_t y)
+    {
+        if (x > IMAGE_WIDTH || y > IMAGE_HEIGHT) return;
+        for (int16_t i = 0; i < IMAGE_HEIGHT; i++) memcpy(vmem[i], &vbuff[i + y][x], IMAGE_WIDTH);
+    }
+
+    void run()
+    {
+        int32_t x = 0, y = 0, lmb = 0;
+
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Chain4 Simulation -- Move your mouse!")) return;
+        initChain4();
+        setMousePosition(0, 0);
+        showMouseCursor(SDL_DISABLE);
+
+        do {
+            getMouseState(&x, &y, &lmb, NULL);
+            moveTo(x >> 1, y >> 1);
+            renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
+            delay(FPS_90);
+        } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
+        showMouseCursor(SDL_ENABLE);
+        cleanup();
+    }
+}
+
+namespace hardwareScroll {
+
+}
+
 void gfxEffectsMix()
 {
     mazeGeneration::run();
@@ -15360,4 +15403,5 @@ void gfxEffectsMix()
     wormEffect::run();
     waterEffect::run();
     rainEffect::run();
+    chain4Effect::run();
 }
