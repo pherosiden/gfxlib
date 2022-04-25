@@ -15316,7 +15316,80 @@ namespace chain4Effect {
 }
 
 namespace hardwareScroll {
+    RGB pal[256] = { 0 };
+    uint8_t vsave[IMAGE_WIDTH] = { 0 };
+    uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
+    void scroll(int16_t dir)
+    {
+        if (dir > 0)
+        {
+            for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
+            {
+                uint8_t swp = vmem[y][0];
+                memcpy(&vmem[y][0], &vmem[y][1], IMAGE_WIDTH);
+                vmem[y][MAX_WIDTH] = swp;
+            }
+        }
+        else
+        {
+            for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
+            {
+                uint8_t swp = vmem[y][MAX_WIDTH];
+                for (int16_t i = MAX_WIDTH; i > 0; i--) vmem[y][i] = vmem[y][i - 1];
+                vmem[y][0] = swp;
+            }
+        }
+    }
+
+    void wobble(int16_t dir)
+    {
+        if (dir)
+        {
+            memcpy(vsave, vmem[0], IMAGE_WIDTH);
+            for (int16_t y = 1; y < MAX_HEIGHT; y++) memcpy(vmem[y], vmem[y + 1], IMAGE_WIDTH);
+            memset(vmem[MAX_HEIGHT], 0, IMAGE_WIDTH);
+        }
+        else
+        {
+            memcpy(vsave, vmem[MAX_HEIGHT], IMAGE_WIDTH);
+            for (int16_t y = MAX_HEIGHT; y > 0; y--) memcpy(vmem[y], vmem[y - 1], IMAGE_WIDTH);
+            memset(vmem[0], 0, IMAGE_WIDTH);
+        }
+
+        renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
+        delay(FPS_90);
+    }
+
+    void quit()
+    {
+        int16_t i, j;
+        for (j = 0; j < 10; j++)
+        {
+            for (i = 0; i < 5; i++) wobble(0);
+            for (i = 0; i < 5; i++) wobble(1);
+        }
+    }
+
+    void run()
+    {
+        int16_t x = 0, addx = 1;
+
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hardware Scrolling")) return;
+        if (!loadPNG(vmem[0], pal, "assets/fear.png")) return;
+        setPalette(pal);
+
+        do {
+            scroll(addx);
+            renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
+            delay(3);
+            x += addx;
+            if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
+        } while (!finished(SDL_SCANCODE_RETURN));
+
+        quit();
+        cleanup();
+    }
 }
 
 void gfxEffectsMix()
@@ -15404,4 +15477,5 @@ void gfxEffectsMix()
     waterEffect::run();
     rainEffect::run();
     chain4Effect::run();
+    hardwareScroll::run();
 }
