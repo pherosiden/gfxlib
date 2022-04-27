@@ -10884,7 +10884,7 @@ namespace mazeGeneration {
     TStack stack[2000] = { 0 };
 
     uint8_t maze[32][32] = { 0 };
-    uint8_t dbuff[32][34] = { 0 };
+    uint8_t dbuff[32][32] = { 0 };
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
     void drawField(uint8_t x, uint8_t y)
@@ -11073,18 +11073,10 @@ namespace mazeGeneration {
 
         if (waitUserInput() == SDL_SCANCODE_Y)
         {
-            for (i = 0; i < 32; i++) dbuff[0][i] = 32;
-            for (i = 0; i < 32; i++)
-            {
-                dbuff[i][0 ] = 32;
-                dbuff[i][32] = 13;
-                dbuff[i][33] = 10;
-            }
-
             FILE *fp = fopen("assets/maze.dat", "wb");
             if (fp)
             {
-                fwrite(dbuff, sizeof(dbuff), 1, fp);
+                fwrite(dbuff, 1, sizeof(dbuff), fp);
                 fclose(fp);
                 memset(vmem, 0, 320 * 30);
                 changeDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -14995,14 +14987,14 @@ namespace rayCastingEffect {
     int16_t loadMaze(const char* fname)
     {
         int16_t x = 0, y = 0;
-        uint8_t tbuff[34] = { 0 };
+        uint8_t tbuff[32] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
         if (!fp) return 0;
 
         for (x = 0; x < 32; x++)
         {
-            fread(tbuff, 1, 34, fp);
+            fread(tbuff, 1, 32, fp);
             for (y = 0; y < 32; y++)
             {
                 switch (tbuff[y])
@@ -15012,12 +15004,12 @@ namespace rayCastingEffect {
                 case 219: tbuff[y] = 3; break;
                 }
             }
-            memcpy(&maze[x], tbuff, 32);
+            memcpy(maze[x], tbuff, 32);
         }
 
         fclose(fp);
 
-        for (x = 0; x < 32; x++)
+        /*for (x = 0; x < 32; x++)
         {
             for (y = 0; y < 32; y++)
             {
@@ -15035,8 +15027,11 @@ namespace rayCastingEffect {
                     break;
                 }
             }
-        }
-
+        }*/
+        px = 32;
+        py = 32;
+        dstx = 32;
+        dsty = 32;
         return 1;
     }
 
