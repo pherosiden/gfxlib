@@ -10918,7 +10918,7 @@ namespace mazeGeneration {
             {
                 if (x >= X1 && x <= X2 && y >= Y1 && y <= Y2)
                 {
-                    if (maze[x][y]) a++;
+                    if (maze[y][x]) a++;
                 }
                 else
                 {
@@ -10936,7 +10936,7 @@ namespace mazeGeneration {
         uint8_t d[4] = { 0 };
         uint16_t sp = 0;
 
-        maze[x][y] = 1;
+        maze[y][x] = 1;
         stack[0].x = x;
         stack[0].y = y;
 
@@ -11002,7 +11002,7 @@ namespace mazeGeneration {
                 case 4: x++; break;
                 }
 
-                maze[x][y] = 1;
+                maze[y][x] = 1;
                 if (sp < 2000) sp++;
                 stack[sp].x = x;
                 stack[sp].y = y;
@@ -14973,7 +14973,7 @@ namespace rayCastingEffect {
         FILE* fp = fopen(fname, "rb");
         if (!fp) return 0;
 
-        for (int16_t x = 0; x < 32; x++) fread(maze[x], 1, 32, fp);
+        for (int16_t y = 0; y < 32; y++) fread(maze[y], 1, 32, fp);
         fclose(fp);
        
         px = py = 1.5;
@@ -15123,7 +15123,7 @@ namespace rayCastingEffect {
             hmh = IMAGE_MIDY - height;
             hph = IMAGE_MIDY + height;
 
-            uint16_t darker = uint16_t(spacer / 1024);
+            uint16_t darker = uint16_t(spacer) >> 10;
             if (darker > 15) darker = 15;
             else if (darker > 0) darker--;
 
@@ -15204,14 +15204,14 @@ namespace rayCastingEffect {
                 newpy = py + cosx * (step - 0.5);
             }
 
-            if (!maze[int16_t(newpx)][int16_t(py + 0.1)] && !maze[int16_t(newpx)][int16_t(py - 0.1)]) px += sinx * step;
-            if (!maze[int16_t(px + 0.1)][int16_t(newpy)] && !maze[int16_t(px - 0.1)][int16_t(newpy)]) py += cosx * step;
+            if (!maze[int16_t(py + 0.1)][int16_t(newpx)] && !maze[int16_t(py - 0.1)][int16_t(newpx)]) px += sinx * step;
+            if (!maze[int16_t(newpy)][int16_t(px + 0.1)] && !maze[int16_t(newpy)][int16_t(px - 0.1)]) py += cosx * step;
 
             computeView();
             if (showMaze) drawMaze();
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_30);
+            delay(FPS_60);
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
