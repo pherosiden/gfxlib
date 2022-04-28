@@ -10884,26 +10884,14 @@ namespace mazeGeneration {
     TStack stack[2000] = { 0 };
 
     uint8_t maze[32][32] = { 0 };
-    uint8_t dbuff[32][32] = { 0 };
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
-
-    void drawField(uint8_t x, uint8_t y)
-    {
-        if (!maze[x][y]) dbuff[x][y] = 32;
-        else dbuff[x][y] = 219;
-    }
-
-    void putMaze()
-    {
-        for (uint8_t y = Y1; y <= Y2; y++) for (uint8_t x = X1; x <= X2; x++) drawField(x, y);
-    }
 
     void clearMaze()
     {
         memset(maze[0], 0, sizeof(maze));
     }
 
-    void writeMaze()
+    void writeBorder()
     {
         int16_t z = 0;
 
@@ -10951,8 +10939,6 @@ namespace mazeGeneration {
         maze[x][y] = 1;
         stack[0].x = x;
         stack[0].y = y;
-
-        drawField(x, y);
 
         do {
             memset(d, 0, sizeof(d));
@@ -11020,7 +11006,6 @@ namespace mazeGeneration {
                 if (sp < 2000) sp++;
                 stack[sp].x = x;
                 stack[sp].y = y;
-                drawField(x, y);
             }
         } while (sp);
     }
@@ -11031,7 +11016,7 @@ namespace mazeGeneration {
         {
             for (int16_t j = 0; j < 32; j++)
             {
-                if (maze[i][j] > 0)
+                if (maze[i][j])
                 {
                     vmem[i * 3 + 52 + 0][j * 3 + 112 + 0] = COL;
                     vmem[i * 3 + 52 + 0][j * 3 + 112 + 1] = COL;
@@ -11059,8 +11044,7 @@ namespace mazeGeneration {
             clearMaze();
             memset(vmem, 0, IMAGE_SIZE);
             generateMaze(X2 >> 1, Y2 >> 1, 2, 16);
-            writeMaze();
-            putMaze();
+            writeBorder();
             drawMaze();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             keyCode = waitUserInput();
@@ -11076,7 +11060,7 @@ namespace mazeGeneration {
             FILE *fp = fopen("assets/maze.dat", "wb");
             if (fp)
             {
-                fwrite(dbuff, 1, sizeof(dbuff), fp);
+                fwrite(maze[0], 1, sizeof(maze), fp);
                 fclose(fp);
                 memset(vmem, 0, 320 * 30);
                 changeDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -14829,10 +14813,10 @@ namespace wormEffect {
 namespace rayCastingEffect {
     #define CLR     111
 
+    double  sinx = 0, cosx = 0;
     double	head = 0, turn = 0, step = 0;
     double  px = 0, py = 0, newpx = 0, newpy = 0;
-    double  dstx = 0, dsty = 0, sinx = 0, cosx = 0;
-
+    
     int32_t verts = 0, pass = 0, magic = 0, cosy = 0, siny = 0;
     int32_t hph = 0, hmh = 0, horiz = 0, px128 = 0, py128 = 0;
 
@@ -14986,52 +14970,14 @@ namespace rayCastingEffect {
 
     int16_t loadMaze(const char* fname)
     {
-        int16_t x = 0, y = 0;
-        uint8_t tbuff[32] = { 0 };
-
         FILE* fp = fopen(fname, "rb");
         if (!fp) return 0;
 
-        for (x = 0; x < 32; x++)
-        {
-            fread(tbuff, 1, 32, fp);
-            for (y = 0; y < 32; y++)
-            {
-                switch (tbuff[y])
-                {
-                case  32: tbuff[y] = 0; break;
-                case  64: tbuff[y] = 1; break;
-                case 219: tbuff[y] = 3; break;
-                }
-            }
-            memcpy(maze[x], tbuff, 32);
-        }
-
+        for (int16_t x = 0; x < 32; x++) fread(maze[x], 1, 32, fp);
         fclose(fp);
+       
+        px = py = 1.5;
 
-        /*for (x = 0; x < 32; x++)
-        {
-            for (y = 0; y < 32; y++)
-            {
-                switch (maze[x][y])
-                {
-                case 1:
-                    px = x + 0.5;
-                    py = y + 0.5;
-                    maze[x][y] = 0;
-                    break;
-                case 2:
-                    dstx = x;
-                    dsty = y;
-                    maze[x][y] = 3;
-                    break;
-                }
-            }
-        }*/
-        px = 32;
-        py = 32;
-        dstx = 32;
-        dsty = 32;
         return 1;
     }
 
@@ -15041,7 +14987,7 @@ namespace rayCastingEffect {
         {
             for (int16_t j = 0; j < 32; j++)
             {
-                if (maze[i][j] > 0)
+                if (maze[i][j])
                 {
                     vbuff[i * 3 + 0][j * 3 + 0] = CLR;
                     vbuff[i * 3 + 0][j * 3 + 1] = CLR;
@@ -15085,7 +15031,7 @@ namespace rayCastingEffect {
 
     uint8_t range(int16_t x, int16_t y)
     {
-        return (x < 0 || y < 0 || x > 27 || y > 27 || maze[x][y] > 0);
+        return (x < 0 || y < 0 || x > 27 || y > 27 || maze[y][x] > 0);
     }
 
     void computeView()
