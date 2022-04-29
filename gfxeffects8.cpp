@@ -11003,9 +11003,9 @@ namespace mazeGeneration {
                 }
 
                 maze[y][x] = 1;
-                if (sp < 2000) sp++;
                 stack[sp].x = x;
                 stack[sp].y = y;
+                if (sp < 2000) sp++;
             }
         } while (sp);
     }
