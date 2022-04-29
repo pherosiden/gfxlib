@@ -10895,16 +10895,16 @@ namespace mazeGeneration {
     {
         int16_t z = 0;
 
-        for (z = X1; z <= X2; z++)
-        {
-            maze[z][Y1] = 1;
-            maze[z][Y2] = 1;
-        }
-
         for (z = Y1; z <= Y2; z++)
         {
-            maze[X1][z] = 1;
-            maze[X2][z] = 1;
+            maze[z][X1] = 1;
+            maze[z][X2] = 1;
+        }
+
+        for (z = X1; z <= X2; z++)
+        {
+            maze[Y1][z] = 1;
+            maze[Y2][z] = 1;
         }
     }
 
