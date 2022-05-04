@@ -14830,63 +14830,63 @@ namespace rayCastingEffect {
     uint8_t ceils[SIZE_128][SIZE_128] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    void drawWallFloor(uint16_t vofs, uint16_t dark)
+    void drawWallFloor(int32_t vofs, int32_t dark)
     {
 #ifdef _USE_ASM
         _asm {
             shl     dark, 8
             mov     ebx, verts
             xor     edi, edi
-            mov     di, vofs
-            mov     ax, word ptr hmh
-            mov     cx, ax
-            shl     ax, 6
-            add     di, ax
-            shl     ax, 2
-            add     di, ax
+            mov     edi, vofs
+            mov     eax, hmh
+            mov     ecx, hph
+            sub     ecx, eax
+            jc      done
+            shl     eax, 6
+            add     edi, eax
+            shl     eax, 2
+            add     edi, eax
             mov     esi, horiz
             and     esi, 7Fh
-            mov     dx, si
-            xor     ax, ax
+            mov     edx, esi
+            xor     eax, eax
         cycl0:
             push    ebx
             shr     ebx, 16
-            shl     bx, 7
-            mov     si, dx
-            add     si, bx
+            shl     ebx, 7
+            mov     esi, edx
+            add     esi, ebx
             mov     al, [walls + esi]
-            mov     si, ax
-            add     si, dark
+            mov     esi, eax
+            add     esi, dark
             mov     al, [shade + esi]
             mov     [vbuff + edi], al
-            add     di, IMAGE_WIDTH
+            add     edi, IMAGE_WIDTH
             pop     ebx
             add     ebx, pass
-            inc     cx
-            cmp     cx, word ptr hph
+            dec     ecx
             jnz     cycl0
-            mov     ax, IMAGE_HEIGHT
-            cmp     ax, word ptr hph
-            je      done
-            mov     di, vofs
+            mov     eax, hph
+            cmp     eax, IMAGE_HEIGHT
+            jae     done
+            mov     edi, vofs
             push    di
-            mov     ax, word ptr hph
-            shl     ax, 6
-            add     di, ax
-            shl     ax, 2
-            add     di, ax
+            shl     eax, 6
+            add     edi, eax
+            shl     eax, 2
+            add     edi, eax
             rol     edi, 16
             pop     di
-            mov     ax, word ptr hmh
-            shl     ax, 6
-            add     di, ax
-            shl     ax, 2
-            add     di, ax
-            sub     di, IMAGE_WIDTH
+            mov     eax, hmh
+            shl     eax, 6
+            add     edi, eax
+            shl     eax, 2
+            add     edi, eax
+            sub     edi, IMAGE_WIDTH
             ror     edi, 16
             mov     ebx, hph
             sub     ebx, IMAGE_MIDY
-        cycl1: 
+        cycl1:
             xor     edx, edx
             mov     eax, magic
             div     ebx
@@ -14895,42 +14895,41 @@ namespace rayCastingEffect {
             mul     ecx
             shr     eax, 20
             add     eax, px128
-            and     ax, 7Fh
-            mov     si, ax
+            and     eax, 7Fh
+            mov     esi, eax
             mov     eax, cosy
             mul     ecx
             shr     eax, 20
             add     eax, py128
-            and     ax, 7Fh
-            shl     ax, 7
-            add     si, ax
-            xor     edx, edx
+            and     eax, 7Fh
+            shl     eax, 7
+            add     esi, eax
             shr     ecx, 10
-            test    cx, cx
+            test    ecx, ecx
             jnz     nozero
-            inc     cx
+            inc     ecx
         nozero:
-            cmp     cx, 16
+            cmp     ecx, 16
             jbe     no16
-            mov     cx, 16
+            mov     ecx, 16
         no16:
-            dec     cx
-            shl     cx, 8
+            dec     ecx
+            shl     ecx, 8
             xor     eax, eax
             mov     al, [floors + esi]
-            add     ax, cx
+            add     eax, ecx
             mov     al, [shade + eax]
             mov     dx, di
             mov     [vbuff + edx], al
-            add     di, IMAGE_WIDTH
+            add     edi, IMAGE_WIDTH
             rol     edi, 16
             xor     eax, eax
             mov     al, [ceils + esi]
-            add     ax, cx
+            add     eax, ecx
             mov     al, [shade + eax]
             mov     dx, di
             mov     [vbuff + edx], al
-            sub     di, IMAGE_WIDTH
+            sub     edi, IMAGE_WIDTH
             ror     edi, 16
             inc     ebx
             cmp     ebx, IMAGE_MIDY
