@@ -8012,7 +8012,7 @@ namespace fireEffect4 {
     {
         RGB pal[256] = { 0 };
 
-        for (uint8_t i = 0; i != 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             pal[i].r = i;
             pal[i].g = 0;
@@ -8139,7 +8139,7 @@ namespace fireEffect5 {
     {
         RGB pal[256] = { 0 };
 
-        for (uint8_t i = 0; i != 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             pal[i].r = i;
             pal[i].g = 0;
@@ -9854,7 +9854,7 @@ namespace landScapeGeneration {
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape-Generation")) return;
 
-        for (uint8_t i = 0; i != 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             pal[i].r = 0;
             pal[i].g = 0;
@@ -11624,7 +11624,7 @@ namespace plasmaEffect4 {
     {
         RGB pal[256] = { 0 };
 
-        for (uint8_t i = 0; i != 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             pal[i].r = i;
             pal[i].g = 0;
@@ -12501,7 +12501,7 @@ namespace shadePattern {
     {
         RGB pal[256] = { 0 };
 
-        for (uint8_t i = 0; i != 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             pal[i].r = i;
             pal[i].g = 0;
@@ -13305,7 +13305,7 @@ namespace softFire {
             }
         }
 
-        for (j = 0; j <= 115; j++) for (i = 0; i != IMAGE_HEIGHT; i++) flames[j][i] = 0;
+        for (j = 0; j <= 115; j++) for (i = 0; i < IMAGE_HEIGHT; i++) flames[j][i] = 0;
 
         do {
             for (j = 0; j <= 118; j++) for (i = 1; i < MAX_HEIGHT; i++)
@@ -14308,7 +14308,7 @@ namespace thunderBoltEffect {
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Thunder-Bold")) return;
 
-        for (uint8_t i = 0; i != 64; i++)
+        for (uint8_t i = 0; i < 64; i++)
         {
             dst[i].r = 0;
             dst[i].g = 0;
