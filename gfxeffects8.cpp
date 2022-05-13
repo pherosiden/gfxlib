@@ -4622,10 +4622,6 @@ namespace intro16k {
     RGB8        outrgb[256] = { 0 };
     RGB         setrgb[256] = { 0 };
 
-    int16_t     order1[1024] = { 0 };
-    int16_t     order2[1024] = { 0 };
-    int16_t     torder[1024] = { 0 };
-
     int8_t      sinTab[256] = { 0 };
     uint8_t     sqrTab[4096] = { 0 };
 
@@ -4643,6 +4639,9 @@ namespace intro16k {
     T3DPoint    vertices[200] = { 0 };
     TParticle   particles[1000] = { 0 };
     
+    int16_t     *order1 = NULL;
+    int16_t     *order2 = NULL;
+
     void flipBuffer()
     {
         beatFunc = (beatFunc * 7) >> 3;
@@ -4824,7 +4823,7 @@ namespace intro16k {
 
                 for (i = xl; i <= xr; i++)
                 {
-                    vbuff[yorg + y][xorg + i] = cl >> 8;
+                    vbuff[(yorg + y) % IMAGE_HEIGHT][(xorg + i) % IMAGE_WIDTH] = cl >> 8;
                     cl += dc;
                 }
             }
@@ -4885,9 +4884,10 @@ namespace intro16k {
             }
 
             m <<= 1;
-            memcpy(torder, order1, sizeof(torder));
-            memcpy(order1, order2, sizeof(order1));
-            memcpy(order2, torder, sizeof(order2));
+
+            int16_t *torder = order1;
+            order1 = order2;
+            order2 = torder;
         }
 
         for (i = cnt - 1; i >= 0; i--)
@@ -5333,6 +5333,10 @@ namespace intro16k {
         initBlobs();
         initTextures();
         initFonts();
+
+        order1 = (int16_t*)calloc(1024, sizeof(int16_t));
+        order2 = (int16_t*)calloc(1024, sizeof(int16_t));
+        if (!order1 || !order2) return;
     }
 
     void makeTunnel()
@@ -6767,6 +6771,8 @@ namespace intro16k {
         part2();
         finalPart();
         cleanup();
+        free(order1);
+        free(order2);
     }
 }
 
