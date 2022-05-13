@@ -3523,12 +3523,12 @@ namespace tunnelEffect {
             mov     [vbuff + esi], al
             not     esi
             not     ebx
-            mov     al, [vbuff + IMAGE_SIZE + esi]
+            mov     al, [IMAGE_SIZE + vbuff + esi]
             shr     al, 1
-            mov     ah, [vbuff + IMAGE_SIZE + esi + ebx]
+            mov     ah, [IMAGE_SIZE + vbuff + esi + ebx]
             shr     ah, 1
             add     al, ah
-            mov     [vbuff + IMAGE_SIZE + esi], al
+            mov     [IMAGE_SIZE + vbuff + esi], al
             not     esi
             inc     esi
             add     edi, 4
@@ -3548,8 +3548,8 @@ namespace tunnelEffect {
 
     void showTunnel()
     {
-        int16_t x = 0, y = 0;
         int16_t i = 0, j = 0;
+        int16_t x = 0, y = 0;
 
         for (i = 0; i < 256; i++)
         {
@@ -15340,7 +15340,7 @@ namespace hardwareScroll {
 
 void gfxEffectsMix()
 {
-    mazeGeneration::run();
+    /*mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15359,7 +15359,7 @@ void gfxEffectsMix()
     fireDown::run();
     fireTexture::run();
     fireTexture2::run();
-    fireTexture3::run();
+    fireTexture3::run();*/
     tunnelEffect::run();
     textureMappingEffect::run();
     bitmapRotate::run();
