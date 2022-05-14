@@ -2824,7 +2824,7 @@ namespace fireTexture {
         doSide(x1, y1, z1, x2, y2, z2); doSide(x2, y2, z2, x3, y3, z3);
         doSide(x3, y3, z3, x4, y4, z4); doSide(x4, y4, z4, x1, y1, z1);
 
-        for (int16_t y = miny; y <= maxy; y++)
+        for (int16_t y = miny; y < maxy; y++)
         {
             if (poly1[y][0] < 0) poly1[y][0] = 0;
             if (poly1[y][1] > MAX_WIDTH) poly1[y][1] = MAX_WIDTH;
@@ -2856,7 +2856,8 @@ namespace fireTexture {
                     points[face[k][0]].x, points[face[k][0]].y, points[face[k][0]].z,
                     points[face[k][1]].x, points[face[k][1]].y, points[face[k][1]].z,
                     points[face[k][2]].x, points[face[k][2]].y, points[face[k][2]].z,
-                    points[face[k][3]].x, points[face[k][3]].y, points[face[k][3]].z);
+                    points[face[k][3]].x, points[face[k][3]].y, points[face[k][3]].z
+                );
         }
     }
 
@@ -3201,9 +3202,7 @@ namespace fireTexture3 {
     void horzLine(int16_t x1, int16_t x2, int16_t y, uint8_t col)
     {
         if (x2 < x1) { x1 += x2; x2 = x1 - x2; x1 -= x2; }
-        if (x2 < 0 || x1 > MAX_WIDTH || y < 0 || y > MAX_HEIGHT) return;
-        if (x1 < 0) x1 = 0;
-        if (x2 > MAX_WIDTH) x2 = MAX_WIDTH;
+        if (x2 < 0 || x2 > MAX_WIDTH || x1 < 0 || x1 > MAX_WIDTH || y < 0 || y > MAX_HEIGHT) return;
         for (int16_t x = x1; x <= x2; x++) vbuff[y][x] = col;
     }
 
@@ -10554,8 +10553,8 @@ namespace lineBlurEffect {
 
     TPoint      points;
 
-    RGB         curpal[256] = { 0 };
-    RGB         oldpal[6][256] = { 0 };
+    RGB         curpal[1024] = { 0 };
+    RGB         oldpal[6][1024] = { 0 };
     int16_t     flag = 1;
     uint8_t     vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
@@ -15340,7 +15339,7 @@ namespace hardwareScroll {
 
 void gfxEffectsMix()
 {
-    /*mazeGeneration::run();
+    mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15359,7 +15358,7 @@ void gfxEffectsMix()
     fireDown::run();
     fireTexture::run();
     fireTexture2::run();
-    fireTexture3::run();*/
+    fireTexture3::run();
     tunnelEffect::run();
     textureMappingEffect::run();
     bitmapRotate::run();
