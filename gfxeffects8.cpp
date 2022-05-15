@@ -7790,8 +7790,7 @@ namespace fireEffect {
 
         shiftPalette(pal);
         setPalette(pal);
-
-        for (i = 0; i < IMAGE_WIDTH; i++) vbuff[MAX_HEIGHT][i] = 255;
+        memset(vbuff[MAX_HEIGHT], 255, IMAGE_WIDTH);
 
         do
         {
@@ -7800,7 +7799,7 @@ namespace fireEffect {
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
 
-        for (i = 0; i < IMAGE_WIDTH; i++) vbuff[MAX_HEIGHT][i] = 0;
+        memset(vbuff[MAX_HEIGHT], 0, IMAGE_WIDTH);
 
         for (i = 0; i < 35; i++)
         {
@@ -15339,7 +15338,7 @@ namespace hardwareScroll {
 
 void gfxEffectsMix()
 {
-    mazeGeneration::run();
+    /*mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15368,7 +15367,7 @@ void gfxEffectsMix()
     EMS::run();
     fillterEffect::run();
     fireworkEffect::run();
-    candleEffect::run();
+    candleEffect::run();*/
     fireEffect::run();
     fireEffect2::run();
     fireEffect3::run();
