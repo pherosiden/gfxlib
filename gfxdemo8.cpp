@@ -708,12 +708,12 @@ void graphDemo13()
 
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
 
-    for (int32_t j = 50; j <= cmaxY - 50; j++)
+    for (int32_t j = 50; j <= cmy - 50; j++)
     {
-        for (int32_t i = 50; i <= cmaxX - 50; i++)
+        for (int32_t i = 50; i <= cmx - 50; i++)
         {
             if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) >> 2) % 192);
         }
@@ -730,9 +730,9 @@ void graphDemo13()
         randomPolygon(cx, cy, 150, 0.7, 0.4, 20, randPoints);
         fillPolygon(randPoints, 20, 50);
 
-        for (int32_t j = 0; j <= cmaxY; j++)
+        for (int32_t j = 0; j <= cmy; j++)
         {
-            for (int32_t i = 0; i <= cmaxX; i++)
+            for (int32_t i = 0; i <= cmx; i++)
             {
                 if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) >> 2) % 192);
             }
@@ -748,7 +748,7 @@ void graphDemo13()
     }
 
     makeRainbowPalette();
-    for (int32_t y = 0; y < cmaxY; y++) horizLine(0, y, cmaxX, 1 + uint32_t(y / 1.87) % 255);
+    for (int32_t y = 0; y < cmy; y++) horizLine(0, y, cmx, 1 + uint32_t(y / 1.87) % 255);
     rotatePalette(1, 255, 255, FPS_90);
 }
 
