@@ -128,6 +128,8 @@ void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uin
 
     if (!pt) return;
 
+    srand(uint32_t(time(NULL)));
+
     for (i = 0; i < n; i++)
     {
         pt[i].x = rand() % xm;
@@ -476,6 +478,8 @@ void graphDemo9(int32_t xc, int32_t yc, double rd)
     int32_t x = 0, y = 0;
     int32_t px = xc, py = yc;
 
+    srand(uint32_t(time(NULL)));
+
     double r = 50 * rd;
     int32_t s = 8 - (rand() % 5);
     int32_t k = !(s % 2) ? 2 : 1;
@@ -631,6 +635,7 @@ void graphDemo11()
 {
     uint32_t frames = 0;
 
+    srand(uint32_t(time(NULL)));
     makePalette(0, 63, 32, 16);
     makePalette(64, 32, 63, 16);
     makePalette(128, 16, 16, 63);
@@ -695,6 +700,7 @@ void lineBob()
 
 void graphDemo12()
 {
+    srand(uint32_t(time(NULL)));
     makeFunkyPalette();
     lineBob();
 }
@@ -703,7 +709,7 @@ void graphDemo13()
 {
     POINT2D points[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
 
-    srand(time(NULL));
+    srand(uint32_t(time(NULL)));
     makeLinearPalette();
     fillPolygon(points, sizeof(points) / sizeof(points[0]), 50);
 
