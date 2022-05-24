@@ -146,8 +146,8 @@ void runIntro()
 
     //start record time
     const uint32_t startTime = getTime();
-    const int32_t centerX = getCenterX();
-    const int32_t centerY = getCenterY();
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
 
     do {
         //draw and scale buffer
@@ -171,7 +171,7 @@ void runIntro()
                 i0--;
             }
 
-            if (i0 >= -1) putImage(alignedSize(centerX - (wci.mWidth >> 1)), centerY - (wci.mHeight >> 1), &wci, BLEND_MODE_ADD);
+            if (i0 >= -1) putImage(alignedSize(cx - (wci.mWidth >> 1)), cy - (wci.mHeight >> 1), &wci, BLEND_MODE_ADD);
             if (getElapsedTime(startTime) / 1000 >= tg) i0 = -1;
         }
         //logo GFXLIB
@@ -179,7 +179,7 @@ void runIntro()
         {
             blockOutMidImage(&gxb, &gfx, i1, i1);
             brightnessAlpha(&gxb, uint8_t(255.0 - double(i1) / 30.0 * 255.0));
-            putImage(alignedSize(centerX - (gxb.mWidth >> 1)), centerY - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
+            putImage(alignedSize(cx - (gxb.mWidth >> 1)), cy - (gxb.mHeight >> 1), &gxb, BLEND_MODE_ALPHA);
 
             i1--;
             if (getElapsedTime(startTime) / 1000 >= tu) i1 = 0;
@@ -187,17 +187,17 @@ void runIntro()
         //the ultimate message
         else if (i1 == 0)
         {
-            putImage(alignedSize(centerX - (gfx.mWidth >> 1)), centerY - (gfx.mHeight >> 1), &gfx, BLEND_MODE_ALPHA);
+            putImage(alignedSize(cx - (gfx.mWidth >> 1)), cy - (gfx.mHeight >> 1), &gfx, BLEND_MODE_ALPHA);
             if ((getElapsedTime(startTime) / 1000 >= tu) && (i2 <= 15))
             {
                 blurImageEx(&utb, &ult, 15 - (i2 & 15));
                 brightnessImage(&utb, &utb, 15 + ((i2 & 15) + 1) * 15);
-                putImage(alignedSize(centerX - (ult.mWidth >> 1)), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
+                putImage(alignedSize(cx - (ult.mWidth >> 1)), cy + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 i2++;
             }
             else
             {
-                putImage(alignedSize(centerX - (ult.mWidth >> 1)), centerY + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
+                putImage(alignedSize(cx - (ult.mWidth >> 1)), cy + (gfx.mHeight >> 1) + 30, &utb, BLEND_MODE_ADD);
                 if (getElapsedTime(startTime) / 1000 >= to) fadeOutCircle(((getElapsedTime(startTime) / 1000.0 - to) / 3.0) * 100.0, 20, 3, 0);
             }
         }
@@ -494,13 +494,13 @@ void runLensFlare(GFX_IMAGE* outImg)
     GFX_IMAGE scr = { 0 };
     if (!newImage(getBufferWidth(), getBufferHeight(), &scr)) return;
     
-    const int32_t centerX = getCenterX();
-    const int32_t centerY = getCenterY();
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
 
     //current mouse position and left button
     int32_t lmb = 0;
-    int32_t mcx = centerX + 70;
-    int32_t mdx = centerY - 80;
+    int32_t mcx = cx + 70;
+    int32_t mdx = cy - 80;
 
     //set mouse pointer limitation
     setMousePosition(mcx, mdx);
@@ -513,8 +513,8 @@ void runLensFlare(GFX_IMAGE* outImg)
     //redirect to image buffer
     changeDrawBuffer(scr.mData, scr.mWidth, scr.mHeight);
 
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
     const int32_t logox = alignedSize(getBufferWidth() - gfxlogo.mWidth);
 
     //time for record FPS
@@ -523,7 +523,7 @@ void runLensFlare(GFX_IMAGE* outImg)
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
         putImage(0, 0, &gfxsky);
-        fillRect(0, 0, alignedSize(cmaxX), cmaxY, rgb(0, uint8_t((double(mdx) / cmaxY) * 64), uint8_t((double(mdx) / cmaxY) * 64)), BLEND_MODE_SUB);
+        fillRect(0, 0, alignedSize(cmx), cmy, rgb(0, uint8_t((double(mdx) / cmy) * 64), uint8_t((double(mdx) / cmy) * 64)), BLEND_MODE_SUB);
 
         //put all flares image to render buffer
         for (int32_t i = 0; i < 16; i++)
@@ -532,8 +532,8 @@ void runLensFlare(GFX_IMAGE* outImg)
             if (flareput[i])
             {
                 //merge current image buffer to background
-                const int32_t x = (centerX + ((centerX - mcx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mWidth >> 1);
-                const int32_t y = (centerY + ((centerY - mdx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mHeight >> 1);
+                const int32_t x = (cx + ((cx - mcx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mWidth >> 1);
+                const int32_t y = (cy + ((cy - mdx) * (flarepos[i] - 2280) / 2280)) - (flares[i].mHeight >> 1);
                 putImage(alignedSize(x), y, &flares[i], BLEND_MODE_ADD);
             }
         }
@@ -568,15 +568,15 @@ void runBumpImage()
     GFX_IMAGE dst = { 0 };
     if (!newImage(getBufferWidth(), getBufferHeight(), &dst)) return;
 
-    const int32_t centerX = getCenterX();
-    const int32_t centerY = getCenterY();
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
 
     //loop until return
     int32_t cnt = 0;
     do {
         //calculate position
-        const int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + centerX);
-        const int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + centerY);
+        const int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + cx);
+        const int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + cy);
 
         //start bumping buffer
         bumpImage(&dst, &bumpchn, &bumpimg, lx, ly);
@@ -727,12 +727,12 @@ void gfxDemo()
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(800, 600, 32, 0, "GFXLIB-Demo32")) return;
 
-    const int32_t centerX = getCenterX();
-    const int32_t centerY = getCenterY();
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
     const int32_t cwidth = getBufferWidth();
     const int32_t cheight = getBufferHeight();
     
-    writeText(centerX - 8 * (uint32_t(strlen(initMsg)) >> 1), centerY, RGB_GREY191, 2, initMsg);
+    writeText(cx - 8 * (uint32_t(strlen(initMsg)) >> 1), cy, RGB_GREY191, 2, initMsg);
     render();
 
     if (!initSystemInfo())
@@ -759,8 +759,8 @@ void gfxDemo()
     putImage(alignedSize(cwidth - gfxlogo.mWidth), cheight - gfxlogo.mHeight - 1, &gfxlogo, BLEND_MODE_ALPHA);
 
     GFX_IMAGE txt = { 0 };
-    const int32_t xc = centerX + 40;
-    const int32_t yc = centerY + 40;
+    const int32_t xc = cx + 40;
+    const int32_t yc = cy + 40;
     const int32_t tx = alignedSize(10);
 
     fillRectPattern(alignedSize(10), 10, alignedSize(xc - 23), yc - 19, RGB_GREY32, getPattern(PATTERN_TYPE_HATCH_X), BLEND_MODE_ADD);

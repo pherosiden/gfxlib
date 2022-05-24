@@ -677,8 +677,8 @@ void lineBob()
     int32_t dy1 = 1;
     int32_t dy2 = -1;
     
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
 
     while (frames < 4000 && !finished(SDL_SCANCODE_RETURN))
     {
@@ -687,10 +687,10 @@ void lineBob()
         y1 += dy1;
         y2 += dy2;
         
-        checkBounds(x1, cmaxX, &dx1);
-        checkBounds(x2, cmaxX, &dx2);
-        checkBounds(y1, cmaxY, &dy1);
-        checkBounds(y2, cmaxY, &dy2);
+        checkBounds(x1, cmx, &dx1);
+        checkBounds(x2, cmx, &dx2);
+        checkBounds(y1, cmy, &dy1);
+        checkBounds(y2, cmy, &dy2);
 
         drawLineBob(x1, y1, x2, y2);
         render();
@@ -1249,29 +1249,29 @@ void affichage(int32_t range)
 
     char buff[80] = { 0 };
     const char *strTitle = "Shapes 3D Transform";
-    const int32_t centerX = getCenterX();
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cx = getCenterX();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
 
     setFontType(1);
     const int32_t width = getFontWidth(strTitle);
     const int32_t height = getFontHeight(strTitle);
     const int32_t starty = 2;
-    const int32_t startx = centerX - (width >> 1);
+    const int32_t startx = cx - (width >> 1);
     writeText(startx, starty, 40, 1, strTitle);
 
     setFontType(0);
     sprintf(buff, "X=[%.1f,%.1f] Y=[%.1f,%.1f] Theta=%.1f Phi=%.1f Lines=%d Points=%d", -gx1, gx1, -gy1, gy1, theta, phi, lines, points);
-    writeText(centerX - (getFontWidth(buff) >> 1), cmaxY - getFontHeight(buff) - 2, 37, 1, buff);
+    writeText(cx - (getFontWidth(buff) >> 1), cmy - getFontHeight(buff) - 2, 37, 1, buff);
 
     for (i = starty; i < height; i++)
     {
         for (j = startx; j < startx + width; j++) if (getPixel(j, i) == 40) putPixel(j, i, 56 + (i / 3));
     }
     
-    for (i = 50; i < cmaxX - 50; i++)
+    for (i = 50; i < cmx - 50; i++)
     {
-        for (j = 50; j < cmaxX - 50; j++) if (getPixel(i, j) == 50) putPixel(i, j, 32 + ((i + j) / range) % 72);
+        for (j = 50; j < cmx - 50; j++) if (getPixel(i, j) == 50) putPixel(i, j, 32 + ((i + j) / range) % 72);
     }
     
     setFontType(oldFont);
@@ -1369,8 +1369,8 @@ void displaySprite(const char *fname)
     //save current render buffer
     int32_t oldWidth = 0, oldHeight = 0;
     void* oldBuffer = getDrawBuffer(&oldWidth, &oldHeight);
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
 
     while (frames < 220 && !finished(SDL_SCANCODE_RETURN))
     {
@@ -1384,14 +1384,14 @@ void displaySprite(const char *fname)
         v1 = 1;
 
         x += dx;
-        if (x > cmaxX - spr.mWidth || x <= 0)
+        if (x > cmx - spr.mWidth || x <= 0)
         {
             x -= dx;
             dx = -dx;
         }
 
         y += dy;
-        if (y > cmaxY - spr.mHeight || y <= 0)
+        if (y > cmy - spr.mHeight || y <= 0)
         {
             y -= dy;
             dy = -dy;
@@ -1411,14 +1411,14 @@ void displaySprite(const char *fname)
         v2 = 1;
 
         x += dx;
-        if (x > cmaxX - spr.mWidth || x <= 0)
+        if (x > cmx - spr.mWidth || x <= 0)
         {
             x -= dx;
             dx = -dx;
         }
 
         y += dy;
-        if (y > cmaxY - spr.mHeight || y <= 0)
+        if (y > cmy - spr.mHeight || y <= 0)
         {
             y -= dy;
             dy = -dy;
@@ -1491,8 +1491,8 @@ void displayPlasma()
     if (!newImage(getBufferWidth(), getBufferHeight(), &dst)) return;
     initPlasma(sint, cost);
 
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
 
     //display plasma
     while (frames < 880 && !finished(SDL_SCANCODE_RETURN))
@@ -1506,8 +1506,8 @@ void displayPlasma()
         //check limitation
         if (decx) x--; else x++;
         if (decy) y--; else y++;
-        if (x <= 0 || x >= cmaxX - src.mWidth) decx = !decx;
-        if (y <= 0 || y >= cmaxY - src.mHeight) decy = !decy;
+        if (x <= 0 || x >= cmx - src.mWidth) decx = !decx;
+        if (y <= 0 || y >= cmy - src.mHeight) decy = !decy;
         frames++;
     }
 
@@ -1581,13 +1581,13 @@ void gfxDemoMix()
     if (!initScreen(800, 600, 32, 0, "GFX-Demo8")) return;
     if (!loadFont("assets/fontvn.xfn", 0)) return;
 
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
-    const int32_t centerX = getCenterX();
-    const int32_t centerY = getCenterY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
 
     makeFont(msgLoading);
-    writeText(centerX - (getFontWidth(msgLoading) >> 1), centerY - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
+    writeText(cx - (getFontWidth(msgLoading) >> 1), cy - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
     render();
     sleepFor(2000);
     showPNG("assets/caibang.png");
@@ -1604,7 +1604,7 @@ void gfxDemoMix()
     cleanup();
 
     if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
-    const int32_t introY = centerY - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
+    const int32_t introY = cy - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
 
     switch (getBufferWidth())
     {
@@ -1619,11 +1619,11 @@ void gfxDemoMix()
     clearPalette();
     
     if (!loadFont("assets/odhl.xfn", 0)) return;
-    writeText(centerX - (getFontWidth(msgWelcome[0]) >> 1), msgY, 40, 1, msgWelcome[0]);
-    writeText(centerX - (getFontWidth(msgWelcome[1]) >> 1), msgY + 60, 32, 1, msgWelcome[1]);
-    writeText(centerX - (getFontWidth(msgWelcome[2]) >> 1), msgY + 120, 35, 1, msgWelcome[2]);
-    writeText(centerX - (getFontWidth(msgWelcome[3]) >> 1), msgY + 170, 35, 1, msgWelcome[3]);
-    writeText(centerX - (getFontWidth(msgWelcome[4]) >> 1), cmaxY - 70, 35, 1, msgWelcome[4]);
+    writeText(cx - (getFontWidth(msgWelcome[0]) >> 1), msgY, 40, 1, msgWelcome[0]);
+    writeText(cx - (getFontWidth(msgWelcome[1]) >> 1), msgY + 60, 32, 1, msgWelcome[1]);
+    writeText(cx - (getFontWidth(msgWelcome[2]) >> 1), msgY + 120, 35, 1, msgWelcome[2]);
+    writeText(cx - (getFontWidth(msgWelcome[3]) >> 1), msgY + 170, 35, 1, msgWelcome[3]);
+    writeText(cx - (getFontWidth(msgWelcome[4]) >> 1), cmy - 70, 35, 1, msgWelcome[4]);
     freeFont(0);
     fadeIn(pal2, FPS_90);
     sleepFor(2000);
@@ -1632,61 +1632,61 @@ void gfxDemoMix()
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo0(centerX, centerY, int32_t(200 * ratio), int32_t(100 * ratio));
+    graphDemo0(cx, cy, int32_t(200 * ratio), int32_t(100 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
 
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo1(centerX, centerY, int32_t(160 * ratio), int32_t(40 * ratio));
+    graphDemo1(cx, cy, int32_t(160 * ratio), int32_t(40 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
 
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo2(centerX, centerY, int32_t(80 * ratio));
+    graphDemo2(cx, cy, int32_t(80 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo3(centerX, centerY, int32_t(80 * ratio));
+    graphDemo3(cx, cy, int32_t(80 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo4(centerX, centerY, int32_t(120 * ratio));
+    graphDemo4(cx, cy, int32_t(120 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo5(cmaxX / 7, cmaxY / 5 - 10, int32_t(28 * ratio), int32_t(90 * ratio), int32_t(62 * ratio));
+    graphDemo5(cmx / 7, cmy / 5 - 10, int32_t(28 * ratio), int32_t(90 * ratio), int32_t(62 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo6(centerX, centerY, int32_t(200 * ratio));
+    graphDemo6(cx, cy, int32_t(200 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo7(centerX, centerY, int32_t(200 * ratio));
+    graphDemo7(cx, cy, int32_t(200 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo8(centerX, centerY, int32_t(245 * ratio), int32_t(100 * ratio));
+    graphDemo8(cx, cy, int32_t(245 * ratio), int32_t(100 * ratio));
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     setPalette(pal1);
-    graphDemo9(centerX, centerY, 0.6 * ratio);
+    graphDemo9(cx, cy, 0.6 * ratio);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
@@ -1695,25 +1695,25 @@ void gfxDemoMix()
     
     initDemo10(1, 4);
     for (i = 0; i <= 95; i++)
-    graphDemo10(centerX >> 1, centerY >> 1, 140 - i, 140 - i, 64 + i / 3);
+    graphDemo10(cx >> 1, cy >> 1, 140 - i, 140 - i, 64 + i / 3);
     
     initDemo10(2, 2);
     for (i = 0; i <= 119; i++)
-    graphDemo10(centerX + (centerX >> 1), centerY >> 1, 170 - i, 170 - i, 64 + i / 3);
+    graphDemo10(cx + (cx >> 1), cy >> 1, 170 - i, 170 - i, 64 + i / 3);
     
     initDemo10(3, 5);
     for (i = 0; i <= 39; i++)
-    graphDemo10(centerX >> 1, centerY + (centerY >> 1), 110 - (i << 1), 110 - (i << 1), 83 - (i >> 1));
+    graphDemo10(cx >> 1, cy + (cy >> 1), 110 - (i << 1), 110 - (i << 1), 83 - (i >> 1));
     
     initDemo10(4, 7);
     for (i = 0; i <= 19; i++)
-    graphDemo10(centerX + (centerX >> 1), centerY + (centerY >> 1), 130 - (i << 2), 130 - (i << 2), 64 + i);
+    graphDemo10(cx + (cx >> 1), cy + (cy >> 1), 130 - (i << 2), 130 - (i << 2), 64 + i);
     rotatePalette(64, 103, 40, FPS_90);
 
     clearScreen();
     memcpy(pal1, pal2, 256 * sizeof(RGB));
     makeLinearPalette();
-    drawPolygon(centerX, centerY, centerX - 140, 11, 1);
+    drawPolygon(cx, cy, cx - 140, 11, 1);
     rotatePalette(16, 177, 162, FPS_90);
     
     clearScreen();
@@ -1721,55 +1721,55 @@ void gfxDemoMix()
     setPalette(pal1);
 
     findRepeat(&rept);
-    drawCylodiod(cmaxX / 7 - 20, cmaxY / 5 - 30, 80, 1, 1, rept, 40);
-    drawCylodiod(cmaxX / 3 + 30, cmaxY / 5 - 30, 80, 1, 2, rept, 40);
-    drawCylodiod(centerX + 90, cmaxY / 5 - 30, 80, 1, 3, rept, 40);
-    drawCylodiod(cmaxX - 100, cmaxY / 5 - 30, 80, 2, 1, rept, 40);
+    drawCylodiod(cmx / 7 - 20, cmy / 5 - 30, 80, 1, 1, rept, 40);
+    drawCylodiod(cmx / 3 + 30, cmy / 5 - 30, 80, 1, 2, rept, 40);
+    drawCylodiod(cx + 90, cmy / 5 - 30, 80, 1, 3, rept, 40);
+    drawCylodiod(cmx - 100, cmy / 5 - 30, 80, 2, 1, rept, 40);
     
-    drawCylodiod(cmaxX / 7 - 20, centerY - 10, 80, 2, 2, rept, 40);
-    drawCylodiod(cmaxX / 3 + 30, centerY - 10, 80, 2, 3, rept, 40);
-    drawCylodiod(centerX + 90, centerY - 10, 80, 3, 1, rept, 40);
-    drawCylodiod(cmaxX - 100, centerY - 20, 80, 3, 2, rept, 40);
+    drawCylodiod(cmx / 7 - 20, cy - 10, 80, 2, 2, rept, 40);
+    drawCylodiod(cmx / 3 + 30, cy - 10, 80, 2, 3, rept, 40);
+    drawCylodiod(cx + 90, cy - 10, 80, 3, 1, rept, 40);
+    drawCylodiod(cmx - 100, cy - 20, 80, 3, 2, rept, 40);
     
-    drawCylodiod(cmaxX / 7 - 20, cmaxY - 100, 80, 3, 3, rept, 40);
-    drawCylodiod(cmaxX / 3 + 30, cmaxY - 100, 80, 4, 1, rept, 40);
-    drawCylodiod(centerX + 90, cmaxY - 100, 80, 4, 2, rept, 40);
-    drawCylodiod(cmaxX - 100, cmaxY - 100, 80, 4, 3, rept, 40);
+    drawCylodiod(cmx / 7 - 20, cmy - 100, 80, 3, 3, rept, 40);
+    drawCylodiod(cmx / 3 + 30, cmy - 100, 80, 4, 1, rept, 40);
+    drawCylodiod(cx + 90, cmy - 100, 80, 4, 2, rept, 40);
+    drawCylodiod(cmx - 100, cmy - 100, 80, 4, 3, rept, 40);
     sleepFor(2000);
 
     clearScreen();
     memcpy(&pal1[32], &pal2[32], 130 * sizeof(RGB));
     setPalette(pal1);
 
-    drawCylodiod(cmaxX / 7 - 20, cmaxY / 5 - 30, 80, 5, 1, rept, 40);
-    drawCylodiod(cmaxX / 3 + 30, cmaxY / 5 - 30, 80, 5, 2, rept, 40);
-    drawCylodiod(centerX + 90, cmaxY / 5 - 30, 80, 5, 3, rept, 40);
-    drawCylodiod(cmaxX - 100, cmaxY / 5 - 30, 80, 5, 4, rept, 40);
+    drawCylodiod(cmx / 7 - 20, cmy / 5 - 30, 80, 5, 1, rept, 40);
+    drawCylodiod(cmx / 3 + 30, cmy / 5 - 30, 80, 5, 2, rept, 40);
+    drawCylodiod(cx + 90, cmy / 5 - 30, 80, 5, 3, rept, 40);
+    drawCylodiod(cmx - 100, cmy / 5 - 30, 80, 5, 4, rept, 40);
 
-    drawCylodiod(cmaxX / 7 - 20, centerY - 10, 80, 1, 4, rept, 40);
-    drawCylodiod(cmaxX / 3 + 30, centerY - 10, 80, 2, 4, rept, 40);
-    drawCylodiod(centerX + 90, centerY - 10, 80, 3, 4, rept, 40);
-    drawCylodiod(cmaxX - 100, centerY - 20, 80, 4, 4, rept, 40);
+    drawCylodiod(cmx / 7 - 20, cy - 10, 80, 1, 4, rept, 40);
+    drawCylodiod(cmx / 3 + 30, cy - 10, 80, 2, 4, rept, 40);
+    drawCylodiod(cx + 90, cy - 10, 80, 3, 4, rept, 40);
+    drawCylodiod(cmx - 100, cy - 20, 80, 4, 4, rept, 40);
     
-    drawCylodiod(cmaxX / 7 - 20, cmaxY - 100, 80, 6, 1, rept, 40);
-    drawCylodiod(cmaxX / 3 + 30, cmaxY - 100, 80, 6, 2, rept, 40);
-    drawCylodiod(centerX + 90, cmaxY - 100, 80, 6, 3, rept, 40);
-    drawCylodiod(cmaxX - 100, cmaxY - 100, 80, 6, 4, rept, 40);
+    drawCylodiod(cmx / 7 - 20, cmy - 100, 80, 6, 1, rept, 40);
+    drawCylodiod(cmx / 3 + 30, cmy - 100, 80, 6, 2, rept, 40);
+    drawCylodiod(cx + 90, cmy - 100, 80, 6, 3, rept, 40);
+    drawCylodiod(cmx - 100, cmy - 100, 80, 6, 4, rept, 40);
     sleepFor(2000);
 
     clearScreen();
     memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
-    rotatePolygon(pts, 6, centerX, centerY, centerX - 140, 100, 20, 40);
+    rotatePolygon(pts, 6, cx, cy, cx - 140, 100, 20, 40);
     rotatePalette(40, 103, 64, FPS_90);
     
     clearScreen();
     memcpy(&pal1[37], &pal2[37], 67 * sizeof(RGB));
-    randomPoly(pts, 12, cmaxX, cmaxY, 40, 20, 37);
+    randomPoly(pts, 12, cmx, cmy, 40, 20, 37);
     rotatePalette(37, 103, 67, FPS_90);
 
     clearScreen();
     memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
-    drawHexagon(pts, 12, centerX, centerY, 35, centerX - 140, 20, 40);
+    drawHexagon(pts, 12, cx, cy, 35, cx - 140, 20, 40);
     rotatePalette(40, 103, 64, FPS_90);
 
     clearScreen();
@@ -1924,11 +1924,11 @@ void gfxDemoMix()
     {
         j += i * getFontHeight(msgTitle[i]);
         makeFont(msgTitle[i]);
-        writeText(centerX - (getFontWidth(msgTitle[i]) >> 1), introY + i * getFontHeight(msgTitle[i]), col[i], 1, msgTitle[i]);
+        writeText(cx - (getFontWidth(msgTitle[i]) >> 1), introY + i * getFontHeight(msgTitle[i]), col[i], 1, msgTitle[i]);
     }
     
-    fillEllipse(centerX, j - introY, a, b, 50);
-    writeText(centerX - (getFontWidth(logo) >> 1), j - introY - CHR_WIDTH, 32, 1, logo);
+    fillEllipse(cx, j - introY, a, b, 50);
+    writeText(cx - (getFontWidth(logo) >> 1), j - introY - CHR_WIDTH, 32, 1, logo);
 
     fadeIn(pal2, FPS_90);
     memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
@@ -1938,7 +1938,7 @@ void gfxDemoMix()
     setPalette(pal2);
     setPixelChar();
     makeFont(msgBanner);
-    writeText(centerX - (getFontWidth(msgBanner) >> 1), cmaxY - getFontHeight(msgBanner) - 2, 40, 1, msgBanner);
+    writeText(cx - (getFontWidth(msgBanner) >> 1), cmy - getFontHeight(msgBanner) - 2, 40, 1, msgBanner);
     makeFont(msgScroll);
     scrollLed(msgScroll);
     freeFont(0);

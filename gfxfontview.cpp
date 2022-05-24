@@ -10,8 +10,8 @@ void showFontsDir(const char* path, const char* ext)
     char buff[256] = { 0 };
     int32_t i = 0, height = 0, y = 10;
 
-    const int32_t cmaxX = getMaxX();
-    const int32_t cmaxY = getMaxY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
 
 #ifdef __APPLE__
     DIR* dir;
@@ -42,7 +42,7 @@ void showFontsDir(const char* path, const char* ext)
                 height = getFontHeight(buff);
 
                 //have limit line
-                if (y > cmaxY - height)
+                if (y > cmy - height)
                 {
                     waitUserInput();
                     clearScreen();
@@ -51,7 +51,7 @@ void showFontsDir(const char* path, const char* ext)
 
                 //draw font
                 writeText(10, y, RGB_WHITE, 0, buff);
-                horizLine(0, y + height + 1, cmaxX, RGB_BLUE);
+                horizLine(0, y + height + 1, cmx, RGB_BLUE);
                 y += (height + 3);
             }
 
@@ -87,7 +87,7 @@ void showFontsDir(const char* path, const char* ext)
             height = getFontHeight(buff);
 
             //have limit line
-            if (y > cmaxY - height)
+            if (y > cmy - height)
             {
                 waitUserInput();
                 clearScreen();
@@ -96,7 +96,7 @@ void showFontsDir(const char* path, const char* ext)
 
             //draw font
             writeText(10, y, RGB_WHITE, 0, buff);
-            horizLine(0, y + height + 1, cmaxX, RGB_BLUE);
+            horizLine(0, y + height + 1, cmx, RGB_BLUE);
             y += (height + 3);
         }
 

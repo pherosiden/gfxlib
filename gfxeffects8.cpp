@@ -9617,12 +9617,12 @@ namespace fastCircleFill {
         makePalette(128 + 64, 63, 16, 16);
         setPalette(pal);
         
-        const int32_t cmaxX = getMaxX();
-        const int32_t cmaxY = getMaxY();
+        const int32_t cmx = getMaxX();
+        const int32_t cmy = getMaxY();
 
         do {
-            const uint32_t x = rand() % cmaxX;
-            const uint32_t y = rand() % cmaxY;
+            const uint32_t x = rand() % cmx;
+            const uint32_t y = rand() % cmy;
             const uint32_t col = (rand() % 4) * MAX_RAD;
             for (uint32_t i = 0; i < MAX_RAD; i++) fillCircle(x + ((MAX_RAD - i) >> 1), y + ((MAX_RAD - i) >> 1), (MAX_RAD - i) << 1, i + col);
             render();
@@ -10443,8 +10443,8 @@ namespace lineBobEffect {
 
     void lineBob(uint32_t cnt)
     {
-        const int32_t cmaxX = getMaxX();
-        const int32_t cmaxY = getMaxY();
+        const int32_t cmx = getMaxX();
+        const int32_t cmy = getMaxY();
         const int32_t cwidth = getBufferWidth();
         const int32_t cheight = getBufferHeight();
 
@@ -10465,10 +10465,10 @@ namespace lineBobEffect {
             y1 += dy1;
             y2 += dy2;
 
-            checkBounds(x1, &dx1, cmaxX);
-            checkBounds(x2, &dx2, cmaxX);
-            checkBounds(y1, &dy1, cmaxY);
-            checkBounds(y2, &dy2, cmaxY);
+            checkBounds(x1, &dx1, cmx);
+            checkBounds(x2, &dx2, cmx);
+            checkBounds(y1, &dy1, cmy);
+            checkBounds(y2, &dy2, cmy);
 
             if ((cnt % 10) == 0) delay(10);
 
