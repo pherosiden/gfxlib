@@ -184,10 +184,13 @@ void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, in
                 pt[0].y = pt[0].y + (pt[2].y - pt[0].y) / odre;
 
             }
-            else for (m = 0; m < 3; m++)
+            else
             {
-                pt[m].x = pt[m].x + (pt[(m + 1) % 3].x - pt[m].x) / odre;
-                pt[m].y = pt[m].y + (pt[(m + 1) % 3].y - pt[m].y) / odre;
+                for (m = 0; m < 3; m++)
+                {
+                    pt[m].x = pt[m].x + (pt[(m + 1) % 3].x - pt[m].x) / odre;
+                    pt[m].y = pt[m].y + (pt[(m + 1) % 3].y - pt[m].y) / odre;
+                }
             }
         }
     }
@@ -356,7 +359,6 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
                     sy = y2;
                 }
                 lineTo(int32_t(x2), int32_t(y2), (120 * (2 * py + px) + i) / 22 + 32);
-
             }
             lineTo(int32_t(sx), int32_t(sy), (120 * (2 * py + px) + i) / 22 + 32);
         }
@@ -666,6 +668,8 @@ void lineBob()
     uint32_t frames = 0;
     const int32_t cwidth = getBufferWidth();
     const int32_t cheight = getBufferHeight();
+    
+    srand(uint32_t(time(NULL)));
 
     int32_t x1 = rand() % cwidth;
     int32_t x2 = rand() % cwidth;
@@ -700,7 +704,6 @@ void lineBob()
 
 void graphDemo12()
 {
-    srand(uint32_t(time(NULL)));
     makeFunkyPalette();
     lineBob();
 }
@@ -911,7 +914,6 @@ void initDiverses(double theta)
     f1 = f2 = f3 = f4 = 0;
 
     memset(maxHeight, 0, sizeof(maxHeight));
-
     for (int32_t i = 0; i < LIMITX; i++) minHeight[i] = LIMITY;
 
     if (theta < 0 || theta > 180)
