@@ -763,7 +763,7 @@ void gfxDemo()
     const int32_t yc = cy + 40;
     const int32_t tx = alignedSize(10);
 
-    fillRectPattern(alignedSize(10), 10, alignedSize(xc - 23), yc - 19, RGB_GREY32, getPattern(PATTERN_TYPE_HATCH_X), BLEND_MODE_ADD);
+    fillRectPattern(alignedSize(10), 10, alignedSize(xc - 23), yc - 20, RGB_GREY32, getPattern(PATTERN_TYPE_HATCH_X), BLEND_MODE_ADD);
     fillRect(alignedSize(10), yc, alignedSize(xc - 23), getMaxY() - yc - 9, RGB_GREY32, BLEND_MODE_SUB);
     fillRect(alignedSize(20), 20, alignedSize(xc - 39), yc - 39, 0);
     getImage(alignedSize(10), yc, alignedSize(xc - 23), getMaxY() - yc - 9, &txt);
