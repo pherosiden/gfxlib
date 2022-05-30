@@ -8712,17 +8712,10 @@ void projette(double x, double y, double z, double *px, double *py)
 
     if (projectionType == PROJECTION_TYPE_PERSPECTIVE)
     {
-        const double obsZ = -x * aux7 - y * aux8 - z * aux2 + RHO;
-        if (obsZ != 0.0)
-        {
-            *px = (DE * obsX) / obsZ;
-            *py = (DE * obsY) / obsZ;
-        }
-        else
-        {
-            *px = (DE * obsX) / DBL_MIN;
-            *py = (DE * obsY) / DBL_MIN;
-        }
+        double obsZ = -x * aux7 - y * aux8 - z * aux2 + RHO;
+        if (obsZ == 0.0) obsZ = DBL_MIN;
+        *px = (DE * obsX) / obsZ;
+        *py = (DE * obsY) / obsZ;
     }
     else if (projectionType == PROJECTION_TYPE_PARALLELE)
     {
