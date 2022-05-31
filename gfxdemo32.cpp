@@ -547,7 +547,7 @@ void runLensFlare(GFX_IMAGE* outImg)
         time = getTime();
 
         //report FPS counter
-        writeText(1, 1, RGB_WHITE, 0, "FPS:%.2f", 1.0 / ((time - oldTime) / 1000.0));
+        writeText(1, 1, RGB_WHITE, 0, "FPS: %.2f", 1000.0 / (time - oldTime));
         render();
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
