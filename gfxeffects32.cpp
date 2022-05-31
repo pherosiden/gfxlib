@@ -280,6 +280,9 @@ void fireDemo2()
         palette[x] = hsl2rgb(x / 3, 255, min(255, x << 1));
     }
 
+    //initialize random number seed
+    srand(uint32_t(time(NULL)));
+
     //start the loop (one frame per loop)
     while (!finished(SDL_SCANCODE_RETURN))
     {

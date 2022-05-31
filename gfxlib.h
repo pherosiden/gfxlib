@@ -341,7 +341,7 @@ enum BLEND_MODE {
     BLEND_MODE_ADD,                             //add with background color
     BLEND_MODE_SUB,                             //sub with background color
     BLEND_MODE_AND,                             //logical and with background color (only for fillRect and putImage functions)
-    BLEND_MODE_XOR,                             //logical xor with background color (only for fillRect and putImage functions)
+    BLEND_MODE_XOR,                             //logical x-or with background color (only for fillRect and putImage functions)
     BLEND_MODE_ALPHA,                           //alpha blending with background color
     BLEND_MODE_ANTIALIASED                      //anti-aliased edge (use for line, circle, ellipse, cubic, bezier curve)
 };

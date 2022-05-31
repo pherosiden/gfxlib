@@ -333,8 +333,8 @@ void sleepFor(uint32_t tmwait)
         if (keyStates[SDL_SCANCODE_ESCAPE]) quit();
         if (keyStates[SDL_SCANCODE_RETURN])
         {
-            keyStates[SDL_SCANCODE_RETURN] = 0;
             done = 1;
+            keyStates[SDL_SCANCODE_RETURN] = 0;
         }
         SDL_Delay(1);
     }
@@ -2511,7 +2511,7 @@ void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t colo
         return;
     }
 
-    //heigh color mode
+    //height color mode
     switch (mode)
     {
     case BLEND_MODE_NORMAL:
@@ -3554,9 +3554,9 @@ void drawCircleAA(int32_t xm, int32_t ym, int32_t rad, uint32_t argb)
         putPixel(xm + x, ym - y, col, BLEND_MODE_ANTIALIASED);
         putPixel(xm + y, ym + x, col, BLEND_MODE_ANTIALIASED);
 
-        const int32_t e2 = err;
         const int32_t x2 = x;
-
+        const int32_t e2 = err;
+        
         if (err + y > 0)
         {
             alpha = 255 * (err - 2 * x - 1) / rad;
@@ -3649,7 +3649,7 @@ void drawEllipseAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t argb
 
     if (y0 > y1) y0 = y1;
 
-    y0 += (b + 1) / 2;
+    y0 += ((b + 1) >> 1);
     y1 = y0 - b1;
     a = 8 * a * a;
     b1 = 8 * b * b;
@@ -4884,7 +4884,7 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
     }
 }
 
-//FX-effect: fade rollo
+//FX-effect: fade Rollo
 void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
 {
     int32_t i = 0, j = 0;
@@ -5729,7 +5729,7 @@ void putImageAnd(const int32_t x, const int32_t y, const int32_t lx, const int32
 #endif
 }
 
-//put GFX image with logical xor background color
+//put GFX image with logical x-or background color
 void putImageXor(const int32_t x, const int32_t y, const int32_t lx, const int32_t ly, const int32_t width, const int32_t height, const GFX_IMAGE* img)
 {
 #ifdef _USE_ASM
@@ -6793,30 +6793,30 @@ void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t 
 }
 
 //boundary clip points at (x,y)
-must_inline bool clampPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
+must_inline int32_t clampPoint(const int32_t width, const int32_t height, int32_t* x, int32_t* y)
 {
-    bool ret = true;
+    int32_t ret = 1;
 
     if (*x < 0)
     { 
         *x = 0;
-        ret = false;
+        ret = 0;
     }
     else if (*x >= width)
     { 
         *x = width - 1;
-        ret = false;
+        ret = 0;
     }
 
     if (*y < 0)
     {
         *y = 0;
-        ret = false;
+        ret = 0;
     }
     else if (*y >= height)
     {
         *y = height - 1;
-        ret = false;
+        ret = 0;
     }
 
     return ret;
@@ -6837,7 +6837,7 @@ must_inline uint32_t clampOffset(const int32_t width, const int32_t height, cons
 must_inline uint32_t clampPixels(const GFX_IMAGE* img, int32_t x, int32_t y)
 {
     const uint32_t* psrc = (const uint32_t*)img->mData;
-    const bool insrc = clampPoint(img->mWidth, img->mHeight, &x, &y);
+    const int32_t insrc = clampPoint(img->mWidth, img->mHeight, &x, &y);
     uint32_t result = psrc[y * img->mWidth + x];
     if (!insrc)
     {
@@ -7131,7 +7131,7 @@ must_inline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double x,
     return _mm_cvtsi128_si32(weight);
 }
 
-//calculate sin&cos of an angle (merge sin+cos function)
+//calculate sin-cos of an angle (merge sin+cos function)
 must_inline void sincos(const double angle, double* sina, double* cosa)
 {
 #ifdef _USE_ASM
@@ -9036,6 +9036,8 @@ void makeFunkyPalette()
     uint8_t ry = 1;
     uint8_t gy = 1;
     uint8_t by = 1;
+
+    srand(uint32_t(time(NULL)));
 
     int32_t rx = (rand() % 5) + 1;
     int32_t gx = (rand() % 5) + 1;
