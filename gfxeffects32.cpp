@@ -975,7 +975,7 @@ void juliaExplorer()
     int32_t showText = 0, i = 0;
 
     //current and old time, and their difference (for input)
-    uint32_t time = 0, oldTime = 0, frameTime = 0;
+    uint32_t time = 0, oldTime = 0;
         
     //make memory access pixels
     uint32_t** pixels = (uint32_t**)calloc(SCR_HEIGHT, sizeof(uint32_t*));
@@ -1154,8 +1154,7 @@ void juliaExplorer()
         //get the time and old time for time dependent input
         oldTime = time;
         time = getTime();
-        frameTime = (time - oldTime);
-        sprintf(sbuff, "Julia-Explorer [FPS: %.2f]", 1000.0 / frameTime);
+        sprintf(sbuff, "Julia-Explorer [FPS: %.2f]", 1000.0 / (time - oldTime));
         setWindowTitle(sbuff);
 
         //read user input key
@@ -1382,7 +1381,7 @@ void mandelbrotExporer()
     int32_t showText = 0, i = 0;
 
     //current and old time, and their difference (for input)
-    uint32_t time = 0, oldTime = 0, frameTime = 0;
+    uint32_t time = 0, oldTime = 0;
     
     uint32_t** pixels = (uint32_t**)calloc(SCR_HEIGHT, sizeof(uint32_t*));
     if (!pixels) return;
@@ -1550,8 +1549,7 @@ void mandelbrotExporer()
         //get the time and old time for time dependent input
         oldTime = time;
         time = getTime();
-        frameTime = (time - oldTime);
-        sprintf(sbuff, "Mandelbrot-Explorer [FPS: %.2f]", 1000.0 / frameTime);
+        sprintf(sbuff, "Mandelbrot-Explorer [FPS: %.2f]", 1000.0 / (time - oldTime));
         setWindowTitle(sbuff);
 
         //read user input key
@@ -2686,11 +2684,8 @@ void runRayCasting()
         oldTime = time;
         time = getTime();
 
-        //frame time is the time this frame has taken, in seconds
-        const double frameTime = (time - oldTime) / 1000.0;
-        
         //report FPS counter
-        writeText(SCR_WIDTH - 50, 2, RGB_WHITE, 0, "FPS:%.f", 1.0 / frameTime);
+        writeText(SCR_WIDTH - 50, 2, RGB_WHITE, 0, "FPS:%.f", 1000.0 / (time - oldTime));
         render();
         
         //clear background
