@@ -11748,13 +11748,18 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
     const int32_t dstwidth = dst->mWidth;
     const int32_t src1len = src1->mRowBytes - 1;
 
-    const int32_t bmax = 260;
+    const int32_t bmax = 400;
+    const int32_t xstart = 100, ystart = 100;
+    const int32_t endx = getBufferWidth() - xstart;
+    const int32_t endy = getBufferHeight() - ystart;
+
     int32_t nx = 0, ny = 0, vlx = 0, vly = 0;
     int32_t x = 0, y = 0, osrc2 = 0, osrc1 = 0, odst = 0;
     
 #ifdef _USE_ASM
     __asm {
-        mov     y, 100
+        mov     eax, ystart
+        mov     y, eax
     starty:
         mov     ebx, y
         mov     eax, src1width
@@ -11772,7 +11777,8 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
         add     eax, 99
         shl     eax, 2
         mov     odst, eax
-        mov     x, 100
+        mov     eax, xstart
+        mov     x, eax
     startx:
         mov     eax, x
         sub     eax, lx
@@ -11878,12 +11884,12 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
         add     osrc1, 4
         add     odst, 4
         inc     x
-        mov     eax, x
-        cmp     eax, 700
+        mov     eax, endx
+        cmp     x, eax
         jna     startx
         inc     y
-        mov     eax, y
-        cmp     eax, 500
+        mov     eax, endy
+        cmp     y, eax
         jna     starty
     }
 #else
