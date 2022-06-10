@@ -90,7 +90,7 @@ void drawPolygon(int32_t xc, int32_t yc, int32_t rd, uint8_t odre, uint8_t pas)
     {
         const double rad = M_PI * angle / 180;
         moveTo(int32_t(xc + rd * cos(rad)), int32_t(yc + rd * sin(rad)));
-        lineTo(int32_t(xc + rd * cos(odre * rad)), int32_t(yc + rd * sin(odre * rad)), angle % 192 + 16);
+        lineTo(int32_t(xc + rd * cos(odre * rad)), int32_t(yc + rd * sin(odre * rad)), (angle % 192) + 16);
         angle += pas;
     }
     render();
@@ -138,7 +138,7 @@ void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uin
 
     for (j = 0; j < num; j++)
     {
-        drawPolygon(pt, n, j % 69 + col);
+        drawPolygon(pt, n, (j % 69) + col);
         for (k = 0; k < n; k++)
         {
             pt[k].x = pt[k].x + (pt[(k + 1) % n].x - pt[k].x) / odre;
@@ -150,10 +150,10 @@ void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uin
 
 void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, int32_t rd, uint8_t odre, uint32_t col)
 {
-    int32_t i = 0, j = 0, k = 0, m = 0;
     double angle = 0.0;
     const double coef = 2 * M_PI / num;
-    
+    int32_t i = 0, j = 0, k = 0, m = 0;
+
     if (!pt) return;
 
     for (i = 1; i <= num; i++)
@@ -171,7 +171,7 @@ void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, in
 
         for (j = 0; j < n; j++)
         {
-            drawPolygon(pt, 3, j % 69 + col);		
+            drawPolygon(pt, 3, (j % 69) + col);		
             if (i % 2)
             {
                 for (k = 2; k > 0; k--)
@@ -725,7 +725,7 @@ void graphDemo13()
     {
         for (int32_t i = 50; i <= cmx - 50; i++)
         {
-            if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) >> 2) % 192);
+            if (getPixel(i, j) == 50) putPixel(i, j, 16 + (((i + j) >> 2) % 192));
         }
     }
 
@@ -744,7 +744,7 @@ void graphDemo13()
         {
             for (int32_t i = 0; i <= cmx; i++)
             {
-                if (getPixel(i, j) == 50) putPixel(i, j, 16 + ((i + j) >> 2) % 192);
+                if (getPixel(i, j) == 50) putPixel(i, j, 16 + (((i + j) >> 2) % 192));
             }
         }
 
@@ -758,7 +758,7 @@ void graphDemo13()
     }
 
     makeRainbowPalette();
-    for (int32_t y = 0; y < cmy; y++) horizLine(0, y, cmx, 1 + uint32_t(y / 1.87) % 255);
+    for (int32_t y = 0; y < cmy; y++) horizLine(0, y, cmx, 1 + (uint32_t(y / 1.87) % 255));
     rotatePalette(1, 255, 255, FPS_90);
 }
 
@@ -1273,7 +1273,7 @@ void affichage(int32_t range)
     
     for (i = 50; i < cmx - 50; i++)
     {
-        for (j = 50; j < cmx - 50; j++) if (getPixel(i, j) == 50) putPixel(i, j, 32 + ((i + j) / range) % 72);
+        for (j = 50; j < cmx - 50; j++) if (getPixel(i, j) == 50) putPixel(i, j, 32 + (((i + j) / range) % 72));
     }
     
     setFontType(oldFont);
