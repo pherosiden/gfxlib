@@ -1,21 +1,21 @@
-//===============================================================//
-//                 GFXLIB Graphics Library                       //
-//               Use SDL2 for render system                      //
-//               SDL2_image for load images                      //
-//            Target OS: cross-platform (x32_64)                 //
-//               Author: Nguyen Ngoc Van                         //
-//               Create: 22/10/2018                              //
-//              Version: 1.2.6                                   //
-//          Last Update: 2021-11-17                              //
-//              Website: http://codedemo.net                     //
-//                Email: pherosiden@gmail.com                    //
-//           References: https://crossfire-designs.de            //
-//                       https://lodev.org                       //
-//                       https://permadi.com                     //
-//                       https://sources.ru                      //
-//                       http://eyecandyarchive.com              //
-//              License: GNU GPL                                 //
-//===============================================================//
+/*---------------------------------------------------------------*/
+/*                 GFXLIB Graphics Library                       */
+/*               Use SDL2 for render system                      */
+/*               SDL2_image for load images                      */
+/*            Target OS: cross-platform (x32_64)                 */
+/*               Author: Nguyen Ngoc Van                         */
+/*               Create: 22/10/2018                              */
+/*              Version: 1.2.6                                   */
+/*          Last Update: 2022-06-11                              */
+/*              Website: http://codedemo.net                     */
+/*                Email: pherosiden@gmail.com                    */
+/*           References: https://crossfire-designs.de            */
+/*                       https://lodev.org                       */
+/*                       https://permadi.com                     */
+/*                       https://sources.ru                      */
+/*                       http://eyecandyarchive.com              */
+/*              License: GNU GPL                                 */
+/*---------------------------------------------------------------*/
 
 #include <map>
 #include "gfxlib.h"

@@ -1,23 +1,23 @@
 ﻿#pragma once
 
-//===============================================================//
-//                 GFXLIB Graphics Library                       //
-//               Use SDL2 for render system                      //
-//               SDL2_image for load images                      //
-//            Target OS: cross-platform (x32_64)                 //
-//               Author: Nguyen Ngoc Van                         //
-//               Create: 22/10/2018                              //
-//              Version: 1.2.6                                   //
-//          Last Update: 2021-11-17                              //
-//              Website: http://codedemo.net                     //
-//                Email: pherosiden@gmail.com                    //
-//           References: https://crossfire-designs.de            //
-//                       https://lodev.org                       //
-//                       https://permadi.com                     //
-//                       https://sources.ru                      //
-//                       http://eyecandyarchive.com              //
-//              License: GNU GPL                                 //
-//===============================================================//
+/*---------------------------------------------------------------*/
+/*                 GFXLIB Graphics Library                       */
+/*               Use SDL2 for render system                      */
+/*               SDL2_image for load images                      */
+/*            Target OS: cross-platform (x32_64)                 */
+/*               Author: Nguyen Ngoc Van                         */
+/*               Create: 22/10/2018                              */
+/*              Version: 1.2.6                                   */
+/*          Last Update: 2022-06-11                              */
+/*              Website: http://codedemo.net                     */
+/*                Email: pherosiden@gmail.com                    */
+/*           References: https://crossfire-designs.de            */
+/*                       https://lodev.org                       */
+/*                       https://permadi.com                     */
+/*                       https://sources.ru                      */
+/*                       http://eyecandyarchive.com              */
+/*              License: GNU GPL                                 */
+/*---------------------------------------------------------------*/
 
 #include <random>
 #include <stdint.h>
@@ -48,8 +48,8 @@
 #endif
 
 //GFX version string
-#define GFX_VERSION             "v21.11.17"
-#define GFX_BUILD_ID            20211117
+#define GFX_VERSION             "v22.06.11"
+#define GFX_BUILD_ID            20220611
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
