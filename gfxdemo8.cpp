@@ -638,12 +638,6 @@ void graphDemo11()
     uint32_t frames = 0;
 
     srand(uint32_t(time(NULL)));
-    makePalette(0, 63, 32, 16);
-    makePalette(64, 32, 63, 16);
-    makePalette(128, 16, 16, 63);
-    makePalette(128 + 64, 63, 16, 16);
-    setPalette(cpal);
-
     while (frames < 200 && !finished(SDL_SCANCODE_RETURN))
     {
         const int32_t x = rand() % getMaxX();
@@ -663,7 +657,7 @@ void checkBounds(int32_t a, int32_t c, int32_t *b)
     else if (a < 0) *b = 1;
 }
 
-void lineBob()
+void graphDemo12()
 {
     uint32_t frames = 0;
     const int32_t cwidth = getBufferWidth();
@@ -702,22 +696,13 @@ void lineBob()
     }
 }
 
-void graphDemo12()
-{
-    makeFunkyPalette();
-    lineBob();
-}
-
 void graphDemo13()
 {
     POINT2D points[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
 
     srand(uint32_t(time(NULL)));
-    makeLinearPalette();
     fillPolygon(points, sizeof(points) / sizeof(points[0]), 50);
 
-    const int32_t cx = getCenterX();
-    const int32_t cy = getCenterY();
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
 
@@ -729,37 +714,38 @@ void graphDemo13()
         }
     }
 
-    rotatePalette(16, 207, 192, FPS_90);
-    clearScreen();
+    render();
+}
 
-    uint32_t frames = 0;
-    POINT2D randPoints[30] = { 0 };
-    
-    while (frames++ < 20)
+void graphDemo14()
+{
+    POINT2D randPoints[20] = { 0 };
+
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
+    const int32_t cmx = getMaxX();
+    const int32_t cmy = getMaxY();
+
+    srand(uint32_t(time(NULL)));
+    randomPolygon(cx, cy, 150, 0.7, 0.4, 20, randPoints);
+    fillPolygon(randPoints, 20, 50);
+
+    for (int32_t j = 0; j <= cmy; j++)
     {
-        randomPolygon(cx, cy, 150, 0.7, 0.4, 20, randPoints);
-        fillPolygon(randPoints, 20, 50);
-
-        for (int32_t j = 0; j <= cmy; j++)
+        for (int32_t i = 0; i <= cmx; i++)
         {
-            for (int32_t i = 0; i <= cmx; i++)
-            {
-                if (getPixel(i, j) == 50) putPixel(i, j, 16 + (((i + j) >> 2) % 192));
-            }
+            if (getPixel(i, j) == 50) putPixel(i, j, 16 + (((i + j) >> 2) % 192));
         }
-
-        render();
-        delay(500);
-        clearScreen();
-
-        readKeys();
-        if (keyDown(SDL_SCANCODE_RETURN)) break;
-        if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
     }
 
-    makeRainbowPalette();
-    for (int32_t y = 0; y < cmy; y++) horizLine(0, y, cmx, 1 + (uint32_t(y / 1.87) % 255));
-    rotatePalette(1, 255, 255, FPS_90);
+    render();
+}
+
+void graphDemo15()
+{
+    const int32_t cmx = getMaxX();
+    for (int32_t i = 0; i < cmx; i++) horizLine(0, i, cmx, 1 + ((int32_t)(i / 1.87) % 255));
+    render();
 }
 
 double FX1(double x, double y)
@@ -1632,95 +1618,92 @@ void gfxDemoMix()
     fadeRollo(2, 0);
 
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo0(cx, cy, int32_t(200 * ratio), int32_t(100 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
 
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo1(cx, cy, int32_t(160 * ratio), int32_t(40 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
 
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo2(cx, cy, int32_t(80 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo3(cx, cy, int32_t(80 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo4(cx, cy, int32_t(120 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo5(cmx / 7, cmy / 5 - 10, int32_t(28 * ratio), int32_t(90 * ratio), int32_t(62 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo6(cx, cy, int32_t(200 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo7(cx, cy, int32_t(200 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo8(cx, cy, int32_t(245 * ratio), int32_t(100 * ratio));
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     graphDemo9(cx, cy, 0.6 * ratio);
+    fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[64], &pal2[64], 40 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
     
     initDemo10(1, 4);
-    for (i = 0; i <= 95; i++)
-    graphDemo10(cx >> 1, cy >> 1, 140 - i, 140 - i, 64 + i / 3);
+    for (i = 0; i <= 95; i++) graphDemo10(cx >> 1, cy >> 1, 140 - i, 140 - i, 64 + i / 3);
     
     initDemo10(2, 2);
-    for (i = 0; i <= 119; i++)
-    graphDemo10(cx + (cx >> 1), cy >> 1, 170 - i, 170 - i, 64 + i / 3);
+    for (i = 0; i <= 119; i++) graphDemo10(cx + (cx >> 1), cy >> 1, 170 - i, 170 - i, 64 + i / 3);
     
     initDemo10(3, 5);
-    for (i = 0; i <= 39; i++)
-    graphDemo10(cx >> 1, cy + (cy >> 1), 110 - (i << 1), 110 - (i << 1), 83 - (i >> 1));
+    for (i = 0; i <= 39; i++) graphDemo10(cx >> 1, cy + (cy >> 1), 110 - (i << 1), 110 - (i << 1), 83 - (i >> 1));
     
     initDemo10(4, 7);
-    for (i = 0; i <= 19; i++)
-    graphDemo10(cx + (cx >> 1), cy + (cy >> 1), 130 - (i << 2), 130 - (i << 2), 64 + i);
+    for (i = 0; i <= 19; i++) graphDemo10(cx + (cx >> 1), cy + (cy >> 1), 130 - (i << 2), 130 - (i << 2), 64 + i);
+    fadeIn(pal2, FPS_90);
     rotatePalette(64, 103, 40, FPS_90);
 
     clearScreen();
-    memcpy(pal1, pal2, 256 * sizeof(RGB));
     makeLinearPalette();
+    getPalette(pal1);
+    clearPalette();
     drawPolygon(cx, cy, cx - 140, 11, 1);
+    fadeIn(pal1, FPS_90);
     rotatePalette(16, 177, 162, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 130 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
 
     findRepeat(&rept);
     drawCylodiod(cmx / 7 - 20, cmy / 5 - 30, 80, 1, 1, rept, 40);
@@ -1737,11 +1720,11 @@ void gfxDemoMix()
     drawCylodiod(cmx / 3 + 30, cmy - 100, 80, 4, 1, rept, 40);
     drawCylodiod(cx + 90, cmy - 100, 80, 4, 2, rept, 40);
     drawCylodiod(cmx - 100, cmy - 100, 80, 4, 3, rept, 40);
+    fadeIn(pal2, FPS_90);
     sleepFor(2000);
 
     clearScreen();
-    memcpy(&pal1[32], &pal2[32], 130 * sizeof(RGB));
-    setPalette(pal1);
+    clearPalette();
 
     drawCylodiod(cmx / 7 - 20, cmy / 5 - 30, 80, 5, 1, rept, 40);
     drawCylodiod(cmx / 3 + 30, cmy / 5 - 30, 80, 5, 2, rept, 40);
@@ -1757,31 +1740,64 @@ void gfxDemoMix()
     drawCylodiod(cmx / 3 + 30, cmy - 100, 80, 6, 2, rept, 40);
     drawCylodiod(cx + 90, cmy - 100, 80, 6, 3, rept, 40);
     drawCylodiod(cmx - 100, cmy - 100, 80, 6, 4, rept, 40);
+    fadeIn(pal2, FPS_90);
     sleepFor(2000);
 
     clearScreen();
-    memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
+    clearPalette();
     rotatePolygon(pts, 6, cx, cy, cx - 140, 100, 20, 40);
+    fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
     
     clearScreen();
-    memcpy(&pal1[37], &pal2[37], 67 * sizeof(RGB));
+    clearPalette();
     randomPoly(pts, 12, cmx, cmy, 40, 20, 37);
+    fadeIn(pal2, FPS_90);
     rotatePalette(37, 103, 67, FPS_90);
 
     clearScreen();
-    memcpy(&pal1[40], &pal2[40], 64 * sizeof(RGB));
+    clearPalette();
     drawHexagon(pts, 12, cx, cy, 35, cx - 140, 20, 40);
+    fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
 
     clearScreen();
+    makePalette(0, 63, 32, 16);
+    makePalette(64, 32, 63, 16);
+    makePalette(128, 16, 16, 63);
+    makePalette(128 + 64, 63, 16, 16);
+    setPalette(cpal);
     graphDemo11();
     fadeRollo(2, 0);
     
     clearScreen();
+    makeFunkyPalette();
     graphDemo12();
     fadeRollo(1, 0);
+
+    makeLinearPalette();
+    getPalette(pal1);
+    clearPalette();
     graphDemo13();
+    fadeIn(pal1, FPS_90);
+    rotatePalette(16, 207, 192, FPS_90);
+
+    clearScreen();
+    makeLinearPalette();
+    getPalette(pal1);
+    clearPalette();
+    graphDemo14();
+    fadeIn(pal1, FPS_90);
+    rotatePalette(16, 207, 192, FPS_90);
+
+    clearScreen();
+    makeRainbowPalette();
+    getPalette(pal1);
+    clearPalette();
+    graphDemo15();
+    fadeIn(pal1, FPS_90);
+    rotatePalette(1, 255, 255, FPS_90);
+
     clearScreen();
     clearPalette();
 
