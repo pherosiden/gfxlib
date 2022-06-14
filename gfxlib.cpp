@@ -1395,8 +1395,8 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
-	ARGB* pdata = (ARGB*)drawBuff;
-	ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
     
     //loop for 32-bytes aligned
     for (int32_t i = 0; i < align; i++)
@@ -1459,7 +1459,7 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
     //32-bytes alignment
     const int32_t align = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
-	ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
 
     //loop for 32-bytes aligned
@@ -1697,8 +1697,8 @@ must_inline void vertLineNormal(int32_t x, int32_t y, int32_t sy, uint32_t color
     }
 #else
     //calculate starting address
-	uint32_t* pdata = (uint32_t*)drawBuff;
-	uint32_t* pixels = &pdata[texWidth * y + x];
+    uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
     {
         *pixels = color;
@@ -1771,8 +1771,8 @@ must_inline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
 #else
     //calculate starting address
     ARGB* rgb = (ARGB*)&color;
-	ARGB* pdata = (ARGB*)drawBuff;
-	ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
     {
         pixels->r = max(pixels->r - rgb->r, 0);
@@ -1826,7 +1826,7 @@ must_inline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
     //calculate starting address
     const uint8_t cover = argb >> 24;
     const uint8_t rcover = 255 - cover;
-	uint32_t* pdata = (uint32_t*)drawBuff;
+    uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
     {
@@ -2003,8 +2003,8 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
     uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* dstPixels = &pdata[texWidth * y + x];
 
-	//initialize vector color
-	const __m256i ymm0 = _mm256_set1_epi32(color);
+    //initialize vector color
+    const __m256i ymm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2078,8 +2078,8 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
     
-	//initialize vector color
-	const __m256i ymm0 = _mm256_set1_epi32(color);
+    //initialize vector color
+    const __m256i ymm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2158,12 +2158,12 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
 
-	//calculate starting address
-	ARGB* pdata = (ARGB*)drawBuff;
-	ARGB* pixels = &pdata[texWidth * y + x];
+    //calculate starting address
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
 
-	//initialize vector color
-	const __m256i ymm0 = _mm256_set1_epi32(color);
+    //initialize vector color
+    const __m256i ymm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2242,12 +2242,12 @@ void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
 
-	//calculate starting address
-	ARGB* pdata = (ARGB*)drawBuff;
-	ARGB* pixels = &pdata[texWidth * y + x];
+    //calculate starting address
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
 
-	//initialize vector color
-	const __m256i ymm0 = _mm256_set1_epi32(color);
+    //initialize vector color
+    const __m256i ymm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2326,12 +2326,12 @@ void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
 
-	//calculate starting address
-	ARGB* pdata = (ARGB*)drawBuff;
-	ARGB* pixels = &pdata[texWidth * y + x];
+    //calculate starting address
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
 
-	//initialize vector color
-	const __m256i ymm0 = _mm256_set1_epi32(color);
+    //initialize vector color
+    const __m256i ymm0 = _mm256_set1_epi32(color);
 
     //lines-by-lines
     for (int32_t i = 0; i < height; i++)
@@ -2854,8 +2854,8 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-	ARGB* pdata = (ARGB*)drawBuff;
-	ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pdata = (ARGB*)drawBuff;
+    ARGB* pixels = &pdata[texWidth * y + x];
 
     //start scan line
     for (int32_t i = 0; i < height; i++)
@@ -5468,10 +5468,10 @@ void putImageAdd(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstData = (ARGB*)drawBuff;
-	ARGB* srcData = (ARGB*)img->mData;
-	ARGB* dstPixels = &dstData[texWidth * ly + lx];
-	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    ARGB* dstData = (ARGB*)drawBuff;
+    ARGB* srcData = (ARGB*)img->mData;
+    ARGB* dstPixels = &dstData[texWidth * ly + lx];
+    ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5577,10 +5577,10 @@ void putImageSub(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstData = (ARGB*)drawBuff;
-	ARGB* srcData = (ARGB*)img->mData;
-	ARGB* dstPixels = &dstData[texWidth * ly + lx];
-	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    ARGB* dstData = (ARGB*)drawBuff;
+    ARGB* srcData = (ARGB*)img->mData;
+    ARGB* dstPixels = &dstData[texWidth * ly + lx];
+    ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5686,10 +5686,10 @@ void putImageAnd(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstData = (ARGB*)drawBuff;
-	ARGB* srcData = (ARGB*)img->mData;
-	ARGB* dstPixels = &dstData[texWidth * ly + lx];
-	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    ARGB* dstData = (ARGB*)drawBuff;
+    ARGB* srcData = (ARGB*)img->mData;
+    ARGB* dstPixels = &dstData[texWidth * ly + lx];
+    ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5795,10 +5795,10 @@ void putImageXor(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstData = (ARGB*)drawBuff;
-	ARGB* srcData = (ARGB*)img->mData;
-	ARGB* dstPixels = &dstData[texWidth * ly + lx];
-	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    ARGB* dstData = (ARGB*)drawBuff;
+    ARGB* srcData = (ARGB*)img->mData;
+    ARGB* dstPixels = &dstData[texWidth * ly + lx];
+    ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5912,10 +5912,10 @@ void putImageAlpha(const int32_t x, const int32_t y, const int32_t lx, const int
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint32_t* dstData = (uint32_t*)drawBuff;
-	uint32_t* srcData = (uint32_t*)img->mData;
-	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
-	uint32_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    uint32_t* dstData = (uint32_t*)drawBuff;
+    uint32_t* srcData = (uint32_t*)img->mData;
+    uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+    uint32_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //scan height
     for (int32_t i = 0; i < height; i++)
@@ -6098,10 +6098,10 @@ void putSpriteMix(const int32_t x, const int32_t y, const uint32_t keyColor, con
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint8_t* dstData = (uint8_t*)drawBuff;
-	uint8_t* srcData = (uint8_t*)img->mData;
-	uint8_t* dstPixels = &dstData[texWidth * ly + lx];
-	uint8_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    uint8_t* dstData = (uint8_t*)drawBuff;
+    uint8_t* srcData = (uint8_t*)img->mData;
+    uint8_t* dstPixels = &dstData[texWidth * ly + lx];
+    uint8_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -6203,10 +6203,10 @@ void putSpriteNormal(const int32_t x, const int32_t y, const uint32_t keyColor, 
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint32_t* dstData = (uint32_t*)drawBuff;
-	uint32_t* srcData = (uint32_t*)img->mData;
-	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
-	uint32_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    uint32_t* dstData = (uint32_t*)drawBuff;
+    uint32_t* srcData = (uint32_t*)img->mData;
+    uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+    uint32_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6346,10 +6346,10 @@ void putSpriteAdd(const int32_t x, const int32_t y, const uint32_t keyColor, con
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstData = (ARGB*)drawBuff;
-	ARGB* srcData = (ARGB*)img->mData;
-	ARGB* dstPixels = &dstData[texWidth * ly + lx];
-	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    ARGB* dstData = (ARGB*)drawBuff;
+    ARGB* srcData = (ARGB*)img->mData;
+    ARGB* dstPixels = &dstData[texWidth * ly + lx];
+    ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6496,10 +6496,10 @@ void putSpriteSub(const int32_t x, const int32_t y, const uint32_t keyColor, con
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstData = (ARGB*)drawBuff;
-	ARGB* srcData = (ARGB*)img->mData;
-	ARGB* dstPixels = &dstData[texWidth * ly + lx];
-	ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    ARGB* dstData = (ARGB*)drawBuff;
+    ARGB* srcData = (ARGB*)img->mData;
+    ARGB* dstPixels = &dstData[texWidth * ly + lx];
+    ARGB* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6645,10 +6645,10 @@ void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, c
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint32_t* dstData = (uint32_t*)drawBuff;
-	uint32_t* srcData = (uint32_t*)img->mData;
-	uint32_t* dstPixels = &dstData[texWidth * ly + lx];
-	uint32_t* srcPixels = &srcData[img->mWidth * (ly- y) + (lx - x)];
+    uint32_t* dstData = (uint32_t*)drawBuff;
+    uint32_t* srcData = (uint32_t*)img->mData;
+    uint32_t* dstPixels = &dstData[texWidth * ly + lx];
+    uint32_t* srcPixels = &srcData[img->mWidth * (ly- y) + (lx - x)];
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)

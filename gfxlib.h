@@ -601,7 +601,7 @@ static must_inline int32_t alignedSize(int32_t msize)
 //32-bytes alignment for AVX2 use (all memory must be 32 bytes aligned)
 static must_inline uint32_t alignedBytes(uint32_t msize)
 {
-	return (msize + 31) & ~31;
+    return (msize + 31) & ~31;
 }
 
 //convert r,g,b values to 32bits integer value
