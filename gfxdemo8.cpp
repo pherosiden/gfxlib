@@ -1949,7 +1949,6 @@ void gfxDemoMix()
     writeText(cx - (getFontWidth(logo) >> 1), j - introY - CHR_WIDTH, 32, 1, logo);
 
     fadeIn(pal2, FPS_90);
-    memcpy(&pal1[32], &pal2[32], 72 * sizeof(RGB));
     rotatePalette(32, 103, 250, FPS_90);
 
     clearScreen();
