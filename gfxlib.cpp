@@ -8800,7 +8800,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = (to - from) * sizeof(RGB);
+    const uint32_t steps = (intptr_t(to) - from) * sizeof(RGB);
 
     if (loop > 0)
     {

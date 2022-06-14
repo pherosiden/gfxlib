@@ -15338,7 +15338,7 @@ namespace hardwareScroll {
 
 void gfxEffectsMix()
 {
-    mazeGeneration::run();
+    /*mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15365,7 +15365,7 @@ void gfxEffectsMix()
     textScrolling::run();
     fastShowBMP::run();
     EMS::run();
-    fillterEffect::run();
+    fillterEffect::run();*/
     fireworkEffect::run();
     candleEffect::run();
     fireEffect::run();
