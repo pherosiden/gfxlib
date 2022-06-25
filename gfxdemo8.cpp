@@ -337,9 +337,9 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
         alpha += M_PI / 60;
     }
 
-    const double x = 4.0 * r;
     double sx = 0, sy = 0;
-
+    const double x = 4.0 * r;
+    
     for (int32_t py = 1; py <= 2; py++)
     {
         for (int32_t px = 1; px <= 8; px++)
@@ -386,9 +386,9 @@ void graphDemo7(int32_t xc, int32_t yc, int32_t r)
         alpha += M_PI / 60;
     }
 
-    const double x = 4.0 * r;
     double sx = 0, sy = 0;
-
+    const double x = 4.0 * r;
+    
     for (int32_t py = 1; py <= 2; py++)
     {
         for (int32_t px = 1; px <= 8; px++)
@@ -437,6 +437,7 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
     }
 
     double sx = 0, sy = 0;
+
     for (double px = 1; px <= un; px++)
     {
         for (double py = 1; py <= un; py++)
@@ -535,9 +536,9 @@ void graphDemo9(int32_t xc, int32_t yc, double rd)
         }
     }
 
-    a = 0.0;
     i = 0;
-
+    a = 0.0;
+    
     while (a <= 14 * M_PI)
     {
         x = int32_t(xc + 250 * rd * (1 + 1.0 / 5 * sin(9.06 * a)) * cos(a));
