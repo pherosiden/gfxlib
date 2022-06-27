@@ -11894,7 +11894,7 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
     }
 #else
     //scan for image height
-    for (y = 100; y <= 500; y++)
+    for (y = ystart; y <= endy; y++)
     {
         //calculate starting offset
         odst = dstwidth * y + 99;
@@ -11902,7 +11902,7 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
         osrc2 = src2width * y + 99;
         
         //scan for image width
-        for (x = 100; x <= 700; x++)
+        for (x = xstart; x <= endx; x++)
         {
             //calculate delta x,y
             vlx = x - lx;
@@ -12066,13 +12066,13 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
 {
 #ifdef _USE_ASM
     __asm {
-        mov    eax, funcid
-        mov    edi, cpuinfo
+        mov     eax, funcid
+        mov     edi, cpuinfo
         cpuid
-        mov[edi     ], eax
-        mov[edi +  4], ebx
-        mov[edi +  8], ecx
-        mov[edi + 12], edx
+        mov     [edi     ], eax
+        mov     [edi +  4], ebx
+        mov     [edi +  8], ecx
+        mov     [edi + 12], edx
     }
 #elif defined(__APPLE__)
     __cpuid(funcid, cpuinfo[0], cpuinfo[1], cpuinfo[2], cpuinfo[3]);
