@@ -351,7 +351,7 @@ enum INTERPOLATION_TYPE
 {
     INTERPOLATION_TYPE_NORMAL,                  //Bresenham interpolation (nearest and smooth)
     INTERPOLATION_TYPE_NEARST,                  //nearest neighbor (low quality)
-    INTERPOLATION_TYPE_SMOOTH,                  //use average to smooth image (still low quality)
+    INTERPOLATION_TYPE_SMOOTH,                  //use average pixels to smooth image (normal quality)
     INTERPOLATION_TYPE_BILINEAR,                //bi-linear interpolation (good quality)
     INTERPOLATION_TYPE_BICUBIC,                 //bi-cubic interpolation (best quality)
     INTERPOLATION_TYPE_UNKNOWN                  //error type
