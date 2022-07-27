@@ -675,6 +675,17 @@ extern "C" {
 #define SDL_HINT_JOYSTICK_HIDAPI_LUNA "SDL_JOYSTICK_HIDAPI_LUNA"
 
 /**
+  *  \brief  A variable controlling whether the HIDAPI driver for NVIDIA SHIELD controllers should be used.
+  *
+  *  This variable can be set to the following values:
+  *    "0"       - HIDAPI driver is not used
+  *    "1"       - HIDAPI driver is used
+  *
+  *  The default is the value of SDL_HINT_JOYSTICK_HIDAPI
+  */
+#define SDL_HINT_JOYSTICK_HIDAPI_SHIELD "SDL_JOYSTICK_HIDAPI_SHIELD"
+
+/**
  *  \brief  A variable controlling whether the HIDAPI driver for PS4 controllers should be used.
  *
  *  This variable can be set to the following values:
@@ -2000,6 +2011,15 @@ extern "C" {
  *    "1"       - Enable XInput detection (the default)
  */
 #define SDL_HINT_XINPUT_ENABLED "SDL_XINPUT_ENABLED"
+
+ /**
+  *  \brief  A variable that lets you disable the detection and use of DirectInput gamepad devices
+  *
+  *  The variable can be set to the following values:
+  *    "0"       - Disable DirectInput detection (only uses XInput)
+  *    "1"       - Enable DirectInput detection (the default)
+  */
+#define SDL_HINT_DIRECTINPUT_ENABLED "SDL_DIRECTINPUT_ENABLED"
 
 /**
  *  \brief  A variable that causes SDL to use the old axis and button mapping for XInput devices.
