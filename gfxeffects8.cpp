@@ -10014,11 +10014,11 @@ namespace landScapeEffect {
             
             for (int16_t n = 0; n < XMAX * YMAX; n++)
             {
-                const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45) - 153;
-                if (x > -317 && x < -3)
+                const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45);
+                if (x > -255 && x < 62)
                 {
                     uint8_t col = vbuff[n / XMAX + j][n % XMAX + i];
-                    dbuff[DENT * (n / XMAX) - col + 198][x] = col - 100;
+                    dbuff[DENT * (n / XMAX) - col - 7][x] = col - 100;
                 }
             }
 
