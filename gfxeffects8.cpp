@@ -9976,10 +9976,6 @@ namespace landScapeEffect {
         if (fp) fread(dbuff, IMAGE_SIZE, 1, fp);
         else
         {
-            vbuff[0][0] = uint8_t(random(HMAX));
-            vbuff[0][MAX_WIDTH] = uint8_t(random(HMAX));
-            vbuff[MAX_HEIGHT][0] = uint8_t(random(HMAX));
-            vbuff[MAX_HEIGHT][MAX_WIDTH] = uint8_t(random(HMAX));
             subDivide(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
             fp = fopen("assets/land.map", "wb");
             fwrite(dbuff, IMAGE_SIZE, 1, fp);
@@ -10021,7 +10017,8 @@ namespace landScapeEffect {
                 const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45) - 153;
                 if (x > -313 && x < -3)
                 {
-                    dbuff[DENT * (n / XMAX) - vbuff[n / XMAX + j][n % XMAX + i] + 202][x] = vbuff[n / XMAX + j][n % XMAX + i] - 100;
+                    uint8_t col = vbuff[n / XMAX + j][n % XMAX + i];
+                    dbuff[DENT * (n / XMAX) - col + 202][x] = col - 100;
                 }
             }
 
