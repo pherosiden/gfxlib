@@ -9987,7 +9987,7 @@ namespace landScapeEffect {
         {
             for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
-                vbuff[i][j] = 110 + (vbuff[i][j] >> 1);
+                vbuff[i][j] = (vbuff[i][j] >> 1) + 110;
                 if (vbuff[i][j] < 115) vbuff[i][j] = 115;
             }
         }
