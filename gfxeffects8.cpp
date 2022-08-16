@@ -9889,6 +9889,8 @@ namespace landScapeEffect {
     #define HMAX    128
     #define XMAX    (320 / DENT)
     #define YMAX    (120 / DENT)
+    #define MPOSX   (IMAGE_WIDTH - XMAX)
+    #define MPOSY   (IMAGE_HEIGHT - YMAX)
 
     uint8_t dbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -10009,16 +10011,16 @@ namespace landScapeEffect {
             i >>= 1;
             j >>= 1;
 
-            if (i > 214) i = 214;
-            if (j > 160) j = 160;
+            if (i > MPOSX) i = MPOSX;
+            if (j > MPOSY) j = MPOSY;
             
             for (int16_t n = 0; n < XMAX * YMAX; n++)
             {
-                const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45);
-                if (x > -255 && x < 62)
+                const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45) - 153;
+                if (x > -317 && x < -3)
                 {
-                    uint8_t col = vbuff[n / XMAX + j][n % XMAX + i];
-                    dbuff[DENT * (n / XMAX) - col - 7][x] = col - 100;
+                    const uint8_t col = vbuff[n / XMAX + j][n % XMAX + i];
+                    dbuff[DENT * (n / XMAX) - col + 198][x] = col - 100;
                 }
             }
 
@@ -10845,14 +10847,14 @@ namespace lineBlurEffect {
                 rd8 = (rand() % LSPEED) + 1;
             }
 
-            if (points.dirx0 == PLUS) points.x0 += rd1;
-            if (points.dirx0 == MINUS) points.x0 -= rd2;
-            if (points.diry0 == PLUS) points.y0 += rd3;
-            if (points.diry0 == MINUS) points.y0 -= rd4;
-            if (points.dirx1 == PLUS) points.x1 += rd5;
-            if (points.dirx1 == MINUS) points.x1 -= rd6;
-            if (points.diry1 == PLUS) points.y1 += rd7;
-            if (points.diry1 == MINUS) points.y1 -= rd8;
+            if (points.dirx0 == PLUS)   points.x0 += rd1;
+            if (points.dirx0 == MINUS)  points.x0 -= rd2;
+            if (points.diry0 == PLUS)   points.y0 += rd3;
+            if (points.diry0 == MINUS)  points.y0 -= rd4;
+            if (points.dirx1 == PLUS)   points.x1 += rd5;
+            if (points.dirx1 == MINUS)  points.x1 -= rd6;
+            if (points.diry1 == PLUS)   points.y1 += rd7;
+            if (points.diry1 == MINUS)  points.y1 -= rd8;
 
             if (points.x0 < MAX_WIDTH - 1 && points.x0 > 1 && points.y0 > 1 && points.y0 < MAX_HEIGHT - 1 && points.x1 < MAX_WIDTH - 1 && points.x1 > 1 && points.y1 > 1 && points.y1 < MAX_HEIGHT - 1)
             {
@@ -11166,7 +11168,7 @@ namespace pixelMorphing {
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         doPicture();
-        waitUserInput();
+        if (waitUserInput() == SDL_SCANCODE_ESCAPE) quit();
         cleanup();
     }
 }
@@ -11589,7 +11591,6 @@ namespace plasmaEffect3 {
             memcpy(&pal[0], &pal[1], 255 * sizeof(RGB));
             memcpy(&pal[255], &tmp, sizeof(RGB));
             setPalette(pal);
-            render();
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -14263,7 +14264,6 @@ namespace thunderBoltEffect {
         flash[0].g = 255;
         flash[0].b = 255;
         setPalette(flash);
-        render();
         delay(15);
 
         for (j = 63; j >= 0; j--)
@@ -14275,7 +14275,6 @@ namespace thunderBoltEffect {
                 if (pal[i].b > 4) pal[i].b -= 4;
             }
             setPalette(pal);
-            render();
             delay(15);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -14694,7 +14693,6 @@ namespace waterFall {
             }
             shiftPalette(pal);
             setPalette(pal);
-            render();
             delay(FPS_90);
             ofs++;
         } while (!finished(SDL_SCANCODE_RETURN));
