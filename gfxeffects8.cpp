@@ -14906,13 +14906,11 @@ namespace rayCastingEffect {
             shr     ecx, 10
             test    ecx, ecx
             jnz     nozero
-            inc     ecx
         nozero:
-            cmp     ecx, 16
-            jbe     no16
-            mov     ecx, 16
-        no16:
-            dec     ecx
+            cmp     ecx, 15
+            jbe     no15
+            mov     ecx, 15
+        no15:
             shl     ecx, 8
             xor     eax, eax
             mov     al, [floors + esi]
@@ -14957,7 +14955,6 @@ namespace rayCastingEffect {
             px = (((cx * cosy) >> 20) + py128) & 0x7f;
             cx >>= 10;
             if (cx > 15) cx = 15;
-            else if (cx > 0) cx--;
             ax = floors[py][px];
             vbuff[bx][vofs] = shade[cx][ax];
             ax = ceils[py][px];
@@ -15005,7 +15002,7 @@ namespace rayCastingEffect {
     {
         for (int16_t i = 0; i < 256; i++) shade[0][i] = uint8_t(i);
 
-        for (int16_t k = 0; k < 16; k++)
+        for (int16_t k = 1; k < 16; k++)
         {
             for (int16_t i = 0; i < 256; i++)
             {
@@ -15121,9 +15118,8 @@ namespace rayCastingEffect {
             hmh = IMAGE_MIDY - height;
             hph = IMAGE_MIDY + height;
 
-            uint16_t darker = uint16_t(spacer) >> 10;
+            uint16_t darker = int32_t(spacer) >> 10;
             if (darker > 15) darker = 15;
-            else if (darker > 0) darker--;
 
             if (hmh < 0)
             {
