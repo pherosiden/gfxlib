@@ -14688,7 +14688,7 @@ namespace waterFall {
                 {
                     pal[j].r = i >> 3;
                     pal[j].g = i >> 3;
-                    pal[j].b = 32 + (i >> 3);
+                    pal[j].b = (i >> 3) + 32;
                 }
             }
             shiftPalette(pal);
