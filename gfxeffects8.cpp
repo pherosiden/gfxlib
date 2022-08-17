@@ -10006,7 +10006,7 @@ namespace landScapeEffect {
 
         do {
             memset(dbuff, 0, IMAGE_SIZE);
-            getMouseState(&i, &j, &lmb, NULL);
+            getMouseState(&i, &j, &lmb);
 
             i >>= 1;
             j >>= 1;
@@ -15333,7 +15333,7 @@ namespace hardwareScroll {
 
 void gfxEffectsMix()
 {
-    mazeGeneration::run();
+    /*mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15379,7 +15379,7 @@ void gfxEffectsMix()
     kaleidoScope2::run(0);
     fastCircleFill::run();
     lakeEffect::run();
-    landScapeGeneration::run();
+    landScapeGeneration::run();*/
     landScapeEffect::run();
     lensEffect::run();
     zoomInEffect::run();
