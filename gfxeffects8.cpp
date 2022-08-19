@@ -429,17 +429,17 @@ namespace crossFade {
                     uint8_t col = 0;
                     uint8_t change = 0;
 
-                    const uint8_t r = pal1[pix1].r;
-                    const uint8_t g = pal1[pix1].g;
-                    const uint8_t b = pal1[pix1].b;
+                    const uint8_t rs = pal1[pix1].r;
+                    const uint8_t gs = pal1[pix1].g;
+                    const uint8_t bs = pal1[pix1].b;
 
-                    const uint8_t r1 = pal2[pix2].r;
-                    const uint8_t g1 = pal2[pix2].g;
-                    const uint8_t b1 = pal2[pix2].b;
+                    const uint8_t rd = pal2[pix2].r;
+                    const uint8_t gd = pal2[pix2].g;
+                    const uint8_t bd = pal2[pix2].b;
 
                     for (uint8_t k = 0; k <= col; k++)
                     {
-                        if (src[k].r == r && src[k].g == g && src[k].b == b && dst[k].r == r1 && dst[k].g == g1 && dst[k].b == b1)
+                        if ((src[k].r == rs) && (src[k].g == gs) && (src[k].b == bs) && (dst[k].r == rd) && (dst[k].g == gd) && (dst[k].b == bd))
                         {
                             vbuff2[y][x] = k;
                             change = 1;
@@ -450,13 +450,13 @@ namespace crossFade {
                     {
                         col++;
 
-                        src[col].r = r;
-                        src[col].g = g;
-                        src[col].b = b;
+                        src[col].r = rs;
+                        src[col].g = gs;
+                        src[col].b = bs;
 
-                        dst[col].r = r1;
-                        dst[col].g = g1;
-                        dst[col].b = b1;
+                        dst[col].r = rd;
+                        dst[col].g = gd;
+                        dst[col].b = bd;
 
                         vbuff2[y][x] = col;
                     }
@@ -9889,6 +9889,8 @@ namespace landScapeEffect {
     #define HMAX    128
     #define XMAX    (320 / DENT)
     #define YMAX    (120 / DENT)
+    #define MPOSX   (IMAGE_WIDTH - XMAX)
+    #define MPOSY   (IMAGE_HEIGHT - YMAX)
 
     uint8_t dbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -9976,11 +9978,7 @@ namespace landScapeEffect {
         if (fp) fread(dbuff, IMAGE_SIZE, 1, fp);
         else
         {
-            vbuff[0][0] = uint8_t(random(HMAX));
-            vbuff[0][MAX_WIDTH] = uint8_t(random(HMAX));
-            vbuff[MAX_HEIGHT][0] = uint8_t(random(HMAX));
-            vbuff[MAX_HEIGHT][MAX_WIDTH] = uint8_t(random(HMAX));
-            subDivide(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+            subDivide(0, 0, MAX_WIDTH, MAX_HEIGHT);
             fp = fopen("assets/land.map", "wb");
             fwrite(dbuff, IMAGE_SIZE, 1, fp);
         }
@@ -9991,7 +9989,7 @@ namespace landScapeEffect {
         {
             for (int16_t j = 0; j < IMAGE_WIDTH; j++)
             {
-                vbuff[i][j] = 110 + (vbuff[i][j] >> 1);
+                vbuff[i][j] = (vbuff[i][j] >> 1) + 110;
                 if (vbuff[i][j] < 115) vbuff[i][j] = 115;
             }
         }
@@ -10008,20 +10006,21 @@ namespace landScapeEffect {
 
         do {
             memset(dbuff, 0, IMAGE_SIZE);
-            getMouseState(&i, &j, &lmb, NULL);
+            getMouseState(&i, &j, &lmb);
 
             i >>= 1;
             j >>= 1;
 
-            if (i > 214) i = 214;
-            if (j > 160) j = 160;
+            if (i > MPOSX) i = MPOSX;
+            if (j > MPOSY) j = MPOSY;
             
             for (int16_t n = 0; n < XMAX * YMAX; n++)
             {
                 const int16_t x = -(DENT * (n % XMAX - (XMAX >> 1) - 1) * 45) / (n / XMAX - 45) - 153;
-                if (x > -313 && x < -3)
+                if (x > -317 && x < -3)
                 {
-                    dbuff[DENT * (n / XMAX) - vbuff[n / XMAX + j][n % XMAX + i] + 202][x] = vbuff[n / XMAX + j][n % XMAX + i] - 100;
+                    const uint8_t col = vbuff[n / XMAX + j][n % XMAX + i];
+                    dbuff[DENT * (n / XMAX) - col + 198][x] = col - 100;
                 }
             }
 
@@ -10848,14 +10847,14 @@ namespace lineBlurEffect {
                 rd8 = (rand() % LSPEED) + 1;
             }
 
-            if (points.dirx0 == PLUS) points.x0 += rd1;
-            if (points.dirx0 == MINUS) points.x0 -= rd2;
-            if (points.diry0 == PLUS) points.y0 += rd3;
-            if (points.diry0 == MINUS) points.y0 -= rd4;
-            if (points.dirx1 == PLUS) points.x1 += rd5;
-            if (points.dirx1 == MINUS) points.x1 -= rd6;
-            if (points.diry1 == PLUS) points.y1 += rd7;
-            if (points.diry1 == MINUS) points.y1 -= rd8;
+            if (points.dirx0 == PLUS)   points.x0 += rd1;
+            if (points.dirx0 == MINUS)  points.x0 -= rd2;
+            if (points.diry0 == PLUS)   points.y0 += rd3;
+            if (points.diry0 == MINUS)  points.y0 -= rd4;
+            if (points.dirx1 == PLUS)   points.x1 += rd5;
+            if (points.dirx1 == MINUS)  points.x1 -= rd6;
+            if (points.diry1 == PLUS)   points.y1 += rd7;
+            if (points.diry1 == MINUS)  points.y1 -= rd8;
 
             if (points.x0 < MAX_WIDTH - 1 && points.x0 > 1 && points.y0 > 1 && points.y0 < MAX_HEIGHT - 1 && points.x1 < MAX_WIDTH - 1 && points.x1 > 1 && points.y1 > 1 && points.y1 < MAX_HEIGHT - 1)
             {
@@ -11169,7 +11168,7 @@ namespace pixelMorphing {
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         doPicture();
-        waitUserInput();
+        if (waitUserInput() == SDL_SCANCODE_ESCAPE) quit();
         cleanup();
     }
 }
@@ -11592,7 +11591,6 @@ namespace plasmaEffect3 {
             memcpy(&pal[0], &pal[1], 255 * sizeof(RGB));
             memcpy(&pal[255], &tmp, sizeof(RGB));
             setPalette(pal);
-            render();
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
         cleanup();
@@ -14266,7 +14264,6 @@ namespace thunderBoltEffect {
         flash[0].g = 255;
         flash[0].b = 255;
         setPalette(flash);
-        render();
         delay(15);
 
         for (j = 63; j >= 0; j--)
@@ -14278,7 +14275,6 @@ namespace thunderBoltEffect {
                 if (pal[i].b > 4) pal[i].b -= 4;
             }
             setPalette(pal);
-            render();
             delay(15);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -14692,12 +14688,11 @@ namespace waterFall {
                 {
                     pal[j].r = i >> 3;
                     pal[j].g = i >> 3;
-                    pal[j].b = 32 + (i >> 3);
+                    pal[j].b = (i >> 3) + 32;
                 }
             }
             shiftPalette(pal);
             setPalette(pal);
-            render();
             delay(FPS_90);
             ofs++;
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -14911,13 +14906,11 @@ namespace rayCastingEffect {
             shr     ecx, 10
             test    ecx, ecx
             jnz     nozero
-            inc     ecx
         nozero:
-            cmp     ecx, 16
-            jbe     no16
-            mov     ecx, 16
-        no16:
-            dec     ecx
+            cmp     ecx, 15
+            jbe     no15
+            mov     ecx, 15
+        no15:
             shl     ecx, 8
             xor     eax, eax
             mov     al, [floors + esi]
@@ -14962,7 +14955,6 @@ namespace rayCastingEffect {
             px = (((cx * cosy) >> 20) + py128) & 0x7f;
             cx >>= 10;
             if (cx > 15) cx = 15;
-            else if (cx > 0) cx--;
             ax = floors[py][px];
             vbuff[bx][vofs] = shade[cx][ax];
             ax = ceils[py][px];
@@ -15010,7 +15002,7 @@ namespace rayCastingEffect {
     {
         for (int16_t i = 0; i < 256; i++) shade[0][i] = uint8_t(i);
 
-        for (int16_t k = 0; k < 16; k++)
+        for (int16_t k = 1; k < 16; k++)
         {
             for (int16_t i = 0; i < 256; i++)
             {
@@ -15126,9 +15118,8 @@ namespace rayCastingEffect {
             hmh = IMAGE_MIDY - height;
             hph = IMAGE_MIDY + height;
 
-            uint16_t darker = uint16_t(spacer) >> 10;
+            uint16_t darker = int32_t(spacer) >> 10;
             if (darker > 15) darker = 15;
-            else if (darker > 0) darker--;
 
             if (hmh < 0)
             {
