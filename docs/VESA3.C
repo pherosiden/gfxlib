@@ -766,7 +766,7 @@ int RandomRange(int a, int b)
 // prevent old compiler not optimize this function
 void CopyData(void *dst, void *src, unsigned int size)
 {
-    _asm {
+    __asm {
         pusha
         mov    edi, dst
         mov    esi, src
@@ -783,7 +783,7 @@ void CopyData(void *dst, void *src, unsigned int size)
 // A CPUID instruction wrapper
 void CPUID(unsigned int *cpuinfo, unsigned int type)
 {
-    _asm {
+    __asm {
         mov    eax, type
         mov    edi, cpuinfo
         cpuid
@@ -799,7 +799,7 @@ unsigned long long GetRDTSC()
 {
     unsigned long long val = 0;
 
-    _asm {
+    __asm {
         xor    eax, eax
         cpuid
         rdtsc
@@ -815,7 +815,7 @@ unsigned long long GetPIT()
 {
     unsigned long long val = 0;
 
-    _asm {
+    __asm {
         xor    eax, eax
         cli
         out    43h, al
@@ -1081,7 +1081,7 @@ void GetMemoryInfo()
     memset(pmem, 0, sizeof(MEM_INFO));
 
     // call DMPI function to get system memory status info
-    _asm {
+    __asm {
         mov    eax, 0500h
         mov    edi, pmem
         int    31h
@@ -1169,7 +1169,7 @@ unsigned int AllocDosSegment(unsigned int pageSize)
 {
     unsigned int value = 0;
 
-    _asm {
+    __asm {
         mov    ebx, pageSize
         cmp    ebx, 65535
         ja     error
@@ -1194,7 +1194,7 @@ unsigned int AllocDosSegment(unsigned int pageSize)
 // DPMI free DOS memory block
 void FreeDosSegment(unsigned int *selSegment)
 {
-    _asm {
+    __asm {
         mov    edi, selSegment
         mov    edx, [edi]
         push   edi
@@ -1211,7 +1211,7 @@ int SimRealModeInt(unsigned char num, RM_REGS *rmRegs)
 {
     int value = 0;
 
-    _asm {
+    __asm {
         xor    ebx, ebx
         mov    bl, num
         mov    edi, rmRegs
@@ -1235,7 +1235,7 @@ unsigned short AllocSelector()
 {
     unsigned short value = 0;
 
-    _asm {
+    __asm {
         xor    eax, eax
         mov    ecx, 1
         int    31h
@@ -1251,7 +1251,7 @@ unsigned short AllocSelector()
 // DPMI free selector
 void FreeSelector(unsigned short *sel)
 {
-    _asm {
+    __asm {
         mov    edi, sel
         mov    bx, [edi]
         mov    dword ptr [edi], 0
@@ -1265,7 +1265,7 @@ int SetSelectorRights(unsigned short sel, unsigned short accRights)
 {
     int value = 0;
 
-    _asm {
+    __asm {
         mov    bx, sel
         mov    cx, accRights
         mov    eax, 0009h
@@ -1287,7 +1287,7 @@ int SetSelectorBase(unsigned short sel, unsigned int linearAddr)
 {
     int value = 0;
 
-    _asm {
+    __asm {
         mov    bx, sel
         mov    ecx, linearAddr
         mov    edx, ecx
@@ -1312,7 +1312,7 @@ int SetSelectorLimit(unsigned short sel, unsigned int selLimit)
 {
     int value = 0;
 
-    _asm {
+    __asm {
         mov    bx, sel
         mov    ecx, selLimit
         mov    edx, ecx
@@ -1337,7 +1337,7 @@ unsigned int MapPhysicalAddress(unsigned int physAddr, unsigned int len)
 {
     unsigned int value = 0;
 
-    _asm {
+    __asm {
         mov    ebx, physAddr
         mov    esi, len
         mov    ecx, ebx
@@ -1366,7 +1366,7 @@ unsigned int MapPhysicalAddress(unsigned int physAddr, unsigned int len)
 // DPMI free linear address
 void FreePhysicalAddress(unsigned int* linearAddr)
 {
-    _asm {
+    __asm {
         mov    edi, linearAddr
         mov    bx, [edi + 2]
         mov    cx, [edi]
@@ -1381,7 +1381,7 @@ unsigned int MapRealPointer(unsigned int rmSegOfs)
 {
     unsigned int value = 0;
 
-    _asm {
+    __asm {
         mov    eax, rmSegOfs
         mov    edx, eax
         and    eax, 0FFFF0000h
@@ -1697,7 +1697,7 @@ void SetPaletteRange(PAL *pal, int from, int to)
         tmp[i].b = pal[i].r;
     }
 
-    _asm {
+    __asm {
         mov   ax, pmSelector
         mov   ds, ax
         mov   ebx, 80h
@@ -1743,7 +1743,7 @@ int SetDisplayStart(unsigned int xpos, unsigned int ypos)
     // VESA 2.0, call direct from protect mode interface
     if (fnSetDisplayStart)
     {
-        _asm {
+        __asm {
             mov   eax, xpos
             mul   bytesPerPixel
             mov   edx, eax
@@ -1906,7 +1906,7 @@ unsigned int FromRGB(unsigned char r, unsigned char g, unsigned char b)
 // Vertical and Horizon retrace
 void WaitRetrace()
 {
-    _asm {
+    __asm {
         mov    dx, 03DAh
     waitH:
         in     al, dx
@@ -1942,7 +1942,7 @@ void PutPixel8(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -1958,7 +1958,7 @@ void PutPixel16(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -1975,7 +1975,7 @@ void PutPixel24(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -1996,7 +1996,7 @@ void PutPixel32(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2012,7 +2012,7 @@ void PutPixel32(int x, int y, unsigned int col)
 
 void PutPixelBob(int x, int y)
 {
-    _asm {
+    __asm {
         mov    eax, y
         mov    ebx, bytesPerScanline
         mul    ebx
@@ -2036,7 +2036,7 @@ unsigned int GetPixel8(int x, int y)
 
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return 0;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2056,7 +2056,7 @@ unsigned int GetPixel16(int x, int y)
 
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return 0;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2077,7 +2077,7 @@ unsigned int GetPixel24(int x, int y)
 
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return 0;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2102,7 +2102,7 @@ unsigned int GetPixel32(int x, int y)
 
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return 0;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2123,7 +2123,7 @@ void PutPixelAdd32(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2158,7 +2158,7 @@ void PutPixelAdd24(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2193,7 +2193,7 @@ void PutPixelAdd16(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2233,7 +2233,7 @@ void PutPixelAdd15(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2274,7 +2274,7 @@ void PutPixelSub32(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2309,7 +2309,7 @@ void PutPixelSub24(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2344,7 +2344,7 @@ void PutPixelSub16(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2381,7 +2381,7 @@ void PutPixelSub15(int x, int y, unsigned int col)
 {
     if (x < cminx || y < cminy || x > cmaxx || y > cmaxy) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -2416,7 +2416,7 @@ void PutPixelSub15(int x, int y, unsigned int col)
 // Clear screen with color functions
 void ClearScreen8(unsigned int col)
 {
-    _asm {
+    __asm {
         mov    eax, pageOffset
         mul    bytesPerScanline
         mov    edi, lfbPtr
@@ -2440,7 +2440,7 @@ void ClearScreen8(unsigned int col)
 
 void ClearScreen16(unsigned int col)
 {
-    _asm {
+    __asm {
         mov    eax, pageOffset
         mul    bytesPerScanline
         mov    edi, lfbPtr
@@ -2460,7 +2460,7 @@ void ClearScreen16(unsigned int col)
 
 void ClearScreen24(unsigned int col)
 {
-    _asm {
+    __asm {
         mov    eax, pageOffset
         mul    bytesPerScanline 
         mov    edi, lfbPtr
@@ -2477,7 +2477,7 @@ void ClearScreen24(unsigned int col)
 
 void ClearScreen32(unsigned int col)
 {
-    _asm {
+    __asm {
         mov    eax, pageOffset
         mul    bytesPerScanline
         mov    edi, lfbPtr
@@ -2512,7 +2512,7 @@ void FillRect8(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2567,7 +2567,7 @@ void FillRect16(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2620,7 +2620,7 @@ void FillRect24(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2671,7 +2671,7 @@ void FillRect32(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2717,7 +2717,7 @@ void FillRectAdd32(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2781,7 +2781,7 @@ void FillRectAdd24(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2846,7 +2846,7 @@ void FillRectAdd16(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2916,7 +2916,7 @@ void FillRectAdd15(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -2987,7 +2987,7 @@ void FillRectSub32(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3051,7 +3051,7 @@ void FillRectSub24(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3116,7 +3116,7 @@ void FillRectSub16(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3183,7 +3183,7 @@ void FillRectSub15(int x1, int y1, int x2, int y2, unsigned int col)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3253,7 +3253,7 @@ void FillRectPattern32(int x1, int y1, int x2, int y2, unsigned int col, unsigne
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3312,7 +3312,7 @@ void FillRectPattern24(int x1, int y1, int x2, int y2, unsigned int col, unsigne
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3375,7 +3375,7 @@ void FillRectPattern16(int x1, int y1, int x2, int y2, unsigned int col, unsigne
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3432,7 +3432,7 @@ void FillRectPattern8(int x1, int y1, int x2, int y2, unsigned int col, unsigned
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3487,7 +3487,7 @@ void FillRectPatternAdd32(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3565,7 +3565,7 @@ void FillRectPatternAdd24(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3643,7 +3643,7 @@ void FillRectPatternAdd16(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3727,7 +3727,7 @@ void FillRectPatternAdd15(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3811,7 +3811,7 @@ void FillRectPatternSub32(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3889,7 +3889,7 @@ void FillRectPatternSub24(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -3967,7 +3967,7 @@ void FillRectPatternSub16(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4048,7 +4048,7 @@ void FillRectPatternSub15(int x1, int y1, int x2, int y2, unsigned int col, unsi
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4148,7 +4148,7 @@ void ClearImage(IMAGE *img)
     void *data = img->mData;
     unsigned int size = img->mSize;
 
-    _asm {
+    __asm {
         mov    edi, data
         xor    eax, eax
         mov    ecx, size
@@ -4209,7 +4209,7 @@ void GetImage8(int x1, int y1, int width, int height, IMAGE *img)
     img->mRowBytes = lfbWidth * bytesPerPixel;
     img->mSize     = lfbHeight * img->mRowBytes;
     
-    _asm {
+    __asm {
         mov    edi, imgData
         mov    esi, lfbPtr
         mov    eax, lfbMinY
@@ -4268,7 +4268,7 @@ void GetImage16(int x1, int y1, int width, int height, IMAGE *img)
     img->mRowBytes = lfbWidth * bytesPerPixel;
     img->mSize     = lfbHeight * img->mRowBytes;
 
-    _asm {
+    __asm {
         mov    edi, imgData
         mov    esi, lfbPtr
         mov    eax, lfbMinY
@@ -4329,7 +4329,7 @@ void GetImage24(int x1, int y1, int width, int height, IMAGE *img)
     img->mRowBytes = lfbWidth * bytesPerPixel;
     img->mSize     = lfbHeight * img->mRowBytes;
 
-    _asm {
+    __asm {
         mov    edi, imgData
         mov    esi, lfbPtr
         mov    eax, lfbMinY
@@ -4396,7 +4396,7 @@ void GetImage32(int x1, int y1, int width, int height, IMAGE *img)
     img->mRowBytes = lfbWidth * bytesPerPixel;
     img->mSize     = lfbHeight * img->mRowBytes;
 
-    _asm {
+    __asm {
         mov    edi, imgData
         mov    esi, lfbPtr
         mov    eax, lfbMinY
@@ -4451,7 +4451,7 @@ void PutImage8(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4519,7 +4519,7 @@ void PutImage16(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4591,7 +4591,7 @@ void PutImage24(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4673,7 +4673,7 @@ void PutImage32(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4744,7 +4744,7 @@ void PutImageAlpha(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4850,7 +4850,7 @@ void PutImageAdd32(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -4941,7 +4941,7 @@ void PutImageAdd24(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5037,7 +5037,7 @@ void PutImageAdd16(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5135,7 +5135,7 @@ void PutImageAdd15(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5234,7 +5234,7 @@ void PutImageSub32(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5326,7 +5326,7 @@ void PutImageSub24(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5422,7 +5422,7 @@ void PutImageSub16(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5518,7 +5518,7 @@ void PutImageSub15(int x1, int y1, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5612,7 +5612,7 @@ void PutSprite8(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5679,7 +5679,7 @@ void PutSprite16(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5750,7 +5750,7 @@ void PutSprite24(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5838,7 +5838,7 @@ void PutSprite32(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -5912,7 +5912,7 @@ void PutSpriteAdd32(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6005,7 +6005,7 @@ void PutSpriteAdd24(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6106,7 +6106,7 @@ void PutSpriteAdd16(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6205,7 +6205,7 @@ void PutSpriteAdd15(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6305,7 +6305,7 @@ void PutSpriteSub32(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6400,7 +6400,7 @@ void PutSpriteSub24(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6501,7 +6501,7 @@ void PutSpriteSub16(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6599,7 +6599,7 @@ void PutSpriteSub15(int x1, int y1, unsigned int key, IMAGE *img)
     // Check for loop
     if (!lfbWidth || !lfbHeight) return;
 
-    _asm {
+    __asm {
         mov    edi, lfbPtr
         mov    eax, lfbMinY
         add    eax, pageOffset
@@ -6685,7 +6685,7 @@ void HorizLine8(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6729,7 +6729,7 @@ void HorizLine16(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6769,7 +6769,7 @@ void HorizLine24(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6806,7 +6806,7 @@ void HorizLine32(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6839,7 +6839,7 @@ void HorizLineAdd32(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6891,7 +6891,7 @@ void HorizLineAdd24(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6942,7 +6942,7 @@ void HorizLineAdd16(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -6998,7 +6998,7 @@ void HorizLineAdd15(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7055,7 +7055,7 @@ void HorizLineSub32(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7107,7 +7107,7 @@ void HorizLineSub24(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7158,7 +7158,7 @@ void HorizLineSub16(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7211,7 +7211,7 @@ void HorizLineSub15(int x, int y, int sx, unsigned int col)
 	if (sx > cmaxx - x) sx = (cmaxx - x) + 1;
 	if (sx <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7263,7 +7263,7 @@ void VertLine8(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7298,7 +7298,7 @@ void VertLine16(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7334,7 +7334,7 @@ void VertLine24(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7374,7 +7374,7 @@ void VertLine32(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7411,7 +7411,7 @@ void VertLineAdd32(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7465,7 +7465,7 @@ void VertLineAdd24(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7518,7 +7518,7 @@ void VertLineAdd16(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7578,7 +7578,7 @@ void VertLineAdd15(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7639,7 +7639,7 @@ void VertLineSub32(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7693,7 +7693,7 @@ void VertLineSub24(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7746,7 +7746,7 @@ void VertLineSub16(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7803,7 +7803,7 @@ void VertLineSub15(int x, int y, int sy, unsigned int col)
 	if (sy > cmaxy - y) sy = (cmaxy - y) + 1;
 	if (sy <= 0) return;
     
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -7854,7 +7854,7 @@ void ScaleLine8(void *dst, void *src, int dw, int sw, int smooth)
 
     if (smooth)
     {
-        _asm {
+        __asm {
             pusha
             mov    ebx, dw
             mov    eax, dw
@@ -7899,7 +7899,7 @@ void ScaleLine8(void *dst, void *src, int dw, int sw, int smooth)
     }
     else
     {
-        _asm {
+        __asm {
             pusha
             xor    edx, edx
             mov    esi, src
@@ -7929,7 +7929,7 @@ void ScaleLine16(void *dst, void *src, int dw, int sw, int smooth)
 {
     if (smooth)
     {
-        _asm {
+        __asm {
             pusha
             mov    ebx, dw
             mov    eax, dw
@@ -7972,7 +7972,7 @@ void ScaleLine16(void *dst, void *src, int dw, int sw, int smooth)
     }
     else
     {
-        _asm {
+        __asm {
             pusha
             xor    edx, edx
             mov    esi, src
@@ -8005,7 +8005,7 @@ void ScaleLine24(void *dst, void *src, int dw, int sw, int smooth)
 
     if (smooth)
     {
-        _asm {
+        __asm {
             pusha
             mov    ebx, dw
             mov    eax, dw
@@ -8065,7 +8065,7 @@ void ScaleLine24(void *dst, void *src, int dw, int sw, int smooth)
     }
     else
     {
-        _asm {
+        __asm {
             pusha
             xor    edx, edx
             mov    esi, src
@@ -8099,7 +8099,7 @@ void ScaleLine32(void *dst, void *src, int dw, int sw, int smooth)
 
     if (smooth)
     {
-        _asm {
+        __asm {
             pusha
             mov    ebx, dw
             mov    eax, dw
@@ -8157,7 +8157,7 @@ void ScaleLine32(void *dst, void *src, int dw, int sw, int smooth)
     }
     else
     {
-        _asm {
+        __asm {
             pusha
             xor    edx, edx
             mov    esi, src
@@ -8203,7 +8203,7 @@ void ScaleImage8(IMAGE *dst, IMAGE *src, int smooth)
     void *dstPtr = dst->mData;
     void *srcPtr = src->mData;
 
-    _asm {
+    __asm {
         mov    edi, dstPtr
         mov    esi, srcPtr
         xor    edx, edx
@@ -8267,7 +8267,7 @@ void ScaleImage16(IMAGE *dst, IMAGE *src, int smooth)
     void *dstPtr = dst->mData;
     void *srcPtr = src->mData;
 
-    _asm {
+    __asm {
         mov    edi, dstPtr
         mov    esi, srcPtr
         xor    edx, edx
@@ -8338,7 +8338,7 @@ void ScaleImage24(IMAGE *dst, IMAGE *src, int smooth)
     void *dstPtr = dst->mData;
     void *srcPtr = src->mData;
 
-    _asm {
+    __asm {
         mov    edi, dstPtr
         mov    esi, srcPtr
         xor    edx, edx
@@ -8413,7 +8413,7 @@ void ScaleImage32(IMAGE *dst, IMAGE *src, int smooth)
     void *dstPtr = dst->mData;
     void *srcPtr = src->mData;
 
-    _asm {
+    __asm {
         mov    edi, dstPtr
         mov    esi, srcPtr
         xor    edx, edx
@@ -8588,7 +8588,7 @@ void FadeOutImage32(IMAGE *img, unsigned char step)
     void *data = img->mData;
     unsigned int size = img->mSize >> 2;
 
-    _asm {
+    __asm {
         mov    edi, data
         mov    ecx, size
     next:
@@ -8620,7 +8620,7 @@ void FadeOutImage24(IMAGE *img, unsigned char step)
     void *data = img->mData;
     unsigned int size = img->mSize / 3;
 
-    _asm {
+    __asm {
         mov    edi, data
         mov    ecx, size
     next:
@@ -8650,7 +8650,7 @@ void FadeOutImage16(IMAGE *img, unsigned char step)
     void *data = img->mData;
     unsigned int size = img->mSize >> 1;
 
-    _asm {
+    __asm {
         mov    edi, data
         mov    ecx, size
     next:
@@ -8685,7 +8685,7 @@ void FadeOutImage15(IMAGE *img, unsigned char step)
     void *data = img->mData;
     unsigned int size = img->mSize >> 1;
 
-    _asm {
+    __asm {
         mov    edi, data
         mov    ecx, size
     next:
@@ -9015,7 +9015,7 @@ int SetVesaMode(int px, int py, unsigned char bits, unsigned int refreshRate)
 // Get/Set current hardware palette entries
 void SetRGB(unsigned short index, unsigned char r, unsigned char g, unsigned char b)
 {
-    _asm {
+    __asm {
         mov    dx, 03C8h
         mov    ax, index
         out    dx, al
@@ -9034,7 +9034,7 @@ void SetRGB(unsigned short index, unsigned char r, unsigned char g, unsigned cha
 
 void GetRGB(unsigned short index, unsigned char *r, unsigned char *g, unsigned char *b)
 {
-    _asm {
+    __asm {
         mov    dx, 03C7h
         mov    ax, index
         out    dx, al
@@ -9056,7 +9056,7 @@ void GetRGB(unsigned short index, unsigned char *r, unsigned char *g, unsigned c
 
 void ShiftPalette(void *pal)
 {
-    _asm {
+    __asm {
         mov    edi, pal
         mov    ecx, 256
     step:
@@ -9076,7 +9076,7 @@ void ShiftPalette(void *pal)
 
 void GetPalette(void *pal)
 {
-    _asm {
+    __asm {
         xor    al, al
         mov    dx, 03C7h
         out    dx, al
@@ -9101,7 +9101,7 @@ void GetPalette(void *pal)
 // Set hardware palette entries
 void SetPalette(void *pal)
 {
-    _asm {
+    __asm {
         xor    al, al
         mov    dx, 03C8h
         out    dx, al
@@ -9411,7 +9411,7 @@ void CalcCircle(int r, int *point)
 {
     if (r <= 0) return;
 
-    _asm {
+    __asm {
         mov    ebx, 1
         sub    ebx, r
         mov    edi, point
@@ -9458,7 +9458,7 @@ void CalcEllipse(int rx, int ry, int *point)
 
     if (rx <= 0 || ry <= 0) return;
 
-    _asm {
+    __asm {
         mov    eax, rx
         mov    x, eax
         neg    eax
@@ -10729,7 +10729,7 @@ void PutPixelAlpha(int x, int y, unsigned int rgb, unsigned char alpha)
     // Check clip boundary
     if (x < cminx || x > cmaxx || y < cminy || y > cmaxy) return;
 
-    _asm {
+    __asm {
         mov    eax, y
         add    eax, pageOffset
         mul    bytesPerScanline
@@ -11807,7 +11807,7 @@ void CreatePlasma(unsigned char *dx, unsigned char *dy, unsigned char *sint, uns
     unsigned char sx = img->mWidth >> 1;
     unsigned char sy = img->mHeight >> 1;
 
-    _asm {
+    __asm {
         mov    edi, data
         xor    eax, eax
         xor    dh, dh
@@ -11969,7 +11969,7 @@ void BlurImageEx(IMAGE *dst, IMAGE *src, int blur)
     // check for max blur
     if (blur > 127) blur = 127;
 
-    _asm {
+    __asm {
         mov    esi, psrc
         mov    edi, pdst
         mov    ecx, size
@@ -12129,7 +12129,7 @@ void BrightnessImage(IMAGE *dst, IMAGE *src, unsigned char bright)
     // check light range
     if (bright == 0 || bright == 255) return;
 
-    _asm {
+    __asm {
         mov    ecx, size
         mov    edi, pdst
         mov    esi, psrc
@@ -12152,7 +12152,7 @@ void BrightnessImage(IMAGE *dst, IMAGE *src, unsigned char bright)
 
 void BlockOutMid(void *dst, void *src, unsigned int count, unsigned int blk)
 {
-    _asm {
+    __asm {
         mov    edx, count
         mov    ebx, blk
         mov    edi, dst
@@ -12192,7 +12192,7 @@ void BrightnessAlpha(IMAGE *img, unsigned char bright)
     // check for minimum
     if (bright == 0 || bright == 255) return;
 
-    _asm {
+    __asm {
         mov    ecx, size
         mov    edi, data
         xor    eax, eax
@@ -12293,7 +12293,7 @@ void FadeOutCircle(float pc, int size, int type, unsigned int col)
 
 void ScaleUpLine(void *dst, void *src, void *tables, int count, int yval)
 {
-    _asm {
+    __asm {
         mov    ecx, count
         mov    ebx, src
         add    ebx, yval
@@ -12335,7 +12335,7 @@ void BlurImage(IMAGE *img)
 
     if (bytesPerPixel != 4) FatalError("BlurImage: only 32 bits supported.\n");
 
-    _asm {
+    __asm {
         mov    edi, data
     step:
         mov    edx, width
@@ -12429,7 +12429,7 @@ void BlendImage(IMAGE *dst, IMAGE *src1, IMAGE *src2, int cover)
 
     if (bytesPerPixel != 4) FatalError("BlendImage: only 32 bits supported.\n");
 
-    _asm {
+    __asm {
         mov    edi, pdst
         mov    esi, psrc2
         mov    ecx, cover
@@ -12468,7 +12468,7 @@ void RotateLine(uint8_t *dst, uint8_t *src, uint8_t *tables, int width, int siny
 {
     int pos = (width + 1) << 3;
 
-    _asm {
+    __asm {
         mov    ecx, width
         dec    ecx
         mov    esi, src
@@ -12584,7 +12584,7 @@ void BumpImage(IMAGE *dst, IMAGE *src1, IMAGE *src2, int lx, int ly)
     int x = 0, y = 0, osrc2 = 0, osrc1 = 0, odst = 0;
     int nx = 0, ny = 0, vlx = 0, vly = 0, bmax = 260;
     
-    _asm {
+    __asm {
         mov    y, 120
     starty:
         mov    ebx, y
@@ -12949,7 +12949,7 @@ void RandomBuffer(void *buff, int count, int range)
     // Check range
     if (!count || !randSeed || !range) return;
 
-    _asm {
+    __asm {
         mov    edi, buff
         mov    ecx, count
         mov    ebx, randSeed
@@ -13710,7 +13710,7 @@ void ShowBitmap(char *fname)
         switch (bmp.bmPixels)
         {
         case 1:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    edi, lfbPtr
@@ -13748,7 +13748,7 @@ void ShowBitmap(char *fname)
         case 2:
             if (gm == 0x03E0) // rgb555 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -13786,7 +13786,7 @@ void ShowBitmap(char *fname)
             }
             else if (gm == 0x07E0) // rgb565 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -13825,7 +13825,7 @@ void ShowBitmap(char *fname)
             break;
 
         case 3:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mov    ebx, bytesPerScanline
                 mul    ebx
@@ -13851,7 +13851,7 @@ void ShowBitmap(char *fname)
             break;
 
         case 4:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    edi, lfbPtr
@@ -13877,7 +13877,7 @@ void ShowBitmap(char *fname)
         switch (bmp.bmPixels)
         {
         case 1:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    edi, lfbPtr
@@ -13914,7 +13914,7 @@ void ShowBitmap(char *fname)
         case 2:
             if (gm == 0x03E0) // rgb555 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -13951,7 +13951,7 @@ void ShowBitmap(char *fname)
             }
             else if (gm == 0x07E0) // rgb565 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -13989,7 +13989,7 @@ void ShowBitmap(char *fname)
             break;
 
         case 3:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    edi, lfbPtr
@@ -14018,7 +14018,7 @@ void ShowBitmap(char *fname)
         switch (bmp.bmPixels)
         {
         case 1:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    edi, lfbPtr
@@ -14069,7 +14069,7 @@ void ShowBitmap(char *fname)
         case 2:
             if (gm == 0x03E0) // rgb555 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -14117,7 +14117,7 @@ void ShowBitmap(char *fname)
             }
             else if (gm == 0x07E0) // rgb565 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -14144,7 +14144,7 @@ void ShowBitmap(char *fname)
         switch (bmp.bmPixels)
         {
         case 1:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    edi, lfbPtr
@@ -14196,7 +14196,7 @@ void ShowBitmap(char *fname)
         case 2:
             if (gm == 0x03E0) // rgb555 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mul    bytesPerScanline
                     mov    edi, lfbPtr
@@ -14217,7 +14217,7 @@ void ShowBitmap(char *fname)
             }
             else if (gm == 0x07E0) // rgb565 format
             {
-                _asm {
+                __asm {
                     mov    eax, pageOffset
                     mov    ebx, bytesPerScanline
                     mul    ebx
@@ -14268,7 +14268,7 @@ void ShowBitmap(char *fname)
 
     case 8:
         SetPalette(bmPal);
-        _asm {
+        __asm {
             mov    eax, pageOffset
             mul    bytesPerScanline
             mov    edi, lfbPtr
@@ -20125,7 +20125,7 @@ unsigned int LoadPNG(char *fname, IMAGE *img)
     size   = img->mWidth * img->mHeight;
 
     // Make image buffer as texture (swap r, b to match screen ARGB)
-    _asm {
+    __asm {
         mov    edi, buffer
         mov    ecx, size
     next:
@@ -20455,7 +20455,7 @@ void ShowPNG(char *file)
     switch (bitsPerPixel)
     {
     case 32:
-        _asm {
+        __asm {
             mov    eax, pageOffset
             mov    ebx, bytesPerScanline
             mul    ebx
@@ -20520,7 +20520,7 @@ void ShowPNG(char *file)
         break;
 
     case 24:
-        _asm {
+        __asm {
             mov    eax, pageOffset
             mov    ebx, bytesPerScanline
             mul    ebx
@@ -20628,7 +20628,7 @@ void SaveScreen(char *fname)
         switch(bitsPerPixel)
         {
         case 32:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    esi, lfbPtr
@@ -20655,7 +20655,7 @@ void SaveScreen(char *fname)
             break;
 
         case 24:
-            _asm {
+            __asm {
                 mov    eax, pageOffset
                 mul    bytesPerScanline
                 mov    esi, lfbPtr
@@ -20691,7 +20691,7 @@ int InitMouse()
     short state = 0;
     short button = 0;
 
-    _asm {
+    __asm {
         xor    ax, ax
         xor    bx, bx
         int    33h
@@ -20708,7 +20708,7 @@ int InitMouseButton(MOUSE_IMAGE *mi)
     short state = 0;
     short button = 0;
     
-    _asm {
+    __asm {
         xor    ax, ax
         xor    bx, bx
         int    33h
@@ -20742,7 +20742,7 @@ void __loadds __far MouseHandler(int max, int mbx, int mcx, int mdx)
 // install hardware interrupt handler
 void InstallMouseHandler()
 {
-    _asm {
+    __asm {
         lea    edx, MouseHandler
         mov    ax, seg MouseHandler
         mov    es, ax
@@ -20755,7 +20755,7 @@ void InstallMouseHandler()
 // uninstall hardware interrupt hander
 void UnInstallMouseHandler()
 {
-    _asm {
+    __asm {
         xor    edx, edx
         mov    ax, 0Ch
         xor    cx, cx
@@ -20767,7 +20767,7 @@ void UnInstallMouseHandler()
 // set new mouse postion
 void SetMousePos(short posx, short posy)
 {
-    _asm {
+    __asm {
         mov    ax, 04h
         mov    cx, posx
         mov    dx, posy
@@ -20778,7 +20778,7 @@ void SetMousePos(short posx, short posy)
 // set mouse limit range
 void SetMouseRange(short x1, short y1, short x2, short y2)
 {
-    _asm {
+    __asm {
         mov    ax, 07h
         mov    cx, x1
         mov    dx, x2
@@ -20797,7 +20797,7 @@ void SetMouseSensitivity(short sx, short sy, short dspeed)
     if (sy > 100) sy = 100;
     if (dspeed > 100) dspeed = 100;
 
-    _asm {
+    __asm {
         mov    ax, 01Ah
         mov    bx, sx
         mov    cx, sy
@@ -20831,7 +20831,7 @@ void DrawMouseCursor(MOUSE_IMAGE *mi)
     switch(bytesPerPixel)
     {
     case 1:
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -20900,7 +20900,7 @@ void DrawMouseCursor(MOUSE_IMAGE *mi)
         break;
 
     case 2:
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -20971,7 +20971,7 @@ void DrawMouseCursor(MOUSE_IMAGE *mi)
         break;
 
     case 3:
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -21051,7 +21051,7 @@ void DrawMouseCursor(MOUSE_IMAGE *mi)
         break;
 
     case 4:
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -21150,7 +21150,7 @@ void ClearMouseCursor(MOUSE_IMAGE *mi)
     {
     case 1:
         // copy mouse under to screen
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -21195,7 +21195,7 @@ void ClearMouseCursor(MOUSE_IMAGE *mi)
 
     case 2:
         // copy mouse under to screen
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -21242,7 +21242,7 @@ void ClearMouseCursor(MOUSE_IMAGE *mi)
 
     case 3:
         // copy mouse under to screen
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -21291,7 +21291,7 @@ void ClearMouseCursor(MOUSE_IMAGE *mi)
         break;
 
     case 4:
-        _asm {
+        __asm {
             mov    eax, my
             add    eax, pageOffset
             mul    bytesPerScanline
@@ -21381,7 +21381,7 @@ void DrawButton(BUTTON_BITMAP *btn)
     switch (bytesPerPixel)
     {
     case 1:
-        _asm {
+        __asm {
             mov    edi, lfbPtr
             mov    eax, lfbMinY
             add    eax, pageOffset
@@ -21420,7 +21420,7 @@ void DrawButton(BUTTON_BITMAP *btn)
         break;
 
     case 2:
-        _asm {
+        __asm {
             mov    edi, lfbPtr
             mov    eax, lfbMinY
             add    eax, pageOffset
@@ -21465,7 +21465,7 @@ void DrawButton(BUTTON_BITMAP *btn)
         break;
 
     case 3:
-        _asm {
+        __asm {
             mov    edi, lfbPtr
             mov    eax, lfbMinY
             add    eax, pageOffset
@@ -21524,7 +21524,7 @@ void DrawButton(BUTTON_BITMAP *btn)
         break;
 
     case 4:
-        _asm {
+        __asm {
             mov    edi, lfbPtr
             mov    eax, lfbMinY
             add    eax, pageOffset
@@ -21961,7 +21961,7 @@ int main()
     // call initialize protect mode function first
     fcall.offset = pmInfo->PMInitialize;
     fcall.segment = biosInitSel;
-    _asm {
+    __asm {
         pusha
         mov    ax, biosStackSel
         mov    ss, ax
@@ -21980,7 +21980,7 @@ int main()
 
     fcall.offset = pmInfo->EntryPoint;
     fcall.segment = pmInfo->CodeSegSel;
-    _asm {
+    __asm {
         mov    ax, vbeInfoSel
         mov    es, ax
         mov    eax, 0x4F00

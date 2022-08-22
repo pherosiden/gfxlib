@@ -636,7 +636,7 @@ namespace rainEffect {
         if (aborts) return;
 
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     esi, vbuff
             add     esi, actualPage
             mov     edi, vmem
@@ -726,7 +726,7 @@ namespace rainEffect {
     void stabylize()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     esi, actualPage
             mov     edi, otherPage
             mov     actualPage, edi
@@ -794,7 +794,7 @@ namespace rainEffect {
     void stabylize2()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     esi, actualPage
             mov     edi, otherPage
             mov     actualPage, edi
@@ -847,7 +847,7 @@ namespace rainEffect {
     void putPoint(int16_t idx, int32_t rnd1, int32_t rnd2)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     si, idx
             rol     esi, 16
             mov     si, idx
@@ -886,7 +886,7 @@ namespace rainEffect {
     void putBigPoint(int16_t idx, int32_t rnd1, int32_t rnd2)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     si, idx
             rol     esi, 16
             mov     si, idx
@@ -957,7 +957,7 @@ namespace rainEffect {
     void calcRandValue()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             inc     randVal
             xor     dx, dx
             mov     ax, randVal
@@ -979,7 +979,7 @@ namespace rainEffect {
     {
 #ifdef _USE_ASM
         void* randFunc = calcRandValue;
-        _asm {
+        __asm {
             call    randFunc
             and     dx, 0FFh
             add     dx, 32
@@ -1019,7 +1019,7 @@ namespace rainEffect {
     void putLine(int16_t idx, int32_t rnd1)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     si, idx
             rol     esi, 16
             mov     si, idx
@@ -1061,7 +1061,7 @@ namespace rainEffect {
     void readSinus(int16_t val, uint16_t* rnd1, uint16_t* rnd2)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     ebx, ebx
             xor     esi, esi
             add     bx, val
@@ -1405,7 +1405,7 @@ namespace waterEffect {
 
 #ifdef _USE_ASM
         int32_t tmp = IMAGE_WIDTH;
-        _asm {
+        __asm {
             mov     ax, page
             and     ax, 0x01
             jz      setp1
@@ -1501,7 +1501,7 @@ namespace waterEffect {
     void initWater()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     ax, 10000
             mov     edi, 100 + 60 * IMAGE_WIDTH
             shl     edi, 1
@@ -1527,7 +1527,7 @@ namespace waterEffect {
     void makeWater(int32_t idx)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edi, edi
             xor     ebx, ebx
             mov     esi, idx
@@ -2473,7 +2473,7 @@ namespace fireDown {
     void blurBuffer()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             mov     ecx, IMAGE_SIZE - 2 * IMAGE_WIDTH
             xor     bx, bx
@@ -2864,7 +2864,7 @@ namespace fireTexture {
     void motionBlur()
     {
 #ifdef _USE_ASM
-    _asm {
+    __asm {
             lea     edi, vbuff
             mov     esi, edi
             add     edi, IMAGE_WIDTH
@@ -3023,7 +3023,7 @@ namespace fireTexture2 {
     void motionBlur()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             mov     esi, edi
             add     edi, IMAGE_WIDTH
@@ -3275,7 +3275,7 @@ namespace fireTexture3 {
     void motionBlur()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             mov     esi, edi
             add     edi, IMAGE_WIDTH
@@ -3464,7 +3464,7 @@ namespace tunnelEffect {
     void tunnelBlur()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             add     edi, IMAGE_WIDTH
             mov     ecx, IMAGE_SIZE - (IMAGE_WIDTH << 1)
@@ -3500,7 +3500,7 @@ namespace tunnelEffect {
     void makeTunnel()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     esi, esi
             xor     edi, edi
             mov     ecx, 32000
@@ -3687,7 +3687,7 @@ namespace textureMappingEffect {
                 b = lookup[y][1];
                 c = lines[i][j].x;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -3702,7 +3702,7 @@ namespace textureMappingEffect {
                 b = lookup[y][0];
                 c = lines[i][j].z;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -3720,7 +3720,7 @@ namespace textureMappingEffect {
                 b = -lookup[y][0];
                 c = lines[i][j].x;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -3735,7 +3735,7 @@ namespace textureMappingEffect {
                 b = lookup[y][1];
                 c = lines[i][j].z;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -3754,7 +3754,7 @@ namespace textureMappingEffect {
                     b = lookup[x][1];
                     c = trans[i][j].y;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3769,7 +3769,7 @@ namespace textureMappingEffect {
                     b = lookup[x][0];
                     c = trans[i][j].z;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3785,7 +3785,7 @@ namespace textureMappingEffect {
                     c = trans[i][j].y;
                     trans[i][j].y = a;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3800,7 +3800,7 @@ namespace textureMappingEffect {
                     b = lookup[x][1];
                     c = trans[i][j].z;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3820,7 +3820,7 @@ namespace textureMappingEffect {
                     b = lookup[z][1];
                     c = trans[i][j].x;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3835,7 +3835,7 @@ namespace textureMappingEffect {
                     b = lookup[z][0];
                     c = trans[i][j].y;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3851,7 +3851,7 @@ namespace textureMappingEffect {
                     c = trans[i][j].x;
                     trans[i][j].x = a;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3866,7 +3866,7 @@ namespace textureMappingEffect {
                     b = lookup[z][1];
                     c = trans[i][j].y;
 #ifdef _USE_ASM
-                    _asm {
+                    __asm {
                         mov     ax, b
                         imul    c
                         sal     ax, 1
@@ -3888,7 +3888,7 @@ namespace textureMappingEffect {
             b = lookup[y][1];
             c = center1[i].x;
 #ifdef _USE_ASM
-            _asm {
+            __asm {
                 mov     ax, b
                 imul    c
                 sal     ax, 1
@@ -3903,7 +3903,7 @@ namespace textureMappingEffect {
             b = lookup[y][0];
             c = center1[i].z;
 #ifdef _USE_ASM
-            _asm {
+            __asm {
                 mov     ax, b
                 imul    c
                 sal     ax, 1
@@ -3921,7 +3921,7 @@ namespace textureMappingEffect {
             b = -lookup[y][0];
             c = center1[i].x;
 #ifdef _USE_ASM
-            _asm {
+            __asm {
                 mov     ax, b
                 imul    c
                 sal     ax, 1
@@ -3936,7 +3936,7 @@ namespace textureMappingEffect {
             b = lookup[y][1];
             c = center1[i].z;
 #ifdef _USE_ASM
-            _asm {
+            __asm {
                 mov     ax, b
                 imul    c
                 sal     ax, 1
@@ -3955,7 +3955,7 @@ namespace textureMappingEffect {
                 b = lookup[x][1];
                 c = center2[i].y;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -3970,7 +3970,7 @@ namespace textureMappingEffect {
                 b = lookup[x][0];
                 c = center2[i].z;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -3987,7 +3987,7 @@ namespace textureMappingEffect {
                 center2[i].y = a;
 
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -4002,7 +4002,7 @@ namespace textureMappingEffect {
                 b = lookup[x][1];
                 c = center2[i].z;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -4022,7 +4022,7 @@ namespace textureMappingEffect {
                 b = lookup[z][1];
                 c = center2[i].x;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -4037,7 +4037,7 @@ namespace textureMappingEffect {
                 b = lookup[z][0];
                 c = center2[i].y;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -4054,7 +4054,7 @@ namespace textureMappingEffect {
                 center2[i].x = a;
 
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -4069,7 +4069,7 @@ namespace textureMappingEffect {
                 b = lookup[z][1];
                 c = center2[i].y;
 #ifdef _USE_ASM
-                _asm {
+                __asm {
                     mov     ax, b
                     imul    c
                     sal     ax, 1
@@ -4227,7 +4227,7 @@ namespace textureMappingEffect {
             const int16_t pyadd = (py2 - py1) / width;
 
 #ifdef _USE_ASM
-            _asm {
+            __asm {
                 xor     eax, eax
                 mov     ax, lx1
                 lea     edi, vbuff1
@@ -4906,7 +4906,7 @@ namespace intro16k {
 #ifdef _USE_ASM
         int32_t startIndex = firstIndex * 3;
 
-        _asm {
+        __asm {
             lea     esi, rgbpal
             lea     edi, outrgb
             mov     ecx, startIndex
@@ -5027,7 +5027,7 @@ namespace intro16k {
     void tunnelBlur()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             add     edi, IMAGE_WIDTH
             mov     ecx, IMAGE_SIZE - (IMAGE_WIDTH << 1)
@@ -5057,7 +5057,7 @@ namespace intro16k {
     void fireBlur()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             mov     ecx, IMAGE_SIZE - (IMAGE_WIDTH << 1)
             xor     bx, bx
@@ -5095,7 +5095,7 @@ namespace intro16k {
     void printCharIntro(char chr, int16_t x, int16_t y, uint8_t col, uint8_t col2)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     esi, esi
             xor     edi, edi
             mov     ax, y
@@ -5155,7 +5155,7 @@ namespace intro16k {
     void printChar(char chr, int16_t x, int16_t y, uint8_t col, uint8_t col2)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     esi, esi
             xor     edi, edi
             mov     ax, y
@@ -5249,7 +5249,7 @@ namespace intro16k {
         int16_t val = 0;
         const int16_t scale = 64, diver = 128;
 
-        _asm {
+        __asm {
             mov     ecx, 256
             lea     esi, sinTab
             fninit
@@ -5341,7 +5341,7 @@ namespace intro16k {
     void makeTunnel()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     esi, esi
             xor     edi, edi
             mov     ecx, 32000
@@ -5472,7 +5472,7 @@ namespace intro16k {
     void makeTexture()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     ebx, ebx
             lea     edi, vbuff
             mov     edx, IMAGE_HEIGHT
@@ -5581,7 +5581,7 @@ namespace intro16k {
     void makeBlob(int32_t x, int32_t y)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             lea     esi, blobs
             xor     eax, eax
@@ -5624,7 +5624,7 @@ namespace intro16k {
     void makeFloor(int32_t my, uint8_t dt, int32_t x, int32_t y, int32_t px, int32_t py)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     esi, vbuff
             lea     edi, vbuff
             add     edi, 31680
@@ -5732,7 +5732,7 @@ namespace intro16k {
     void makeCopper(int32_t x, int32_t y)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     esi, vbuff
             mov     eax, y
             shl     eax, 6
@@ -5805,7 +5805,7 @@ namespace intro16k {
     void makeRecbar(int32_t my, int32_t mx)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     esi, esi
             mov     eax, my
             shl     eax, 6
@@ -6051,7 +6051,7 @@ namespace intro16k {
     void makePlasma(int32_t j, int32_t v, int32_t u)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             xor     esi, esi
             add     esi, j
@@ -6271,7 +6271,7 @@ namespace intro16k {
     void makeGreets(int16_t acos, int16_t asin)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edi, edi
             xor     esi, esi
             xor     dx, dx
@@ -6369,7 +6369,7 @@ namespace intro16k {
         memset(vbuff, 255, IMAGE_SIZE);
 
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edi, edi
             xor     esi, esi
             mov     ecx, IMAGE_HEIGHT
@@ -6434,7 +6434,7 @@ namespace intro16k {
         memset(vbuff, 0, IMAGE_SIZE);
 
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edi, edi
             xor     esi, esi
             mov     ecx, IMAGE_HEIGHT
@@ -6501,7 +6501,7 @@ namespace intro16k {
         memset(vbuff, 0, IMAGE_SIZE);
 
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     edi, edi
             xor     esi, esi
             xor     dx, dx
@@ -6902,7 +6902,7 @@ namespace fastShowBMP {
     {
         uint8_t* vmem = (uint8_t*)getDrawBuffer();
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     edi, vmem
             lea     esi, vbuff
             add     esi, IMAGE_SIZE - IMAGE_WIDTH
@@ -7010,7 +7010,7 @@ namespace fillterEffect {
     void drawPicture()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, dbuff
             lea     esi, vbuff2
             mov     ebx, IMAGE_HEIGHT
@@ -7951,7 +7951,7 @@ namespace fireEffect3 {
         }
 
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             add     edi, 16000
             mov     ecx, 48640
@@ -8039,7 +8039,7 @@ namespace fireEffect4 {
     void interpolation()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             add     edi, IMAGE_WIDTH
             mov     ecx, 16160
@@ -8072,7 +8072,7 @@ namespace fireEffect4 {
     void purgeBuff()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vmem
             lea     esi, vbuff
             mov     dx, IMAGE_MIDY
@@ -8191,7 +8191,7 @@ namespace fireEffect5 {
     void interpolation()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             add     edi, IMAGE_WIDTH
             mov     ecx, 16160
@@ -8224,7 +8224,7 @@ namespace fireEffect5 {
     void purgeBuff()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vmem
             lea     esi, vbuff
             mov     dx, IMAGE_MIDY
@@ -8510,7 +8510,7 @@ namespace fireEffect8 {
     void blurBuff()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             add     edi, IMAGE_WIDTH
             mov     ecx, IMAGE_SIZE - (IMAGE_WIDTH << 1)
@@ -8916,7 +8916,7 @@ namespace holeEffect3 {
     void horizLine(int16_t xb, int16_t xe, int16_t y, uint8_t col)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     ebx, ebx
             xor     ecx, ecx
             mov     bx, xb
@@ -10329,7 +10329,7 @@ namespace zoomOutEffect {
         if (!x && !y) return;
 
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vmem
             lea     esi, vbuff
             xor     eax, eax
@@ -10359,7 +10359,7 @@ namespace zoomOutEffect {
     void printGlass(int16_t x, int16_t y)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     esi, esi
             xor     edi, edi
             xor     eax, eax
@@ -11186,7 +11186,7 @@ namespace pierraEffect {
     void motionBlur()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vmem
             add     edi, IMAGE_WIDTH
             mov     ecx, IMAGE_SIZE - (IMAGE_WIDTH << 1)
@@ -12380,7 +12380,7 @@ namespace shadeBob {
     void makeShadeBob(int16_t x, int16_t y)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             xor     eax, eax
             xor     edx, edx
             mov     dx, IMAGE_WIDTH
@@ -13376,7 +13376,7 @@ namespace spriteEffect {
 #ifdef _USE_ASM
         uint8_t* pdata = (uint8_t*)frames[k];
 
-        _asm {
+        __asm {
             mov     esi, pdata
             lea     edi, vbuff1
             xor     ebx, ebx
@@ -13426,7 +13426,7 @@ namespace spriteEffect {
     void copyBlock(int16_t x, int16_t y)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff1
             lea     esi, vbuff2
             xor     ebx, ebx
@@ -14431,7 +14431,7 @@ namespace voxelEffect {
     void vertLine(int16_t x, int16_t y, int32_t len, uint8_t col)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             lea     edi, vbuff
             xor     ebx, ebx
             mov     bx, y
@@ -14725,7 +14725,7 @@ namespace winterEffect {
     void perturb()
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             mov     dx, rad
             xor     dx, 0xAA55
             shl     dx, 1
@@ -14832,7 +14832,7 @@ namespace rayCastingEffect {
     void drawWallFloor(int32_t vofs, int32_t dark)
     {
 #ifdef _USE_ASM
-        _asm {
+        __asm {
             shl     dark, 8
             mov     ebx, verts
             xor     edi, edi
