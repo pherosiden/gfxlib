@@ -1,7 +1,5 @@
 #include "gfxlib.h"
 
-int32_t a = 0, b, c, d, e, f;
-
 int main(int argc, char* args[])
 {
 #ifdef __APPLE__
