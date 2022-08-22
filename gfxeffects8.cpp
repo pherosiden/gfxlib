@@ -429,17 +429,17 @@ namespace crossFade {
                     uint8_t col = 0;
                     uint8_t change = 0;
 
-                    const uint8_t r = pal1[pix1].r;
-                    const uint8_t g = pal1[pix1].g;
-                    const uint8_t b = pal1[pix1].b;
+                    const uint8_t rs = pal1[pix1].r;
+                    const uint8_t gs = pal1[pix1].g;
+                    const uint8_t bs = pal1[pix1].b;
 
-                    const uint8_t r1 = pal2[pix2].r;
-                    const uint8_t g1 = pal2[pix2].g;
-                    const uint8_t b1 = pal2[pix2].b;
+                    const uint8_t rd = pal2[pix2].r;
+                    const uint8_t gd = pal2[pix2].g;
+                    const uint8_t bd = pal2[pix2].b;
 
                     for (uint8_t k = 0; k <= col; k++)
                     {
-                        if (src[k].r == r && src[k].g == g && src[k].b == b && dst[k].r == r1 && dst[k].g == g1 && dst[k].b == b1)
+                        if ((src[k].r == rs) && (src[k].g == gs) && (src[k].b == bs) && (dst[k].r == rd) && (dst[k].g == gd) && (dst[k].b == bd))
                         {
                             vbuff2[y][x] = k;
                             change = 1;
@@ -450,13 +450,13 @@ namespace crossFade {
                     {
                         col++;
 
-                        src[col].r = r;
-                        src[col].g = g;
-                        src[col].b = b;
+                        src[col].r = rs;
+                        src[col].g = gs;
+                        src[col].b = bs;
 
-                        dst[col].r = r1;
-                        dst[col].g = g1;
-                        dst[col].b = b1;
+                        dst[col].r = rd;
+                        dst[col].g = gd;
+                        dst[col].b = bd;
 
                         vbuff2[y][x] = col;
                     }

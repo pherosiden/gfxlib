@@ -42,6 +42,7 @@ visualc/assets
 # MAC OSX
 .DS_Store
 xcuserdata
+gfxlib.xcscheme
 
 # Windows Thumbs
 .Thumbs
