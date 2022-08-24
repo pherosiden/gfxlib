@@ -265,7 +265,7 @@ namespace bumpMap {
         showMouseCursor(SDL_DISABLE);
 
         do {
-            getMouseState(&x, &y, &lmb, NULL);
+            getMouseState(&x, &y, &lmb);
             bumpScreen(x >> 1, y >> 1);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
@@ -325,11 +325,12 @@ namespace fireBump {
         shiftPalette(pal);
         setPalette(pal);
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             autoBump();
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -387,7 +388,7 @@ namespace circleEffect {
         showMouseCursor(SDL_DISABLE);
 
         do {
-            getMouseState(&x, &y, &lmb, NULL);
+            getMouseState(&x, &y, &lmb);
             memcpy(vbuff2, vbuff3, IMAGE_SIZE);
             for (int16_t i = 0; i < 38; i++) paintCircle(x >> 1, y >> 1, i);
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
@@ -552,10 +553,11 @@ namespace crossFade {
 
         dirt = 1;
 
-        do {
+        while (!keyDown(SDL_SCANCODE_RETURN)) 
+        {
             fadeColor(dirt, 64);
             dirt = !dirt;
-        } while (!keyDown(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -1351,7 +1353,8 @@ namespace rainEffect {
         printFrame(1);
         stabylize();
 
-        do {
+        while (!aborts)
+        {
             randVal = SEMILLA_INIT;
             densityAdd = DENSITY_INIT;
             P001();
@@ -1375,7 +1378,7 @@ namespace rainEffect {
             P006(1, 0);
             P006(1, 1);
             P006(0, 1);
-        } while (!aborts);
+        }
         cleanup();
     }
 }
@@ -1567,14 +1570,15 @@ namespace waterEffect {
     
         uint32_t tmstart = getTime();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             makeWater(frames);
             showWater(page);
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             page ^= 1;
             frames++;
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         messageBox(GFX_INFO, "%.2f frames per second.", (1000.0 * frames) / getElapsedTime(tmstart));
         cleanup();
@@ -1712,7 +1716,8 @@ namespace skyEffect {
             calcPlasma(x);
         }
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (y = 0; y < IMAGE_MIDY; y++)
             {
                 for (x = 0; x < IMAGE_WIDTH; x++) showSkyPixel(1, x, y);
@@ -1726,7 +1731,7 @@ namespace skyEffect {
                 layer[x].posx += layer[x].incx;
                 layer[x].posy += layer[x].incy;
             }
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         cleanup();
     }
@@ -2088,7 +2093,8 @@ namespace phongShader {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Phong-Shader")) return;
         initialize();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (i = 0; i < nverts; i++)
             {
                 xt1 = px[i];
@@ -2140,7 +2146,7 @@ namespace phongShader {
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             memset(vbuff, 0, IMAGE_SIZE);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -2422,7 +2428,8 @@ namespace plasmaTexture {
         shiftPalette(pal);
         setPalette(pal);
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             rotate();
 
             vs = (vs + 4) % 360;
@@ -2444,7 +2451,7 @@ namespace plasmaTexture {
             drawCube();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -2563,7 +2570,8 @@ namespace fireDown {
         setPalette(120);
         int16_t cnt = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             if (frames > 800) frames = 0;
 
             const int16_t x = IMAGE_MIDX + sinTab[(frames / 3) & 0xff];
@@ -2610,7 +2618,7 @@ namespace fireDown {
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             frames++;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
     }
 
     void run()
@@ -2908,13 +2916,14 @@ namespace fireTexture {
         initialize();
         makePalette();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             rotate();
             motionBlur();
             drawCube();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -3102,7 +3111,8 @@ namespace fireTexture2 {
         uint8_t ay = 1;
         uint8_t az = 1;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (n = 0; n < 8; n++)
             {
                 const int16_t i = (COS(ay) * points[n][0] - SIN(ay) * points[n][2]) / DIVD;
@@ -3139,7 +3149,7 @@ namespace fireTexture2 {
             motionBlur();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
     }
 
     void run()
@@ -3354,7 +3364,8 @@ namespace fireTexture3 {
         uint8_t ay = 0;
         uint8_t az = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (n = 0; n < 8; n++)
             {
                 const int16_t i = (COS(ay) * points[n][0] - SIN(ay) * points[n][2]) / DIVD;
@@ -3390,7 +3401,7 @@ namespace fireTexture3 {
             motionBlur();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
     }
 
     void run()
@@ -3570,7 +3581,8 @@ namespace tunnelEffect {
             }
         }
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (i = 0; i < IMAGE_MIDY; i++)
             {
                 x = rand() % MAX_WIDTH;
@@ -3585,7 +3597,7 @@ namespace tunnelEffect {
             tunnelBlur();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
     }
 
     void run()
@@ -4394,7 +4406,8 @@ namespace textureMappingEffect {
         clipx = 0;
         clipy = MAX_HEIGHT;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             rotatePoints(deg2, deg1, deg2);
             sortPoints();
             drawPoints();
@@ -4403,7 +4416,7 @@ namespace textureMappingEffect {
             delay(FPS_90);
             deg1 = (deg1 + 1) % 360;
             deg2 = (deg2 + 1) % 360;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -4483,7 +4496,8 @@ namespace bitmapRotate {
 
         makeTables();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             drawScreen(x, y, dist, rot & 0xff);
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
@@ -4494,7 +4508,7 @@ namespace bitmapRotate {
 
             if (dist == 2000 || dist == 2) inc = -inc;
             if (random(150) == 1) dir = random(7) - 3;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         cleanup();
     }
@@ -6847,7 +6861,6 @@ namespace textScrolling {
 
             pos++;
             if (pos >= len) pos = 0;
-
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -6988,12 +7001,13 @@ namespace EMS {
         i = 0;
         vmem = (uint8_t*)getDrawBuffer();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN)) 
+        {
             EMS2RAM(vmem, handle[i]);
             render();
             delay(FPS_90);
             if (i++ >= 14) i = 0;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         cleanup();
         for (i = 0; i < 15; i++) EMSFree(handle[i]);
@@ -7038,8 +7052,7 @@ namespace fillterEffect {
 
         for (x = 0; x < IMAGE_HEIGHT; x++)
         {
-            if (random(256) < 128) r--;
-            else r++;
+            if (random(256) < 128) r--; else r++;
             yt[x] = r;
         }
 
@@ -7062,7 +7075,7 @@ namespace fillterEffect {
         {
             uint16_t y = random(IMAGE_HEIGHT);
             const uint16_t x = random(IMAGE_HEIGHT);
-            while (y < MAX_HEIGHT && vbuff2[y][x] <= vbuff2[y + 1][x])
+            while (y < MAX_HEIGHT && vbuff2[y][x] < vbuff2[y + 1][x])
             {
                 const uint8_t val = vbuff2[y][x];
                 vbuff2[y][x] = vbuff2[y + 1][x];
@@ -7163,7 +7176,7 @@ namespace fillterEffect {
             break;
 
         case 6:
-            for (y = 0; y < IMAGE_HEIGHT; y++) for (x = 2; x < IMAGE_HEIGHT; x++) vbuff2[y][x] = vbuff1[y][x + (x % 8) - 2];
+            for (y = 0; y < IMAGE_HEIGHT; y++) for (x = 2; x < IMAGE_HEIGHT; x++) vbuff2[y][x] = vbuff1[y][x + (x % 8) - 4];
             break;
 
         case 7:
@@ -7614,13 +7627,14 @@ namespace fireworkEffect {
             newArrow(arrows[i]);
         }
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN)) 
+        {
             cnt += arrowsPerFrame;
             for (i = 0; i < NUM_ARROWS; i++) handleArrow(arrows[i]);
             if (cnt > 1000) cnt = 0;
             render();
             delay(FPS_60);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         cleanup();
         for (i = 0; i < NUM_ARROWS; i++) free(arrows[i]);
@@ -7671,7 +7685,7 @@ namespace candleEffect {
 
         for (i = 0; i < 100; i++) sint[i] = sin(i * M_PI / 24);
 
-        do
+        while (!finished(SDL_SCANCODE_RETURN))
         {
             for (x = 5; x < 24; x++)
             {
@@ -7701,7 +7715,7 @@ namespace candleEffect {
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(1);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -7792,12 +7806,12 @@ namespace fireEffect {
         setPalette(pal);
         memset(vbuff[MAX_HEIGHT], 255, IMAGE_WIDTH);
 
-        do
+        while (!finished(SDL_SCANCODE_RETURN))
         {
             doFire();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         memset(vbuff[MAX_HEIGHT], 0, IMAGE_WIDTH);
 
@@ -7872,12 +7886,13 @@ namespace fireEffect2 {
         if (!loadPalette("assets/fire.pal")) return;
         initSeed();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             updateSeed();
             extendFlames();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -7997,11 +8012,12 @@ namespace fireEffect3 {
     {
         initFire();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             doFire();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(4);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         cleanup();
     }
@@ -8114,7 +8130,8 @@ namespace fireEffect4 {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
         setFirePal();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (int16_t i = 0; i < IMAGE_MIDX; i++)
             {
                 if ((rand() % 10) < 5) delta = (rand() % 2) * 255;
@@ -8125,7 +8142,7 @@ namespace fireEffect4 {
             purgeBuff();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -8287,7 +8304,8 @@ namespace fireEffect5 {
         for (i = 0; i < 5; i++) fread(hline[i], 1, 24 * IMAGE_WIDTH, fp);
         fclose(fp);
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             interpolation();
 
             for (i = 0; i < IMAGE_MIDX; i++)
@@ -8310,7 +8328,7 @@ namespace fireEffect5 {
                 kk = 0;
             }
             if (k > 4) k = 0;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -8383,7 +8401,7 @@ namespace fireEffect6 {
             for (j = 0; j < BARLEN; j++) vbuff[i][j] = uint8_t(i);
         }
 
-        do
+        while (!finished(SDL_SCANCODE_RETURN))
         {
             for (i = 0; i < WIDTH; i++) vbuff[MAX_HEIGHT][i + STARTX] = flames[i];
 
@@ -8439,7 +8457,7 @@ namespace fireEffect6 {
                 for (j = -SMOOTH; j <= SMOOTH; j++) x += flames[i + j];
                 flames[i] = x / ((SMOOTH << 1) + 1);
             }
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -8483,13 +8501,14 @@ namespace fireEffect7 {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire")) return;
         makePalette();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (int16_t x = 0; x < IMAGE_WIDTH; x++) dbuff[x][79] = random(100) + 40;
             interpolation();
             putFire();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -8629,11 +8648,12 @@ namespace fireEffect8 {
             for (j = 1; j < MAX_WIDTH; j++) vbuff[i][j] = 0;
         }
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             pierra();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -8684,7 +8704,8 @@ namespace holeEffect1 {
 
         i = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             if (i > 358) i = 0;
             i += 2;
 
@@ -8710,7 +8731,7 @@ namespace holeEffect1 {
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -8778,7 +8799,8 @@ namespace holeEffect2 {
         int16_t x = 0, y = 0;
         int16_t i = 0, j = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             col = 19;
             inc = 2;
             j = 10;
@@ -8806,7 +8828,7 @@ namespace holeEffect2 {
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             memset(vmem, 0, IMAGE_SIZE);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 
@@ -9274,7 +9296,8 @@ namespace holeEffect3 {
         shiftPalette(pal);
         setPalette(pal);
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             step = 2;
             j = 10;
             ring = 0;
@@ -9311,7 +9334,7 @@ namespace holeEffect3 {
             if (keyDown(SDL_SCANCODE_4)) art = 3;
             if (keyDown(SDL_SCANCODE_5)) art = 4;
             if (keyDown(SDL_SCANCODE_6)) art = 5;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -9359,8 +9382,7 @@ namespace kaleidoScope {
 
         makePalette();
 
-        do
-        {
+        do {
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9519,8 +9541,7 @@ namespace kaleidoScope2 {
         const int32_t cy = getCenterY();
         const int32_t md = cy;
 
-        do
-        {
+        do {
             if (!mode) makeFunkyPalette();
 
             uint32_t step1 = 0;
@@ -9620,14 +9641,15 @@ namespace fastCircleFill {
         const int32_t cmx = getMaxX();
         const int32_t cmy = getMaxY();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             const uint32_t x = rand() % cmx;
             const uint32_t y = rand() % cmy;
             const uint32_t col = (rand() % 4) * MAX_RAD;
             for (uint32_t i = 0; i < MAX_RAD; i++) fillCircle(x + ((MAX_RAD - i) >> 1), y + ((MAX_RAD - i) >> 1), (MAX_RAD - i) << 1, i + col);
             render();
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -9685,14 +9707,15 @@ namespace flagsEffect {
         
         createCosTable();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             displayMap();
             putImage();
             renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             memset(vbuff2, 0, IMAGE_SIZE);
             index += FSPEED;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -9716,7 +9739,7 @@ namespace flagsEffect2 {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Flags")) return;
         makeRainbowPalette();
 
-        do
+        while (!finished(SDL_SCANCODE_RETURN))
         {
             wave++;
 
@@ -9764,7 +9787,7 @@ namespace flagsEffect2 {
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             memset(vmem, 0, IMAGE_SIZE);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -9807,12 +9830,13 @@ namespace lakeEffect {
         memcpy(dbuff, vbuff, IMAGE_SIZE);
         memcpy(bitmap, &vbuff[IMAGE_HEIGHT - HEIGHT][0], STARTY * IMAGE_WIDTH);
         
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             calcWater();
             memcpy(&dbuff[IMAGE_HEIGHT - STARTY][0], water, STARTY * IMAGE_WIDTH);
             renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -10112,7 +10136,8 @@ namespace lensEffect {
         int16_t xadd = 1;
         int16_t yadd = 1;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             circleStretch(x - RDS, y - RDS, x, y, RDS);
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
@@ -10125,7 +10150,7 @@ namespace lensEffect {
             if (x > MAX_WIDTH - 32) xadd = -xadd;
             if (y < 32) yadd = -yadd;
             if (y > MAX_HEIGHT - 32) yadd = -yadd;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -10251,7 +10276,7 @@ namespace zoomInEffect {
 
         do {
             n++;
-            getMouseState(&x, &y, &lmb, NULL);
+            getMouseState(&x, &y, &lmb);
             x >>= 1;
             y >>= 1;
 
@@ -10416,7 +10441,8 @@ namespace zoomOutEffect {
         const uint16_t xadd = 2;
         const uint16_t yadd = 1;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             copyFromBuffer(oldx, oldy);
             const int16_t x = xpostab[xpos & 0xff];
             const int16_t y = ypostab[ypos & 0xff];
@@ -10427,7 +10453,7 @@ namespace zoomOutEffect {
             oldy = y;
             xpos += xadd;
             ypos += yadd;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -10795,7 +10821,8 @@ namespace lineBlurEffect {
         int16_t rd7 = (rand() % 2) + 1;
         int16_t rd8 = (rand() % 3) + 1;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             if (!flag) var = rand() % 6;
             changeColor(var);
 
@@ -10868,7 +10895,7 @@ namespace lineBlurEffect {
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -11384,6 +11411,7 @@ namespace pierraEffect {
             pal[i].g = 63;
             pal[i].b = 63;
         }
+
         shiftPalette(pal);
         setPalette(pal);
 
@@ -11467,12 +11495,13 @@ namespace plasmaEffect1 {
 
         angle = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             drawPlasma();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             angle = (angle + 1) & 0xff;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -11551,13 +11580,14 @@ namespace plasmaEffect2 {
 
         setColors();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             cyclePallete();
             pixelBob(&bob1x, &bob1y);
             pixelBob(&bob2x, &bob2y);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -11586,13 +11616,14 @@ namespace plasmaEffect3 {
     {
         RGB tmp = { 0 };
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             memcpy(&tmp, &pal[0], sizeof(RGB));
             memcpy(&pal[0], &pal[1], 255 * sizeof(RGB));
             memcpy(&pal[255], &tmp, sizeof(RGB));
             setPalette(pal);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 
@@ -11681,12 +11712,13 @@ namespace plasmaEffect4 {
         p1 = 187;
         p2 = 230;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             showPlasma();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             changeAngle();
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -11892,13 +11924,13 @@ namespace rippleEffect {
         if (!initTexture()) return;
         preCalculate();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             updateWave();
             drawRipples();
             renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
-
+        }
         cleanup();
     }
 }
@@ -12202,14 +12234,15 @@ namespace rotateMap {
     {
         setupData();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             rotateShape();
             qsort(drawOrder, vertices, 2, compare);
             drawFaces();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             memset(vbuff, 0, IMAGE_SIZE);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -12552,7 +12585,8 @@ namespace shadePattern {
         oldx >>= 1;
         oldy >>= 1;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             getMouseState(&newx, &newy);
             newx >>= 1;
             newy >>= 1;
@@ -12572,7 +12606,7 @@ namespace shadePattern {
                 arrpos++;
                 if (arrpos >= 16000) break;
             }
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         FILE* fp = fopen("assets/path.dat", "wb");
         fwrite(&arrpos, sizeof(arrpos), 1, fp);
@@ -12831,7 +12865,8 @@ namespace snowFall {
         actflk = 0;
         initSnow();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             if (actflk < IMAGE_WIDTH)
             {
                 xflake[actflk] = rand() % IMAGE_WIDTH;
@@ -12842,7 +12877,7 @@ namespace snowFall {
             updateFlakes();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -13620,7 +13655,7 @@ namespace starEffect {
             stars[i].delta = random(2);
         }
 
-        do
+        while (!finished(SDL_SCANCODE_RETURN))
         {
             for (i = 0; i < MAXPOINT; i++) drawPoint(stars[i], 1);
             render();
@@ -13641,7 +13676,7 @@ namespace starEffect {
                     if (stars[i].state <= 0) stars[i].delta = 1;
                 }
             }
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -13687,11 +13722,12 @@ namespace star2dEffect {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "2D-Stars")) return;
         createStar();
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             moveStar();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -14063,7 +14099,8 @@ namespace fontEffect2 {
         newrow = 0;
         index = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             memcpy(bitmap, &bitmap[0][2], sizeof(bitmap));
             updateRows();
             newRows(text[newrow], row, IMAGE_WIDTH - 2);
@@ -14074,7 +14111,7 @@ namespace fontEffect2 {
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             index = (index + 4) % 230;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         freeMem();
         cleanup();
@@ -14181,7 +14218,8 @@ namespace fontEffect3 {
         newrow = 0;
         index = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             memcpy(bitmap, &bitmap[0][2], 9600);
             updateRows();
             newRows(text[newrow], row, IMAGE_WIDTH - 2);
@@ -14191,7 +14229,7 @@ namespace fontEffect3 {
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
             index = (index + 2) % IMAGE_MIDY;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         freeMem();
         cleanup();
@@ -14286,7 +14324,8 @@ namespace thunderBoltEffect {
     {
         int16_t dx = 0;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             do {
                 dx = random(6) - 3;
             } while (abs(dx) <= 1);
@@ -14297,7 +14336,7 @@ namespace thunderBoltEffect {
             flashPalette(dst);
             memcpy(dst, src, 1024);
             memset(vmem, 0, IMAGE_SIZE);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 
@@ -14428,7 +14467,7 @@ namespace voxelEffect {
     int16_t sintab[2048] = { 0 };
     int16_t dcomp[127] = { 0 };
 
-    void vertLine(int16_t x, int16_t y, int32_t len, uint8_t col)
+    void vertLine(int16_t x, int16_t y, uint16_t len, uint8_t col)
     {
 #ifdef _USE_ASM
         __asm {
@@ -14441,12 +14480,13 @@ namespace voxelEffect {
             add     bx, cx
             add     bx, x
             add     edi, ebx
-            mov     ecx, len
+            mov     cx, len
             mov     al, col
         next:
             stosb
             add     edi, MAX_WIDTH
-            loop    next
+            dec     cx
+            jnz     next
         }
 #else
         for (uint16_t i = 0; i < len; i++) vbuff[y + i][x] = col;
@@ -14458,23 +14498,25 @@ namespace voxelEffect {
         const int16_t delx = costab[a];
         const int16_t dely = sintab[a];
 
-        int16_t dt = 0;
-        int16_t miny = IMAGE_HEIGHT;
+        int16_t dt = 1;
+        int16_t miny = MAX_HEIGHT;
 
-        do {
+        while (dt < 127)
+        {
             dx += delx;
             dy += dely;
-            dt++;
 
             const int16_t h = hmap[dy >> 8][dx >> 8] - height;
             const int16_t y = dcomp[dt - 1] - (h << 5) / dt + dst;
 
-            if (y < miny && y >= 0)
+            if (y >= 0 && y <= miny)
             {
-                vertLine(sx, y, miny - y, cmap[dy >> 8][dx >> 8]);
+                vertLine(sx, y, miny - y + 1, cmap[dy >> 8][dx >> 8]);
                 miny = y;
             }
-        } while (dt < 127);
+
+            dt++;
+        }
     }
 
     void drawView()
@@ -14614,7 +14656,8 @@ namespace rippleEffect2 {
         shiftPalette(pal);
         setPalette(pal);
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             n = (n + 1) % 64;
             for (j = 0; j < IMAGE_MIDX; j++)
             {
@@ -14652,7 +14695,7 @@ namespace rippleEffect2 {
             }
             render();
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -14680,7 +14723,8 @@ namespace waterFall {
         uint16_t ofs = 0;
         RGB pal[256] = { 0 };
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (i = 0; i < 256; i++)
             {
                 j = (i + ofs) & 0xff;
@@ -14695,7 +14739,7 @@ namespace waterFall {
             setPalette(pal);
             delay(FPS_90);
             ofs++;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 
@@ -14759,7 +14803,8 @@ namespace winterEffect {
             flakes[i].h = pos / IMAGE_HEIGHT;
         }
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             for (i = 0; i < FLAKES; i++)
             {
                 perturb();
@@ -14771,7 +14816,7 @@ namespace winterEffect {
 
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -14798,13 +14843,14 @@ namespace wormEffect {
         setPalette(pal);
         if (!loadPNG((uint8_t*)getDrawBuffer(), NULL, "assets/worm.png")) return;
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             memcpy(tmp, &pal[16], sizeof(tmp));
             for (int16_t i = 1; i < 16; i++) memcpy(&pal[(i - 1) << 4], &pal[i << 4], sizeof(tmp));
             memcpy(&pal[240], tmp, sizeof(tmp));
             setPalette(pal);
             delay(FPS_90);
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
         cleanup();
     }
 }
@@ -15240,7 +15286,7 @@ namespace chain4Effect {
         showMouseCursor(SDL_DISABLE);
 
         do {
-            getMouseState(&x, &y, &lmb, NULL);
+            getMouseState(&x, &y, &lmb);
             moveTo(x >> 1, y >> 1);
             renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
             delay(FPS_90);
@@ -15314,17 +15360,45 @@ namespace hardwareScroll {
         if (!loadPNG(vmem[0], pal, "assets/fear.png")) return;
         setPalette(pal);
 
-        do {
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
             scroll(addx);
             renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
             delay(3);
             x += addx;
             if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
-        } while (!finished(SDL_SCANCODE_RETURN));
+        }
 
         quit();
         cleanup();
     }
+}
+
+namespace copper3Effect {
+    RGB pal[256] = { 0 };
+    uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
+
+    void scroll(int16_t dir)
+    {
+    }
+
+	void run()
+	{
+		int16_t x = 0, addx = 1;
+
+		if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Copper3 Simulation")) return;
+		setPalette(pal);
+
+		while (!finished(SDL_SCANCODE_RETURN))
+		{
+			scroll(addx);
+			renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
+			delay(3);
+			x += addx;
+			if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
+		}
+		cleanup();
+	}
 }
 
 void gfxEffectsMix()
@@ -15413,4 +15487,5 @@ void gfxEffectsMix()
     rainEffect::run();
     chain4Effect::run();
     hardwareScroll::run();
+    copper3Effect::run();
 }
