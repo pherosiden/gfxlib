@@ -11883,16 +11883,16 @@ namespace rippleEffect {
 
     void preCalculate()
     {
-        for (int16_t x = 0; x < IMAGE_MIDX; x++)
+        for (int16_t y = 0; y < IMAGE_MIDY; y++)
         {
-            for (int16_t y = 0; y < IMAGE_MIDY; y++) sqrtab[(y * 161 + x) << 1] = uint8_t(sqrt(double(x) * x + double(y) * y));
+            for (int16_t x = 0; x < IMAGE_MIDX; x++) sqrtab[(y * 160 + x) << 1] = uint8_t(sqrt(double(x) * x + double(y) * y));
         }
     }
 
     void updateWave()
     {
         angle++;
-        for (int16_t k = 0; k < IMAGE_HEIGHT; k++) wave[k] = int16_t(AMPL * sin(M_PI * FREQ * (double(k) - angle) / 180));
+        for (int16_t k = 0; k < IMAGE_HEIGHT; k++) wave[k] = int16_t(AMPL * sin(M_PI * FREQ * (double(k) - angle) / 180.0));
     }
 
     void drawRipples()
@@ -11903,7 +11903,7 @@ namespace rippleEffect {
             {
                 int16_t xx = abs(x - IMAGE_MIDX);
                 int16_t yy = abs(y - IMAGE_MIDY);
-                const int16_t dist = sqrtab[(yy * 161 + xx) << 1];
+                const int16_t dist = sqrtab[(yy * 160 + xx) << 1];
                 const int16_t alt = wave[dist];
 
                 xx = x + alt;
@@ -11911,8 +11911,6 @@ namespace rippleEffect {
 
                 if (yy > MAX_HEIGHT) yy -= IMAGE_HEIGHT;
                 if (yy < 0) yy += IMAGE_HEIGHT;
-                if (yy < 0) yy = 0;
-                if (xx < 0) xx = 0;
                 dbuff[y][x] = vbuff[yy][xx];
             }
         }
