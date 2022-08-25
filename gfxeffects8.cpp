@@ -738,22 +738,22 @@ namespace rainEffect {
             mov     cl, densityAdd
             mov     ebx, (IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT) / 2
         again:
-            mov     eax, dword ptr[vbuff + esi - IMAGE_HEIGHT]
-            add     eax, dword ptr[vbuff + esi + IMAGE_HEIGHT]
-            add     eax, dword ptr[vbuff + esi + 2]
-            add     eax, dword ptr[vbuff + esi - 2]
+            mov     eax, dword ptr vbuff[esi - IMAGE_HEIGHT]
+            add     eax, dword ptr vbuff[esi + IMAGE_HEIGHT]
+            add     eax, dword ptr vbuff[esi + 2]
+            add     eax, dword ptr vbuff[esi - 2]
             ror     eax, 16
             sar     ax, 1
             ror     eax, 16
             sar     ax, 1
-            sub     eax, dword ptr[vbuff + edi]
+            sub     eax, dword ptr vbuff[edi]
             mov     edx, eax
             sar     dx, cl
             ror     edx, 16
             sar     dx, cl
             ror     edx, 16
             sub     eax, edx
-            mov     dword ptr[vbuff + edi], eax
+            mov     dword ptr vbuff[edi], eax
             add     edi, 4
             add     esi, 4
             dec     ebx
@@ -805,16 +805,16 @@ namespace rainEffect {
             add     edi, IMAGE_HEIGHT
             mov     ecx, IMAGE_MIDX * IMAGE_MIDY - IMAGE_HEIGHT - IMAGE_MIDY
         again:
-            mov     ax, word ptr[vbuff + esi - IMAGE_HEIGHT]
-            add     ax, word ptr[vbuff + esi + IMAGE_HEIGHT]
-            add     ax, word ptr[vbuff + esi + 2]
-            add     ax, word ptr[vbuff + esi - 2]
-            add     ax, word ptr[vbuff + esi - IMAGE_HEIGHT - 2]
-            add     ax, word ptr[vbuff + esi - IMAGE_HEIGHT - 2]
-            add     ax, word ptr[vbuff + esi + IMAGE_HEIGHT - 2]
-            add     ax, word ptr[vbuff + esi + IMAGE_HEIGHT - 2]
+            mov     ax, word ptr vbuff[esi - IMAGE_HEIGHT]
+            add     ax, word ptr vbuff[esi + IMAGE_HEIGHT]
+            add     ax, word ptr vbuff[esi + 2]
+            add     ax, word ptr vbuff[esi - 2]
+            add     ax, word ptr vbuff[esi - IMAGE_HEIGHT - 2]
+            add     ax, word ptr vbuff[esi - IMAGE_HEIGHT - 2]
+            add     ax, word ptr vbuff[esi + IMAGE_HEIGHT - 2]
+            add     ax, word ptr vbuff[esi + IMAGE_HEIGHT - 2]
             sar     ax, 3
-            mov     word ptr[vbuff + edi], ax
+            mov     word ptr vbuff[edi], ax
             add     edi, 2
             add     esi, 2
             loop    again
@@ -1069,22 +1069,22 @@ namespace rainEffect {
             add     bx, val
             shl     bx, 1
         lp0:
-            mov     si, [tblFil + ebx]
-            mov     cx, [lkpFil + esi]
+            mov     si, tblFil[ebx]
+            mov     cx, lkpFil[esi]
             cmp     cx, 0xff
             jnz     lp1
-            mov     [tblFil + ebx], 0
+            mov     tblFil[ebx], 0
             jmp     lp0
         lp1:
-            mov     si, [tblCol + ebx]
-            mov     dx, [lkpCol + esi]
+            mov     si, tblCol[ebx]
+            mov     dx, lkpCol[esi]
             cmp     dx, 0xff
             jnz     lp2
-            mov     [tblCol + ebx], 0
+            mov     tblCol[ebx], 0
             jmp     lp1
         lp2:
-            add     [tblCol + ebx], 2
-            add     [tblFil + ebx], 2
+            add     tblCol[ebx], 2
+            add     tblFil[ebx], 2
             mov     esi, rnd1
             mov     [esi], dx
             mov     esi, rnd2
@@ -1431,26 +1431,26 @@ namespace waterEffect {
             inc     tmp
             add     esi, 2
             add     edi, 2
-            mov     ax, [water + edi -   2]
-            add     ax, [water + edi - 638]
-            add     ax, [water + edi - 640]
-            add     ax, [water + edi - 642]
-            add     ax, [water + edi +   2]
-            add     ax, [water + edi + 638]
-            add     ax, [water + edi + 640]
-            add     ax, [water + edi + 642]
+            mov     ax, water[edi -   2]
+            add     ax, water[edi - 638]
+            add     ax, water[edi - 640]
+            add     ax, water[edi - 642]
+            add     ax, water[edi +   2]
+            add     ax, water[edi + 638]
+            add     ax, water[edi + 640]
+            add     ax, water[edi + 642]
             sar     ax, 2
-            mov     bx, [water + esi]
+            mov     bx, water[esi]
             sub     ax, bx
             mov     bx, ax
             sar     bx, DENSITY
             sub     ax, bx
-            mov     [water + esi], ax
+            mov     water[esi], ax
             xor     ebx, ebx
-            mov     ax, [water + esi]
-            sub     ax, [water + esi + 2]
-            mov     bx, [water + esi]
-            sub     bx, [water + esi + 640]
+            mov     ax, water[esi]
+            sub     ax, water[esi + 2]
+            mov     bx, water[esi]
+            sub     bx, water[esi + 640]
             sar     bx, 3
             add     bx, cx
             sar     ax, 3
@@ -1459,9 +1459,9 @@ namespace waterEffect {
             add     bx, ax
             shl     ax, 2
             add     bx, ax
-            mov     al, [dbuff + ebx]
+            mov     al, dbuff[ebx]
             mov     ebx, tmp
-            mov     [vbuff + ebx], al
+            mov     vbuff[ebx], al
             inc     cx
             cmp     cx, IMAGE_WIDTH - 2
             jbe     next
@@ -1508,16 +1508,16 @@ namespace waterEffect {
             mov     ax, 10000
             mov     edi, 100 + 60 * IMAGE_WIDTH
             shl     edi, 1
-            mov     [water + edi], ax
+            mov     water[edi], ax
             mov     edi, 120 + 80 * IMAGE_WIDTH
             shl     edi, 1
-            mov     [water + edi], ax
+            mov     water[edi], ax
             mov     edi, 160 + 100 * IMAGE_WIDTH
             shl     edi, 1
-            mov     [water + edi], ax
+            mov     water[edi], ax
             mov     edi, 220 + 60 * IMAGE_WIDTH
             shl     edi, 1
-            mov     [water + edi], ax
+            mov     water[edi], ax
         }
 #else
         water[0][ 60][100] = 10000;
@@ -1536,15 +1536,15 @@ namespace waterEffect {
             mov     esi, idx
             and     esi, 0FFh
             shl     esi, 1
-            add     di, [costab + esi]
-            mov     bx, [sintab + esi]
+            add     di, costab[esi]
+            mov     bx, sintab[esi]
             shl     ebx, 6
             add     edi, ebx
             shl     ebx, 2
             add     edi, ebx
             shl     edi, 1
             mov     ax, 500
-            mov     [water + edi], ax
+            mov     water[edi], ax
         }
 #else
         const uint16_t i = idx & 0xff;
@@ -3519,26 +3519,26 @@ namespace tunnelEffect {
             xor     eax, eax
             xor     edx, edx
             xor     ebx, ebx
-            mov     edx, [yofs + edi]
+            mov     edx, yofs[edi]
             shl     edx, 6
             add     ebx, edx
             shl     edx, 2
             add     ebx, edx
-            add     ebx, [xofs + edi]
-            mov     al, [vbuff + esi]
+            add     ebx, xofs[edi]
+            mov     al, vbuff[esi]
             shr     al, 1
-            mov     ah, [vbuff + esi + ebx]
+            mov     ah, vbuff[esi + ebx]
             shr     ah, 1
             add     al, ah
-            mov     [vbuff + esi], al
+            mov     vbuff[esi], al
             not     esi
             not     ebx
-            mov     al, [IMAGE_SIZE + vbuff + esi]
+            mov     al, vbuff[IMAGE_SIZE + esi]
             shr     al, 1
-            mov     ah, [IMAGE_SIZE + vbuff + esi + ebx]
+            mov     ah, vbuff[IMAGE_SIZE + esi + ebx]
             shr     ah, 1
             add     al, ah
-            mov     [IMAGE_SIZE + vbuff + esi], al
+            mov     vbuff[IMAGE_SIZE + esi], al
             not     esi
             inc     esi
             add     edi, 4
@@ -5127,19 +5127,19 @@ namespace intro16k {
             mov     bh, col2
         lp1:
             push    dx
-            mov     dx, word ptr[wiredFont + esi]
+            mov     dx, word ptr wiredFont[esi]
             add     esi, 2
-            mov     ax, word ptr[wiredFont + esi]
+            mov     ax, word ptr wiredFont[esi]
             add     esi, 2
             mov     ecx, 16
         lp2:
             rcr     ax, 1
             jnc     lp3
-            mov     [vmem + edi], bh
+            mov     vmem[edi], bh
         lp3:
             rcr     dx, 1
             jnc     lp4
-            mov     [vmem + edi], bl
+            mov     vmem[edi], bl
         lp4:
             inc     edi
             loop    lp2
@@ -5187,19 +5187,19 @@ namespace intro16k {
             mov     bh, col2
         lp1:
             push    dx
-            mov     dx, word ptr[wiredFont + esi]
+            mov     dx, word ptr wiredFont[esi]
             add     esi, 2
-            mov     ax, word ptr[wiredFont + esi]
+            mov     ax, word ptr wiredFont[esi]
             add     esi, 2
             mov     ecx, FONT_WIDTH
         lp2:
             rcr     ax, 1
             jnc     lp3
-            mov     [vbuff + edi], bh
+            mov     vbuff[edi], bh
         lp3:
             rcr     dx, 1
             jnc     lp4
-            mov     [vbuff + edi], bl
+            mov     vbuff[edi], bl
         lp4:
             inc     edi
             loop    lp2
@@ -5363,26 +5363,26 @@ namespace intro16k {
             xor     eax, eax
             xor     edx, edx
             xor     ebx, ebx
-            mov     edx, [yofs + edi]
+            mov     edx, yofs[edi]
             shl     edx, 6
             add     ebx, edx
             shl     edx, 2
             add     ebx, edx
-            add     ebx, [xofs + edi]
-            mov     al, [vbuff + esi]
+            add     ebx, xofs[edi]
+            mov     al, vbuff[esi]
             shr     al, 1
-            mov     ah, [vbuff + esi + ebx]
+            mov     ah, vbuff[esi + ebx]
             shr     ah, 1
             add     al, ah
-            mov     [vbuff + esi], al
+            mov     vbuff[esi], al
             not     esi
             not     ebx
-            mov     al, [vbuff + IMAGE_SIZE + esi]
+            mov     al, vbuff[IMAGE_SIZE + esi]
             shr     al, 1
-            mov     ah, [vbuff + IMAGE_SIZE + esi + ebx]
+            mov     ah, vbuff[IMAGE_SIZE + esi + ebx]
             shr     ah, 1
             add     al, ah
-            mov     [vbuff + IMAGE_SIZE + esi], al
+            mov     vbuff[IMAGE_SIZE + esi], al
             not     esi
             inc     esi
             add     edi, 4
@@ -5498,7 +5498,7 @@ namespace intro16k {
             shl     bl, 1
             shr     bx, 1
             and     bx, 3FFFh
-            mov     al, [texture + ebx]
+            mov     al, texture[ebx]
             shl     al, 1
             stosb
             loop    lp2
@@ -5828,15 +5828,15 @@ namespace intro16k {
             add     esi, eax
             mov     ecx, mx
         next:
-            mov     al, [vbuff + esi]
+            mov     al, vbuff[esi]
             shr     al, 1
             add     al, 96
-            mov     [vbuff + esi], al
+            mov     vbuff[esi], al
             not     esi
-            mov     al, [vbuff + IMAGE_SIZE + esi]
+            mov     al, vbuff[IMAGE_SIZE + esi]
             shr     al, 1
             add     al, 96
-            mov     [vbuff + IMAGE_SIZE + esi], al
+            mov     vbuff[IMAGE_SIZE + esi], al
             not     esi
             inc     esi
             loop    next
@@ -6075,7 +6075,7 @@ namespace intro16k {
             push    esi
         lp2:
             and     esi, 0FFh
-            mov     al, byte ptr[sinTab + esi]
+            mov     al, sinTab[esi]
             add     al, 80
             shr     al, 3
             add     esi, v
@@ -6300,13 +6300,13 @@ namespace intro16k {
             mov     al, bh
             xor     al, dh
             shr     al, 2
-            mov     [vbuff + edi], al
-            mov     [vbuff + esi], al
+            mov     vbuff[edi], al
+            mov     vbuff[esi], al
             add     al, 40h
             not     edi
             not     esi
-            mov     [vbuff + IMAGE_SIZE + edi], al
-            mov     [vbuff + IMAGE_SIZE + esi], al
+            mov     vbuff[IMAGE_SIZE + edi], al
+            mov     vbuff[IMAGE_SIZE + esi], al
             not     edi
             not     esi
             add     edi, 2
@@ -6320,7 +6320,7 @@ namespace intro16k {
             add     bx, asin
             sub     dx, acos
             add     edi, IMAGE_WIDTH
-            add     esi, 3 * IMAGE_WIDTH
+            add     esi, IMAGE_WIDTH * 3
             dec     ch
             jnz     lp1
         }
@@ -6398,12 +6398,12 @@ namespace intro16k {
             push    ax
             mov     al, bh
             xor     al, dh
-            and     [vbuff + edi], al
-            and     [vbuff + esi], al
+            and     vbuff[edi], al
+            and     vbuff[esi], al
             not     edi
             not     esi
-            and     [vbuff + IMAGE_SIZE + edi], al
-            and     [vbuff + IMAGE_SIZE + esi], al
+            and     vbuff[IMAGE_SIZE + edi], al
+            and     vbuff[IMAGE_SIZE + esi], al
             not     edi
             not     esi
             inc     edi
@@ -6417,7 +6417,7 @@ namespace intro16k {
             pop     dx
             add     bx, asin
             sub     dx, acos
-            add     esi, 2 * IMAGE_WIDTH
+            add     esi, IMAGE_WIDTH * 2
             loop    lp1
         }
 #else
@@ -6464,12 +6464,12 @@ namespace intro16k {
             mov     al, bh
             xor     al, dh
             shr     al, 1
-            xor     [vbuff + edi], al
-            xor     [vbuff + esi], al
+            xor     vbuff[edi], al
+            xor     vbuff[esi], al
             not     edi
             not     esi
-            xor     [vbuff + IMAGE_SIZE + edi], al
-            xor     [vbuff + IMAGE_SIZE + esi], al
+            xor     vbuff[IMAGE_SIZE + edi], al
+            xor     vbuff[IMAGE_SIZE + esi], al
             not     edi
             not     esi
             inc     edi
@@ -6483,7 +6483,7 @@ namespace intro16k {
             pop     dx
             add     bx, asin
             sub     dx, acos
-            add     esi, 2 * IMAGE_WIDTH
+            add     esi, IMAGE_WIDTH * 2
             loop    lp1
         }
 #else
@@ -6531,12 +6531,12 @@ namespace intro16k {
             mov     al, bh
             xor     al, dh
             shr     al, 3
-            add     [vbuff + edi], al
-            add     [vbuff + esi], al
+            add     vbuff[edi], al
+            add     vbuff[esi], al
             not     edi
             not     esi
-            add     [vbuff + IMAGE_SIZE + edi], al
-            add     [vbuff + IMAGE_SIZE + esi], al
+            add     vbuff[IMAGE_SIZE + edi], al
+            add     vbuff[IMAGE_SIZE + esi], al
             not     edi
             not     esi
             inc     edi
@@ -6550,7 +6550,7 @@ namespace intro16k {
             pop     dx
             add     bx, asin
             sub     dx, acos
-            add     esi, 2 * IMAGE_WIDTH
+            add     esi, IMAGE_WIDTH * 2
             loop    lp1
         }
 #else
@@ -10399,13 +10399,13 @@ namespace zoomOutEffect {
         again:
             mov     cl, 64
         next:
-            mov     ax, [ytab + esi]
+            mov     ax, ytab[esi]
             mov     dx, IMAGE_WIDTH
             mul     dx
-            add     ax, [xtab + esi]
+            add     ax, xtab[esi]
             add     ax, bx
-            mov     dl, [vbuff + edi]
-            mov     [vmem + eax], dl
+            mov     dl, vbuff[edi]
+            mov     vmem[eax], dl
             add     edi, 2
             add     esi, 2
             dec     cl
@@ -13421,8 +13421,7 @@ namespace spriteEffect {
             add     bx, x
             add     edi, ebx
             mov     dl, SH
-            xor     ecx, ecx
-            add     ecx, SW
+            mov     ecx, SW
             mov     eax, ecx
         draw:
             push    edi
@@ -14467,7 +14466,7 @@ namespace voxelEffect {
     int16_t sintab[2048] = { 0 };
     int16_t dcomp[127] = { 0 };
 
-    void vertLine(int16_t x, int16_t y, uint16_t len, uint8_t col)
+    void vertLine(uint16_t x, uint16_t y, uint16_t len, uint8_t col)
     {
 #ifdef _USE_ASM
         __asm {
@@ -14493,23 +14492,23 @@ namespace voxelEffect {
 #endif
     }
 
-    void ray(int16_t a, uint16_t dx, uint16_t dy, int16_t sx)
+    void ray(uint16_t a, uint16_t dx, uint16_t dy, uint16_t sx)
     {
-        const int16_t delx = costab[a];
-        const int16_t dely = sintab[a];
+        const uint16_t delx = costab[a];
+        const uint16_t dely = sintab[a];
 
-        int16_t dt = 1;
-        int16_t miny = MAX_HEIGHT;
+        uint16_t dt = 1;
+        uint16_t miny = MAX_HEIGHT;
 
         while (dt < 127)
         {
             dx += delx;
             dy += dely;
 
-            const int16_t h = hmap[dy >> 8][dx >> 8] - height;
-            const int16_t y = dcomp[dt - 1] - (h << 5) / dt + dst;
+            const int32_t h = hmap[dy >> 8][dx >> 8] - height;
+            const uint16_t y = dcomp[dt - 1] - (h << 5) / dt + dst;
 
-            if (y >= 0 && y <= miny)
+            if (y <= miny)
             {
                 vertLine(sx, y, miny - y + 1, cmap[dy >> 8][dx >> 8]);
                 miny = y;
@@ -14901,11 +14900,11 @@ namespace rayCastingEffect {
             shl     ebx, 7
             mov     esi, edx
             add     esi, ebx
-            mov     al, [walls + esi]
+            mov     al, walls[esi]
             mov     esi, eax
             add     esi, dark
-            mov     al, [shade + esi]
-            mov     [vbuff + edi], al
+            mov     al, shade[esi]
+            mov     vbuff[edi], al
             add     edi, IMAGE_WIDTH
             pop     ebx
             add     ebx, pass
@@ -14959,19 +14958,19 @@ namespace rayCastingEffect {
         no15:
             shl     ecx, 8
             xor     eax, eax
-            mov     al, [floors + esi]
+            mov     al, floors[esi]
             add     eax, ecx
-            mov     al, [shade + eax]
+            mov     al, shade[eax]
             mov     dx, di
-            mov     [vbuff + edx], al
+            mov     vbuff[edx], al
             add     edi, IMAGE_WIDTH
             rol     edi, 16
             xor     eax, eax
-            mov     al, [ceils + esi]
+            mov     al, ceils[esi]
             add     eax, ecx
-            mov     al, [shade + eax]
+            mov     al, shade[eax]
             mov     dx, di
-            mov     [vbuff + edx], al
+            mov     vbuff[edx], al
             sub     edi, IMAGE_WIDTH
             ror     edi, 16
             inc     ebx
