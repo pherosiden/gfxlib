@@ -15163,7 +15163,7 @@ namespace rayCastingEffect {
             hmh = IMAGE_MIDY - height;
             hph = IMAGE_MIDY + height;
 
-            uint16_t darker = int32_t(spacer) >> 10;
+            uint16_t darker = int32_t(spacer / 1024);
             if (darker > 15) darker = 15;
 
             if (hmh < 0)
