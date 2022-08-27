@@ -72,8 +72,7 @@ void showFontsDir(const char* path, const char* ext)
     intptr_t hfile = _findfirst(buff, &fileInfo);
     if (hfile == -1) return;
 
-    do
-    {
+    do {
         sprintf(buff, "%s/%s", path, fileInfo.name);
         loadFont(buff, 0);
         sprintf(buff, "%s - The quick brown fox jumps over the lazy dog", fileInfo.name);

@@ -296,7 +296,8 @@ void runScaleUpImage(int32_t sx, int32_t sy)
     const uint32_t rcolor = rgb(0, 255, 200);
 
     //loop until enter key pressed
-    do {
+    while (!finished(SDL_SCANCODE_RETURN)) 
+    {
         //redirect render buffer to image buffer
         changeDrawBuffer(img1.mData, img1.mWidth, img1.mHeight);
 
@@ -316,7 +317,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
         //save current buffer for next step
         memcpy(img1.mData, img2.mData, img2.mSize);
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img1);
@@ -334,7 +335,8 @@ void runCrossFade(int32_t sx, int32_t sy)
     if (!newImage(fade1.mWidth, fade1.mHeight, &img)) return;
 
     //loop until key enter pressed
-    do {
+    while (!finished(SDL_SCANCODE_RETURN)) 
+    {
         //check blending value
         if (i == 0) val = 1;
         else val = (i << 2) - 1;
@@ -348,7 +350,7 @@ void runCrossFade(int32_t sx, int32_t sy)
         //check for change direction
         if (up) i++; else i--;
         if (i == 0 || i == 64) up = !up;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -393,7 +395,8 @@ void runRotateImage(int32_t sx, int32_t sy)
     uint32_t degree = 0;
 
     //loop until return
-    do {
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
         //copy background
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
@@ -403,7 +406,7 @@ void runRotateImage(int32_t sx, int32_t sy)
         render();
         delay(FPS_90);
         degree++;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -421,7 +424,8 @@ void runFastRotateImage(int32_t sx, int32_t sy)
     int32_t degree = 0;
 
     //loop until return
-    do {
+    while (!finished(SDL_SCANCODE_RETURN)) 
+    {
         //copy background
         memcpy(img.mData, fade1.mData, fade1.mSize);
 
@@ -431,7 +435,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         render();
         delay(FPS_90);
         degree++;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -449,7 +453,8 @@ void runAntiAliased(int32_t sx, int32_t sy)
     if (!newImage(midx, midy, &dst)) return;
 
     //loop until return
-    do {
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
         //redirect drawing to image buffer
         changeDrawBuffer(dst.mData, dst.mWidth, dst.mHeight);
 
@@ -477,7 +482,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
         fadeOutImage(&dst, 4);
         render();
         delay(FPS_90);
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&img);
@@ -573,7 +578,8 @@ void runBumpImage()
 
     //loop until return
     int32_t cnt = 0;
-    do {
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
         //calculate position
         const int32_t lx = int32_t(cos(cnt / 13.0) * 133.0 + cx);
         const int32_t ly = int32_t(sin(cnt / 23.0) * 133.0 + cy);
@@ -585,7 +591,7 @@ void runBumpImage()
         delay(FPS_90);
         clearImage(&dst);
         cnt++;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //cleanup...
     freeImage(&dst);
@@ -607,7 +613,8 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     const uint16_t endx = plasma.mWidth >> 1;
 
     //loop until return
-    do {
+    while (!finished(SDL_SCANCODE_RETURN))
+    {
         uint32_t ofs = 0;
         const uint32_t tectr = frames * 10;
         const uint16_t x1 = sina[(tectr / 12) & 0xff];
@@ -642,7 +649,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 mov     c, bx
                 shr     bx, cl
                 and     bx, 0xff
-                mov     bl, byte ptr sina[ebx]
+                mov     bl, sina[ebx]
                 mov     si, bx
                 mov     bx, ax
                 sub     bx, x2
@@ -650,14 +657,14 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 mov     b, bx
                 shr     bx, cl
                 and     bx, 0xff
-                mov     dl, byte ptr sina[ebx]
+                mov     dl, sina[ebx]
                 mov     bx, ax
                 sub     bx, x1
                 add     bx, a
                 mov     a, bx
                 shr     bx, cl
                 and     bx, 0xff
-                mov     bl, byte ptr sina[ebx]
+                mov     bl, sina[ebx]
                 mov     ax, bx
                 add     ax, cr
                 mov     cr, bx
@@ -712,7 +719,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         render();
         delay(FPS_90);
         frames++;
-    } while (!finished(SDL_SCANCODE_RETURN));
+    }
 
     //clean up...
     freeImage(&plasma);
