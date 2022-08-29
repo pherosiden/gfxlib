@@ -1504,10 +1504,11 @@ void displayPlasma()
     getPalette(pal);
     for (x = 0; x < 32; x++)
     {
-        pal[x].r = x << 3;
-        pal[x].g = x << 3;
-        pal[x].b = x << 3;
+        pal[x].r = x << 1;
+        pal[x].g = x << 1;
+        pal[x].b = x << 1;
     }
+    shiftPalette(pal);
     setPalette(pal);
 
     ypos = getBufferHeight();
