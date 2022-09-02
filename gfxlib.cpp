@@ -11618,13 +11618,8 @@ void rotateLine(uint32_t* dst, const uint32_t* src, int32_t* tables, int32_t wid
         mov     edi, dst
         mov     ebx, tables
     next:
-        mov     eax, ecx
-        shl     eax, 3
-        mov     edx, eax
-        add     eax, 8
-        add     edx, 12
-        mov     eax, [ebx + eax]
-        mov     edx, [ebx + edx]
+        mov     eax, [ebx + ecx * 8 + 8]
+        mov     edx, [ebx + ecx * 8 + 12]
         add     eax, cosy
         sub     edx, siny
         sar     eax, 1
@@ -11639,8 +11634,8 @@ void rotateLine(uint32_t* dst, const uint32_t* src, int32_t* tables, int32_t wid
         add     eax, pos
         mov     eax, [ebx + eax]
         shl     edx, 2
-        add     edx, eax
-        mov     eax, [esi + edx]
+        add     eax, edx
+        mov     eax, [esi + eax]
         mov     [edi], eax
     skip:
         add     edi, 4
@@ -12038,14 +12033,10 @@ void initMemoryInfo()
 uint64_t getCyclesCount()
 {
 #ifdef _USE_ASM
-    uint64_t count = 0;
     __asm {
         cpuid
         rdtsc
-        mov dword ptr[count    ], eax
-        mov dword ptr[count + 4], edx
     }
-    return count;
 #else
     return __rdtsc();
 #endif

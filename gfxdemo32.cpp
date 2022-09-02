@@ -635,10 +635,10 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             uint16_t cb = sina[(c >> 6) & 0xff];
 #ifdef _USE_ASM
             __asm {
-                xor     ax, ax
+                xor     eax, eax
                 mov     edi, data
                 add     edi, ofs
-                xor     dx, dx
+                xor     edx, edx
             next:
                 xor     ebx, ebx
                 mov     cl, 6
