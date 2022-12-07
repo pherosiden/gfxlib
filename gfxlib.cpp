@@ -356,7 +356,7 @@ void showMouseCursor(int32_t show)
 //get current mouse state
 void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
 {
-    uint8_t mstate = SDL_GetMouseState(mx, my);
+    const uint8_t mstate = SDL_GetMouseState(mx, my);
     if (lmb)
     {
         if (mstate & 1) *lmb = 1;
@@ -480,7 +480,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     else
     {
         //initialize drawing buffer for 32 bits RGBA (32-bytes alignment for AVX2 use)
-        uint32_t msize = height * bytesPerScanline;
+        const uint32_t msize = height * bytesPerScanline;
         drawBuff = _mm_malloc(msize, 32);
         if (!drawBuff)
         {
@@ -1113,7 +1113,7 @@ must_inline void putPixelBob(int32_t x, int32_t y)
         stosb
     }
 #else
-    uint8_t col = min(getPixel(x, y) + 1, 255);
+    const uint8_t col = min(getPixel(x, y) + 1, 255);
     putPixel(x, y, col);
 #endif
 }
@@ -1135,7 +1135,7 @@ must_inline void putPixelAdd(int32_t x, int32_t y, uint32_t color)
         emms
     }
 #else
-    ARGB* rgb = (ARGB*)&color;
+    const ARGB* rgb = (ARGB*)&color;
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
     pixels->r = min(pixels->r + rgb->r, 255);
@@ -1161,7 +1161,7 @@ must_inline void putPixelSub(int32_t x, int32_t y, uint32_t color)
         emms
     }
 #else
-    ARGB* rgb = (ARGB*)&color;
+    const ARGB* rgb = (ARGB*)&color;
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
     pixels->r = max(pixels->r - rgb->r, 0);
@@ -1227,7 +1227,7 @@ must_inline uint32_t getPixelMix(int32_t x, int32_t y)
     }
     //eax will auto returned
 #else
-    uint8_t* pixels = (uint8_t*)drawBuff;
+    const uint8_t* pixels = (uint8_t*)drawBuff;
     return pixels[y * texWidth + x];
 #endif
 }
@@ -1254,7 +1254,7 @@ uint32_t getPixel(int32_t x, int32_t y)
     }
     //eax will auto returned
 #else
-    uint32_t* pixel = (uint32_t*)drawBuff;
+    const uint32_t* pixel = (uint32_t*)drawBuff;
     return pixel[y * texWidth + x];
 #endif
 }
@@ -1732,7 +1732,7 @@ must_inline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    ARGB* rgb = (ARGB*)&color;
+    const ARGB* rgb = (ARGB*)&color;
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
@@ -1770,7 +1770,7 @@ must_inline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
     }
 #else
     //calculate starting address
-    ARGB* rgb = (ARGB*)&color;
+    const ARGB* rgb = (ARGB*)&color;
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
     for (int32_t i = 0; i < sy; i++)
@@ -2469,7 +2469,7 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
         if (remainder > 0)
         {
             const uint8_t rcover = 255 - cover;
-            for (int32_t i = 0; i < remainder; i++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 const uint32_t dst = *pixels;
                 const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
@@ -2545,7 +2545,7 @@ void fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t colo
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, const uint8_t* pattern)
 {
 #ifdef _USE_ASM
     __asm {
@@ -2602,7 +2602,7 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, const uint8_t* pattern)
 {
 #ifdef _USE_ASM
     __asm {
@@ -2683,7 +2683,7 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, const uint8_t* pattern)
 {
 #ifdef _USE_ASM
     __asm {
@@ -2781,7 +2781,7 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern)
+void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, const uint8_t* pattern)
 {
 #ifdef _USE_ASM
     __asm {
@@ -2879,7 +2879,7 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and blending pixel
-void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb, uint8_t* pattern)
+void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t argb, const uint8_t* pattern)
 {
 #ifdef _USE_ASM
     __asm {
@@ -2967,7 +2967,7 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
 }
 
 //fill rectangle with corners (x1,y1) and (width,height) and color
-void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern, int32_t mode /* = BLEND_MODE_NORMAL */)
+void fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, const uint8_t* pattern, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //calculate new position
     const int32_t x1 = x + (width - 1);
@@ -3094,7 +3094,7 @@ void clipLine(int32_t* xs, int32_t* ys, int32_t* xe, int32_t* ye)
         else
         {
             int32_t x = 0, y = 0;
-            int32_t codeout = code1 ? code1 : code2;
+            const int32_t codeout = code1 ? code1 : code2;
 
             if (codeout & 1)
             {
@@ -4545,7 +4545,7 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
     const int32_t yc = y0 + y1 - y2 - y3, ya = yc - 4 * (y1 - y2);
     const int32_t yb = y0 - y1 - y2 + y3, yd = yb + 4 * (y1 + y2);
 
-    double t2 = 0, t[5] = { 0 };
+    double t2 = 0, t[10] = { 0 };
     double fx0 = x0, fx1 = 0.0, fx2 = 0.0, fx3 = 0.0;
     double fy0 = y0, fy1 = 0.0, fy2 = 0.0, fy3 = 0.0;
     double t1 = double(xb) * xb - double(xa) * xc;
@@ -4651,7 +4651,7 @@ void drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t r
 }
 
 //draw polygon
-void drawPolygon(POINT2D* points, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
+void drawPolygon(const POINT2D* points, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     if (num < 3) return;
     for (int32_t i = 0; i < num - 1; i++) drawLine(int32_t(points[i].x), int32_t(points[i].y), int32_t(points[i + 1].x), int32_t(points[i + 1].y), col, mode);
@@ -4715,7 +4715,7 @@ void fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color,
 //pt4[] = {{256, 150}, {148, 347}, {327, 329}, {311, 204}, {401, 204}, {418, 240}, {257, 222}, {293, 365}, {436, 383}, {455, 150}};
 //pt5[] = {{287, 76}, {129, 110}, {42, 301}, {78, 353}, {146, 337}, {199, 162}, {391, 180}, {322, 353}, {321, 198}, {219, 370}, {391, 405}, {444, 232}, {496, 440}, {565, 214}};
 //pt6[] = {{659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523}};
-void fillPolygon(POINT2D* points, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL*/)
+void fillPolygon(const POINT2D* points, int32_t num, uint32_t col, int32_t mode /* = BLEND_MODE_NORMAL*/)
 {
     int32_t nodex[MAX_POLY_CORNERS] = { 0 };
     int32_t nodes = 0, y = 0, i = 0, j = 0, swap = 0;
@@ -5098,7 +5098,7 @@ void getImageMix(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE*
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t i = 0; i < remainder; i++) *srcPixels++ = *dstPixels++;
+            for (int32_t k = 0; k < remainder; k++) *srcPixels++ = *dstPixels++;
         }
 
         //next offsets
@@ -5176,7 +5176,7 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t i = 0; i < remainder; i++) *srcPixels++ = *dstPixels++;
+            for (int32_t k = 0; k < remainder; k++) *srcPixels++ = *dstPixels++;
         }
 
         //next offsets
@@ -5299,7 +5299,7 @@ void putImageMix(const int32_t x, const int32_t y, const int32_t lx, const int32
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t i = 0; i < remainder; i++) *dstPixels++ = *srcPixels++;
+            for (int32_t k = 0; k < remainder; k++) *dstPixels++ = *srcPixels++;
         }
 
         //next offsets
@@ -5392,7 +5392,7 @@ void putImageNormal(const int32_t x, const int32_t y, const int32_t lx, const in
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t i = 0; i < remainder; i++) *dstPixels++ = *srcPixels++;
+            for (int32_t k = 0; k < remainder; k++) *dstPixels++ = *srcPixels++;
         }
 
         //next offsets
@@ -5494,7 +5494,7 @@ void putImageAdd(const int32_t x, const int32_t y, const int32_t lx, const int32
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 dstPixels->r = min(srcPixels->r + dstPixels->r, 255);
                 dstPixels->g = min(srcPixels->g + dstPixels->g, 255);
@@ -5603,7 +5603,7 @@ void putImageSub(const int32_t x, const int32_t y, const int32_t lx, const int32
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 dstPixels->r = max(srcPixels->r - dstPixels->r, 0);
                 dstPixels->g = max(srcPixels->g - dstPixels->g, 0);
@@ -5712,7 +5712,7 @@ void putImageAnd(const int32_t x, const int32_t y, const int32_t lx, const int32
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 dstPixels->r = srcPixels->r & dstPixels->r;
                 dstPixels->g = srcPixels->g & dstPixels->g;
@@ -5821,7 +5821,7 @@ void putImageXor(const int32_t x, const int32_t y, const int32_t lx, const int32
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 dstPixels->r = srcPixels->r ^ dstPixels->r;
                 dstPixels->g = srcPixels->g ^ dstPixels->g;
@@ -5971,7 +5971,7 @@ void putImageAlpha(const int32_t x, const int32_t y, const int32_t lx, const int
         //have unaligned bytes
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 const uint32_t dstCol = *dstPixels;
                 const uint32_t srcCol = *srcPixels;
@@ -5992,7 +5992,7 @@ void putImageAlpha(const int32_t x, const int32_t y, const int32_t lx, const int
 }
 
 //put GFX image to draw buffer (export function)
-void putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
+void putImage(int32_t x, int32_t y, const GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //calculate new position
     const int32_t x1 = x + (img->mWidth - 1);
@@ -6245,7 +6245,7 @@ void putSpriteNormal(const int32_t x, const int32_t y, const uint32_t keyColor, 
         //have unaligned bytes?
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 if ((*srcPixels & 0x00ffffff) != keyColor) *dstPixels = *srcPixels;
                 dstPixels++;
@@ -6387,7 +6387,7 @@ void putSpriteAdd(const int32_t x, const int32_t y, const uint32_t keyColor, con
         //have unaligned bytes?
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 if ((*(uint32_t*)srcPixels & 0x00ffffff) != keyColor)
                 {
@@ -6512,7 +6512,7 @@ void putSpriteSub(const int32_t x, const int32_t y, const uint32_t keyColor, con
             ymm0 = _mm256_and_si256(ymm0, ymm6);
 
             //load 8 pixels from background color
-            __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)dstPixels);
+            const __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xff and render is 0x00)
             __m256i ymm2 = _mm256_cmpeq_epi32(ymm0, ymm4);
@@ -6543,7 +6543,7 @@ void putSpriteSub(const int32_t x, const int32_t y, const uint32_t keyColor, con
         //have unaligned bytes?
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 if ((*(uint32_t*)srcPixels & 0x00ffffff) != keyColor)
                 {
@@ -6658,7 +6658,7 @@ void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, c
         {
             //load 8 pixels from source and dest
             __m256i src = _mm256_stream_load_si256((const __m256i*)srcPixels);
-            __m256i dst = _mm256_stream_load_si256((const __m256i*)dstPixels);
+            const __m256i dst = _mm256_stream_load_si256((const __m256i*)dstPixels);
 
             //get mask with key color (key color is 0xff and render is 0x00)
             __m256i mask = _mm256_cmpeq_epi32(src, amask);
@@ -6713,7 +6713,7 @@ void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, c
         //have unaligned bytes?
         if (remainder > 0)
         {
-            for (int32_t j = 0; j < remainder; j++)
+            for (int32_t k = 0; k < remainder; k++)
             {
                 //we accepted RGB color only
                 if ((*srcPixels & 0x00ffffff) != keyColor)
@@ -6741,7 +6741,7 @@ void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, c
 }
 
 //put a sprite at points(x1, y1) with key color (don't render key color), sub with background color
-void putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
+void putSprite(int32_t x, int32_t y, uint32_t keyColor, const GFX_IMAGE* img, int32_t mode /* = BLEND_MODE_NORMAL */)
 {
     //calculate new position
     const int32_t x1 = x + (img->mWidth - 1);
@@ -7586,8 +7586,8 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
             {
                 //calculate average pixel pd = (p0 + p1) / 2
                 ARGB* pd = (ARGB*)dst;
-                ARGB* p0 = (ARGB*)src;
-                ARGB* p1 = (ARGB*)&src[1];
+                const ARGB* p0 = (ARGB*)src;
+                const ARGB* p1 = (ARGB*)&src[1];
                 pd->r = (p0->r + p1->r) >> 1;
                 pd->g = (p0->g + p1->g) >> 1;
                 pd->b = (p0->b + p1->b) >> 1;
@@ -8528,7 +8528,7 @@ void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
 void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0, const int32_t inx1, const int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, const int32_t addx, const int32_t addy, const int16_t* stable)
 {
     int32_t x = 0;
-    uint32_t color = 0;
+    const uint32_t color = 0;
 
     for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)    pdst[x] = alphaBlend(pdst[x], bicubicGetPixelBorder(psrc, stable, sx, sy));
     for (x = inx0; x < inx1; x++, sx += addx, sy += addy)       pdst[x] = bicubicGetPixelCenter(psrc, stable, sx, sy);
@@ -8650,7 +8650,7 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_
 }
 
 //rotate image buffer (export function)
-void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */)
+void rotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, double degree, int32_t type /* = INTERPOLATION_TYPE_SMOOTH */)
 {
     //mixed mode
     if (bitsPerPixel == 8)
@@ -8779,7 +8779,7 @@ void lineTo(int32_t x, int32_t y, uint32_t col, int32_t mode /* = BLEND_MODE_NOR
 }
 
 //set palette color to render palette table
-void setPalette(RGB* pal)
+void setPalette(const RGB* pal)
 {
     SDL_SetPaletteColors(sdlSurface->format->palette, pal, 0, 256);
     render();
@@ -8833,7 +8833,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 }
 
 //FX-effect: palette fade-in
-void fadeIn(RGB* dest, uint32_t ms)
+void fadeIn(const RGB* dest, uint32_t ms)
 {
     RGB src[256] = { 0 };
     getPalette(src);
@@ -8842,7 +8842,7 @@ void fadeIn(RGB* dest, uint32_t ms)
     {
         for (int32_t j = 0; j < 256; j++)
         {
-            int32_t k = i << 2;
+            const int32_t k = i << 2;
             if (dest[j].r > k && src[j].r < 252) src[j].r += 4;
             if (dest[j].g > k && src[j].g < 252) src[j].g += 4;
             if (dest[j].b > k && src[j].b < 252) src[j].b += 4;
@@ -8856,7 +8856,7 @@ void fadeIn(RGB* dest, uint32_t ms)
 }
 
 //FX-effect: palette fade-out
-void fadeOut(RGB* dest, uint32_t ms)
+void fadeOut(const RGB* dest, uint32_t ms)
 {
     RGB src[256] = { 0 };
     getPalette(src);
@@ -8865,7 +8865,7 @@ void fadeOut(RGB* dest, uint32_t ms)
     {
         for (int32_t j = 0; j < 256; j++)
         {
-            int32_t k = i << 2;
+            const int32_t k = i << 2;
             if (dest[j].r < k && src[j].r > 4) src[j].r -= 4;
             if (dest[j].g < k && src[j].g > 4) src[j].g -= 4;
             if (dest[j].b < k && src[j].b > 4) src[j].b -= 4;
@@ -8965,14 +8965,14 @@ void shiftPalette(RGB* pal)
 //make a black palette
 void clearPalette()
 {
-    RGB pal[256] = { 0 };
+    const RGB pal[256] = { 0 };
     setPalette(pal);
 }
 
 //make white palette
 void whitePalette()
 {
-    RGB pal[256] = { 255 };
+    const RGB pal[256] = { 255 };
     setPalette(pal);
 }
 
@@ -9597,7 +9597,7 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
 
     //memory position of character
     uint32_t mempos = *(uint32_t*)&font->dataPtr[font->hdr.subData.startOffset + ((chr - font->hdr.subData.startChar) << 2)];
-    GFX_STROKE_DATA* data = (GFX_STROKE_DATA*)&font->dataPtr[mempos];
+    const GFX_STROKE_DATA* data = (GFX_STROKE_DATA*)&font->dataPtr[mempos];
     GFX_STROKE_INFO* stroke = (GFX_STROKE_INFO*)&font->dataPtr[mempos + sizeof(GFX_STROKE_DATA)];
 
     //scan for all lines
@@ -9631,7 +9631,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
     //check for font is loaded
     if (!font->dataPtr) return;
 
-    uint32_t len = uint32_t(strlen(str));
+    const uint32_t len = uint32_t(strlen(str));
 
     //check for vector font
     if (font->hdr.flags & GFX_FONT_VECTOR)
@@ -9830,7 +9830,7 @@ void writeText(int32_t x, int32_t y, uint32_t color, uint32_t mode, const char* 
 }
 
 //draw multi-line string font
-int32_t drawText(int32_t ypos, int32_t size, const char** str)
+int32_t drawText(int32_t ypos, int32_t size, const char** const str)
 {
     //check for font loaded
     if (!gfxFonts[fontType].dataPtr) return 0;
@@ -10439,7 +10439,7 @@ void freeButton(GFX_BUTTON* btn)
 //simulation mouse event handler
 void handleMouseButton()
 {
-    const char* bkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
+    const char* const bkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
 
     //init and setup bitmap mouse and button
     GFX_MOUSE mi = { 0 };
@@ -10625,7 +10625,7 @@ void handleMouseButton()
 }
 
 //create texture plasma
-void createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IMAGE* img)
+void createPlasma(uint8_t* dx, uint8_t* dy, const uint8_t* sint, const uint8_t* cost, GFX_IMAGE* img)
 {
 #ifdef _USE_ASM
     const uint8_t lx = (*dx) += 2;
@@ -10761,7 +10761,7 @@ void initPlasma(uint8_t* sint, uint8_t* cost)
 }
 
 //FX-effect: calculate tunnel buffer
-void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
+void prepareTunnel(const GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
 {
     const int32_t maxAng = 2048;
     const double angDec = 0.85;
@@ -10776,8 +10776,8 @@ void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
     double ang = maxAng - 1.0;
     
     do {
-        int32_t x = fround(z * sin(ang * preCalc)) + dcx;
-        int32_t y = fround(z * cos(ang * preCalc)) + dcy;
+        const int32_t x = fround(z * sin(ang * preCalc)) + dcx;
+        const int32_t y = fround(z * cos(ang * preCalc)) + dcy;
 
         ang -= angDec;
         if (ang < 0)
@@ -10797,7 +10797,7 @@ void prepareTunnel(GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
 }
 
 //FX-effect: draw tunnel
-void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2, uint8_t* ang, uint8_t step)
+void drawTunnel(GFX_IMAGE* dimg, const GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2, uint8_t* ang, uint8_t step)
 {
     uint32_t nsize = dimg->mSize >> 2;
     uint32_t* pdst = (uint32_t*)dimg->mData;
@@ -10840,7 +10840,7 @@ void drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buff1, uint8_t* buff2
 }
 
 //FX-effect: blur image buffer
-void blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur)
+void blurImageEx(GFX_IMAGE* dst, const GFX_IMAGE* src, int32_t blur)
 {
     uint8_t* pdst = (uint8_t*)dst->mData;
     const uint8_t* psrc = (const uint8_t*)src->mData;
@@ -11339,7 +11339,7 @@ void scaleUpLine(uint32_t* dst, const uint32_t* src, int32_t* tables, int32_t co
 }
 
 //FX-effect: scale-up image buffer
-void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact)
+void scaleUpImage(GFX_IMAGE* dst, const GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact)
 {
     int32_t i = 0, y = 0;
     uint32_t* pdst = (uint32_t*)dst->mData;
@@ -11365,7 +11365,7 @@ void scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact
 }
 
 //FX-effect: blur image buffer
-void blurImage(GFX_IMAGE* img)
+void blurImage(const GFX_IMAGE* img)
 {
     if (bitsPerPixel <= 8)
     {
@@ -11591,13 +11591,13 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
     //have unaligned bytes
     if (remainder > 0)
     {
-        uint8_t rcover = 255 - cover;
+        const uint8_t rcover = 255 - cover;
         for (int32_t i = 0; i < remainder; i++)
         {
-            const uint32_t src = *psrc1;
-            const uint32_t dst = *psrc2;
-            const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (src & 0x00ff00ff) * cover);
-            const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((src & 0xff00ff00) >> 8) * cover);
+            const uint32_t lsrc = *psrc1;
+            const uint32_t ldst = *psrc2;
+            const uint32_t rb = ((ldst & 0x00ff00ff) * rcover + (lsrc & 0x00ff00ff) * cover);
+            const uint32_t ag = (((ldst & 0xff00ff00) >> 8) * rcover + ((lsrc & 0xff00ff00) >> 8) * cover);
             *pdst++ = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
             psrc1++;
             psrc2++;
@@ -11607,7 +11607,7 @@ void blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover)
 }
 
 //FX-effect: rotate image buffer, line by line
-void rotateLine(uint32_t* dst, const uint32_t* src, int32_t* tables, int32_t width, int32_t siny, int32_t cosy)
+void rotateLine(uint32_t* dst, const uint32_t* src, const int32_t* tables, int32_t width, int32_t siny, int32_t cosy)
 {
 #ifdef _USE_ASM
     const int32_t pos = (width + 1) << 3;
@@ -11732,7 +11732,7 @@ void rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx,
 }
 
 //FX-effect: 2d bumping
-void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int32_t ly)
+void bumpImage(const GFX_IMAGE* dst, const GFX_IMAGE* src1, const GFX_IMAGE* src2, int32_t lx, int32_t ly)
 {
     const uint32_t* dstdata = (const uint32_t*)dst->mData;
     const uint32_t* src1data = (const uint32_t*)src1->mData;
@@ -11917,7 +11917,7 @@ void bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int
                 {
                     col -= 128;
                     ARGB* pdst = (ARGB*)&dstdata[odst];
-                    ARGB* psrc = (ARGB*)&src2data[osrc2];
+                    const ARGB* psrc = (ARGB*)&src2data[osrc2];
                     pdst->r = min((col * psrc->r) >> 5, 255);
                     pdst->g = min((col * psrc->g) >> 5, 255);
                     pdst->b = min((col * psrc->b) >> 5, 255);

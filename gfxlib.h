@@ -47,9 +47,13 @@
 #pragma message("MMX technology is turned on. On modern system don't use this option!")
 #endif
 
+//disable C-cast warning
+#pragma warning(disable: 26467 26493 26440 26497 26429 26482 26446)
+#pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448)
+
 //GFX version string
-#define GFX_VERSION             "v22.06.11"
-#define GFX_BUILD_ID            20220611
+#define GFX_VERSION             "v22.12.10"
+#define GFX_BUILD_ID            20221210
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
@@ -498,7 +502,7 @@ void        drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, dou
 
 void        drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col);
 void        drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rd, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
-void        drawPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        drawPolygon(const POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
 void        initProjection(double theta, double phi, double de, double rho = 0);
 void        resetProjection();
@@ -508,12 +512,12 @@ void        deplaceEn(double x, double y, double z);
 void        traceVers(double x, double y, double z, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
 void        fillRect(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
-void        fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, uint8_t* pattern, int32_t mode = BLEND_MODE_NORMAL);
+void        fillRectPattern(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t col, const uint8_t* pattern, int32_t mode = BLEND_MODE_NORMAL);
 uint8_t*    getPattern(int32_t type);
 
 void        fillCircle(int32_t xc, int32_t yc, int32_t radius, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
 void        fillEllipse(int32_t xc, int32_t yc, int32_t ra, int32_t rb, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
-void        fillPolygon(POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
+void        fillPolygon(const POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 void        randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, double irregularity, double spikeyness, const int32_t numVerts, POINT2D* points);
 
 void        setActivePage(GFX_IMAGE* page);
@@ -525,16 +529,16 @@ void        freeImage(GFX_IMAGE* img);
 void        clearImage(GFX_IMAGE* img);
 
 void        getImage(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE* img);
-void        putImage(int32_t x, int32_t y, GFX_IMAGE* img, int32_t mode = BLEND_MODE_NORMAL);
-void        putSprite(int32_t x, int32_t y, uint32_t keyColor, GFX_IMAGE* img, int32_t mode = BLEND_MODE_NORMAL);
+void        putImage(int32_t x, int32_t y, const GFX_IMAGE* img, int32_t mode = BLEND_MODE_NORMAL);
+void        putSprite(int32_t x, int32_t y, uint32_t keyColor, const GFX_IMAGE* img, int32_t mode = BLEND_MODE_NORMAL);
 
 //image interpolation
 void        scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type = INTERPOLATION_TYPE_SMOOTH);
-void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, double degree, int32_t type = INTERPOLATION_TYPE_SMOOTH);
+void        rotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, double degree, int32_t type = INTERPOLATION_TYPE_SMOOTH);
 
 //palette function (use for mixed mode - 256 colors)
 void        getPalette(RGB* pal);
-void        setPalette(RGB* pal);
+void        setPalette(const RGB* pal);
 void        shiftPalette(RGB* pal);
 void        convertPalette(const uint8_t* palette, RGB* color);
 void        getBasePalette(RGB* pal);
@@ -548,8 +552,8 @@ void        makeFunkyPalette();
 void        scrollPalette(int32_t from, int32_t to, int32_t step);
 void        rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t wtime);
 
-void        fadeIn(RGB* dest, uint32_t wtime);
-void        fadeOut(RGB* dest, uint32_t wtime);
+void        fadeIn(const RGB* dest, uint32_t wtime);
+void        fadeOut(const RGB* dest, uint32_t wtime);
 void        fadeMax(uint32_t wtime);
 void        fadeMin(uint32_t wtime);
 void        fadeDown(RGB* pal);
@@ -558,21 +562,21 @@ void        fadeRollo(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
 void        fadeOutImage(GFX_IMAGE* img, uint8_t step);
 
 //some FX-effect functions
-void        prepareTunnel(GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2);
-void        drawTunnel(GFX_IMAGE* dimg, GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, uint8_t* mov, uint8_t step);
-void        blurImageEx(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t blur);
+void        prepareTunnel(const GFX_IMAGE* dimg, uint8_t* buf1, uint8_t* buf2);
+void        drawTunnel(GFX_IMAGE* dimg, const GFX_IMAGE* simg, uint8_t* buf1, uint8_t* buf2, uint8_t* mov, uint8_t step);
+void        blurImageEx(GFX_IMAGE* dst, const GFX_IMAGE* src, int32_t blur);
 void        brightnessImage(GFX_IMAGE* dst, GFX_IMAGE* src, uint8_t bright);
 void        brightnessAlpha(GFX_IMAGE* img, uint8_t bright);
 void        blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb);
 void        fadeOutCircle(double pc, int32_t size, int32_t type, uint32_t col);
-void        scaleUpImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact);
-void        blurImage(GFX_IMAGE* img);
+void        scaleUpImage(GFX_IMAGE* dst, const GFX_IMAGE* src, int32_t* tables, int32_t xfact, int32_t yfact);
+void        blurImage(const GFX_IMAGE* img);
 void        blendImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t cover);
 void        rotateImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t* tables, int32_t axisx, int32_t axisy, double angle, double scale);
-void        bumpImage(GFX_IMAGE* dst, GFX_IMAGE* src1, GFX_IMAGE* src2, int32_t lx, int32_t ly);
+void        bumpImage(const GFX_IMAGE* dst, const GFX_IMAGE* src1, const GFX_IMAGE* src2, int32_t lx, int32_t ly);
 
 void        initPlasma(uint8_t* sint, uint8_t* cost);
-void        createPlasma(uint8_t* dx, uint8_t* dy, uint8_t* sint, uint8_t* cost, GFX_IMAGE* img);
+void        createPlasma(uint8_t* dx, uint8_t* dy, const uint8_t* sint, const uint8_t* cost, GFX_IMAGE* img);
 
 //show image and mouse activity simulation
 void        showPNG(const char* fname);
