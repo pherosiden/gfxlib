@@ -49,7 +49,7 @@
 
 //disable C-cast warning
 #pragma warning(disable: 26467 26493 26440 26497 26429 26482 26446)
-#pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448)
+#pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475)
 
 //GFX version string
 #define GFX_VERSION             "v22.12.10"
@@ -138,7 +138,7 @@
 #define min(a, b)               ((a) < (b) ? (a) : (b))
 #define sign(x)                 (((x) >= 0) ? (1) : (-1))
 #define swap(a, b)              {a ^= b; b ^= a; a ^= b;}
-#define swapf(a, b)             {double t = a; a = b; b = t;}
+#define swapf(a, b)             {const double t = a; a = b; b = t;}
 #define clamp(x, lo, hi)        (min(max(x, lo), hi))
 
 //common routines
@@ -354,7 +354,7 @@ enum BLEND_MODE {
 enum INTERPOLATION_TYPE
 {
     INTERPOLATION_TYPE_NORMAL,                  //Bresenham interpolation (nearest and smooth)
-    INTERPOLATION_TYPE_NEARST,                  //nearest neighbor (low quality)
+    INTERPOLATION_TYPE_NEAREST,                  //nearest neighbor (low quality)
     INTERPOLATION_TYPE_SMOOTH,                  //use average pixels to smooth image (normal quality)
     INTERPOLATION_TYPE_BILINEAR,                //bi-linear interpolation (good quality)
     INTERPOLATION_TYPE_BICUBIC,                 //bi-cubic interpolation (best quality)

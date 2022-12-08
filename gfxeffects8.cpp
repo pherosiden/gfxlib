@@ -127,7 +127,7 @@ namespace juliaSet {
 namespace fadePalette {
     void run()
     {
-        RGB dst[256] = { 0 };
+        const RGB dst[256] = { 0 };
         RGB src[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO")) return;
@@ -284,18 +284,18 @@ namespace fireBump {
     void autoBump()
     {
         num++;
-        int16_t lx = int16_t(80 * cos(num / 20.0) + IMAGE_MIDX);
-        int16_t ly = int16_t(80 * sin(num / 20.0) + IMAGE_MIDY);
+        const int16_t lx = int16_t(80 * cos(num / 20.0) + IMAGE_MIDX);
+        const int16_t ly = int16_t(80 * sin(num / 20.0) + IMAGE_MIDY);
 
         for (int16_t y = 1; y < MAX_HEIGHT; y++)
         {
             int16_t vy = y - ly;
             for (int16_t x = 1; x < MAX_WIDTH; x++)
             {
-                int16_t vx = x - lx;
-                int16_t nx = vbuff1[y][x + 1] - vbuff1[y][x - 1];
-                int16_t ny = vbuff1[y + 1][x] - vbuff1[y - 1][x];
-                int16_t col = (abs(vx - nx) + abs(vy - ny) + vbuff1[y][x]) >> 1;
+                const int16_t vx = x - lx;
+                const int16_t nx = vbuff1[y][x + 1] - vbuff1[y][x - 1];
+                const int16_t ny = vbuff1[y + 1][x] - vbuff1[y - 1][x];
+                const int16_t col = (abs(vx - nx) + abs(vy - ny) + vbuff1[y][x]) >> 1;
                 if (col > 127) vbuff2[y][x] = 0;
                 else vbuff2[y][x] = limit[uint16_t(vbuff1[y][x]) >> 8] - col;
             }
@@ -1404,10 +1404,10 @@ namespace waterEffect {
 
     void showWater(uint16_t page)
     {
-        uint32_t cpage = 0, spage = 0;
-
 #ifdef _USE_ASM
         int32_t tmp = IMAGE_WIDTH;
+        uint32_t cpage = 0, spage = 0;
+        
         __asm {
             mov     ax, page
             and     ax, 0x01
@@ -1474,8 +1474,8 @@ namespace waterEffect {
             jbe     next
         }
 #else
-        cpage = page;
-        spage = page ^ 1;
+        const uint32_t cpage = page;
+        const uint32_t spage = page ^ 1;
 
         for (int16_t y = 1; y < MAX_HEIGHT; y++)
         {
@@ -1568,7 +1568,7 @@ namespace waterEffect {
         initSinCos();
         initWater();
     
-        uint32_t tmstart = getTime();
+        const uint32_t tmstart = getTime();
 
         while (!finished(SDL_SCANCODE_RETURN))
         {
@@ -4136,6 +4136,9 @@ namespace textureMappingEffect {
             pxadd = 0;
             pyadd = (127 << 6) / height;
             break;
+
+        default:
+            break;
         }
 
         x = x1 << 6;
@@ -4192,6 +4195,9 @@ namespace textureMappingEffect {
             py = 127 << 6;
             pxadd = 0;
             pyadd = -(127 << 6) / height;
+            break;
+
+        default:
             break;
         }
 
@@ -4484,7 +4490,7 @@ namespace bitmapRotate {
 
     void run()
     {
-        uint16_t x = 32767;
+        const uint16_t x = 32767;
         uint16_t y = 0;
         uint16_t rot = 0;
         uint16_t dir = 1;
@@ -6582,7 +6588,7 @@ namespace intro16k {
         int16_t i = 0, j = 0, k = 0;
         int16_t m = 0, asin = 0, acos = 0;
 
-        const char* greets[] = {
+        const char* const greets[] = {
             "Accept Corp.",
             "ANTARES",
             "FENOMEN",
@@ -6634,6 +6640,8 @@ namespace intro16k {
                 asin = exSin(frames);
                 acos = exSin(frames + 256);
                 makeIntro2(acos, asin);
+                break;
+            default:
                 break;
             }
 
@@ -6826,7 +6834,7 @@ namespace textScrolling {
         const uint16_t len = uint16_t(strlen(text));
         
         do {
-            uint16_t c = text[pos];
+            const uint16_t c = text[pos];
 
             for (uint16_t i = 0; i < SCR_HEIGHT; i++)
             {
@@ -6881,7 +6889,7 @@ namespace textScrolling {
 namespace fastShowBMP {
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = {0};
 
-    void setRGB(uint8_t* pal)
+    void setRGB(const uint8_t* pal)
     {
         int16_t i = 0, k = 0;
         RGB rgb[256] = { 0 };
@@ -6954,12 +6962,12 @@ namespace EMS {
     uint8_t* vmem = NULL;
     uint8_t* handle[15] = { 0 };
 
-    void RAM2EMS(uint8_t* buff, uint8_t* tmem)
+    void RAM2EMS(const uint8_t* buff, uint8_t* tmem)
     {
         memcpy(tmem, buff, IMAGE_SIZE);
     }
 
-    void EMS2RAM(uint8_t* tmem, uint8_t* buff)
+    void EMS2RAM(uint8_t* tmem, const uint8_t* buff)
     {
         memcpy(tmem, buff, IMAGE_SIZE);
     }
@@ -7208,6 +7216,9 @@ namespace fillterEffect {
         case 57:
             memcpy(vbuff2, vbuff1, 40000);
             break;
+
+        default:
+            break;
         }
     }
 
@@ -7353,6 +7364,9 @@ namespace fireworkEffect {
             arrow->color[1] = 127 - 16;
             arrow->color[2] = 63 - 32;
             break;
+
+        default:
+            break;
         }
     }
 
@@ -7376,7 +7390,7 @@ namespace fireworkEffect {
         }
     }
 
-    void showExplode(TArrow* arrow, uint8_t hide)
+    void showExplode(const TArrow* arrow, uint8_t hide)
     {
         int16_t i = 0;
 
@@ -9179,6 +9193,9 @@ namespace holeEffect3 {
         case 5:
             px[ring][point] = x;
             py[ring][point] = y;
+            break;
+        default:
+            break;
         }
     }
 
@@ -9245,7 +9262,9 @@ namespace holeEffect3 {
 
             for (ri = 0; ri < IMAGE_HEIGHT; ri++) vbuff[ri][0] = 0;
             for (ri = 0; ri < IMAGE_HEIGHT; ri++) vbuff[ri][MAX_WIDTH] = 0;
+            break;
 
+        default:
             break;
         }
     }
@@ -10235,6 +10254,7 @@ namespace zoomInEffect {
                 {
                 case 0: if (hand0[i][j]) vbuff2[y + i + ZR - 8][x + j + ZR - 8] = 255; break;
                 case 1: if (hand1[i][j]) vbuff2[y + i + ZR - 8][x + j + ZR - 8] = 255; break;
+                default: break;
                 }
             }
         }
@@ -10735,8 +10755,8 @@ namespace lineBlurEffect {
 
     void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t col)
     {
-        int16_t dx = abs(x2 - x1);
-        int16_t dy = abs(y2 - y1);
+        const int16_t dx = abs(x2 - x1);
+        const int16_t dy = abs(y2 - y1);
         int16_t x = x1;
         int16_t y = y1;
         int16_t xinc1 = 0, xinc2 = 0, yinc1 = 0, yinc2 = 0;
@@ -11012,6 +11032,9 @@ namespace mazeGeneration {
                             d[3] = 1;
                         }
                         break;
+
+                    default:
+                        break;
                     }
                 }
             } while (!r && !(d[0] && d[1] && d[2] && d[3]));
@@ -11030,6 +11053,7 @@ namespace mazeGeneration {
                 case 2: y++; break;
                 case 3: x--; break;
                 case 4: x++; break;
+                default: break;
                 }
 
                 maze[y][x] = 1;
@@ -11064,7 +11088,6 @@ namespace mazeGeneration {
 
     void run()
     {
-        int16_t i = 0;
         int32_t keyCode = 0;
 
         if (!loadFont("assets/sysfont.xfn", 0)) return;
@@ -11242,8 +11265,8 @@ namespace pierraEffect {
 
     void plotLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t col)
     {
-        int16_t dx = abs(x2 - x1);
-        int16_t dy = abs(y2 - y1);
+        const int16_t dx = abs(x2 - x1);
+        const int16_t dy = abs(y2 - y1);
         int16_t x = x1;
         int16_t y = y1;
         int16_t xinc1 = 0, xinc2 = 0, yinc1 = 0, yinc2 = 0;
@@ -11969,7 +11992,7 @@ namespace rotateMap {
 
     double phi = 0, theta = 0;
 
-    void gouraudShader(TPoint2D* vertices, uint8_t* colors)
+    void gouraudShader(const TPoint2D* vertices, const uint8_t* colors)
     {
         uint8_t startCol = 0, endCol = 0;
         int16_t miny = 0, maxy = 0, i = 0, incSignCol = 0, incCountCol = 0, diffCol = 0;
@@ -12150,7 +12173,8 @@ namespace rotateMap {
         int16_t i = 0, j = 0;
         RGB pal[256] = { 0 };
 
-        for (double alpha = 0, j = 0; j < SCALING_FACTOR2; j++, alpha += 2 * M_PI / SCALING_FACTOR2)
+        double alpha = 0.0;
+        for (j = 0; j < SCALING_FACTOR2; j++, alpha += 2 * M_PI / SCALING_FACTOR2)
         {
             const double x = RADIUS2 * cos(2 * alpha) + RADIUS1 * sin(alpha);
             const double y = RADIUS2 * sin(2 * alpha) + RADIUS1 * cos(alpha);
@@ -12163,7 +12187,8 @@ namespace rotateMap {
             const double value = sqrt(dx * dx + dz * dz);
             const double modulus = sqrt(dx * dx + dy * dy + dz * dz);
 
-            for (double beta = 0, i = 0; i < SCALING_FACTOR1; i++, beta += 2 * M_PI / SCALING_FACTOR1)
+            double beta = 0.0;
+            for (i = 0; i < SCALING_FACTOR1; i++, beta += 2 * M_PI / SCALING_FACTOR1)
             {
                 shape[vertices].x = int16_t(x - RADIUS3 * (cos(beta) * dz - sin(beta) * dx * dy / modulus) / value);
                 shape[vertices].y = int16_t(y - RADIUS3 * sin(beta) * value / modulus);
@@ -13611,7 +13636,7 @@ namespace starEffect {
 
     void drawPoint(TStar p, int16_t state)
     {
-        int16_t color = state ? p.color : 0;
+        const int16_t color = state ? p.color : 0;
 
         switch (p.state)
         {
@@ -13633,6 +13658,9 @@ namespace starEffect {
             drawLine(p.x - 4, p.y, p.x + 4, p.y, color);
             drawLine(p.x, p.y - 4, p.x, p.y + 4, color);
             drawRect(p.x - 1, p.y - 1, 2, 2, color);
+            break;
+
+        default:
             break;
         }
     }
@@ -14317,7 +14345,7 @@ namespace thunderBoltEffect {
         }
     }
 
-    void thunderBolt(RGB* src, RGB* dst)
+    void thunderBolt(const RGB* src, RGB* dst)
     {
         int16_t dx = 0;
 
@@ -14401,7 +14429,7 @@ namespace scrollingEffect {
     void scrollText()
     {
         uint16_t pos = 0;
-        uint16_t len = uint16_t(strlen(scrolledText));
+        const uint16_t len = uint16_t(strlen(scrolledText));
 
         do {
             readKeys();
@@ -15056,7 +15084,7 @@ namespace rayCastingEffect {
 
                 for (int16_t j = 0; j < 256; j++)
                 {
-                    int16_t diff2 = abs((pal[j].r << 2) - r) + abs((pal[j].g << 2) - g) + abs((pal[j].b << 2) - b);
+                    const int16_t diff2 = abs((pal[j].r << 2) - r) + abs((pal[j].g << 2) - g) + abs((pal[j].b << 2) - b);
                     if (diff1 > diff2)
                     {
                         diff1 = diff2;

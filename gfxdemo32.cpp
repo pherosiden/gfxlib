@@ -51,7 +51,7 @@ void runExit()
 }
 
 //Show intro message text string
-void showText(int32_t sx, int32_t sy, GFX_IMAGE *img, const char *str)
+void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
 {
     if (!str) return;
     if (strlen(str) >= MAX_MSG_LEN) return;

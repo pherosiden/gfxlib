@@ -7459,7 +7459,7 @@ void scaleLineMix(uint8_t* dst, uint8_t* src, int32_t dw, int32_t sw, int32_t ty
         if (dw > sw) *dst = *src;
 #endif
     }
-    else if (type == INTERPOLATION_TYPE_NEARST)
+    else if (type == INTERPOLATION_TYPE_NEAREST)
     {
 #ifdef _USE_ASM
         __asm {
@@ -7606,7 +7606,7 @@ void scaleLineNormal(uint32_t* dst, uint32_t* src, int32_t dw, int32_t sw, int32
         if (dw > sw) *dst = *src;
 #endif
     }
-    else if (type == INTERPOLATION_TYPE_NEARST)
+    else if (type == INTERPOLATION_TYPE_NEAREST)
     {
 #ifdef _USE_ASM
         __asm {
@@ -7667,6 +7667,7 @@ void scaleImageMix(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t mode)
     const uint32_t srcWidth  = src->mWidth;
     const uint32_t dstHeight = dst->mHeight;
     const uint32_t srcHeight = src->mHeight;
+
     uint32_t intp = 0, modp = 0;
 
     //make pointer to call in asm mode
@@ -8173,8 +8174,8 @@ void rotateImageMix(const GFX_IMAGE* dst, const GFX_IMAGE* src, const double ang
 
     for (int32_t y = 0; y < dsth; y++, xs += dx, ys += dy, pdst += dstw)
     {
-        int32_t sx = xs, sy = ys;
         uint8_t* pline = pdst;
+        int32_t sx = xs, sy = ys;
         for (int32_t x = 0; x < dstw; x++, sx += dy, sy -= dx)
         {
             if (sx >= 0 && sy >= 0 && sx <= scw && sy <= sch) *pline = psrc[(sy >> 16) * srcw + (sx >> 16)];
@@ -8627,7 +8628,7 @@ void scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type /* = INTERPOLATION_
         scaleImageNormal(dst, src, 1);
         break;
 
-    case INTERPOLATION_TYPE_NEARST:
+    case INTERPOLATION_TYPE_NEAREST:
         nearestScaleImageFixed(dst, src);
         break;
 
@@ -8662,7 +8663,7 @@ void rotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, double degree, int3
     //which type?
     switch (type)
     {
-    case INTERPOLATION_TYPE_NEARST:
+    case INTERPOLATION_TYPE_NEAREST:
         nearestRotateImageFixed(dst, src, degree, 1, 1);
         break;
 

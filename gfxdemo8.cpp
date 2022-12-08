@@ -48,10 +48,12 @@ double      (*FZ)(double, double) = NULL;
 
 void findRepeat(double *rept)
 {
-    double lx = 0.0, ly = 0.0, r = 0.0;
     double lim1 = 0.0, lim2 = 0.0;
-    double rmax = 200.0 * M_PI;
-    double fx = 0.0, fy = 0.0;
+    double lx = 0.0, ly = 0.0, r = 0.0;
+        
+    const double fx = 0.0;
+    const double fy = 0.0;
+    const double rmax = 200.0 * M_PI;
 
     if (!rept) return;
 
@@ -430,7 +432,7 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
 
     for (i = 0; i < 120; i++)
     {
-        double val = 90 * (0.8 + 0.2 * sin(12 * alpha)) * (0.5 + 0.5 * sin(4 * alpha));
+        const double val = 90 * (0.8 + 0.2 * sin(12 * alpha)) * (0.5 + 0.5 * sin(4 * alpha));
         xx[i] = int32_t(val * cos(alpha));
         yy[i] = int32_t(val * sin(alpha));
         alpha += M_PI / 60;
@@ -446,7 +448,7 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
             {
                 double x = xx[i] * sc + px * uv - dd - k;
                 double y = yy[i] * sc + py * uv - dd - k;
-                double sq = x * x + y * y;
+                const double sq = x * x + y * y;
 
                 if (sq < double(r) * r)
                 {
@@ -596,6 +598,9 @@ void initDemo10(int32_t num, int32_t n)
             a += M_PI / 60;
         }
         break;
+
+    default:
+        break;
     }
 }
 
@@ -699,10 +704,10 @@ void graphDemo12()
 
 void graphDemo13()
 {
-    POINT2D points[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
+    const POINT2D lpoints[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
 
     srand(uint32_t(time(NULL)));
-    fillPolygon(points, sizeof(points) / sizeof(points[0]), 50);
+    fillPolygon(lpoints, sizeof(points) / sizeof(lpoints[0]), 50);
 
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
@@ -889,7 +894,7 @@ void familleDesCourbesEnV()
     }
 }
 
-void initDiverses(double theta)
+void initDiverses(double th)
 {
     incX = (gx2 - gx1) / points;
     incY = (gy2 - gy1) / lines;
@@ -903,7 +908,7 @@ void initDiverses(double theta)
     memset(maxHeight, 0, sizeof(maxHeight));
     for (int32_t i = 0; i < LIMITX; i++) minHeight[i] = LIMITY;
 
-    if (theta < 0 || theta > 180)
+    if (th < 0 || th > 180)
     {
         swapf(gx1, gx2);
         swapf(gy1, gy2);
@@ -1234,7 +1239,7 @@ void dessineFonction()
 void affichage(int32_t range)
 {
     int32_t i = 0, j = 0;
-    uint8_t oldFont = getFontType();
+    const uint8_t oldFont = getFontType();
 
     char buff[80] = { 0 };
     const char *strTitle = "Shapes 3D Transform";
@@ -1332,7 +1337,7 @@ void displaySprite(const char *fname)
 {
     uint32_t frames = 0;
     GFX_IMAGE bkg = { 0 }, spr = { 0 }, img1 = { 0 }, img2 = { 0 }, page1 = { 0 }, page2 = { 0 };
-    const char *fbkg[] = {"assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp"};
+    const char* const fbkg[] = {"assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp"};
 
     int32_t lx = 0;
     int32_t ly = 0;
@@ -1504,11 +1509,10 @@ void displayPlasma()
     getPalette(pal);
     for (x = 0; x < 32; x++)
     {
-        pal[x].r = x << 1;
-        pal[x].g = x << 1;
-        pal[x].b = x << 1;
+        pal[x].r = x << 3;
+        pal[x].g = x << 3;
+        pal[x].b = x << 3;
     }
-    shiftPalette(pal);
     setPalette(pal);
 
     ypos = getBufferHeight();
@@ -1516,7 +1520,7 @@ void displayPlasma()
     //display scale image and scroll text
     do {
         createPlasma(&dx, &dy, sint, cost, &src);
-        scaleImage(&dst, &src, INTERPOLATION_TYPE_NEARST);
+        scaleImage(&dst, &src, INTERPOLATION_TYPE_NEAREST);
         putImage(0, 0, &dst);
         endPos = drawText(ypos--, count, str);
         if (endPos <= 98) fadeDown(pal);
@@ -1546,7 +1550,7 @@ void gfxDemoMix()
 
     const char *logo = "GFXLIB";
 
-    const char *msgWelcome[] = {
+    const char* const msgWelcome[] = {
         "GFXLIB Library Demo",
         "Full supports 8/15/16/24/32 bits color",
         "Load/Save BMP & PNG 32 bits image",

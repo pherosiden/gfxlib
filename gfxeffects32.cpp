@@ -430,7 +430,7 @@ void rayCasting()
     int32_t tw = 0, th = 0, i = 0;
     uint32_t* pbuffs[11] = { 0 };
 
-    const char* fname[TEXTURE_COUNT] = {
+    const char* const fname[TEXTURE_COUNT] = {
         "assets/eagle.png",
         "assets/redbrick.png",
         "assets/purplestone.png",
@@ -734,7 +734,7 @@ void rayCasting()
         render();
 
         //clear current render buffer
-        memset(renderBuff[0], 0, sizeof(uint32_t)* SCR_WIDTH* SCR_HEIGHT);
+        memset(renderBuff[0], 0, sizeof(uint32_t) * SCR_WIDTH * SCR_HEIGHT);
 
         //fetch user input
         readKeys();
@@ -786,10 +786,10 @@ void rayCasting()
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
-    for (int32_t i = 0; i < 11; i++)
+    for (int32_t k = 0; k < 11; k++)
     {
-        free(textures[i][0]);
-        free(textures[i]);
+        free(textures[k][0]);
+        free(textures[k]);
     }
 
     free(renderBuff);
