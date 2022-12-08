@@ -9830,7 +9830,7 @@ void writeText(int32_t x, int32_t y, uint32_t color, uint32_t mode, const char* 
 }
 
 //draw multi-line string font
-int32_t drawText(int32_t ypos, int32_t size, const char** const str)
+int32_t drawText(int32_t ypos, int32_t size, const char **str)
 {
     //check for font loaded
     if (!gfxFonts[fontType].dataPtr) return 0;
