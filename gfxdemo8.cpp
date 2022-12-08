@@ -666,8 +666,8 @@ void checkBounds(int32_t a, int32_t c, int32_t *b)
 void graphDemo12()
 {
     uint32_t frames = 0;
-    const int32_t cwidth = getBufferWidth();
-    const int32_t cheight = getBufferHeight();
+    const int32_t cwidth = getDrawBufferWidth();
+    const int32_t cheight = getDrawBufferHeight();
     
     srand(uint32_t(time(NULL)));
 
@@ -1482,7 +1482,7 @@ void displayPlasma()
     if (!newImage(160, 120, &src)) return;
 
     //scale plasma image buffer
-    if (!newImage(getBufferWidth(), getBufferHeight(), &dst)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
     initPlasma(sint, cost);
 
     const int32_t cmx = getMaxX();
@@ -1515,7 +1515,7 @@ void displayPlasma()
     }
     setPalette(pal);
 
-    ypos = getBufferHeight();
+    ypos = getDrawBufferHeight();
 
     //display scale image and scroll text
     do {
@@ -1600,7 +1600,7 @@ void gfxDemoMix()
     if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
     const int32_t introY = cy - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
 
-    switch (getBufferWidth())
+    switch (getDrawBufferWidth())
     {
         case  640: ratio = 1.0;	 break;
         case  800: ratio = 1.25; break;

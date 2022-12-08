@@ -189,29 +189,25 @@
 typedef SDL_Color RGB;
 
 //double point struct
-typedef struct
-{
+typedef struct {
     double x, y;
 } POINT2D;
 
 //GFX stroke vector info
-typedef struct
-{
+typedef struct {
     uint8_t         code;                       //stroke code (0: unused, 1: move to, 2: line to)
     uint8_t         x, y;                       //stroke coordinates
 } GFX_STROKE_INFO;
 
 //GFX stroke vector data
-typedef struct
-{
+typedef struct {
     uint8_t         width;                      //stroke width
     uint8_t         height;                     //stroke height
     uint16_t        numOfLines;                 //number of strokes
 } GFX_STROKE_DATA;
 
 //GFX font info table
-typedef struct
-{
+typedef struct {
     uint32_t        startOffset;                //offset of the font start
     uint8_t         bitsPerPixel;               //bits per pixel
     uint16_t        bytesPerLine;               //bytes per line (BMP-font)
@@ -230,8 +226,7 @@ typedef struct
 } GFX_CHAR_HEADER;
 
 //GFX font
-typedef struct
-{
+typedef struct {
     uint8_t         signature[4];               //font signature 'Fnt2'
     uint16_t        version;                    //version number 0x0101
     uint8_t         name[32];                   //name of font
@@ -244,8 +239,7 @@ typedef struct
 } GFX_FONT_HEADER;
 
 //GFX loaded font memory
-typedef struct
-{
+typedef struct {
     GFX_FONT_HEADER hdr;                        //font header
     uint8_t*        dataPtr;                    //font raw data
 } GFX_FONT;
@@ -262,8 +256,7 @@ typedef struct
 
 //the structure for animated mouse pointers
 typedef struct tagMOUSEBITMAP GFX_BITMAP;
-struct tagMOUSEBITMAP
-{
+struct tagMOUSEBITMAP {
     int32_t         mbHotX;                     //mouse hot spot x
     int32_t         mbHotY;                     //mouse hot spot y
     uint8_t*        mbData;                     //mouse bitmap data
@@ -271,8 +264,7 @@ struct tagMOUSEBITMAP
 };
 
 //the structure for a bitmap mouse pointer.
-typedef struct
-{
+typedef struct {
     int32_t         msPosX;                     //current position x
     int32_t         msPosY;                     //current position y
     int32_t         msWidth;                    //mouse image width
@@ -282,8 +274,7 @@ typedef struct
 } GFX_MOUSE;
 
 //the structure for a bitmap button.
-typedef struct
-{
+typedef struct {
     int32_t         btPosX;                     //button x
     int32_t         btPosY;                     //button y
     int32_t         btState;                    //button state (normal, hover, click, disable)
@@ -300,16 +291,14 @@ typedef struct {
 } HSL;
 
 //HSV color type
-typedef struct
-{
+typedef struct {
     int32_t         h;
     int32_t         s;
     int32_t         v;
 } HSV;
 
 //memory mapping color structure
-typedef struct
-{
+typedef struct {
     uint8_t b;
     uint8_t g;
     uint8_t r;
@@ -317,8 +306,7 @@ typedef struct
 } ARGB;
 
 // rotate clip data
-typedef struct
-{
+typedef struct {
     int32_t srcw, srch;                         // source width and height
     int32_t dstw, dsth;                         // destination width and height
     int32_t srcx, srcy;                         // source strart x, y
@@ -351,10 +339,9 @@ enum BLEND_MODE {
 };
 
 //image interpolation type (apply for scale, rotate, ...)
-enum INTERPOLATION_TYPE
-{
+enum INTERPOLATION_TYPE {
     INTERPOLATION_TYPE_NORMAL,                  //Bresenham interpolation (nearest and smooth)
-    INTERPOLATION_TYPE_NEAREST,                  //nearest neighbor (low quality)
+    INTERPOLATION_TYPE_NEAREST,                 //nearest neighbor (low quality)
     INTERPOLATION_TYPE_SMOOTH,                  //use average pixels to smooth image (normal quality)
     INTERPOLATION_TYPE_BILINEAR,                //bi-linear interpolation (good quality)
     INTERPOLATION_TYPE_BICUBIC,                 //bi-cubic interpolation (best quality)
@@ -362,16 +349,14 @@ enum INTERPOLATION_TYPE
 };
 
 //3D projection type
-enum PROJECTION_TYPE
-{
+enum PROJECTION_TYPE {
     PROJECTION_TYPE_PERSPECTIVE,                //perspective projection
     PROJECTION_TYPE_PARALLELE,                  //paralleled projection
     PROJECTION_TYPE_UNKNOWN,                    //error projection
 };
 
 //filled pattern type
-enum PATTERN_TYPE
-{
+enum PATTERN_TYPE {
     PATTERN_TYPE_LINE,                          //line fill style
     PATTERN_TYPE_LITE_SLASH,                    //line with slash style
     PATTERN_TYPE_SLASH,                         //slash style
@@ -467,8 +452,8 @@ void        renderBuffer(const void* buffer, int32_t width, int32_t height);
 void*       getDrawBuffer(int32_t* width = NULL, int32_t* height = NULL);
 void        changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);
 void        restoreDrawBuffer();
-int32_t     getBufferWidth();
-int32_t     getBufferHeight();
+int32_t     getDrawBufferWidth();
+int32_t     getDrawBufferHeight();
 
 //handle program message
 void        messageBox(int32_t type, const char* fmt, ...);
@@ -999,7 +984,7 @@ static must_inline void updateDownX(ROTATE_CLIP* clip)
     updateInX(clip);
 }
 
-static must_inline bool intiClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t dcy, const int32_t bwidth)
+static must_inline bool initClip(ROTATE_CLIP* clip, const int32_t dcx, const int32_t dcy, const int32_t bwidth)
 {
     clip->boundWidth = bwidth;
     clip->yDown = dcx;

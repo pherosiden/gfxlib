@@ -27,7 +27,7 @@ void runExit()
 {
     //capture current screen buffer
     GFX_IMAGE img = { 0 };
-    getImage(0, 0, getBufferWidth(), getBufferHeight(), &img);
+    getImage(0, 0, getDrawBufferWidth(), getDrawBufferHeight(), &img);
 
     //decrease rgb and push back to screen
     for (int32_t i = 0; i < 32; i++)
@@ -116,8 +116,8 @@ void runIntro()
     GFX_IMAGE scr = { 0 }, wci = { 0 };
     GFX_IMAGE gxb = { 0 }, utb = { 0 }, trn = { 0 };
 
-    if (!newImage(getBufferWidth(), getBufferHeight(), &scr)) return;
-    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &trn)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &scr)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &trn)) return;
     if (!newImage(wcb.mWidth, wcb.mHeight, &wci)) return;
     if (!newImage(gfx.mWidth, gfx.mHeight, &gxb)) return;
     if (!newImage(ult.mWidth, ult.mHeight, &utb)) return;
@@ -281,8 +281,8 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
     //initialize buffer
     if (!loadImage("assets/gfxspr.png", &img3)) return;
-    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &img1)) return;
-    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &img2)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &img1)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &img2)) return;
        
     //setup lookup table
     int32_t* tables = (int32_t*)calloc(img2.mWidth, sizeof(int32_t));
@@ -444,8 +444,8 @@ void runFastRotateImage(int32_t sx, int32_t sy)
 void runAntiAliased(int32_t sx, int32_t sy)
 {
     //save current midx, midy
-    const int32_t midx = getBufferWidth() >> 1;
-    const int32_t midy = getBufferHeight() >> 1;
+    const int32_t midx = getDrawBufferWidth() >> 1;
+    const int32_t midy = getDrawBufferHeight() >> 1;
 
     //initialize image buffer
     GFX_IMAGE img = { 0 }, dst = { 0 };
@@ -497,7 +497,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //load source image
     GFX_IMAGE scr = { 0 };
-    if (!newImage(getBufferWidth(), getBufferHeight(), &scr)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &scr)) return;
     
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
@@ -520,7 +520,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
-    const int32_t logox = alignedSize(getBufferWidth() - gfxlogo.mWidth);
+    const int32_t logox = alignedSize(getDrawBufferWidth() - gfxlogo.mWidth);
 
     //time for record FPS
     uint32_t time = 0, oldTime = 0;
@@ -571,7 +571,7 @@ void runBumpImage()
 {
     //loading source image
     GFX_IMAGE dst = { 0 };
-    if (!newImage(getBufferWidth(), getBufferHeight(), &dst)) return;
+    if (!newImage(getDrawBufferWidth(), getDrawBufferHeight(), &dst)) return;
 
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
@@ -605,8 +605,8 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     for (int32_t y = 0; y < 256; y++) sina[y] = uint8_t(sin(y * M_PI / 128) * 127 + 128);
 
     GFX_IMAGE plasma = { 0 }, screen = { 0 };
-    if (!newImage(getBufferWidth() >> 2, getBufferHeight() >> 2, &plasma)) return;
-    if (!newImage(getBufferWidth() >> 1, getBufferHeight() >> 1, &screen)) return;
+    if (!newImage(getDrawBufferWidth() >> 2, getDrawBufferHeight() >> 2, &plasma)) return;
+    if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &screen)) return;
 
     uint32_t frames = 0;
     uint32_t* data = (uint32_t*)plasma.mData;
@@ -736,8 +736,8 @@ void gfxDemo()
 
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
-    const int32_t cwidth = getBufferWidth();
-    const int32_t cheight = getBufferHeight();
+    const int32_t cwidth = getDrawBufferWidth();
+    const int32_t cheight = getDrawBufferHeight();
     
     writeText(cx - 8 * (uint32_t(strlen(initMsg)) >> 1), cy, RGB_GREY191, 2, initMsg);
     render();

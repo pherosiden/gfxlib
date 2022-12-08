@@ -40,8 +40,8 @@ namespace juliaSet {
         mwidth >>= 1;
         mheight >>= 1;
 
-        const int32_t cwidth = getBufferWidth();
-        const int32_t cheight = getBufferHeight();
+        const int32_t cwidth = getDrawBufferWidth();
+        const int32_t cheight = getDrawBufferHeight();
 
         for (int32_t y = 0; y < cheight; y++)
         {
@@ -83,8 +83,8 @@ namespace juliaSet {
         mwidth >>= 1;
         mheight >>= 1;
 
-        const int32_t cwidth = getBufferWidth();
-        const int32_t cheight = getBufferHeight();
+        const int32_t cwidth = getDrawBufferWidth();
+        const int32_t cheight = getDrawBufferHeight();
 
         for (int32_t y = 0; y < cheight; y++)
         {
@@ -9393,8 +9393,8 @@ namespace kaleidoScope {
     {
         if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Kaleido-Scope")) return;
 
-        const int16_t cx = getBufferWidth() >> 1;
-        const int16_t cy = getBufferHeight() >> 1;
+        const int16_t cx = getDrawBufferWidth() >> 1;
+        const int16_t cy = getDrawBufferHeight() >> 1;
         const int16_t md = cy;
 
         int16_t hc = random(END_COLOR - START_COLOR);
@@ -10490,8 +10490,8 @@ namespace lineBobEffect {
     {
         const int32_t cmx = getMaxX();
         const int32_t cmy = getMaxY();
-        const int32_t cwidth = getBufferWidth();
-        const int32_t cheight = getBufferHeight();
+        const int32_t cwidth = getDrawBufferWidth();
+        const int32_t cheight = getDrawBufferHeight();
 
         int32_t x1 = rand() % cwidth;
         int32_t x2 = rand() % cwidth;

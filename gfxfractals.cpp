@@ -1182,7 +1182,7 @@ void gfxFractals()
     
     initThreads();
     initFunctions(fractType);
-    initFractals(getBufferWidth(), getBufferHeight());
+    initFractals(getDrawBufferWidth(), getDrawBufferHeight());
 
     bool redraw = true;
     bool mouseDown = false;
@@ -1301,7 +1301,7 @@ void gfxFractals()
 
         case SDL_SCANCODE_S:
             fractType = !fractType;
-            initFractals(getBufferWidth(), getBufferHeight());
+            initFractals(getDrawBufferWidth(), getDrawBufferHeight());
             initFunctions(fractType);
             redraw = true;
             break;

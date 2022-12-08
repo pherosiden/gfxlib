@@ -5,8 +5,8 @@
 /*            Target OS: cross-platform (x32_64)                 */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.2.6                                   */
-/*          Last Update: 2022-06-11                              */
+/*              Version: 1.2.7                                   */
+/*          Last Update: 2022-12-10                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://crossfire-designs.de            */
@@ -65,8 +65,10 @@ double          DE = 0.0;                           //deplane end for projection
 double          RHO = 0.0;                          //RHO perspective projection
 
 //saved transform values
-double          aux1 = 0.0, aux2 = 0.0, aux3 = 0.0, aux4 = 0.0;
-double          aux5 = 0.0, aux6 = 0.0, aux7 = 0.0, aux8 = 0.0;
+double          aux1 = 0.0, aux2 = 0.0;             //temporary swap
+double          aux3 = 0.0, aux4 = 0.0;             //temporary swap
+double          aux5 = 0.0, aux6 = 0.0;             //temporary swap
+double          aux7 = 0.0, aux8 = 0.0;             //temporary swap
 
 //current draw cursor (3D)
 int32_t         cranX = 0, cranY = 0;               //current x, y cursor (3d mode)
@@ -735,13 +737,13 @@ must_inline int32_t getBytesPerScanline()
 }
 
 //get current draw buffer width
-int32_t getBufferWidth()
+int32_t getDrawBufferWidth()
 {
     return texWidth;
 }
 
 //get current draw buffer height
-int32_t getBufferHeight()
+int32_t getDrawBufferHeight()
 {
     return texHeight;
 }
@@ -8420,7 +8422,7 @@ void bilinearRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const do
     clip.srch = srch;
     
     //clipping data
-    if (!intiClip(&clip, dcx, dcy, 1)) return;
+    if (!initClip(&clip, dcx, dcy, 1)) return;
 
     uint32_t* yline = &pdst[dstw * clip.yDown];
     while (true)
@@ -8588,7 +8590,7 @@ void bicubicRotateImageMax(const GFX_IMAGE* dst, const GFX_IMAGE* src, const dou
     clip.srch = srch;
 
     //clipping data
-    if (!intiClip(&clip, dcx, dcy, 2)) return;
+    if (!initClip(&clip, dcx, dcy, 2)) return;
 
     int16_t stable[513] = { 0 };
     for (int32_t i = 0; i < 513; i++) stable[i] = fround(256.0 * sinXDivX(i / 256.0));
@@ -11746,8 +11748,8 @@ void bumpImage(const GFX_IMAGE* dst, const GFX_IMAGE* src1, const GFX_IMAGE* src
 
     const int32_t bmax = 400;
     const int32_t xstart = 100, ystart = 100;
-    const int32_t endx = getBufferWidth() - xstart;
-    const int32_t endy = getBufferHeight() - ystart;
+    const int32_t endx = getDrawBufferWidth() - xstart;
+    const int32_t endy = getDrawBufferHeight() - ystart;
 
     int32_t nx = 0, ny = 0, vlx = 0, vly = 0;
     int32_t x = 0, y = 0, osrc2 = 0, osrc1 = 0, odst = 0;
