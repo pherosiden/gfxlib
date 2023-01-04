@@ -681,41 +681,40 @@ namespace rainEffect {
             loop    lp4
         }
 #else
-        uint16_t si = actualPage;
-        uint16_t di = MAX_SIZE - MAX_WIDTH;
+        uint16_t *si = (uint16_t*)&vbuff[actualPage];
+        uint16_t *di = (uint16_t*)&vmem[MAX_SIZE - MAX_WIDTH];
 
         for (uint16_t cx = 0; cx < IMAGE_MIDX; cx++)
         {
             uint16_t bx = 0;
             uint16_t dx = 0;
-            uint16_t ofs = di;
+            uint16_t *ofs = di;
 
             for (uint16_t ax = 0; ax < IMAGE_MIDY; ax++)
             {
-                int16_t val = *(uint16_t*)&vbuff[si];
+                int16_t val = *si;
                 val = (val >> 7) + ax - dx;
                 if (val > 0)
                 {
                     dx += val;
                     while (val--)
                     {
-                        *(uint16_t*)&vmem[ofs] = bx;
-                        ofs -= IMAGE_WIDTH;
+                        *ofs = bx;
+                        ofs -= IMAGE_MIDX;
                     }
                 }
-                si += 2;
+                si++;
                 bx += 0x101;
             }
 
             dx = (dx << 8) | (dx & 0x00FF);
-            while (dx != MAXIMO * 0x101)
+            while (dx < MAXIMO * 0x101)
             {
-                ofs -= IMAGE_WIDTH;
-                *(uint16_t*)&vmem[ofs] = dx;
+                ofs -= IMAGE_MIDX;
+                *ofs = dx;
                 dx += 0x101;
             }
-
-            di += 2;
+            di++;
         }
 #endif
         render();
