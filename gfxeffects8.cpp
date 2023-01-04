@@ -640,7 +640,6 @@ namespace rainEffect {
 #ifdef _USE_ASM
         __asm {
             lea     esi, vbuff
-            add     esi, actualPage
             mov     edi, vmem
             add     edi, MAX_SIZE - MAX_WIDTH
             mov     ecx, IMAGE_MIDX
@@ -681,7 +680,7 @@ namespace rainEffect {
             loop    lp4
         }
 #else
-        uint16_t *si = (uint16_t*)&vbuff[actualPage];
+        uint16_t *si = (uint16_t*)&vbuff;
         uint16_t *di = (uint16_t*)&vmem[MAX_SIZE - MAX_WIDTH];
 
         for (uint16_t cx = 0; cx < IMAGE_MIDX; cx++)
