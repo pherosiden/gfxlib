@@ -47,7 +47,7 @@
 #pragma message("MMX technology is turned on. On modern system don't use this option!")
 #endif
 
-//disable C-cast warning
+//disable C-cast warnings
 #pragma warning(disable: 26467 26493 26440 26497 26429 26482 26446)
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475)
 
@@ -458,7 +458,7 @@ int32_t     getDrawBufferHeight();
 //handle program message
 void        messageBox(int32_t type, const char* fmt, ...);
 void        writeText(int32_t x, int32_t y, uint32_t txtColor, uint32_t mode, const char* format, ...);
-int32_t     drawText(int32_t ypos, int32_t size, const char** str);
+int32_t     drawText(const char* const str[], uint32_t count, int32_t ypos);
 
 void        clearScreen(uint32_t color = 0);
 
@@ -813,11 +813,11 @@ static must_inline double uniformRand(const double from, const double to)
     return distr(gen);
 }
 
-static must_inline double gaussianRand(const double min, const double max)
+static must_inline double gaussianRand(const double fmin, const double fmax)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> distr(min, max);
+    std::normal_distribution<> distr(fmin, fmax);
     return distr(gen);
 }
 

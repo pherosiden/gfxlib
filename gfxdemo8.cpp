@@ -1438,7 +1438,7 @@ void displaySprite(const char *fname)
 //show plasma effect
 void displayPlasma()
 {
-    const char *str[] = {
+    const char* const greets[] = {
         "That's all folks!",
         "I hope, you enjoyed this demo",
         "Thank you for making use of my programs",
@@ -1468,7 +1468,7 @@ void displayPlasma()
 
     int32_t ypos = 0, endPos = 0;
     int32_t x = 0, y = 0, decx = 0, decy = 0;
-    const int32_t count = sizeof(str) / sizeof(str[0]);
+    const int32_t count = sizeof(greets) / sizeof(greets[0]);
 
     uint32_t frames = 0;
     uint8_t dx = 0, dy = 0;
@@ -1500,8 +1500,8 @@ void displayPlasma()
         //check limitation
         if (decx) x--; else x++;
         if (decy) y--; else y++;
-        if (x <= 0 || x >= cmx - src.mWidth) decx = !decx;
-        if (y <= 0 || y >= cmy - src.mHeight) decy = !decy;
+        if (x <= 0 || x >= cmx - src.mWidth) decx = ~decx;
+        if (y <= 0 || y >= cmy - src.mHeight) decy = ~decy;
         frames++;
     }
 
@@ -1522,7 +1522,7 @@ void displayPlasma()
         createPlasma(&dx, &dy, sint, cost, &src);
         scaleImage(&dst, &src, INTERPOLATION_TYPE_NEAREST);
         putImage(0, 0, &dst);
-        endPos = drawText(ypos--, count, str);
+        endPos = drawText(greets, count, ypos--);
         if (endPos <= 98) fadeDown(pal);
         render();
         delay(FPS_90);

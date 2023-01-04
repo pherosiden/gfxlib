@@ -778,12 +778,12 @@ void restoreDrawBuffer()
 void changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
     //save current view port
-    oldMinX = cminX;
-    oldMinY = cminY;
-    oldMaxX = cmaxX;
-    oldMaxY = cmaxY;
-    oldWidth = texWidth;
-    oldHeight = texHeight;
+    oldMinX     = cminX;
+    oldMinY     = cminY;
+    oldMaxX     = cmaxX;
+    oldMaxY     = cmaxY;
+    oldWidth    = texWidth;
+    oldHeight   = texHeight;
 
     //update new clip view port
     cminX = x1;
@@ -792,8 +792,8 @@ void changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     cmaxY = y2;
 
     //update buffer width and height
-    texWidth = cmaxX - cminX + 1;
-    texHeight = cmaxY - cminY + 1;
+    texWidth    = cmaxX - cminX + 1;
+    texHeight   = cmaxY - cminY + 1;
 
     //update center x,y
     centerX = (texWidth >> 1) - 1;
@@ -807,14 +807,14 @@ void changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 //!!!changeViewPort and restoreViewPort must be a pair functions!!!
 void restoreViewPort()
 {
-    cminX = oldMinX;
-    cminY = oldMinY;
-    cmaxX = oldMaxX;
-    cmaxY = oldMaxY;
-    texWidth = oldWidth;
-    texHeight = oldHeight;
-    centerX = (texWidth >> 1) - 1;
-    centerY = (texHeight >> 1) - 1;
+    cminX       = oldMinX;
+    cminY       = oldMinY;
+    cmaxX       = oldMaxX;
+    cmaxY       = oldMaxY;
+    texWidth    = oldWidth;
+    texHeight   = oldHeight;
+    centerX     = (texWidth >> 1) - 1;
+    centerY     = (texHeight >> 1) - 1;
     bytesPerScanline = texWidth * bytesPerPixel;
 }
 
@@ -8717,18 +8717,18 @@ void projette(double x, double y, double z, double *px, double *py)
     {
         double obsZ = -x * aux7 - y * aux8 - z * aux2 + RHO;
         if (obsZ == 0.0) obsZ = DBL_MIN;
-        *px = (DE * obsX) / obsZ;
-        *py = (DE * obsY) / obsZ;
+        if (px) *px = (DE * obsX) / obsZ;
+        if (py) *py = (DE * obsY) / obsZ;
     }
     else if (projectionType == PROJECTION_TYPE_PARALLELE)
     {
-        *px = DE * obsX;
-        *py = DE * obsY;
+        if (px) *px = DE * obsX;
+        if (py) *py = DE * obsY;
     }
     else
     {
-        *px = 0;
-        *py = 0;
+        if (px) *px = 0;
+        if (py) *py = 0;
         messageBox(GFX_WARNING, "Unknown projection type!");
     }
 }
@@ -9833,12 +9833,11 @@ void writeText(int32_t x, int32_t y, uint32_t color, uint32_t mode, const char* 
 }
 
 //draw multi-line string font
-int32_t drawText(int32_t ypos, int32_t size, const char **str)
+int32_t drawText(const char* const str[], uint32_t count, int32_t ypos)
 {
     //check for font loaded
     if (!gfxFonts[fontType].dataPtr) return 0;
-
-    for (int32_t i = 0; i < size; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
         if (ypos > -30) writeString(centerX - (getFontWidth(str[i]) >> 1), ypos, 62, 0, str[i]);
         ypos += getFontHeight(str[i]);
@@ -9991,8 +9990,8 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
 
     //copy raw data after converted
     memcpy(txout[0], texture->pixels, size);
-    *txw = texture->w;
-    *txh = texture->h;
+    if (txw) *txw = texture->w;
+    if (txh) *txh = texture->h;
     SDL_FreeSurface(image);
     SDL_FreeSurface(texture);
     return 1;
@@ -10774,29 +10773,29 @@ void prepareTunnel(const GFX_IMAGE* dimg, uint8_t* buff1, uint8_t* buff2)
     const int32_t dcx = dimg->mWidth >> 1;
     const int32_t dcy = dimg->mHeight >> 1;
 
-    double z = 250.0;
+    double tz = 250.0;
     double dst = 1.0;
     double ang = maxAng - 1.0;
     
     do {
-        const int32_t x = fround(z * sin(ang * preCalc)) + dcx;
-        const int32_t y = fround(z * cos(ang * preCalc)) + dcy;
+        const int32_t tx = fround(tz * sin(ang * preCalc)) + dcx;
+        const int32_t ty = fround(tz * cos(ang * preCalc)) + dcy;
 
         ang -= angDec;
         if (ang < 0)
         {
             ang += maxAng;
             dst += dst * dstInc;
-            z -= angDec;
+            tz -= angDec;
         }
 
-        if (x >= 0 && x < dimg->mWidth && y >= 0 && y < dimg->mHeight)
+        if (tx >= 0 && tx < dimg->mWidth && ty >= 0 && ty < dimg->mHeight)
         {
-            const int32_t ofs = y * dimg->mWidth + x;
+            const int32_t ofs = ty * dimg->mWidth + tx;
             buff1[ofs] = fround(dst);
             buff2[ofs] = fround(dst - ang / 4);
         }
-    } while (z >= 0);
+    } while (tz >= 0);
 }
 
 //FX-effect: draw tunnel

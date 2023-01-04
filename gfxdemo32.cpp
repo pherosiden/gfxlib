@@ -328,7 +328,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
 
 void runCrossFade(int32_t sx, int32_t sy)
 {
-    int32_t i = 0, up = 1, val = 1;
+    int32_t i = 0, up = 0, val = 0;
 
     //initialize render buffer
     GFX_IMAGE img = { 0 };
@@ -348,8 +348,8 @@ void runCrossFade(int32_t sx, int32_t sy)
         delay(FPS_90);
 
         //check for change direction
-        if (up) i++; else i--;
-        if (i == 0 || i == 64) up = !up;
+        if (up) i--; else i++;
+        if (i <= 0 || i >= 64) up = ~up;
     }
 
     //cleanup...
