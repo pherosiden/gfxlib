@@ -8357,7 +8357,7 @@ namespace fireEffect6 {
     #define MAXCOL      110
     #define BARLEN      10
 
-    uint8_t flames[WIDTH] = { 0 };
+    uint8_t flames[WIDTH + 1] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
     void HSI2RGB(double H, double S, double I, RGB* pal)
@@ -8463,7 +8463,7 @@ namespace fireEffect6 {
                 flames[WIDTH - x - 1] = 0;
             }
 
-            for (i = SMOOTH; i < WIDTH - SMOOTH; i++)
+            for (i = SMOOTH; i <= WIDTH - SMOOTH; i++)
             {
                 x = 0;
                 for (j = -SMOOTH; j <= SMOOTH; j++) x += flames[i + j];
