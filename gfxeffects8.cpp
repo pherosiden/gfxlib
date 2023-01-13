@@ -15405,23 +15405,23 @@ namespace copper3Effect {
     {
     }
 
-	void run()
-	{
-		int16_t x = 0, addx = 1;
+    void run()
+    {
+        int16_t x = 0, addx = 1;
 
-		if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Copper3 Simulation")) return;
-		setPalette(pal);
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Copper3 Simulation")) return;
+        setPalette(pal);
 
-		while (!finished(SDL_SCANCODE_RETURN))
-		{
-			scroll(addx);
-			renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
-			delay(3);
-			x += addx;
-			if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
-		}
-		cleanup();
-	}
+        while (!finished(SDL_SCANCODE_RETURN))
+        {
+            scroll(addx);
+            renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
+            delay(3);
+            x += addx;
+            if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
+        }
+        cleanup();
+    }
 }
 
 void gfxEffectsMix()
