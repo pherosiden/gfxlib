@@ -1515,9 +1515,9 @@ void displayPlasma()
     }
     setPalette(pal);
 
-    ypos = getDrawBufferHeight();
-
     //display scale image and scroll text
+    ypos = getDrawBufferHeight();
+    
     do {
         createPlasma(&dx, &dy, sint, cost, &src);
         scaleImage(&dst, &src, INTERPOLATION_TYPE_NEAREST);
