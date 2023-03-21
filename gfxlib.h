@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /*---------------------------------------------------------------*/
 /*                 GFXLIB Graphics Library                       */
@@ -7,8 +7,8 @@
 /*            Target OS: cross-platform (x32_64)                 */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.2.6                                   */
-/*          Last Update: 2022-06-11                              */
+/*              Version: 1.2.8                                   */
+/*          Last Update: 2023-03-21                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://crossfire-designs.de            */
@@ -52,8 +52,8 @@
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475)
 
 //GFX version string
-#define GFX_VERSION             "v22.12.10"
-#define GFX_BUILD_ID            20221210
+#define GFX_VERSION             "v23.03.21"
+#define GFX_BUILD_ID            20230321
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
