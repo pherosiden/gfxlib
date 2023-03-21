@@ -48,7 +48,7 @@
 #endif
 
 //disable C-cast warnings
-#pragma warning(disable: 26467 26493 26440 26497 26429 26482 26446)
+#pragma warning(disable: 26467 26493 26440 26497 26429 26482 26446 6385 6386)
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475)
 
 //GFX version string

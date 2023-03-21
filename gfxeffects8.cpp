@@ -1,7 +1,5 @@
 #include "gfxlib.h"
 
-#pragma warning(disable: 6385 6386)
-
 namespace juliaSet {
 
     void makePalette()
