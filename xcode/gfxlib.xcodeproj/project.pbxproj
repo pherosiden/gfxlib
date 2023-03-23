@@ -329,7 +329,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_ENTITLEMENTS = gfxlib.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -352,10 +352,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.2.8;
-				OTHER_CFLAGS = (
-					"-mfma",
-					"-mavx2",
-				);
+				OTHER_CFLAGS = "-march=native";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vnn.gfxlib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -367,7 +364,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_ENTITLEMENTS = gfxlib.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -392,10 +389,7 @@
 				);
 				MARKETING_VERSION = 1.2.8;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-mfma",
-					"-mavx2",
-				);
+				OTHER_CFLAGS = "-march=native";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vnn.gfxlib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -12,6 +12,7 @@ visualc
 .DS_Store
 xcuserdata
 gfxlib.xcscheme
+gfxlib.xcodeproj/project.xcworkspace/xcuserdata
 
 # Windows Thumbs
 .Thumbs
