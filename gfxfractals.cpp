@@ -1117,7 +1117,7 @@ void allocBuffer()
     }
 }
 
-const int32_t yadd = 16;
+const long yadd = 16;
 volatile long yprocessed = 0;
 
 #ifdef __APPLE__
@@ -1130,7 +1130,7 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
     while (true)
     {
 #ifdef __APPLE__
-        int32_t y0 = __sync_add_and_fetch(&yprocessed, yadd) - yadd;
+        int32_t y0 = int32_t(__sync_add_and_fetch(&yprocessed, yadd) - yadd);
 #else
         int32_t y0 = _interlockedadd(&yprocessed, yadd) - yadd;
 #endif
@@ -1214,7 +1214,7 @@ void gfxFractals()
             //Julia message
             if (fractType)
             {
-                sprintf(sbuff, "Julia-Explorer [%s][%dx%d][%g, %g, %g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, 1, 2, 3, 4, i, o, s, q, w]",
+                snprintf(sbuff, sizeof(sbuff), "Julia-Explorer [%s][%dx%d][%g, %g, %g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, 1, 2, 3, 4, i, o, s, q, w]",
                     methodNames[funcIndexs[fractType]],
                     acx, cy,
                     xx, yy, scale,
@@ -1226,7 +1226,7 @@ void gfxFractals()
             }
             else
             {
-                sprintf(sbuff, "Mandelbrot-Explorer [%s][%dx%d][%g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, q, w]",
+                snprintf(sbuff, sizeof(sbuff), "Mandelbrot-Explorer [%s][%dx%d][%g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, q, w]",
                     methodNames[funcIndexs[fractType]],
                     acx, cy,
                     xx, yy, scale,

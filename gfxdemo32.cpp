@@ -757,7 +757,7 @@ void gfxDemo()
     
     for (int32_t i = 0; i < 16; i++)
     {
-        sprintf(sbuff, "assets/flare-%dx.png", i + 1);
+        snprintf(sbuff, sizeof(sbuff), "assets/flare-%dx.png", i + 1);
         if (!loadImage(sbuff, &flares[i])) return;
     }
 

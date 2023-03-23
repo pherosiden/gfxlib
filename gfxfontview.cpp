@@ -27,11 +27,11 @@ void showFontsDir(const char* path, const char* ext)
             if ((ent->d_type != DT_REG) || !strstr(ent->d_name, ext)) continue;
 
             //format related path
-            sprintf(buff, "%s/%s", path, ent->d_name);
+            snprintf(buff, sizeof(buff), "%s/%s", path, ent->d_name);
 
             //try to load this font file
             loadFont(buff, 0);
-            sprintf(buff, "%s - The quick brown fox jumps over the lazy dog", ent->d_name);
+            snprintf(buff, sizeof(buff), "%s - The quick brown fox jumps over the lazy dog", ent->d_name);
             
             const GFX_FONT* font = getFont();
 

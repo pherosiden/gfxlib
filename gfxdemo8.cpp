@@ -1255,7 +1255,7 @@ void affichage(int32_t range)
     writeText(startx, starty, 40, 1, strTitle);
 
     setFontType(0);
-    sprintf(buff, "X=[%.1f,%.1f] Y=[%.1f,%.1f] Theta=%.1f Phi=%.1f Lines=%d Points=%d", -gx1, gx1, -gy1, gy1, theta, phi, lines, points);
+    snprintf(buff, sizeof(buff), "X=[%.1f,%.1f] Y=[%.1f,%.1f] Theta=%.1f Phi=%.1f Lines=%d Points=%d", -gx1, gx1, -gy1, gy1, theta, phi, lines, points);
     writeText(cx - (getFontWidth(buff) >> 1), cmy - getFontHeight(buff) - 2, 37, 1, buff);
 
     for (i = starty; i < height; i++)

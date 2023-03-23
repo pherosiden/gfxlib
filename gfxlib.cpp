@@ -699,7 +699,7 @@ void messageBox(int32_t type, const char* fmt, ...)
     char buffer[1024] = { 0 };
     va_list args;
     va_start(args, fmt);
-    vsprintf(buffer, fmt, args);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
 
     switch (type)
@@ -8531,7 +8531,6 @@ void bicubicRotateImageFixed(const GFX_IMAGE* dst, const GFX_IMAGE* src, const d
 void bicubicRotateLine(uint32_t* pdst, const int32_t boundx0, const int32_t inx0, const int32_t inx1, const int32_t boundx1, const GFX_IMAGE* psrc, int32_t sx, int32_t sy, const int32_t addx, const int32_t addy, const int16_t* stable)
 {
     int32_t x = 0;
-    const uint32_t color = 0;
 
     for (x = boundx0; x < inx0; x++, sx += addx, sy += addy)    pdst[x] = alphaBlend(pdst[x], bicubicGetPixelBorder(psrc, stable, sx, sy));
     for (x = inx0; x < inx1; x++, sx += addx, sy += addy)       pdst[x] = bicubicGetPixelCenter(psrc, stable, sx, sy);
@@ -8803,7 +8802,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = (intptr_t(to) - from) * sizeof(RGB);
+    const uint32_t steps = uint32_t((intptr_t(to) - from) * sizeof(RGB));
 
     if (loop > 0)
     {
@@ -9827,7 +9826,7 @@ void writeText(int32_t x, int32_t y, uint32_t color, uint32_t mode, const char* 
     char buffer[1024] = { 0 };
     va_list args;
     va_start(args, format);
-    vsprintf(buffer, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     writeString(x, y, color, mode, buffer);
 }
@@ -12239,8 +12238,8 @@ void initVideoInfo()
     SDL_version sdl;
     SDL_GetVersion(&sdl);
     const SDL_version* img = IMG_Linked_Version();
-    sprintf(renderVersion, "SDL %u.%u.%u", sdl.major, sdl.minor, sdl.patch);
-    sprintf(imageVersion, "SDL_image %u.%u.%u", img->major, img->minor, img->patch);
+    snprintf(renderVersion, sizeof(renderVersion), "SDL %u.%u.%u", sdl.major, sdl.minor, sdl.patch);
+    snprintf(imageVersion, sizeof(imageVersion), "SDL_image %u.%u.%u", img->major, img->minor, img->patch);
     
 #ifdef __APPLE__
     io_iterator_t iterator;
@@ -12284,7 +12283,7 @@ void initVideoInfo()
                 memcpy(&deviceId, CFDataGetBytePtr(devNum), length);
                 length = CFDataGetLength(revNum);
                 memcpy(&revisionId, CFDataGetBytePtr(revNum), length);
-                sprintf(driverVersion, "%u.%u.%u.%u", HIWORD(deviceId), LOWORD(deviceId), HIWORD(revisionId), LOWORD(revisionId));
+                snprintf(driverVersion, sizeof(driverVersion), "%u.%u.%u.%u", HIWORD(deviceId), LOWORD(deviceId), HIWORD(revisionId), LOWORD(revisionId));
             }
             
             // Release the dictionary
@@ -12405,7 +12404,7 @@ int32_t initSystemInfo()
 {
     SDL_DisplayMode mode;
     SDL_GetWindowDisplayMode(sdlWindow, &mode);
-    sprintf(modeInfo, "%dx%dx%ub @ %dHz", mode.w, mode.h, SDL_BYTESPERPIXEL(mode.format) << 3, mode.refresh_rate);
+    snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%ub @ %dHz", mode.w, mode.h, SDL_BYTESPERPIXEL(mode.format) << 3, mode.refresh_rate);
     initCpuInfo();
     initVideoInfo();
     initMemoryInfo();

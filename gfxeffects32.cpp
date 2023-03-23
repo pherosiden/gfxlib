@@ -1154,7 +1154,7 @@ void juliaExplorer()
         //get the time and old time for time dependent input
         oldTime = time;
         time = getTime();
-        sprintf(sbuff, "Julia-Explorer [FPS: %.2f]", 1000.0 / (time - oldTime));
+        snprintf(sbuff, sizeof(sbuff), "Julia-Explorer [FPS: %.2f]", 1000.0 / (time - oldTime));
         setWindowTitle(sbuff);
 
         //read user input key
@@ -1549,7 +1549,7 @@ void mandelbrotExporer()
         //get the time and old time for time dependent input
         oldTime = time;
         time = getTime();
-        sprintf(sbuff, "Mandelbrot-Explorer [FPS: %.2f]", 1000.0 / (time - oldTime));
+        snprintf(sbuff, sizeof(sbuff), "Mandelbrot-Explorer [FPS: %.2f]", 1000.0 / (time - oldTime));
         setWindowTitle(sbuff);
 
         //read user input key
