@@ -10014,14 +10014,22 @@ namespace landScapeEffect {
     {
         FILE* fp = fopen("assets/land.map", "rb");
 
-        if (fp) fread(dbuff, IMAGE_SIZE, 1, fp);
+        if (fp)
+        {
+            fread(dbuff, IMAGE_SIZE, 1, fp);
+            fclose(fp);
+        }
         else
         {
             subDivide(0, 0, MAX_WIDTH, MAX_HEIGHT);
             fp = fopen("assets/land.map", "wb");
-            fwrite(dbuff, IMAGE_SIZE, 1, fp);
+            if (fp)
+            {
+                fwrite(dbuff, IMAGE_SIZE, 1, fp);
+                fclose(fp);
+            }
         }
-        fclose(fp);
+        
         memcpy(vbuff, dbuff, IMAGE_SIZE);
 
         for (int16_t i = 0; i < IMAGE_HEIGHT; i++)
@@ -12628,9 +12636,12 @@ namespace shadePattern {
         }
 
         FILE* fp = fopen("assets/path.dat", "wb");
-        fwrite(&arrpos, sizeof(arrpos), 1, fp);
-        fwrite(points, sizeof(TPoint), arrpos, fp);
-        fclose(fp);
+        if (fp)
+        {
+            fwrite(&arrpos, sizeof(arrpos), 1, fp);
+            fwrite(points, sizeof(TPoint), arrpos, fp);
+            fclose(fp);
+        }
     }
 
     void playShadeBob()
