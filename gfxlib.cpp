@@ -1,21 +1,21 @@
-/*---------------------------------------------------------------*/
+/*===============================================================*/
 /*                 GFXLIB Graphics Library                       */
-/*               Use SDL2 for render system                      */
-/*               SDL2_image for load images                      */
-/*            Target OS: cross-platform (x32_64)                 */
+/*               Use SDL2 for render backend                     */
+/*               SDL2_image for image backend                    */
+/*            Target OS: cross-platform (win32, darwin)          */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
 /*              Version: 1.2.8                                   */
 /*          Last Update: 2023-03-21                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
-/*           References: https://crossfire-designs.de            */
-/*                       https://lodev.org                       */
+/*           References: https://lodev.org                       */
 /*                       https://permadi.com                     */
 /*                       https://sources.ru                      */
 /*                       http://eyecandyarchive.com              */
+/*                       https://crossfire-designs.de            */
 /*              License: GNU GPL                                 */
-/*---------------------------------------------------------------*/
+/*===============================================================*/
 
 #include <map>
 #include "gfxlib.h"
@@ -122,7 +122,7 @@ SDL_Renderer*   sdlRenderer = NULL;                 //render object
 SDL_Event		sdlEvent = { 0 };                   //store key input event
 
 //keyboard status
-uint8_t* keyStates = 0;                             //key input states
+uint8_t*        keyStates = 0;                      //key input states
 
 //the "keyPressed" status map
 std::map<int32_t, int32_t> keyStatus;               //key input status
@@ -9876,6 +9876,19 @@ void showPNG(const char* fname)
     putImage(0, 0, &png, BLEND_MODE_ALPHA);
     render();
     freeImage(&png);
+}
+
+//fast show JPG image to screen (demo version)
+void showJPG(const char* fname)
+{
+    //load jpeg image with SIMD support
+    GFX_IMAGE jpg;
+    loadImage(fname, &jpg);
+
+    //render image
+    putImage(0, 0, &jpg, BLEND_MODE_NORMAL);
+    render();
+    freeImage(&jpg);
 }
 
 //load image as 8bits texture to output buffer

@@ -1,23 +1,23 @@
 #pragma once
 
-/*---------------------------------------------------------------*/
+/*===============================================================*/
 /*                 GFXLIB Graphics Library                       */
-/*               Use SDL2 for render system                      */
-/*               SDL2_image for load images                      */
-/*            Target OS: cross-platform (x32_64)                 */
+/*               Use SDL2 for render backend                     */
+/*               SDL2_image for image backend                    */
+/*            Target OS: cross-platform (win32, darwin)          */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
 /*              Version: 1.2.8                                   */
 /*          Last Update: 2023-03-21                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
-/*           References: https://crossfire-designs.de            */
-/*                       https://lodev.org                       */
+/*           References: https://lodev.org                       */
 /*                       https://permadi.com                     */
 /*                       https://sources.ru                      */
 /*                       http://eyecandyarchive.com              */
+/*                       https://crossfire-designs.de            */
 /*              License: GNU GPL                                 */
-/*---------------------------------------------------------------*/
+/*===============================================================*/
 
 #include <random>
 #include <stdint.h>
@@ -566,6 +566,9 @@ void        createPlasma(uint8_t* dx, uint8_t* dy, const uint8_t* sint, const ui
 //show image and mouse activity simulation
 void        showPNG(const char* fname);
 void        showBMP(const char* fname);
+void        showJPG(const char* fname);
+
+//internal handler for mouse and windows title
 void        handleMouseButton();
 void        setWindowTitle(const char* title);
 
