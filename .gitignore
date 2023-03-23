@@ -1,43 +1,12 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-*.aps
-
 # Visual Studio
 .vs
-visualc/Release
-visualc/Debug
-visualc/x64
-visualc/assets
+visualc
+!visualc/resource.h
+!visualc/gfxlib.vcxproj.filters
+!visualc/gfxlib.vcxproj
+!visualc/gfxlib.sln
+!visualc/gfxlib.rc
+!visualc/gfxicon.ico
 
 # MAC OSX
 .DS_Store
