@@ -61,7 +61,7 @@ void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
 
     //make scrolling text
     memcpy(&texts[0][0], &texts[1][0], sizeof(texts) - sizeof(texts[0]));
-    strcpy(texts[MAX_TEXT_LINE - 1], str);
+    strncpy(texts[MAX_TEXT_LINE - 1], str, sizeof(texts[0]));
 
     //don't delay each character
     if (fullSpeed)

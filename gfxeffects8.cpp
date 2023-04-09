@@ -14281,7 +14281,7 @@ namespace thunderBoltEffect {
     {
         int16_t part = 0, dy = 0;
 
-        while (ints > 0 && y < MAX_HEIGHT && x > 0 && x < MAX_WIDTH)
+        while (ints > 0 && y < IMAGE_HEIGHT - 10 && x > 10 && x < IMAGE_WIDTH - 10)
         {
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;

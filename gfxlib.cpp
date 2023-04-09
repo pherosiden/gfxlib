@@ -10873,9 +10873,10 @@ void blurImageEx(GFX_IMAGE* dst, const GFX_IMAGE* src, int32_t blur)
     __asm {
         mov     esi, psrc
         mov     edi, pdst
+        mov     eax, blur
+        shl     eax, 1
         mov     ecx, nsize
-        sub     ecx, blur
-        sub     ecx, blur
+        sub     ecx, eax
         push    ecx
         mov     eax, 4
         xor     ebx, ebx
@@ -12107,7 +12108,7 @@ void calcCpuType()
     cpuType[i++] = cpuInfo[2] & 0xff; cpuInfo[2] >>= 8;
     cpuType[i++] = cpuInfo[2] & 0xff; cpuInfo[2] >>= 8;
     cpuType[i++] = cpuInfo[2] & 0xff;
-    if (!cpuType[0]) strcpy(cpuType, "Unknown");
+    if (!cpuType[0]) strncpy(cpuType, "Unknown", sizeof(cpuType));
 }
 
 //return full CPU description string (i.e: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz)
@@ -12173,7 +12174,7 @@ void calcCpuName()
         cpuName[i++] = cpuInfo[3] & 0xff; cpuInfo[3] >>= 8;
         cpuName[i++] = cpuInfo[3] & 0xff; cpuInfo[3] >>= 8;
     }
-    if (!cpuName[0]) strcpy(cpuName, "Unknown");
+    if (!cpuName[0]) strncpy(cpuName, "Unknown", sizeof(cpuName));
 }
 
 //AMD 3DNow! detected
@@ -12198,11 +12199,11 @@ void calcCpuFeatures()
     
     memset(cpuFeatures, 0, sizeof(cpuFeatures));
 
-    if (have3DNow()) strcat(cpuFeatures, "3DNow!,");
-    if (cpuInfo[3] & 0x00800000) strcat(cpuFeatures, "MMX,");
-    if (cpuInfo[3] & 0x02000000) strcat(cpuFeatures, "SSE,");
-    if (cpuInfo[3] & 0x04000000) strcat(cpuFeatures, "SSE2,");
-    if (cpuInfo[2] & 0x10000000) strcat(cpuFeatures, "AVX,");
+    if (have3DNow()) strncat(cpuFeatures, "3DNow!,", sizeof(cpuFeatures));
+    if (cpuInfo[3] & 0x00800000) strncat(cpuFeatures, "MMX,", sizeof(cpuFeatures));
+    if (cpuInfo[3] & 0x02000000) strncat(cpuFeatures, "SSE,", sizeof(cpuFeatures));
+    if (cpuInfo[3] & 0x04000000) strncat(cpuFeatures, "SSE2,", sizeof(cpuFeatures));
+    if (cpuInfo[2] & 0x10000000) strncat(cpuFeatures, "AVX,", sizeof(cpuFeatures));
 
 #ifdef __APPLE__
     __cpuid_count(7, 0, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
@@ -12210,7 +12211,7 @@ void calcCpuFeatures()
     __cpuidex(cpuInfo, 7, 0);
 #endif
 
-    if (cpuInfo[1] & 0x00000020) strcat(cpuFeatures, "AVX2,");
+    if (cpuInfo[1] & 0x00000020) strncat(cpuFeatures, "AVX2,", sizeof(cpuFeatures));
 
     size_t len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
@@ -12229,10 +12230,10 @@ void initCpuInfo()
 void initVideoInfo()
 {
     videoMemory = 0;
-    strcpy(videoName, "Unknown");
-    strcpy(driverVersion, "0.0.0.0");
-    strcpy(renderVersion, "0.0.0.0");
-    strcpy(imageVersion, "0.0.0.0");
+    strncpy(videoName, "Unknown", sizeof(videoName));
+    strncpy(driverVersion, "0.0.0.0", sizeof(driverVersion));
+    strncpy(renderVersion, "0.0.0.0", sizeof(renderVersion));
+    strncpy(imageVersion, "0.0.0.0", sizeof(imageVersion));
 
     //retrive SDL and SDL_image version string
     SDL_version sdl;
@@ -12395,7 +12396,7 @@ void initVideoInfo()
     RegCloseKey(dxKeyHandle);
     free(subKeyName);
     if (!foundVersion) return;
-    sprintf(driverVersion, "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
+    snprintf(driverVersion, sizeof(driverVersion), "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
 #endif
 }
 
