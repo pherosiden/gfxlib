@@ -3919,7 +3919,9 @@ void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t
 
         dx = 4.0 * sy * (intmax_t(x1) - x0) * cur + xx - xy;
         dy = 4.0 * sx * (intmax_t(y0) - y1) * cur + yy - xy;
-        xx += xx; yy += yy; err = dx + dy + xy;
+        xx += xx;
+        yy += yy;
+        err = dx + dy + xy;
 
         do {
             cur = min(dx + xy, -xy - dy);
