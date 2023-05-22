@@ -7,8 +7,8 @@
 /*            Target OS: cross-platform (win32, darwin)          */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.2.9                                   */
-/*          Last Update: 2023-03-24                              */
+/*              Version: 1.3.0                                   */
+/*          Last Update: 2023-05-22                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -49,7 +49,7 @@
 
 //disable C-cast warnings
 #pragma warning(disable: 26467 26493 26440 26497 26429 26482 26446 6385 6386)
-#pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475)
+#pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475 6001)
 
 //GFX version string
 #define GFX_VERSION             "v23.03.21"

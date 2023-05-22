@@ -99,9 +99,9 @@ uint8_t         ptnCloseDot[]       = { 0x88, 0x00, 0x22, 0x00, 0x88, 0x00, 0x22
 
 //CPU and video card parameters
 uint32_t        cpuSpeed = 0;                       //CPU speed in MHz
-char            cpuName[48] = { 0 };                //full CPU name string
-char            cpuType[13] = { 0 };                //CPU type (GenuineIntel, AuthenticAMD, ...)
-char            cpuFeatures[48] = { 0 };            //CPU features (MMX, 3DNow!, 3DNowExt!, SSE, SSE2, SSE3, ...)
+char            cpuName[50] = { 0 };                //full CPU name string
+char            cpuType[16] = { 0 };                //CPU type (GenuineIntel, AuthenticAMD, ...)
+char            cpuFeatures[50] = { 0 };            //CPU features (MMX, 3DNow!, 3DNowExt!, SSE, SSE2, SSE3, ...)
 char            videoName[128] = { 0 };             //full name of graphic card
 char            driverVersion[32] = { 0 };          //graphic driver version string
 char            renderVersion[32] = { 0 };          //SDL2 version string

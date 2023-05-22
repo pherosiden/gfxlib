@@ -704,9 +704,9 @@ void mandelbrotFloatFMA(uint32_t* out, double mx, double my, double scale, int32
                 if (_mm256_testc_si256(masks, _mm256_cmpeq_epi32(masks, masks))) break;
                 iters = _mm256_add_epi32(iters, _mm256_andnot_si256(masks, _mm256_set1_epi32(1)));
 
-                const __m256 tmp = _mm256_add_ps (x1, x1);
-                y1 = _mm256_fmadd_ps (tmp, y1, y0);
-                x1 = _mm256_add_ps (_mm256_sub_ps (x2, y2), x0);
+                const __m256 tmp = _mm256_add_ps(x1, x1);
+                y1 = _mm256_fmadd_ps(tmp, y1, y0);
+                x1 = _mm256_add_ps(_mm256_sub_ps (x2, y2), x0);
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
