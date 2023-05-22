@@ -52,8 +52,8 @@
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475 6001)
 
 //GFX version string
-#define GFX_VERSION             "v23.03.21"
-#define GFX_BUILD_ID            20230321
+#define GFX_VERSION             "v23.05.22"
+#define GFX_BUILD_ID            20230522
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
