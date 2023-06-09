@@ -139,7 +139,7 @@
 #define sign(x)                 (((x) >= 0) ? (1) : (-1))
 #define swap(a, b)              {a ^= b; b ^= a; a ^= b;}
 #define swapf(a, b)             {const double t = a; a = b; b = t;}
-#define clamp(x, lo, hi)        (min(max(x, lo), hi))
+#define clamp(x, lo, hi)        ((min(max(x, lo), hi)))
 
 //common routines
 #ifdef __APPLE__
@@ -244,7 +244,7 @@ typedef struct {
     uint8_t*        dataPtr;                    //font raw data
 } GFX_FONT;
 
-//the structure of image data (base image for GFXLIB)
+//base image data for GFXLIB
 typedef struct
 {
     int32_t         mWidth;                     //image width
@@ -254,7 +254,7 @@ typedef struct
     void*           mData;                      //image raw data
 } GFX_IMAGE;
 
-//the structure for animated mouse pointers
+//animated mouse pointers
 typedef struct tagMOUSEBITMAP GFX_BITMAP;
 struct tagMOUSEBITMAP {
     int32_t         mbHotX;                     //mouse hot spot x
@@ -263,7 +263,7 @@ struct tagMOUSEBITMAP {
     GFX_BITMAP*     mbNext;                     //point to next mouse data
 };
 
-//the structure for a bitmap mouse pointer.
+//bitmap mouse pointer
 typedef struct {
     int32_t         msPosX;                     //current position x
     int32_t         msPosY;                     //current position y
@@ -273,7 +273,7 @@ typedef struct {
     GFX_BITMAP*     msBitmap;                   //hold mouse bitmap info
 } GFX_MOUSE;
 
-//the structure for a bitmap button.
+//bitmap button
 typedef struct {
     int32_t         btPosX;                     //button x
     int32_t         btPosY;                     //button y
