@@ -5,8 +5,8 @@
 /*            Target OS: cross-platform (win32, darwin)          */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.3.0                                   */
-/*          Last Update: 2023-05-22                              */
+/*              Version: 1.3.1                                   */
+/*          Last Update: 2023-06-14                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -65,10 +65,10 @@ double          DE = 0.0;                           //deplane end for projection
 double          RHO = 0.0;                          //RHO perspective projection
 
 //saved transform values
-double          aux1 = 0.0, aux2 = 0.0;             //temporary swap
-double          aux3 = 0.0, aux4 = 0.0;             //temporary swap
-double          aux5 = 0.0, aux6 = 0.0;             //temporary swap
-double          aux7 = 0.0, aux8 = 0.0;             //temporary swap
+double          sinth = 0.0, sinph = 0.0;           //sin(theta), sin(phi)
+double          costh = 0.0, cosph = 0.0;           //cos(theta), cos(phi)
+double          sincosx = 0.0, sinsinx = 0.0;       //sinsin(theta, phi)
+double          coscosx = 0.0, sincosy = 0.0;       //coscos(theta, phi)
 
 //current draw cursor (3D)
 int32_t         cranX = 0, cranY = 0;               //current x, y cursor (3d mode)
@@ -3084,8 +3084,7 @@ void clipLine(int32_t* xs, int32_t* ys, int32_t* xe, int32_t* ye)
     int32_t code2 = getCode(x2, y2);
 
     //in theory, this can never end up in an infinite loop, it'll always come in one of the trivial cases eventually
-    do
-    {
+    do {
         //accept because both endpoints are in screen or on the border, trivial accept
         if (!(code1 | code2)) accept = done = 1;
 
@@ -3903,8 +3902,10 @@ void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t
 
     if (cur != 0)
     {
-        xx += sx; xx *= sx = x0 < x2 ? 1 : -1;
-        yy += sy; yy *= sy = y0 < y2 ? 1 : -1;
+        xx += sx;
+        xx *= sx = x0 < x2 ? 1 : -1;
+        yy += sy;
+        yy *= sy = y0 < y2 ? 1 : -1;
         xy = 2 * xx * yy;
         xx *= xx;
         yy *= yy;
@@ -3931,16 +3932,24 @@ void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t
 
             if (x0 == x2 || y0 == y2) break;
 
-            x1 = x0; cur = dx - err; y1 = 2 * err + dy < 0;
+            x1 = x0;
+            cur = dx - err;
+            y1 = 2 * err + dy < 0;
+
             if (2 * err + dx > 0)
             {
                 if (err - dy < ed) putPixel(x0, y0 + sy, rgba(col, uint8_t(255 * fabs(err - dy) / ed)), BLEND_MODE_ANTIALIASED);
-                x0 += sx; dx -= xy; err += dy += yy;
+                x0 += sx;
+                dx -= xy;
+                err += dy += yy;
             }
+
             if (y1)
             {
                 if (cur < ed) putPixel(x1 + sx, y0, rgba(col, uint8_t(255 * fabs(cur) / ed)), BLEND_MODE_ANTIALIASED);
-                y0 += sy; dy -= xy; err += dx += xx;
+                y0 += sy;
+                dy -= xy;
+                err += dx += xx;
             }
         } while (dy < dx);
     }
@@ -3998,14 +4007,18 @@ void drawQuadBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x
 
         do {
             putPixel(x0, y0, col, mode);
+
             if (x0 == x2 && y0 == y2) return;
+            
             y1 = 2 * err < dx;
+            
             if (2 * err > dy)
             {
                 x0 += sx;
                 dx -= xy;
                 err += dy += yy;
             }
+            
             if (y1)
             {
                 y0 += sy;
@@ -4057,7 +4070,10 @@ void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x
         ip = 4 * ab * bc - sqr(ac);
         ex = ab * (ab + ac - 3 * bc) + sqr(ac);
         f = (ex > 0) ? 1 : int32_t(sqrt(1 + 1024 / x1));
-        ab *= f; ac *= f; bc *= f; ex *= sqr(intmax_t(f));
+        ab *= f;
+        ac *= f;
+        bc *= f;
+        ex *= sqr(intmax_t(f));
         xy = 9 * (ab + ac + bc) / 8;
         ba = 8 * (xa - ya);
         dx = 27 * (8 * ab * (yb * yb - ya * yc) + ex * (ya + 2 * yb + yc)) / 64 - ya * ya * (xy - ya);
@@ -4065,16 +4081,30 @@ void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x
 
         xx = 3 * (3 * ab * (3 * yb * yb - ya * ya - 2 * ya * yc) - ya * (3 * ac * (ya + yb) + ya * ba)) / 4;
         yy = 3 * (3 * ab * (3 * xb * xb - xa * xa - 2 * xa * xc) - xa * (3 * ac * (xa + xb) + xa * ba)) / 4;
-        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + ba); ac = ya * ya; ba = xa * xa;
+        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + ba);
+        ac = ya * ya;
+        ba = xa * xa;
         xy = 3 * (xy + 9.0 * f * (ba * yb * yc - xb * xc * ac) - 18 * xb * yb * ab) / 8;
 
         if (ex < 0)
         {
-            dx = -dx; dy = -dy; xx = -xx; yy = -yy; xy = -xy; ac = -ac; ba = -ba;
+            dx = -dx;
+            dy = -dy;
+            xx = -xx;
+            yy = -yy;
+            xy = -xy;
+            ac = -ac;
+            ba = -ba;
         }
 
-        ab = 6 * ya * ac; ac = -6 * xa * ac; bc = 6 * ya * ba; ba = -6 * xa * ba;
-        dx += xy; ex = dx + dy; dy += xy;
+        ab = 6 * ya * ac;
+        ac = -6 * xa * ac;
+        bc = 6 * ya * ba;
+        ba = -6 * xa * ba;
+        
+        dx += xy;
+        ex = dx + dy;
+        dy += xy;
 
         for (fx = fy = f; x0 != x3 && y0 != y3;)
         {
@@ -4094,25 +4124,38 @@ void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x
                 y1 = 2 * ex + dx;
                 if (2 * ex + dy > 0)
                 {
-                    fx--; ex += dx += xx; dy += xy += ac; yy += bc; xx += ab;
+                    fx--;
+                    ex += dx += xx;
+                    dy += xy += ac;
+                    yy += bc;
+                    xx += ab;
                 }
                 else if (y1 > 0) goto exit;
+
                 if (y1 <= 0)
                 {
-                    fy--; ex += dy += yy; dx += xy += bc; xx += ac; yy += ba;
+                    fy--;
+                    ex += dy += yy;
+                    dx += xy += bc;
+                    xx += ac;
+                    yy += ba;
                 }
             } while (fx > 0 && fy > 0);
 
             if (2 * fy <= f)
             {
                 if (py < ed) putPixel(x0 + sx, y0, rgba(col, uint8_t(255 * py / ed)), BLEND_MODE_ANTIALIASED);
-                y0 += sy; fy += f;
+                
+                y0 += sy;
+                fy += f;
             }
 
             if (2 * fx <= f)
             {
                 if (px < ed) putPixel(x0, int32_t(y2) + sy, rgba(col, uint8_t(255 * px / ed)), BLEND_MODE_ANTIALIASED);
-                x0 += sx; fx += f;
+                
+                x0 += sx;
+                fx += f;
             }
         }
 
@@ -4129,8 +4172,20 @@ void drawCubicBezierSegAA(int32_t x0, int32_t y0, double x1, double y1, double x
             x0 += sx;
         }
 
-        xx = x0; x0 = x3; x3 = int32_t(xx); sx = -sx; xb = -xb;
-        yy = y0; y0 = y3; y3 = int32_t(yy); sy = -sy; yb = -yb; x1 = x2;
+        xx = x0;
+        x0 = x3;
+        x3 = int32_t(xx);
+        
+        sx = -sx;
+        xb = -xb;
+     
+        yy = y0;
+        y0 = y3;
+        y3 = int32_t(yy);
+
+        sy = -sy;
+        yb = -yb;
+        x1 = x2;
     } while (leg--);
 
     drawLine(x0, y0, x3, y3, col, BLEND_MODE_ANTIALIASED);
@@ -4146,17 +4201,25 @@ void drawQuadBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, 
     {
         if ((y * (y2 - y1) > 0) && fabs((y0 - 2.0 * y1 + y2) / t * x) > abs(y))
         {
-            x0 = x2; x2 = x + x1; y0 = y2; y2 = y + y1;
+            x0 = x2;
+            x2 = x + x1;
+            y0 = y2;
+            y2 = y + y1;
         }
+
         t = (intmax_t(x0) - x1) / t;
         r = (1 - t) * ((1 - t) * y0 + 2.0 * t * y1) + t * t * y2;
         t = (intmax_t(x0) * x2 - intmax_t(x1) * x1) * t / (intmax_t(x0) - x1);
         x = int32_t(floor(t + 0.5));
         y = int32_t(floor(r + 0.5));
         r = (intmax_t(y1) - y0) * (t - x0) / (intmax_t(x1) - x0) + y0;
+        
         drawQuadBezierSeg(x0, y0, x, int32_t(floor(r + 0.5)), x, y, col, mode);
+        
         r = (intmax_t(y1) - y2) * (t - x2) / (intmax_t(x1) - x2) + y2;
-        x0 = x1 = x; y0 = y; y1 = int32_t(floor(r + 0.5));
+        x0 = x1 = x;
+        y0 = y;
+        y1 = int32_t(floor(r + 0.5));
     }
 
     if ((y0 - y1) * (y2 - y1) > 0)
@@ -4168,9 +4231,13 @@ void drawQuadBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, 
         x = int32_t(floor(r + 0.5));
         y = int32_t(floor(t + 0.5));
         r = (intmax_t(x1) - x0) * (t - y0) / (intmax_t(y1) - y0) + x0;
+
         drawQuadBezierSeg(x0, y0, int32_t(floor(r + 0.5)), y, x, y, col, mode);
+        
         r = (intmax_t(x1) - x2) * (t - y2) / (intmax_t(y1) - y2) + x2;
-        x0 = x; x1 = int32_t(floor(r + 0.5)); y0 = y1 = y;
+        x0 = x;
+        x1 = int32_t(floor(r + 0.5));
+        y0 = y1 = y;
     }
 
     drawQuadBezierSeg(x0, y0, x1, y1, x2, y2, col, mode);
@@ -4191,7 +4258,11 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
     {
         if (sqr(double(sx)) + sqr(double(sy)) > sqr(xx) + sqr(yy))
         {
-            x2 = x0; x0 -= int32_t(dx); y2 = y0; y0 -= int32_t(dy); cur = -cur;
+            x2 = x0;
+            x0 -= int32_t(dx);
+            y2 = y0;
+            y0 -= int32_t(dy);
+            cur = -cur;
         }
 
         xx = 2.0 * (4.0 * w * sx * xx + sqr(dx));
@@ -4202,7 +4273,10 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
 
         if (cur * sx * sy < 0)
         {
-            xx = -xx; yy = -yy; cur = -cur; xy = -xy;
+            xx = -xx;
+            yy = -yy;
+            cur = -cur;
+            xy = -xy;
         }
 
         dx = 4.0 * w * (intmax_t(x1) - x0) * sy * cur + xx / 2.0 + xy;
@@ -4213,14 +4287,18 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
             cur = (w + 1.0) / 2.0;
             w = sqrt(w);
             xy = 1.0 / (w + 1.0);
+            
             sx = int32_t(floor((x0 + 2.0 * w * x1 + x2) * xy / 2.0 + 0.5));
             sy = int32_t(floor((y0 + 2.0 * w * y1 + y2) * xy / 2.0 + 0.5));
+            
             dx = floor((w * x1 + x0) * xy + 0.5);
             dy = floor((y1 * w + y0) * xy + 0.5);
             drawQuadRationalBezierSegAA(x0, y0, int32_t(dx), int32_t(dy), sx, sy, cur, col);
+            
             dx = floor((w * x1 + x2) * xy + 0.5);
             dy = floor((y1 * w + y2) * xy + 0.5);
             drawQuadRationalBezierSegAA(sx, sy, int32_t(dx), int32_t(dy), x2, y2, cur, col);
+            
             return;
         }
 
@@ -4230,6 +4308,7 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
             cur = min(dx - xy, xy - dy);
             ed = max(dx - xy, xy - dy);
             ed += 2 * ed * sqr(cur) / (4.0 * sqr(ed) + sqr(cur));
+
             x1 = int32_t(255 * fabs(err - dx - dy + xy) / ed);
             if (x1 < 256) putPixel(x0, y0, rgba(col, x1), BLEND_MODE_ANTIALIASED);
 
@@ -4243,7 +4322,10 @@ void drawQuadRationalBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
             {
                 if (x0 == x2) return;
                 if (err - dy < ed) putPixel(x0, y0 + sy, rgba(col, uint8_t(255 * fabs(err - dy) / ed)), BLEND_MODE_ANTIALIASED);
-                x0 += sx; dx += xy; err += dy += yy;
+                
+                x0 += sx;
+                dx += xy;
+                err += dy += yy;
             }
 
             if (f)
@@ -4309,14 +4391,18 @@ void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, i
             cur = (w + 1.0) / 2.0;
             w = sqrt(w);
             xy = 1.0 / (w + 1.0);
+            
             sx = int32_t(floor((x0 + 2.0 * w * x1 + x2) * xy / 2.0 + 0.5));
             sy = int32_t(floor((y0 + 2.0 * w * y1 + y2) * xy / 2.0 + 0.5));
+            
             dx = floor((w * x1 + x0) * xy + 0.5);
             dy = floor((y1 * w + y0) * xy + 0.5);
             drawQuadRationalBezierSeg(x0, y0, int32_t(dx), int32_t(dy), sx, sy, cur, col, mode);
+            
             dx = floor((w * x1 + x2) * xy + 0.5);
             dy = floor((y1 * w + y2) * xy + 0.5);
             drawQuadRationalBezierSeg(sx, sy, int32_t(dx), int32_t(dy), x2, y2, cur, col, mode);
+            
             return;
         }
 
@@ -4324,11 +4410,25 @@ void drawQuadRationalBezierSeg(int32_t x0, int32_t y0, int32_t x1, int32_t y1, i
 
         do {
             putPixel(x0, y0, col, mode);
+
             if (x0 == x2 && y0 == y2) return;
+
             x1 = 2 * err > dy;
             y1 = 2 * (err + yy) < -dy;
-            if (2 * err < dx || y1) { y0 += sy; dy += xy; err += dx += xx; }
-            if (2 * err > dx || x1) { x0 += sx; dx += xy; err += dy += yy; }
+            
+            if (2 * err < dx || y1)
+            {
+                y0 += sy;
+                dy += xy;
+                err += dx += xx;
+            }
+
+            if (2 * err > dx || x1)
+            {
+                x0 += sx;
+                dx += xy;
+                err += dy += yy;
+            }
         } while (dy <= xy && dx >= xy);
     }
 
@@ -4372,7 +4472,9 @@ void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
         x = int32_t(floor(xx + 0.5));
         y = int32_t(floor(yy + 0.5));
         yy = (xx - x0) * (intmax_t(y1) - y0) / (intmax_t(x1) - x0) + y0;
+        
         drawQuadRationalBezierSeg(x0, y0, x, int32_t(floor(yy + 0.5)), x, y, ww, col, mode);
+        
         yy = (xx - x2) * (intmax_t(y1) - y2) / (intmax_t(x1) - x2) + y2;
         y1 = int32_t(floor(yy + 0.5));
         x0 = x1 = x;
@@ -4388,6 +4490,7 @@ void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
             if (y1 < y0) q = -q;
             t = (2.0 * w * (intmax_t(y0) - y1) - y0 + y2 + q) / (2.0 * (1.0 - w) * (intmax_t(y2) - y0));
         }
+
         q = 1.0 / (2.0 * t * (1.0 - t) * (w - 1.0) + 1.0);
         xx = (t * t * (x0 - 2.0 * w * x1 + x2) + 2.0 * t * (w * x1 - x0) + x0) * q;
         yy = (t * t * (y0 - 2.0 * w * y1 + y2) + 2.0 * t * (w * y1 - y0) + y0) * q;
@@ -4397,7 +4500,9 @@ void drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
         x = int32_t(floor(xx + 0.5));
         y = int32_t(floor(yy + 0.5));
         xx = (intmax_t(x1) - x0) * (yy - y0) / (intmax_t(y1) - y0) + x0;
+        
         drawQuadRationalBezierSeg(x0, y0, int32_t(floor(xx + 0.5)), y, x, y, ww, col, mode);
+        
         xx = (intmax_t(x1) - x2) * (yy - y2) / (intmax_t(y1) - y2) + x2;
         x1 = int32_t(floor(xx + 0.5));
         x0 = x;
@@ -4457,15 +4562,20 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
         return;
     }
 
-    int32_t f = 0, fx = 0, fy = 0, leg = 1;
-    int32_t sx = x0 < x3 ? 1 : -1, sy = y0 < y3 ? 1 : -1;
+    int32_t leg = 1;
+    int32_t f = 0, fx = 0, fy = 0;
+    int32_t sx = x0 < x3 ? 1 : -1;
+    int32_t sy = y0 < y3 ? 1 : -1;
     
     const double xc = -fabs(x0 + x1 - x2 - x3), xa = xc - 4.0 * sx * (x1 - x2);
     const double yc = -fabs(y0 + y1 - y2 - y3), ya = yc - 4.0 * sy * (y1 - y2);
     
     double* pxy = NULL, EP = 0.01;
-    double xb = sx * (x0 - x1 - x2 + x3), yb = sy * (y0 - y1 - y2 + y3);
-    double ab = 0.0, ac = 0.0, bc = 0.0, cb = 0.0, xx = 0.0, xy = 0.0, yy = 0.0, dx = 0.0, dy = 0.0, ex = 0.0;
+    double xb = sx * (x0 - x1 - x2 + x3);
+    double yb = sy * (y0 - y1 - y2 + y3);
+    double ab = 0.0, ac = 0.0, bc = 0.0, cb = 0.0;
+    double xx = 0.0, xy = 0.0, yy = 0.0;
+    double dx = 0.0, dy = 0.0, ex = 0.0;
         
     if (xa == 0 && ya == 0)
     {
@@ -4484,7 +4594,12 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
         bc = xb * yc - xc * yb;
         ex = ab * (ab + ac - 3 * bc) + sqr(ac);
         f = (ex > 0) ? 1 : int32_t(sqrt(1 + 1024 / x1));
-        ab *= f; ac *= f; bc *= f; ex *= intmax_t(f) * f;
+
+        ab *= f;
+        ac *= f;
+        bc *= f;
+        ex *= intmax_t(f) * f;
+
         xy = 9 * (ab + ac + bc) / 8;
         cb = 8 * (xa - ya);
         dx = 27 * (8 * ab * (yb * yb - ya * yc) + ex * (ya + 2 * yb + yc)) / 64 - ya * ya * (xy - ya);
@@ -4492,22 +4607,39 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
 
         xx = 3 * (3 * ab * (3 * yb * yb - ya * ya - 2 * ya * yc) - ya * (3 * ac * (ya + yb) + ya * cb)) / 4;
         yy = 3 * (3 * ab * (3 * xb * xb - xa * xa - 2 * xa * xc) - xa * (3 * ac * (xa + xb) + xa * cb)) / 4;
-        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + cb); ac = ya * ya; cb = xa * xa;
+        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + cb);
+        
+        ac = ya * ya;
+        cb = xa * xa;
         xy = 3 * (xy + 9.0 * f * (cb * yb * yc - xb * xc * ac) - 18 * xb * yb * ab) / 8;
 
         if (ex < 0)
         {
-            dx = -dx; dy = -dy; xx = -xx; yy = -yy; xy = -xy; ac = -ac; cb = -cb;
+            dx = -dx;
+            dy = -dy;
+            xx = -xx;
+            yy = -yy;
+            xy = -xy;
+            ac = -ac;
+            cb = -cb;
         }
 
-        ab = 6 * ya * ac; ac = -6 * xa * ac; bc = 6 * ya * cb; cb = -6 * xa * cb;
-        dx += xy; ex = dx + dy; dy += xy;
+        ab = 6 * ya * ac;
+        ac = -6 * xa * ac;
+        bc = 6 * ya * cb;
+        cb = -6 * xa * cb;
+
+        dx += xy;
+        ex = dx + dy;
+        dy += xy;
 
         for (pxy = &xy, fx = fy = f; x0 != x3 && y0 != y3; )
         {
             putPixel(x0, y0, col, mode);
+
             do {
                 if (dx > *pxy || dy < *pxy) goto exit;
+
                 y1 = 2 * ex - dy;
                 if (2 * ex >= dx)
                 {
@@ -4517,6 +4649,7 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
                     yy += bc;
                     xx += ab;
                 }
+
                 if (y1 <= 0)
                 {
                     fy--;
@@ -4527,14 +4660,34 @@ void drawCubicBezierSeg(int32_t x0, int32_t y0, double x1, double y1, double x2,
                 }
             } while (fx > 0 && fy > 0);
 
-            if (2 * fx <= f) { x0 += sx; fx += f; }
-            if (2 * fy <= f) { y0 += sy; fy += f; }
+            if (2 * fx <= f)
+            {
+                x0 += sx;
+                fx += f;
+            }
+
+            if (2 * fy <= f)
+            {
+                y0 += sy;
+                fy += f;
+            }
+
             if (pxy == &xy && dx < 0 && dy > 0) pxy = &EP;
         }
 
     exit:
-        xx = x0; x0 = x3; x3 = int32_t(xx); sx = -sx; xb = -xb;
-        yy = y0; y0 = y3; y3 = int32_t(yy); sy = -sy; yb = -yb; x1 = x2;
+        xx = x0;
+        x0 = x3;
+        x3 = int32_t(xx);
+
+        sx = -sx;
+        xb = -xb;
+        yy = y0;
+        y0 = y3;
+        y3 = int32_t(yy);
+        sy = -sy;
+        yb = -yb;
+        x1 = x2;
     } while (leg--);
 
     drawLine(x0, y0, x3, y3, col, mode);
@@ -4561,8 +4714,12 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
     else if (t1 > 0.0)
     {
         t2 = sqrt(t1);
-        t1 = (xb - t2) / xa; if (fabs(t1) < 1.0) t[n++] = t1;
-        t1 = (xb + t2) / xa; if (fabs(t1) < 1.0) t[n++] = t1;
+        
+        t1 = (xb - t2) / xa;
+        if (fabs(t1) < 1.0) t[n++] = t1;
+
+        t1 = (xb + t2) / xa;
+        if (fabs(t1) < 1.0) t[n++] = t1;
     }
 
     t1 = sqr(double(yb)) - double(ya) * yc;
@@ -4588,7 +4745,9 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
         }
     }
 
-    t1 = -1.0; t[n] = 1.0;
+    t1 = -1.0;
+    t[n] = 1.0;
+
     for (i = 0; i <= n; i++)
     {
         t2 = t[i];
@@ -4600,10 +4759,26 @@ void drawCubicBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2,
         fy0 -= fy3 = (t2 * (t2 * (3.0 * yb - t2 * ya) - 3.0 * yc) + yd) / 8;
         x3 = int32_t(floor(fx3 + 0.5));
         y3 = int32_t(floor(fy3 + 0.5));
-        if (fx0 != 0.0) { fx1 *= fx0 = (intmax_t(x0) - x3) / fx0; fx2 *= fx0; }
-        if (fy0 != 0.0) { fy1 *= fy0 = (intmax_t(y0) - y3) / fy0; fy2 *= fy0; }
+        
+        if (fx0 != 0.0)
+        {
+            fx1 *= fx0 = (intmax_t(x0) - x3) / fx0;
+            fx2 *= fx0;
+        }
+
+        if (fy0 != 0.0)
+        {
+            fy1 *= fy0 = (intmax_t(y0) - y3) / fy0;
+            fy2 *= fy0;
+        }
+        
         if (x0 != x3 || y0 != y3) drawCubicBezierSeg(x0, y0, x0 + fx1, y0 + fy1, x0 + fx2, y0 + fy2, x3, y3, col, mode);
-        x0 = x3; y0 = y3; fx0 = fx3; fy0 = fy3; t1 = t2;
+        
+        x0 = x3;
+        y0 = y3;
+        fx0 = fx3;
+        fy0 = fy3;
+        t1 = t2;
     }
 }
 
@@ -4991,7 +5166,7 @@ int32_t updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
     //no need update
     if (img->mWidth == width && img->mHeight == height) return 1;
 
-    //calculate buffer size (should be 32-bytes alignment)
+    //calculate new buffer size (should be 32-bytes alignment)
     const uint32_t rowBytes = width * bytesPerPixel;
 
     //check for 32-bytes alignment
@@ -7381,7 +7556,7 @@ must_inline uint32_t bicubicGetPixelBorder(const GFX_IMAGE* img, const int16_t *
     }
 
     //construct matrix 16x16 pixels data
-    GFX_IMAGE mpic;
+    GFX_IMAGE mpic = { 0 };
     mpic.mData = pixels;
     mpic.mWidth = 4;
     mpic.mHeight = 4;
@@ -8693,16 +8868,16 @@ void initProjection(double theta, double phi, double de, double rho /* = 0 */)
 {
     const double ph = (M_PI * phi) / 180;
     const double th = (M_PI * theta) / 180;
+    
+    sinth = sin(th);
+    sinph = sin(ph);
+    costh = cos(th);
+    cosph = cos(ph);
 
-    aux1 = sin(th);
-    aux2 = sin(ph);
-    aux3 = cos(th);
-    aux4 = cos(ph);
-
-    aux5 = aux3 * aux2;
-    aux6 = aux1 * aux2;
-    aux7 = aux3 * aux4;
-    aux8 = aux1 * aux4;
+    sincosx = sinph * costh;
+    sinsinx = sinth * sinph;
+    coscosx = costh * cosph;
+    sincosy = sinth * cosph;
 
     DE = de;
     RHO = rho;
@@ -8711,12 +8886,12 @@ void initProjection(double theta, double phi, double de, double rho /* = 0 */)
 //projection points (x,y,z)
 void projette(double x, double y, double z, double *px, double *py)
 {
-    const double obsX = -x * aux1 + y * aux3;
-    const double obsY = -x * aux5 - y * aux6 + z * aux4;
+    const double obsX = -x * sinth + y * costh;
+    const double obsY = -x * sincosx - y * sinsinx + z * cosph;
 
     if (projectionType == PROJECTION_TYPE_PERSPECTIVE)
     {
-        double obsZ = -x * aux7 - y * aux8 - z * aux2 + RHO;
+        double obsZ = -x * coscosx - y * sincosy - z * sinph + RHO;
         if (obsZ == 0.0) obsZ = DBL_MIN;
         if (px) *px = (DE * obsX) / obsZ;
         if (py) *py = (DE * obsY) / obsZ;
@@ -8738,8 +8913,8 @@ void projette(double x, double y, double z, double *px, double *py)
 void resetProjection()
 {
     RHO = DE = 0;
-    aux1 = aux2 = aux3 = aux4 = 0;
-    aux5 = aux6 = aux7 = aux8 = 0;
+    sinth = sinph = costh = cosph = 0;
+    sincosx = sinsinx = coscosx = sincosy = 0;
 }
 
 //set current projection type
@@ -9114,7 +9289,7 @@ void scrollPalette(int32_t from, int32_t to, int32_t step)
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = (to - from) * sizeof(RGB);
+    const uint32_t steps = (intptr_t(to) - from) * sizeof(RGB);
 
     while (step--)
     {
@@ -9169,7 +9344,7 @@ void chr2Str(uint8_t chr, uint8_t num, char* str)
 {
     str[0] = chr;
     str[1] = num;
-    str[2] = 0;
+    str[2] = '\0';
 }
 
 //encode string to VNI string (format type VNI)
