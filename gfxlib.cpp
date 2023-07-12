@@ -9144,14 +9144,16 @@ void shiftPalette(RGB* pal)
 //make a black palette
 void clearPalette()
 {
-    const RGB pal[256] = { 0 };
+    RGB pal[256] = { 0 };
+    memset(pal, 0, sizeof(pal));
     setPalette(pal);
 }
 
 //make white palette
 void whitePalette()
 {
-    const RGB pal[256] = { 255 };
+    RGB pal[256] = { 0 };
+    memset(pal, 255, sizeof(pal));
     setPalette(pal);
 }
 
@@ -9161,7 +9163,7 @@ void getBasePalette(RGB* pal)
     memcpy(pal, basePalette, sizeof(basePalette));
 }
 
-//make linear palette (7 circle colors)
+//make linear palette (7 circles color)
 void makeLinearPalette()
 {
     RGB pal[256] = { 0 };
