@@ -868,11 +868,11 @@ func_t* calculateFuncs[2] = { 0 };
 char sbuff[2000] = { 0 };
 const char* methodNames[20] = { 0 };
 
-int32_t funcCounts[2] = { 0 };
-int32_t funcIndexs[2] = { 0 };
+int32_t funcCount[2] = { 0 };
+int32_t funcIndex[2] = { 0 };
 
 bool fractType = true;
-bool fullModes[2] = { 0 };
+bool fullMode[2] = { 0 };
 
 double scale = 0;
 
@@ -933,150 +933,150 @@ void initFunctions(int32_t type)
         int32_t i = 0;
         funcs[type][i] = juliaFloat;
         methodNames[i] = "float";
-        if (fullModes[type]) i++;
+        if (fullMode[type]) i++;
 
         if (sse42)
         {
             funcs[1][i] = juliaFloatSSE;
             methodNames[i] = "float SSE";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx)
         {
             funcs[type][i] = juliaFloatAVX;
             methodNames[i] = "float AVX";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
             funcs[type][i] = juliaFloatAVX2;
             methodNames[i] = "float AVX2";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
             funcs[type][i] = juliaFloatFMA;
             methodNames[i] = "float FMA";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
-        if (!fullModes[type]) i++;
+        if (!fullMode[type]) i++;
 
         funcs[type][i] = juliaDouble;
         methodNames[i] = "double";
-        if (fullModes[type]) i++;
+        if (fullMode[type]) i++;
 
         if (sse42)
         {
             funcs[type][i] = juliaDoubleSSE2;
             methodNames[i] = "double SSE";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx)
         {
             funcs[type][i] = juliaDoubleAVX;
             methodNames[i] = "double AVX";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
             funcs[type][i] = juliaDoubleAVX2;
             methodNames[i] = "double AVX2";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
             funcs[type][i] = juliaDoubleFMA;
             methodNames[i] = "double FMA";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
-        if (!fullModes[type]) i++;
+        if (!fullMode[type]) i++;
 
-        funcCounts[type] = i;
-        funcIndexs[type] = 0;
-        calculateFuncs[type] = funcs[type][funcIndexs[type]];
+        funcCount[type] = i;
+        funcIndex[type] = 0;
+        calculateFuncs[type] = funcs[type][funcIndex[type]];
     }
     else
     {
         int32_t i = 0;
         funcs[type][i] = mandelbrotFloat;
         methodNames[i] = "float";
-        if (fullModes[type]) i++;
+        if (fullMode[type]) i++;
 
         if (sse42)
         {
             funcs[1][i] = mandelbrotFloatSSE;
             methodNames[i] = "float SSE";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx)
         {
             funcs[type][i] = mandelbrotFloatAVX;
             methodNames[i] = "float AVX";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
             funcs[type][i] = mandelbrotFloatAVX2;
             methodNames[i] = "float AVX2";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
             funcs[type][i] = mandelbrotFloatFMA;
             methodNames[i] = "float FMA";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
-        if (!fullModes[type]) i++;
+        if (!fullMode[type]) i++;
 
         funcs[type][i] = mandelbrotDouble;
         methodNames[i] = "double";
-        if (fullModes[type]) i++;
+        if (fullMode[type]) i++;
 
         if (sse42)
         {
             funcs[type][i] = mandelbrotDoubleSSE2;
             methodNames[i] = "double SSE";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx)
         {
             funcs[type][i] = mandelbrotDoubleAVX;
             methodNames[i] = "double AVX";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2)
         {
             funcs[type][i] = mandelbrotDoubleAVX2;
             methodNames[i] = "double AVX2";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
         if (osxsave && avx && avx2 && fma)
         {
             funcs[type][i] = mandelbrotDoubleFMA;
             methodNames[i] = "double FMA";
-            if (fullModes[type]) i++;
+            if (fullMode[type]) i++;
         }
 
-        if (!fullModes[type]) i++;
+        if (!fullMode[type]) i++;
 
-        funcCounts[type] = i;
-        funcIndexs[type] = 0;
-        calculateFuncs[type] = funcs[type][funcIndexs[type]];
+        funcCount[type] = i;
+        funcIndex[type] = 0;
+        calculateFuncs[type] = funcs[type][funcIndex[type]];
     }
 }
 
@@ -1215,26 +1215,26 @@ void gfxFractals()
             if (fractType)
             {
                 snprintf(sbuff, sizeof(sbuff), "Julia-Explorer [%s][%dx%d][%g, %g, %g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, 1, 2, 3, 4, i, o, s, q, w]",
-                    methodNames[funcIndexs[fractType]],
+                    methodNames[funcIndex[fractType]],
                     acx, cy,
                     xx, yy, scale,
                     cre, cim, iterations,
                     (t2 - t1),
                     cpuCores,
                     1000.0 / (intmax_t(t2) - t1),
-                    fullModes[fractType] ? "ALL" : "SINGLE");
+                    fullMode[fractType] ? "ALL" : "SINGLE");
             }
             else
             {
                 snprintf(sbuff, sizeof(sbuff), "Mandelbrot-Explorer [%s][%dx%d][%g, %g, %g, %d][%ld ms][%u cores][%.2f FPS][%s][tab, arrows, spacer, i, o, s, q, w]",
-                    methodNames[funcIndexs[fractType]],
+                    methodNames[funcIndex[fractType]],
                     acx, cy,
                     xx, yy, scale,
                     iterations,
                     (t2 - t1),
                     cpuCores,
                     1000.0 / (intmax_t(t2) - t1),
-                    fullModes[fractType] ? "ALL" : "SINGLE");
+                    fullMode[fractType] ? "ALL" : "SINGLE");
             }
 
             //raise windows title details
@@ -1287,14 +1287,14 @@ void gfxFractals()
             break;
 
         case SDL_SCANCODE_SPACE:
-            funcIndexs[fractType]++;
-            if (funcIndexs[fractType] == funcCounts[fractType]) funcIndexs[fractType] = 0;
-            calculateFuncs[fractType] = funcs[fractType][funcIndexs[fractType]];
+            funcIndex[fractType]++;
+            if (funcIndex[fractType] == funcCount[fractType]) funcIndex[fractType] = 0;
+            calculateFuncs[fractType] = funcs[fractType][funcIndex[fractType]];
             redraw = true;
             break;
 
         case SDL_SCANCODE_TAB:
-            fullModes[fractType] = !fullModes[fractType];
+            fullMode[fractType] = !fullMode[fractType];
             initFunctions(fractType);
             redraw = true;
             break;
