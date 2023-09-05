@@ -1,5 +1,3 @@
-#pragma once
-
 /*===============================================================*/
 /*                 GFXLIB Graphics Library                       */
 /*               Use SDL2 for render backend                     */
@@ -18,6 +16,8 @@
 /*                       https://crossfire-designs.de            */
 /*              License: GNU GPL                                 */
 /*===============================================================*/
+
+#pragma once
 
 #include <random>
 #include <stdint.h>
