@@ -885,12 +885,12 @@ void clearScreenMix(uint32_t color)
     }
 #else
     //32-bytes alignment
-    const int32_t align = msize >> 5;
+    const int32_t aligned = msize >> 5;
     const __m256i ymm0 = _mm256_set1_epi8(color);
     uint8_t* pixels = (uint8_t*)drawBuff;
 
     //loop for 32-bytes aligned
-    for (int32_t i = 0; i < align; i++)
+    for (int32_t i = 0; i < aligned; i++)
     {
         _mm256_stream_si256((__m256i*)pixels, ymm0);
         pixels += 32;
@@ -940,12 +940,12 @@ void clearScreen(uint32_t color)
     }
 #else
     //32-bytes alignment
-    const int32_t align = msize >> 3;
+    const int32_t aligned = msize >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
     uint32_t* pixels = (uint32_t*)drawBuff;
     
     //loop for 32-bytes aligned
-    for (int32_t i = 0; i < align; i++)
+    for (int32_t i = 0; i < aligned; i++)
     {
         _mm256_stream_si256((__m256i*)pixels, ymm0);
         pixels += 8;
@@ -1287,13 +1287,13 @@ must_inline void horizLineMix(int32_t x, int32_t y, int32_t sx, uint32_t color)
     }
 #else
     //32-bytes alignment
-    const int32_t align = sx >> 5;
+    const int32_t aligned = sx >> 5;
     const __m256i ymm0 = _mm256_set1_epi8(color);
     uint8_t* pdata = (uint8_t*)drawBuff;
     uint8_t* pixels = &pdata[texWidth * y + x];
     
     //loop for 32-bytes aligned
-    for (int32_t i = 0; i < align; i++)
+    for (int32_t i = 0; i < aligned; i++)
     {
         //_mm256_storeu_si256 is slower than _mm256_stream_si256
         //but _mm256_stream_si256 required memory is aligned by 32-bytes
@@ -1340,13 +1340,13 @@ must_inline void horizLineNormal(int32_t x, int32_t y, int32_t sx, uint32_t colo
     }
 #else
     //32-bytes alignment
-    const int32_t align = sx >> 3;
+    const int32_t aligned = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
     uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* pixels = &pdata[texWidth * y + x];
 
     //loop for 32-bytes aligned
-    for (int32_t i = 0; i < align; i++)
+    for (int32_t i = 0; i < aligned; i++)
     {
         _mm256_storeu_si256((__m256i*)pixels, ymm0);
         pixels += 8;
@@ -1395,13 +1395,13 @@ must_inline void horizLineAdd(int32_t x, int32_t y, int32_t sx, uint32_t color)
     }
 #else
     //32-bytes alignment
-    const int32_t align = sx >> 3;
+    const int32_t aligned = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
     
     //loop for 32-bytes aligned
-    for (int32_t i = 0; i < align; i++)
+    for (int32_t i = 0; i < aligned; i++)
     {
         __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
         ymm1 = _mm256_adds_epu8(ymm1, ymm0);
@@ -1459,13 +1459,13 @@ must_inline void horizLineSub(int32_t x, int32_t y, int32_t sx, uint32_t color)
     }
 #else
     //32-bytes alignment
-    const int32_t align = sx >> 3;
+    const int32_t aligned = sx >> 3;
     const __m256i ymm0 = _mm256_set1_epi32(color);
     ARGB* pdata = (ARGB*)drawBuff;
     ARGB* pixels = &pdata[texWidth * y + x];
 
     //loop for 32-bytes aligned
-    for (int32_t i = 0; i < align; i++)
+    for (int32_t i = 0; i < aligned; i++)
     {
         __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
         ymm1 = _mm256_subs_epu8(ymm1, ymm0);
@@ -1997,7 +1997,7 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
     }
 #else
     //align 32-bytes
-    const int32_t align = width >> 3;
+    const int32_t aligned = width >> 3;
     const int32_t remainder = width % 8;
     const int32_t addOffset = texWidth - width;
 
@@ -2012,7 +2012,7 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
     for (int32_t i = 0; i < height; i++)
     {
         //loop for 32-bytes aligned
-        for (int32_t j = 0; j < align; j++)
+        for (int32_t j = 0; j < aligned; j++)
         {
             _mm256_stream_si256((__m256i*)dstPixels, ymm0);
             dstPixels += 8;
@@ -2072,7 +2072,7 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     }
 #else
     //aligned 32-bytes
-    const int32_t align = width >> 3;
+    const int32_t aligned = width >> 3;
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
     
@@ -2087,7 +2087,7 @@ void fillRectAdd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     for (int32_t i = 0; i < height; i++)
     {
         //loop for 32-bytes aligned
-        for (int32_t j = 0; j < align; j++)
+        for (int32_t j = 0; j < aligned; j++)
         {
             __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
             ymm1 = _mm256_adds_epu8(ymm1, ymm0);
@@ -2156,7 +2156,7 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     }
 #else
     //aligned 32-bytes
-    const int32_t align = width >> 3;
+    const int32_t aligned = width >> 3;
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
 
@@ -2171,7 +2171,7 @@ void fillRectSub(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     for (int32_t i = 0; i < height; i++)
     {
         //loop for 32-bytes aligned
-        for (int32_t j = 0; j < align; j++)
+        for (int32_t j = 0; j < aligned; j++)
         {
             __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
             ymm1 = _mm256_subs_epu8(ymm1, ymm0);
@@ -2240,7 +2240,7 @@ void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     }
 #else
     //aligned 32-bytes
-    const int32_t align = width >> 3;
+    const int32_t aligned = width >> 3;
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
 
@@ -2255,7 +2255,7 @@ void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     for (int32_t i = 0; i < height; i++)
     {
         //loop for 32-bytes aligned
-        for (int32_t j = 0; j < align; j++)
+        for (int32_t j = 0; j < aligned; j++)
         {
             __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
             ymm1 = _mm256_and_si256(ymm1, ymm0);
@@ -2324,7 +2324,7 @@ void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     }
 #else
     //aligned 32-bytes
-    const int32_t align = width >> 3;
+    const int32_t aligned = width >> 3;
     const int32_t remainder = width % 8;
     const int32_t addOfs = texWidth - width;
 
@@ -2339,7 +2339,7 @@ void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     for (int32_t i = 0; i < height; i++)
     {
         //loop for 32-bytes aligned
-        for (int32_t j = 0; j < align; j++)
+        for (int32_t j = 0; j < aligned; j++)
         {
             __m256i ymm1 = _mm256_stream_load_si256((const __m256i*)pixels);
             ymm1 = _mm256_xor_si256(ymm1, ymm0);
@@ -2590,12 +2590,12 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
 
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[i & 7];
-        al = _rotl8(al, 7);
+        uint8_t col = pattern[i & 7];
+        col = _rotl8(col, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (al & 1) *dstPixels = col;
-            al = _rotl8(al, 1);
+            if (col & 1) *dstPixels = col;
+            col = _rotl8(col, 1);
             dstPixels++;
         }
         if (addDstOffs > 0) dstPixels += addDstOffs;
@@ -2671,12 +2671,12 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
 
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[i & 7];
-        al = _rotl8(al, 7);
+        uint8_t col = pattern[i & 7];
+        col = _rotl8(col, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (al & 1) *dstPixels = col;
-            al = _rotl8(al, 1);
+            if (col & 1) *dstPixels = col;
+            col = _rotl8(col, 1);
             dstPixels++;
         }
         if (addDstOffs > 0) dstPixels += addDstOffs;
@@ -2764,17 +2764,17 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //start scan line
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[i & 7];
-        al = _rotl8(al, 7);
+        uint8_t col = pattern[i & 7];
+        col = _rotl8(col, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (al & 1)
+            if (col & 1)
             {
                 pixels->r = min(pixels->r + pcol->r, 255);
                 pixels->g = min(pixels->g + pcol->g, 255);
                 pixels->b = min(pixels->b + pcol->b, 255);
             }
-            al = _rotl8(al, 1);
+            col = _rotl8(col, 1);
             pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -2862,17 +2862,17 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //start scan line
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[i & 7];
-        al = _rotl8(al, 7);
+        uint8_t col = pattern[i & 7];
+        col = _rotl8(col, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (al & 1)
+            if (col & 1)
             {
                 pixels->r = max(pixels->r - pcol->r, 0);
                 pixels->g = max(pixels->g - pcol->g, 0);
                 pixels->b = max(pixels->b - pcol->b, 0);
             }
-            al = _rotl8(al, 1);
+            col = _rotl8(col, 1);
             pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -2949,18 +2949,18 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
 
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t al = pattern[i & 7];
-        al = _rotl8(al, 7);
+        uint8_t col = pattern[i & 7];
+        col = _rotl8(col, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (al & 1)
+            if (col & 1)
             {
                 const uint32_t dst = *pixels;
                 const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
                 const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((argb & 0xff00ff00) >> 8) * cover);
                 *pixels = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
             }
-            al = _rotl8(al, 1);
+            col = _rotl8(col, 1);
             pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -3240,7 +3240,7 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     if (bitsPerPixel != 8) return;
 
     //range check
-    if (x1 < 0 || x1 >= texWidth || x2 < 0 || x2 >= texWidth || y1 < 0 || y1 >= texHeight || y2 < 0 || y2 >= texHeight) return;
+    if (x1 < 0 || x1 > cmaxX || x2 < 0 || x2 > cmaxX || y1 < 0 || y1 > cmaxY || y2 < 0 || y2 > cmaxY) return;
 
 #ifdef _USE_ASM    
     int32_t dst = 0, sc = 0, dc = 0;
@@ -6142,7 +6142,7 @@ void putImageAlpha(const int32_t x, const int32_t y, const int32_t lx, const int
             const __m256i result = _mm256_packus_epi16(rlt16l, rlt16h);
             _mm256_stream_si256((__m256i*)dstPixels, result);
 
-            //next 8 pixels width
+            //next 8 pixels width (32 bytes)
             dstPixels += 8;
             srcPixels += 8;
         }
@@ -6286,10 +6286,15 @@ void putSpriteMix(const int32_t x, const int32_t y, const uint32_t keyColor, con
     {
         for (int32_t j = 0; j < width; j++)
         {
-            if (*srcPixels != keyColor) *dstPixels = *srcPixels;
+            //source color diff with key color, plot it
+            if (!(*srcPixels ^ keyColor)) *dstPixels = *srcPixels;
+
+            //next pixels
             dstPixels++;
             srcPixels++;
         }
+
+        //next line
         if (addDstOffs > 0) dstPixels += addDstOffs;
         if (addImgOffs > 0) srcPixels += addImgOffs;
     }
@@ -6426,7 +6431,11 @@ void putSpriteNormal(const int32_t x, const int32_t y, const uint32_t keyColor, 
         {
             for (int32_t k = 0; k < remainder; k++)
             {
-                if ((*srcPixels & 0x00ffffff) != keyColor) *dstPixels = *srcPixels;
+                //turn of alpha channel of source color
+                const uint32_t col = *srcPixels & 0x00ffffffl;
+                if (!(col ^ keyColor)) *dstPixels = *srcPixels;
+
+                //next pixels
                 dstPixels++;
                 srcPixels++;
             }
@@ -6568,12 +6577,16 @@ void putSpriteAdd(const int32_t x, const int32_t y, const uint32_t keyColor, con
         {
             for (int32_t k = 0; k < remainder; k++)
             {
-                if ((*(uint32_t*)srcPixels & 0x00ffffff) != keyColor)
+                //turn off alpha channel of source color
+                const uint32_t col = (*(uint32_t*)srcPixels) & 0x00ffffff;
+                if (!(col ^ keyColor))
                 {
                     dstPixels->r = min(srcPixels->r + dstPixels->r, 255);
                     dstPixels->g = min(srcPixels->g + dstPixels->g, 255);
                     dstPixels->b = min(srcPixels->b + dstPixels->b, 255);
                 }
+
+                //next pixels
                 dstPixels++;
                 srcPixels++;
             }
@@ -6724,12 +6737,16 @@ void putSpriteSub(const int32_t x, const int32_t y, const uint32_t keyColor, con
         {
             for (int32_t k = 0; k < remainder; k++)
             {
-                if ((*(uint32_t*)srcPixels & 0x00ffffff) != keyColor)
+                //turn off alpha channel of source color
+                const uint32_t col = (*(uint32_t*)srcPixels) & 0x00ffffff;
+                if (!(col ^ keyColor))
                 {
                     dstPixels->r = max(srcPixels->r - dstPixels->r, 0);
                     dstPixels->g = max(srcPixels->g - dstPixels->g, 0);
                     dstPixels->b = max(srcPixels->b - dstPixels->b, 0);
                 }
+
+                //next pixels
                 dstPixels++;
                 srcPixels++;
             }
@@ -6895,7 +6912,8 @@ void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, c
             for (int32_t k = 0; k < remainder; k++)
             {
                 //we accepted RGB color only
-                if ((*srcPixels & 0x00ffffff) != keyColor)
+                const uint32_t col = (*srcPixels) & 0x00ffffff;
+                if (!(col ^ keyColor))
                 {
                     const uint32_t dstCol = *dstPixels;
                     const uint32_t srcCol = *srcPixels;
