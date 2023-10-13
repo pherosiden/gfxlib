@@ -411,7 +411,7 @@ namespace crossFade {
     RGB     src[256] = { 0 };
     RGB     dst[256] = { 0 };
 
-    uint8_t dirt = 0;
+    bool dirt = true;
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff2[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff3[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -568,8 +568,6 @@ namespace crossFade {
 
         setPalette(src);
         renderBuffer(vbuff2, SCREEN_MIDX, SCREEN_MIDY);
-
-        dirt = 1;
 
         while (!keyDown(SDL_SCANCODE_RETURN)) 
         {
@@ -2208,7 +2206,7 @@ namespace plasmaTexture {
     TVertex     vertices[8] = { 0 };
     TPoint      points[8] = { 0 };
 
-    uint8_t     zoom = 0;
+    bool        zoom;
     uint16_t    u, v, us, vs;
     int16_t     xofs, yofs, zofs;
     int16_t     faces[6][5] = { 0 };
@@ -2230,7 +2228,7 @@ namespace plasmaTexture {
 
         us = 40;
         vs = 50;
-        zoom = 1;
+        zoom = true;
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Plasma-Mapping")) return;
 
@@ -9584,7 +9582,7 @@ namespace kaleidoScope2 {
         RGB pal[256] = { 0 };
 
         int16_t r = 0, g = 0, b = 0;
-        int16_t ry = 1, gy = 1, by = 1;
+        bool ry = true, gy = true, by = true;
 
         int16_t rx = (rand() % 5) + 1;
         int16_t gx = (rand() % 5) + 1;
@@ -10642,7 +10640,7 @@ namespace lineBobEffect {
         RGB pal[256] = { 0 };
 
         int16_t r = 0, g = 0, b = 0;
-        int16_t ry = 1, gy = 1, by = 1;
+        bool ry = true, gy = true, by = true;
 
         uint8_t rx = (rand() % 5) + 1;
         uint8_t gx = (rand() % 5) + 1;
@@ -13940,9 +13938,10 @@ namespace star3dEffect {
 
     TPoint3D stars[1000] = { 0 };
     TPoint2D pos[1000] = { 0 };
-    uint8_t density, direction;
-    uint8_t bounce, bx, by;
+
+    uint8_t density;
     int16_t speed, xofs, yofs;
+    bool direction, bounce, bx, by;
 
     void initStars()
     {
@@ -13988,7 +13987,7 @@ namespace star3dEffect {
         }
     }
 
-    void moveStars(uint8_t dir)
+    void moveStars(bool dir)
     {
         for (int16_t i = 0; i < 1000; i++)
         {
@@ -14039,14 +14038,14 @@ namespace star3dEffect {
         setPalette(pal);
         clearScreen();
 
-        direction = 1;
+        direction = true;
         speed = 2;
         density = 7;
         xofs = IMAGE_MIDX;
         yofs = IMAGE_MIDY;
-        bounce = 0;
-        bx = 1;
-        by = 0;
+        bounce = false;
+        bx = true;
+        by = false;
 
         do {
             calcStars();
@@ -15090,7 +15089,7 @@ namespace rayCastingEffect {
 
     RGB pal[SIZE_256] = { 0 };
 
-    uint8_t showMaze = 1;
+    bool showMaze = true;
     uint8_t maze[32][32] = { 0 };
     uint8_t shade[16][SIZE_256] = { 0 };
     uint8_t walls[SIZE_128][SIZE_128] = { 0 };

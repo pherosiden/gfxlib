@@ -7097,7 +7097,7 @@ must_inline uint32_t smoothGetPixel(const GFX_IMAGE* img, const int32_t sx, cons
 must_inline uint32_t bilinearGetPixelCenter(const GFX_IMAGE* psrc, const int32_t sx, const int32_t sy)
 {
     const int32_t width = psrc->mWidth;
-    const uint32_t* pixel = (uint32_t*)psrc->mData;
+    const uint32_t* pixel = (const uint32_t*)psrc->mData;
 
 #ifdef _USE_ASM
     __asm {
@@ -7328,7 +7328,7 @@ must_inline uint32_t bilinearGetPixelAVX2(const GFX_IMAGE* psrc, const double x,
     return _mm_cvtsi128_si32(weight);
 }
 
-//calculate sin-cos of an angle (merge sin+cos function)
+//calculate sin-cos of an angle (merge sin/cos functions)
 must_inline void sincos(const double angle, double* sina, double* cosa)
 {
 #ifdef _USE_ASM
@@ -9185,6 +9185,7 @@ void getBasePalette(RGB* pal)
 void makeLinearPalette()
 {
     RGB pal[256] = { 0 };
+    memset(pal, 0, sizeof(pal));
 
     for (int16_t i = 0; i < 32; i++)
     {
@@ -9228,19 +9229,16 @@ void makeFunkyPalette()
 {
     RGB pal[256] = { 0 };
 
-    int32_t r = 0;
-    int32_t g = 0;
-    int32_t b = 0;
-
-    uint8_t ry = 1;
-    uint8_t gy = 1;
-    uint8_t by = 1;
+    int32_t r = 0, g = 0, b = 0;
+    bool ry = true, gy = true, by = true;
 
     srand(uint32_t(time(NULL)));
 
     int32_t rx = (rand() % 5) + 1;
     int32_t gx = (rand() % 5) + 1;
     int32_t bx = (rand() % 5) + 1;
+    
+    memset(pal, 0, sizeof(pal));
 
     for (int32_t i = 0; i < 256; i++)
     {
@@ -9279,6 +9277,7 @@ void makeFunkyPalette()
 void makeRainbowPalette()
 {
     RGB pal[256] = { 0 };
+    memset(pal, 0, sizeof(pal));
 
     for (int32_t i = 0; i < 32; i++)
     {
@@ -9304,8 +9303,9 @@ void makeRainbowPalette()
 void scrollPalette(int32_t from, int32_t to, int32_t step)
 {
     RGB tmp = { 0 };
-
     RGB pal[256] = { 0 };
+
+    memset(pal, 0, sizeof(pal));
     getPalette(pal);
 
     //how many steps to rotated
@@ -10053,7 +10053,7 @@ void showBMP(const char* fname)
     freeImage(&bmp);
 }
 
-//fast show PNG image to screen (demo version)
+//fast show 32 bits PNG image to screen (demo version)
 void showPNG(const char* fname)
 {
     GFX_IMAGE png;
@@ -10310,6 +10310,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
     const int32_t addOffs = texWidth - msWidth;
     uint32_t* srcPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
 
+    //scan bitmap data
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -10404,6 +10405,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
     uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* dstPixels = &pdata[texWidth * my + mx];
 
+    //scan bitmap data
     for (int32_t i = 0; i < msHeight; i++)
     {
         for (int32_t j = 0; j < msWidth; j++)
@@ -10503,6 +10505,7 @@ void drawButton(GFX_BUTTON* btn)
     uint32_t* dstPixels = &dstData[texWidth * ly1 + lx1];
     uint32_t* srcPixels = &srcData[btnWidth * (ly1 - y1) + (lx1 - x1)];
 
+    //scan button image
     for (int32_t i = 0; i < lbHeight; i++)
     {
         for (int32_t j = 0; j < lbWidth; j++)
@@ -10522,7 +10525,11 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
 {
     //load mouse pointers
     GFX_IMAGE msPointer = { 0 };
-    if (!loadImage(fname, &msPointer)) return;
+    if (!loadImage(fname, &msPointer))
+    {
+        messageBox(GFX_ERROR, "Cannot load mouse image:%s", fname);
+        return;
+    }
 
     const int32_t msHeight = msPointer.mHeight;
     const int32_t msWidth = msPointer.mWidth / 9;
@@ -10557,11 +10564,12 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
         mbm[i].mbNext = &mbm[i + 1];
 
         //copy data from mouse image to gfx mouse struct
+        const int32_t mwidth = i * msWidth;
         for (int32_t y = 0; y < msHeight; y++)
         {
             uint8_t* dst = &mbm[i].mbData[y * bytesLine];
             const uint8_t* psrc = (const uint8_t*)msPointer.mData;
-            const uint8_t* src = &psrc[(i * msWidth + y * msPointer.mWidth) * bytesPerPixel];
+            const uint8_t* src = &psrc[(mwidth + y * msPointer.mWidth) * bytesPerPixel];
             memcpy(dst, src, bytesLine);
         }
     }
@@ -10579,8 +10587,12 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
 {
     //load button
     GFX_IMAGE img = { 0 };
-    if (!loadImage(fname, &img)) return;
-    
+    if (!loadImage(fname, &img))
+    {
+        messageBox(GFX_ERROR, "Cannot load image button:%s", fname);
+        return;
+    }
+
     const int32_t btnHeight = img.mHeight;
     const int32_t btnWidth = img.mWidth / BUTTON_STATE_COUNT;
     const uint32_t msize = btnWidth * btnHeight;
@@ -10600,11 +10612,12 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
         }
 
         //copy button data
+        const int32_t bwidth = i * btnWidth;
         for (int32_t y = 0; y < btnHeight; y++)
         {
             uint8_t* dst = &btn->btData[i][y * bytesLine];
             const uint8_t* psrc = (const uint8_t*)img.mData;
-            const uint8_t* src = &psrc[(i * btnWidth + y * img.mWidth) * bytesPerPixel];
+            const uint8_t* src = &psrc[(bwidth + y * img.mWidth) * bytesPerPixel];
             memcpy(dst, src, bytesLine);
         }
     }
@@ -10938,6 +10951,7 @@ void initPlasma(uint8_t* sint, uint8_t* cost)
 {
     int32_t i = 0;
     RGB pal[256] = { 0 };
+    memset(pal, 0, sizeof(pal));
 
     for (i = 0; i < 256; i++)
     {
@@ -12129,7 +12143,7 @@ void bumpImage(const GFX_IMAGE* dst, const GFX_IMAGE* src1, const GFX_IMAGE* src
                 {
                     col -= 128;
                     ARGB* pdst = (ARGB*)&dstdata[odst];
-                    const ARGB* psrc = (ARGB*)&src2data[osrc2];
+                    const ARGB* psrc = (const ARGB*)&src2data[osrc2];
                     pdst->r = min((col * psrc->r) >> 5, 255);
                     pdst->g = min((col * psrc->g) >> 5, 255);
                     pdst->b = min((col * psrc->b) >> 5, 255);
@@ -12396,11 +12410,11 @@ void calcCpuFeatures()
     
     memset(cpuFeatures, 0, sizeof(cpuFeatures));
 
-    if (have3DNow()) strncat(cpuFeatures, "3DNow!,", sizeof(cpuFeatures));
-    if (cpuInfo[3] & 0x00800000) strncat(cpuFeatures, "MMX,", sizeof(cpuFeatures));
-    if (cpuInfo[3] & 0x02000000) strncat(cpuFeatures, "SSE,", sizeof(cpuFeatures));
-    if (cpuInfo[3] & 0x04000000) strncat(cpuFeatures, "SSE2,", sizeof(cpuFeatures));
-    if (cpuInfo[2] & 0x10000000) strncat(cpuFeatures, "AVX,", sizeof(cpuFeatures));
+    if (have3DNow()) strncat(cpuFeatures, "3DNow!,", sizeof(cpuFeatures) - 1);
+    if (cpuInfo[3] & 0x00800000) strncat(cpuFeatures, "MMX,", sizeof(cpuFeatures) - 1);
+    if (cpuInfo[3] & 0x02000000) strncat(cpuFeatures, "SSE,", sizeof(cpuFeatures) - 1);
+    if (cpuInfo[3] & 0x04000000) strncat(cpuFeatures, "SSE2,", sizeof(cpuFeatures) - 1);
+    if (cpuInfo[2] & 0x10000000) strncat(cpuFeatures, "AVX,", sizeof(cpuFeatures) - 1);
 
 #ifdef __APPLE__
     __cpuid_count(7, 0, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
@@ -12408,7 +12422,7 @@ void calcCpuFeatures()
     __cpuidex(cpuInfo, 7, 0);
 #endif
 
-    if (cpuInfo[1] & 0x00000020) strncat(cpuFeatures, "AVX2,", sizeof(cpuFeatures));
+    if (cpuInfo[1] & 0x00000020) strncat(cpuFeatures, "AVX2,", sizeof(cpuFeatures) - 1);
 
     size_t len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
@@ -12715,3 +12729,5 @@ const char* getVideoModeInfo()
 {
     return modeInfo;
 }
+
+/*============================ END OF GFXLIB.CPP ========================*/

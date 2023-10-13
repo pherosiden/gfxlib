@@ -799,7 +799,7 @@ void rayCasting()
 
 void basicDrawing()
 {
-    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "2D primitives")) return;
+    if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "2D Primitives")) return;
 
     //this is outsize screen
     int32_t x1 = -50, y1 = -20, x2 = 1000, y2 = 1200;
