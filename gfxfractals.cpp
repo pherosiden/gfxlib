@@ -1135,7 +1135,7 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
         int32_t y0 = _interlockedadd(&yprocessed, yadd) - yadd;
 #endif
         if (y0 >= cy) return 0;
-        int32_t y1 = min(y0 + yadd, cy);
+        const int32_t y1 = min(y0 + yadd, cy);
         calculateFuncs[fractType](&data[y0 * acx], xx, yy, scale, y0, acx, y1);
     }
 
