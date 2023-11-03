@@ -327,7 +327,7 @@ typedef struct {
 
 #pragma pack(pop)
 
-//pixel blending mode
+//pixel blending mode (use for draw operations)
 enum BLEND_MODE {
     BLEND_MODE_NORMAL,                          //this is a normal mode
     BLEND_MODE_ADD,                             //add with background color
