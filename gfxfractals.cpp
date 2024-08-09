@@ -1,5 +1,5 @@
 #include "gfxlib.h"
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 #include <pthread.h>
 #include <cpuid.h>
 #include <sys/sysctl.h>
@@ -889,7 +889,7 @@ int32_t cpuCores = 0;
 
 void initThreads()
 {
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     size_t len = sizeof(cpuCores);
     sysctlbyname("hw.logicalcpu", &cpuCores, &len, NULL, 0);
 #else
@@ -906,27 +906,27 @@ void initFunctions(int32_t type)
 {
     int32_t out[4] = { 0 };
 
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     __cpuid(1, out[0], out[1], out[2], out[3]);
 #else
     __cpuid(out, 1);
 #endif
 
-    bool sse42      = (out[2] & (1 << 20)) != 0;
-    bool sse41      = (out[2] & (1 << 19)) != 0;
-    bool fma        = (out[2] & (1 << 12)) != 0;
-    bool avx        = (out[2] & (1 << 28)) != 0;
-    bool osxsave    = (out[2] & (1 << 29)) != 0;
+    const bool sse42   = (out[2] & (1 << 20)) != 0;
+    const bool sse41   = (out[2] & (1 << 19)) != 0;
+    const bool fma     = (out[2] & (1 << 12)) != 0;
+    const bool avx     = (out[2] & (1 << 28)) != 0;
+    const bool osxsave = (out[2] & (1 << 29)) != 0;
 
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     __cpuid_count(7, 0, out[0], out[1], out[2], out[3]);
 #else
     __cpuidex(out, 7, 0);
 #endif
 
-    bool avx2 = (out[1] & (1 << 5)) != 0;
-    bool avx512f = (out[1] & (1 << 16)) != 0;
-    bool avx512vl = (out[1] & (1 << 31)) != 0;
+    const bool avx2     = (out[1] & (1 << 5)) != 0;
+    const bool avx512f  = (out[1] & (1 << 16)) != 0;
+    const bool avx512vl = (out[1] & (1 << 31)) != 0;
 
     if (type)
     {
@@ -1109,8 +1109,8 @@ void allocBuffer()
     const uint32_t msize = alignedBytes(cy * alignedSize(cx) * getBytesPerPixel());
     if (msize > dataSize)
     {
-        if (data) _mm_free(data);
-        data = (uint32_t*)_mm_malloc(msize, 32);
+        if (data) SDL_aligned_free(data);
+        data = (uint32_t*)SDL_aligned_alloc(32, msize);
         if (!data) exit(1);
         memset(data, 0, msize);
         dataSize = msize;
@@ -1120,7 +1120,7 @@ void allocBuffer()
 const long yadd = 16;
 volatile long yprocessed = 0;
 
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 void* threadProc(void* args)
 #else
 DWORD WINAPI threadProc(LPVOID lpThreadParameter)
@@ -1129,7 +1129,7 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
     int32_t acx = alignedSize(cx);
     while (true)
     {
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
         int32_t y0 = int32_t(__sync_add_and_fetch(&yprocessed, yadd) - yadd);
 #else
         int32_t y0 = _interlockedadd(&yprocessed, yadd) - yadd;
@@ -1144,7 +1144,7 @@ DWORD WINAPI threadProc(LPVOID lpThreadParameter)
 
 void calculateMultiThread()
 {
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     yprocessed = 0;
     pthread_t threads[THREAD_COUNT] = { 0 };
     
@@ -1191,7 +1191,7 @@ void gfxFractals()
     int32_t input = 0, dataY = 0;
 
     SDL_Cursor* oldCursor = SDL_GetCursor();
-    SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
     if (!handCursor)
     {
         messageBox(GFX_ERROR, "Error create hand cursor:%s!", SDL_GetError());
@@ -1202,11 +1202,11 @@ void gfxFractals()
         //only draw when needed
         if (redraw)
         {
-            uint32_t acx = alignedSize(cx);
+            const uint32_t acx = alignedSize(cx);
             allocBuffer();
-            clock_t t1 = clock();
+            const clock_t t1 = clock();
             calculateMultiThread();
-            clock_t t2 = clock();
+            const clock_t t2 = clock();
 
             //we use render user-defined buffer
             renderBuffer(data, acx, cy);
@@ -1336,13 +1336,13 @@ void gfxFractals()
             redraw = true;
             break;
         
-        case SDL_WINDOWEVENT_RESIZED:
+        case SDL_EVENT_WINDOW_RESIZED:
             cx = getDataX();
             cy = getDataY();
             redraw = true;
             break;
 
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             dataY = getDataY();
             while (dataY > 0)
             {
@@ -1357,19 +1357,19 @@ void gfxFractals()
             redraw = true;
             break;
 
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             mouseDown = true;
             msx = getDataX();
             msy = getDataY();
             SDL_SetCursor(handCursor);
             break;
 
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             mouseDown = false;
             SDL_SetCursor(oldCursor);
             break;
 
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             if (mouseDown)
             {
                 const int32_t ptx = getDataX();
@@ -1391,7 +1391,7 @@ void gfxFractals()
     } while (input != SDL_SCANCODE_RETURN);
 
     //cleanup
-    _mm_free(data);
-    SDL_FreeCursor(handCursor);
+    SDL_aligned_free(data);
+    SDL_DestroyCursor(handCursor);
     cleanup();
 }

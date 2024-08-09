@@ -1,8 +1,9 @@
 #include "gfxlib.h"
+#include <windows.h>
 
-int main(int argc, char* args[])
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR lpCmdLine, _In_ int nShowCmd)
 {
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     chdir(dirname(args[0]));
     chdir("../Resources");
 #endif

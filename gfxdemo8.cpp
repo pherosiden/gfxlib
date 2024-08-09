@@ -18,7 +18,7 @@ typedef uint8_t FNTBUFF[CHR_WIDTH][CHR_HEIGHT];
 FNTBUFF     chrPixels[CHR_MAX] = {0};
 
 //circle palette
-RGB         cpal[256] = { 0 };
+RGBA        cpal[256] = { 0 };
 
 //Character buffer
 int32_t     grData[120][2] = {0};
@@ -28,13 +28,13 @@ uint8_t     chrBuff[CHR_NUM * CHR_WIDTH][CHR_HEIGHT] = {0};
 int32_t     maxHeight[LIMITX] = {0};
 int32_t     minHeight[LIMITX] = {0};
 
-int32_t     c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 int32_t     lines = 0, points = 0;
 int32_t     visiPrec = 0, visiCour = 0;
+int32_t     c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
 double      theta = 0, phi = 0;
-double      gx1 = 0, gx2 = 0, gy1 = 0, gy2 = 0;
 double      f1 = 0, f2 = 0, f3 = 0, f4 = 0;
+double      gx1 = 0, gx2 = 0, gy1 = 0, gy2 = 0;
 double      incX = 0, incY = 0, echX = 0, echY = 0;
 
 double      u, debutU = 0, finU = 0, du = 0;
@@ -1463,7 +1463,7 @@ void displayPlasma()
         "CYA!"
     };
 
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     GFX_IMAGE src = { 0 }, dst = { 0 };
 
     int32_t ypos = 0, endPos = 0;
@@ -1536,8 +1536,8 @@ void displayPlasma()
 
 void gfxDemoMix()
 {
-    RGB 	pal1[256] = {0};
-    RGB 	pal2[256] = {0};
+    RGBA 	pal1[256] = {0};
+    RGBA 	pal2[256] = {0};
     POINT2D	pts[50] = { 0 };
 
     double ratio = 0.0, rept = 0.0;

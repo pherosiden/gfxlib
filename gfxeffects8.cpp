@@ -4,7 +4,7 @@ namespace juliaSet {
 
     void makePalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
         
@@ -123,8 +123,8 @@ namespace juliaSet {
 namespace fadePalette {
     void run()
     {
-        const RGB dst[256] = { 0 };
-        RGB src[256] = { 0 };
+        const RGBA dst[256] = { 0 };
+        RGBA src[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fade-IO")) return;
         
@@ -179,7 +179,7 @@ namespace bumpMap {
     void setFadePalette()
     {
         int16_t i = 0;
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
 
         int16_t r1 = 0, r2 = 0;
         int16_t g1 = 0, g2 = 0;
@@ -263,7 +263,7 @@ namespace bumpMap {
         
         setFadePalette();
         setMousePosition(IMAGE_WIDTH, IMAGE_HEIGHT);
-        showMouseCursor(SDL_DISABLE);
+        hideMouseCursor();
 
         do {
             getMouseState(&x, &y, &lmb);
@@ -272,7 +272,7 @@ namespace bumpMap {
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
-        showMouseCursor(SDL_ENABLE);
+        showMouseCursor();
         cleanup();
     }
 }
@@ -307,7 +307,7 @@ namespace fireBump {
     void run()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Bump")) return;
         if (!loadPNG(vbuff1[0], NULL, "assets/author.png")) return;
@@ -381,7 +381,7 @@ namespace circleEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         int32_t x = 0, y = 0, lmb = 0;
         
         preCalc();
@@ -392,7 +392,7 @@ namespace circleEffect {
         
         setPalette(pal);
         setMousePosition(40 << 1, 70 << 1);
-        showMouseCursor(SDL_DISABLE);
+        hideMouseCursor();
 
         do {
             getMouseState(&x, &y, &lmb);
@@ -402,14 +402,14 @@ namespace circleEffect {
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
-        showMouseCursor(SDL_ENABLE);
+        showMouseCursor();
         cleanup();
     }
 }
 
 namespace crossFade {
-    RGB     src[256] = { 0 };
-    RGB     dst[256] = { 0 };
+    RGBA     src[256] = { 0 };
+    RGBA     dst[256] = { 0 };
 
     bool dirt = true;
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -418,8 +418,8 @@ namespace crossFade {
 
     void setItUp()
     {
-        RGB pal1[256] = { 0 };
-        RGB pal2[256] = { 0 };
+        RGBA pal1[256] = { 0 };
+        RGBA pal2[256] = { 0 };
 
         clearPalette();
 
@@ -478,7 +478,7 @@ namespace crossFade {
     void fadeColor(int16_t dirt, int16_t depth)
     {
         int16_t i = 0, j = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
 
@@ -553,14 +553,14 @@ namespace crossFade {
             if (!fp) return;
 
             setItUp();
-            fwrite(src, sizeof(RGB), 256, fp);
-            fwrite(dst, sizeof(RGB), 256, fp);
+            fwrite(src, sizeof(RGBA), 256, fp);
+            fwrite(dst, sizeof(RGBA), 256, fp);
             fwrite(vbuff2, 1, IMAGE_SIZE, fp);
         }
         else
         {
-            fread(src, sizeof(RGB), 256, fp);
-            fread(dst, sizeof(RGB), 256, fp);
+            fread(src, sizeof(RGBA), 256, fp);
+            fread(dst, sizeof(RGBA), 256, fp);
             fread(vbuff2, 1, IMAGE_SIZE, fp);
         }
 
@@ -1351,7 +1351,7 @@ namespace rainEffect {
 
     void setupPalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         for (int16_t i = 0; i < 150; i++)
         {
@@ -1581,7 +1581,7 @@ namespace waterEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         uint32_t frames = 0;
         uint16_t page = 0;
 
@@ -1593,7 +1593,7 @@ namespace waterEffect {
         initSinCos();
         initWater();
     
-        const uint32_t tmstart = getTime();
+        const uint64_t tmstart = getTime();
 
         while (!finished(SDL_SCANCODE_RETURN))
         {
@@ -1704,7 +1704,7 @@ namespace skyEffect {
     void run()
     {
         int16_t x = 0, y = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
         memset(layer, 0, sizeof(layer));
@@ -1893,7 +1893,7 @@ namespace phongShader {
     void initialize()
     {
         int16_t i = 0, j = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
 
@@ -2441,7 +2441,7 @@ namespace plasmaTexture {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
         initData();
@@ -2500,7 +2500,7 @@ namespace fireDown {
     int16_t frames = 0;
     int16_t sinTab[256] = { 0 };
 
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
     int16_t roundf(double x)
@@ -2687,7 +2687,7 @@ namespace fireTexture {
         int16_t x, y, z;
     } TPoint;
 
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     TVertex verties[8] = { 0 };
     TPoint points[8] = { 0 };
 
@@ -2698,7 +2698,7 @@ namespace fireTexture {
     int16_t poly2[IMAGE_HEIGHT][2] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    void HSI2RGB(double H, double S, double I, RGB* rgb)
+    void HSI2RGB(double H, double S, double I, RGBA* rgb)
     {
         const double rv = 1 + S * sin(H - 2 * M_PI / 3);
         const double gv = 1 + S * sin(H);
@@ -3192,7 +3192,7 @@ namespace fireTexture2 {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping")) return;
@@ -3445,7 +3445,7 @@ namespace fireTexture3 {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fire-Mapping")) return;
@@ -3479,7 +3479,7 @@ namespace fireTexture3 {
 }
 
 namespace tunnelEffect {
-    RGB     pal[256] = { 0 };
+    RGBA     pal[256] = { 0 };
     uint8_t brightness = 120;
     int32_t xofs[IMAGE_MIDY][IMAGE_WIDTH] = { 0 };
     int32_t yofs[IMAGE_MIDY][IMAGE_WIDTH] = { 0 };
@@ -3720,7 +3720,7 @@ namespace textureMappingEffect {
 
     int16_t loadTexture()
     {
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         if (!loadPNG(vbuff2[0], rgb, "assets/tface.png")) return 0;
         if (!loadPNG(texture[0], NULL, "assets/robot.png")) return 0;
         setPalette(rgb);
@@ -4523,7 +4523,7 @@ namespace bitmapRotate {
 
     int16_t loadTexture()
     {
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         if (!loadPNG(texture[0], rgb, "assets/crew.png")) return 0;
         setPalette(rgb);
         return 1;
@@ -4680,7 +4680,7 @@ namespace intro16k {
 
     RGB8        rgbpal[256] = { 0 };
     RGB8        outrgb[256] = { 0 };
-    RGB         setrgb[256] = { 0 };
+    RGBA         setrgb[256] = { 0 };
 
     int8_t      sinTab[256] = { 0 };
     uint8_t     sqrTab[4096] = { 0 };
@@ -6923,7 +6923,7 @@ namespace textScrolling {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling")) return;
         if (!loadPNG(vbuff[0], pal, "assets/friend.png")) return;
         setPalette(pal);
@@ -6940,7 +6940,7 @@ namespace fastShowBMP {
     void setRGB(const uint8_t* pal)
     {
         int16_t i = 0, k = 0;
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         
         for (i = 0; i < 256; i++)
         {
@@ -7031,7 +7031,7 @@ namespace EMS {
     void run()
     {
         int16_t i = 0;
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         uint8_t pal[768] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "DOS-EMS Simulation")) return;
@@ -7073,7 +7073,7 @@ namespace EMS {
 }
 
 namespace fillterEffect {
-    RGB         pal[SIZE_256] = { 0 };
+    RGBA         pal[SIZE_256] = { 0 };
     uint8_t     gray[SIZE_256] = { 0 };
     uint8_t     dbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t     vbuff1[IMAGE_HEIGHT][IMAGE_HEIGHT] = { 0 };
@@ -7274,7 +7274,7 @@ namespace fillterEffect {
 
     void run()
     {
-        RGB outPal[256] = { 0 };
+        RGBA outPal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Fillter -- Keys: A->M: switched; Spacer: restore")) return;
         if (!loadPNG(vbuff1[0], pal, "assets/dracula.png")) return;
@@ -7596,7 +7596,7 @@ namespace fireworkEffect {
     void initPalette()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         const double multiple = double(BRIGHT_ARROW) / (ARROWS_LENGTH - 2);
 
         memset(pal, 0, sizeof(pal));
@@ -7710,7 +7710,7 @@ namespace fireworkEffect {
 namespace candleEffect {
     double sint[100] = { 0 };
 
-    RGB rgb[256] = { 0 };
+    RGBA rgb[256] = { 0 };
     uint8_t vbuff[30][100] = { 0 };
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
@@ -7835,7 +7835,7 @@ namespace fireEffect {
     void run()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
 
@@ -7898,7 +7898,7 @@ namespace fireEffect {
 }
 
 namespace fireEffect2 {
-    RGB         pal[256] = { 0 };
+    RGBA         pal[256] = { 0 };
     uint16_t    index = 0;
     uint8_t     seed[SIZE_32K] = { 0 };
     uint8_t     vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -7980,7 +7980,7 @@ namespace fireEffect3 {
     void initFire()
     {
         int16_t j = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
 
@@ -8108,7 +8108,7 @@ namespace fireEffect4 {
 
     void setFirePal()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (uint8_t i = 0; i < 64; i++)
@@ -8238,7 +8238,7 @@ namespace fireEffect5 {
 
     void setFirePalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (uint8_t i = 0; i < 64; i++)
@@ -8430,7 +8430,7 @@ namespace fireEffect6 {
     uint8_t flames[WIDTH + 1] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    void HSI2RGB(double H, double S, double I, RGB* pal)
+    void HSI2RGB(double H, double S, double I, RGBA* pal)
     {
         const double r = 1 + S * sin(H - 2 * M_PI / 3);
         const double g = 1 + S * sin(H);
@@ -8445,7 +8445,7 @@ namespace fireEffect6 {
     void makePalette()
     {
         int16_t i = 0;
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         
         memset(rgb, 0, sizeof(rgb));
 
@@ -8569,7 +8569,7 @@ namespace fireEffect7 {
 
     void makePalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (int16_t i = 0; i < 64; i++)
@@ -8681,7 +8681,7 @@ namespace fireEffect8 {
     void run()
     {
         int16_t i = 0, j = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
         memset(vbuff, 0, IMAGE_SIZE);
@@ -8759,7 +8759,7 @@ namespace holeEffect1 {
     {
         double rad = 0;
         int16_t xx = 0, yy = 0, i = 0, x = 0, y = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         for (i = 0; i < 30; i++)
         {
@@ -8845,7 +8845,7 @@ namespace holeEffect2 {
 
     void makeDegradated(uint8_t r, uint8_t g, uint8_t b)
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (int16_t i = 32; i >= 16; i--)
@@ -9353,7 +9353,7 @@ namespace holeEffect3 {
     {
         uint8_t k;
         uint16_t i, j, x, y;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         for (i = 0; i < 256; i++)
         {
@@ -9445,7 +9445,7 @@ namespace kaleidoScope {
     #define START_COLOR     0
     #define END_COLOR       255
 
-    void rainbowPalette(RGB* pal)
+    void rainbowPalette(RGBA* pal)
     {
         for (int16_t i = 0; i < 32; i++)
         {
@@ -9466,7 +9466,7 @@ namespace kaleidoScope {
 
     void makePalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
         rainbowPalette(pal);
@@ -9554,7 +9554,7 @@ namespace kaleidoScope2 {
 
     void makeRainbowPalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (int16_t i = 0; i < 32; i++)
@@ -9579,7 +9579,7 @@ namespace kaleidoScope2 {
 
     void makeFunkyPalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         int16_t r = 0, g = 0, b = 0;
         bool ry = true, gy = true, by = true;
@@ -9623,15 +9623,15 @@ namespace kaleidoScope2 {
 
     void scrollPalette(int16_t from, int16_t to, int16_t step)
     {
-        RGB tmp = { 0 };
-        RGB pal[256] = { 0 };
+        RGBA tmp = { 0 };
+        RGBA pal[256] = { 0 };
 
         getPalette(pal);
 
         while (step--)
         {
             memcpy(&tmp, &pal[from], sizeof(tmp));
-            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGB));
+            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGBA));
             memcpy(&pal[to], &tmp, sizeof(tmp));
         }
 
@@ -9716,7 +9716,7 @@ namespace kaleidoScope2 {
 namespace fastCircleFill {
     #define MAX_RAD 64
 
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
 
     void makePalette(uint8_t n, uint8_t r, uint8_t g, uint8_t b)
     {
@@ -9783,7 +9783,7 @@ namespace flagsEffect {
 
     int16_t initTexture()
     {
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         if (!loadPNG(vbuff1[0], rgb, "assets/skull.png")) return 0;
         setPalette(rgb);
         return 1;
@@ -9934,7 +9934,7 @@ namespace lakeEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         for (int16_t i = 0; i < 400; i++) sintab[i] = uint8_t(sin(5 * M_PI * i / 100) * 3 + 3);
 
@@ -9994,7 +9994,7 @@ namespace landScapeGeneration {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "LandScape-Generation")) return;
@@ -10039,7 +10039,7 @@ namespace landScapeEffect {
     void setPalette()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (i = 0; i <= 15; i++)
@@ -10151,7 +10151,7 @@ namespace landScapeEffect {
     {
         int32_t i = 0, j = 0, lmb = 0;
         
-        showMouseCursor(SDL_DISABLE);
+        hideMouseCursor();
         setMousePosition(IMAGE_WIDTH, IMAGE_HEIGHT);
 
         do {
@@ -10178,7 +10178,7 @@ namespace landScapeEffect {
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
-        showMouseCursor(SDL_ENABLE);
+        showMouseCursor();
         cleanup();
     }
 
@@ -10251,7 +10251,7 @@ namespace lensEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Lens")) return;
         if (!loadPNG(vbuff2[0], pal, "assets/sunflow.png")) return;
@@ -10390,7 +10390,7 @@ namespace zoomInEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Len Zoom-In -- Move your mouse, left click to exit...")) return;
         if (!loadPNG(vbuff1[0], pal, "assets/insect.png")) return;
@@ -10398,7 +10398,7 @@ namespace zoomInEffect {
 
         calcMask();
         setMousePosition(56 << 1, 32 << 1);
-        showMouseCursor(SDL_DISABLE);
+        hideMouseCursor();
         
         int32_t n = 0, m = 0;
         int32_t x = 0, y = 0, lmb = 0;
@@ -10425,7 +10425,7 @@ namespace zoomInEffect {
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
-        showMouseCursor(SDL_ENABLE);
+        showMouseCursor();
         cleanup();
     }
 }
@@ -10458,7 +10458,7 @@ namespace zoomOutEffect {
     void preCalculate()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         double v = 0.0;
         const double vadd = M_PI / 128;
@@ -10637,7 +10637,7 @@ namespace lineBobEffect {
 
     void makeFunkyPalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         int16_t r = 0, g = 0, b = 0;
         bool ry = true, gy = true, by = true;
@@ -10709,8 +10709,8 @@ namespace lineBlurEffect {
 
     TPoint      points;
 
-    RGB         curpal[1024] = { 0 };
-    RGB         oldpal[6][1024] = { 0 };
+    RGBA         curpal[1024] = { 0 };
+    RGBA         oldpal[6][1024] = { 0 };
     int16_t     flag = 1;
     uint8_t     vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
@@ -10847,7 +10847,7 @@ namespace lineBlurEffect {
 
     void changeColor(int16_t k)
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (int16_t i = 0; i < 256; i++)
@@ -11329,7 +11329,7 @@ namespace pixelMorphing {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Pixel-Morphing")) return;
         if (!loadPNG(vbuff[0], pal, "assets/duke.png")) return;
@@ -11516,7 +11516,7 @@ namespace pierraEffect {
     void run()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         idx = 0.0;
         for (i = 0; i < 1000; i++)
@@ -11594,7 +11594,7 @@ namespace plasmaEffect1 {
     void initPlasma()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (i = 0; i <= 63; i++)
@@ -11654,7 +11654,7 @@ namespace plasmaEffect1 {
 }
 
 namespace plasmaEffect2 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     uint8_t fx[IMAGE_WIDTH] = { 0 };
     uint8_t fy[IMAGE_HEIGHT] = { 0 };
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -11701,10 +11701,10 @@ namespace plasmaEffect2 {
 
     void cyclePallete()
     {
-        RGB tmp = { 0 };
-        memcpy(&tmp, &pal[0], sizeof(RGB));
-        memcpy(&pal[0], &pal[1], 255 * sizeof(RGB));
-        memcpy(&pal[255], &tmp, sizeof(RGB));
+        RGBA tmp = { 0 };
+        memcpy(&tmp, &pal[0], sizeof(RGBA));
+        memcpy(&pal[0], &pal[1], 255 * sizeof(RGBA));
+        memcpy(&pal[255], &tmp, sizeof(RGBA));
         setPalette(pal);
     }
 
@@ -11743,7 +11743,7 @@ namespace plasmaEffect2 {
 }
 
 namespace plasmaEffect3 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
 
     void plasmaPalette()
     {
@@ -11765,13 +11765,13 @@ namespace plasmaEffect3 {
 
     void cyclePallete()
     {
-        RGB tmp = { 0 };
+        RGBA tmp = { 0 };
 
         while (!finished(SDL_SCANCODE_RETURN))
         {
-            memcpy(&tmp, &pal[0], sizeof(RGB));
-            memcpy(&pal[0], &pal[1], 255 * sizeof(RGB));
-            memcpy(&pal[255], &tmp, sizeof(RGB));
+            memcpy(&tmp, &pal[0], sizeof(RGBA));
+            memcpy(&pal[0], &pal[1], 255 * sizeof(RGBA));
+            memcpy(&pal[255], &tmp, sizeof(RGBA));
             setPalette(pal);
             delay(FPS_90);
         }
@@ -11808,7 +11808,7 @@ namespace plasmaEffect4 {
 
     void setColors()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (uint8_t i = 0; i < 64; i++)
@@ -11882,7 +11882,7 @@ namespace plasmaEffect5 {
     #define KX (2 * M_PI / IMAGE_WIDTH)
     #define KY (2 * M_PI / IMAGE_HEIGHT)
 
-    RGB pal[512] = { 0 };
+    RGBA pal[512] = { 0 };
 
     void makeCoolPalette()
     {
@@ -11968,12 +11968,12 @@ namespace plasmaEffect5 {
 
     void rotatePalette(int16_t x, int16_t y)
     {
-        RGB tmp = { 0 };
+        RGBA tmp = { 0 };
 
         do {
-            memcpy(&tmp, &pal[x], sizeof(RGB));
-            memcpy(&pal[x], &pal[x + 1], y * sizeof(RGB));
-            memcpy(&pal[y], &tmp, sizeof(RGB));
+            memcpy(&tmp, &pal[x], sizeof(RGBA));
+            memcpy(&pal[x], &pal[x + 1], y * sizeof(RGBA));
+            memcpy(&pal[y], &tmp, sizeof(RGBA));
             setPalette(pal);
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -12038,7 +12038,7 @@ namespace rippleEffect {
 
     int16_t initTexture()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         if (!loadPNG(vbuff[0], pal, "assets/pig.png")) return 0;
         setPalette(pal);
         return 1;
@@ -12313,7 +12313,7 @@ namespace rotateMap {
     void setupData()
     {
         int16_t i = 0, j = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         double alpha = 0.0;
         for (j = 0; j < SCALING_FACTOR2; j++, alpha += 2 * M_PI / SCALING_FACTOR2)
@@ -12549,7 +12549,7 @@ namespace scaleMap {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         for (int16_t i = 0; i < 256; i++)
         {
@@ -12617,7 +12617,7 @@ namespace shadeBob {
 
     void makePalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (int16_t i = 0; i < 64; i++)
@@ -12711,7 +12711,7 @@ namespace shadePattern {
 
     void generatePalette()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         memset(pal, 0, sizeof(pal));
 
         for (uint8_t i = 0; i < 64; i++)
@@ -12900,7 +12900,7 @@ namespace shadeBobSin {
     void run()
     {
         int16_t x = 0, y = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob")) return;
 
@@ -13036,7 +13036,7 @@ namespace snowFall {
 
     void initSnow()
     {
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         if (!loadPNG(vmem[0], rgb, "assets/flake.png")) return;
         rgb[255].r = 255;
         rgb[255].g = 255;
@@ -13458,7 +13458,7 @@ namespace softFire {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         uint8_t i = 0, j = 0, k = 0;
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Soft-Fire -- Keys: A/S: +/- fires")) return;
@@ -13755,8 +13755,8 @@ namespace spriteEffect {
     void run()
     {
         int16_t i = 0;
-        RGB pal[256] = { 0 };
-        RGB tmp[256] = { 0 };
+        RGBA pal[256] = { 0 };
+        RGBA tmp[256] = { 0 };
         
         FILE* fp = fopen("assets/bubmio.dat", "rb");
         if (!fp) exit(1);
@@ -14014,7 +14014,7 @@ namespace star3dEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Star-Field -- Keys: A/S: +/- speed; Z/X: +/- density; Arrows: move; B: toggles; Spacer: direction")) return;
 
@@ -14085,7 +14085,7 @@ namespace fontEffect1 {
         int8_t ch = 0;
         uint8_t tx = 0, ty = 0;
         uint8_t pal[768] = { 0 };
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
         if (!fp) return 0;
@@ -14203,7 +14203,7 @@ namespace fontEffect2 {
         int8_t chr = 0;
         uint8_t w = 0, h = 0;
         uint8_t pal[768] = { 0 };
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
         if (!fp) return 0;
@@ -14338,7 +14338,7 @@ namespace fontEffect3 {
     {
         uint8_t width = 0, height = 0, chr = 0;
         uint8_t pal[768] = { 0 };
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
 
         FILE* fp = fopen(fname, "rb");
         if (!fp) return 0;
@@ -14494,10 +14494,10 @@ namespace thunderBoltEffect {
         }
     }
 
-    void flashPalette(RGB* pal)
+    void flashPalette(RGBA* pal)
     {
         int16_t i = 0, j = 0;
-        RGB flash[256] = { 0 };
+        RGBA flash[256] = { 0 };
 
         memcpy(flash, pal, 1024);
         flash[0].r = 255;
@@ -14524,7 +14524,7 @@ namespace thunderBoltEffect {
         }
     }
 
-    void thunderBolt(const RGB* src, RGB* dst)
+    void thunderBolt(const RGBA* src, RGBA* dst)
     {
         int16_t dx = 0;
 
@@ -14547,8 +14547,8 @@ namespace thunderBoltEffect {
 
     void run()
     {
-        RGB dst[256] = { 0 };
-        RGB src[256] = { 0 };
+        RGBA dst[256] = { 0 };
+        RGBA src[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Thunder-Bold")) return;
 
@@ -14650,7 +14650,7 @@ namespace scrollingEffect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!loadFont()) return;
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Text-Scrolling")) return;
@@ -14738,7 +14738,7 @@ namespace voxelEffect {
 
     int16_t initMap()
     {
-        RGB rgb[256] = { 0 };
+        RGBA rgb[256] = { 0 };
         if (!loadPNG(cmap[0], rgb, "assets/ground.png")) return 0;
         if (!loadPNG(hmap[0], NULL, "assets/height.png")) return 0;
         if (!loadPNG(sky[0], NULL, "assets/sky.png")) return 0;
@@ -14842,7 +14842,7 @@ namespace rippleEffect2 {
     {
         uint16_t n = 0;
         int16_t i = 0, j = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Ripple")) return;
 
@@ -14934,7 +14934,7 @@ namespace waterFall {
     {
         int16_t i = 0, j = 0;
         uint16_t ofs = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         memset(pal, 0, sizeof(pal));
 
@@ -15002,7 +15002,7 @@ namespace winterEffect {
     {
         int16_t i = 0;
         uint16_t pos = 0;
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Winter")) return;
         if (!loadPNG(vbuff[0], pal, "assets/winter.png")) return;
@@ -15042,8 +15042,8 @@ namespace winterEffect {
 namespace wormEffect {
     void run()
     {
-        RGB pal[256] = { 0 };
-        RGB tmp[16] = { 0 };
+        RGBA pal[256] = { 0 };
+        RGBA tmp[16] = { 0 };
 
         memset(pal, 0, sizeof(pal));
         memset(tmp, 0, sizeof(tmp));
@@ -15087,7 +15087,7 @@ namespace rayCastingEffect {
     int32_t verts = 0, pass = 0, magic = 0, cosy = 0, siny = 0;
     int32_t hph = 0, hmh = 0, horiz = 0, px128 = 0, py128 = 0;
 
-    RGB pal[SIZE_256] = { 0 };
+    RGBA pal[SIZE_256] = { 0 };
 
     bool showMaze = true;
     uint8_t maze[32][32] = { 0 };
@@ -15482,7 +15482,7 @@ namespace rayCastingEffect {
 
 namespace chain4Effect {
 
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     uint8_t vbuff[400][640] = { 0 };
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     
@@ -15506,7 +15506,7 @@ namespace chain4Effect {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Chain4 Simulation -- Move your mouse!")) return;
         initChain4();
         setMousePosition(0, 0);
-        showMouseCursor(SDL_DISABLE);
+        hideMouseCursor();
 
         do {
             getMouseState(&x, &y, &lmb);
@@ -15515,7 +15515,7 @@ namespace chain4Effect {
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
-        showMouseCursor(SDL_ENABLE);
+        showMouseCursor();
         cleanup();
     }
 }
@@ -15577,7 +15577,7 @@ namespace hardwareScroll {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         int16_t x = 0, addx = 1;
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Hardware Scrolling")) return;
@@ -15608,7 +15608,7 @@ namespace copper3Effect {
 
     void run()
     {
-        RGB pal[256] = { 0 };
+        RGBA pal[256] = { 0 };
         int16_t x = 0, addx = 1;
 
         memset(pal, 0, sizeof(pal));

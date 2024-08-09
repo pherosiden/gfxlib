@@ -145,13 +145,13 @@ void runIntro()
     uint8_t mov = 0;
 
     //start record time
-    const uint32_t startTime = getTime();
+    const uint64_t startTime = getTime();
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
 
     do {
         //draw and scale buffer
-        const uint32_t waitTime = getTime();
+        const uint64_t waitTime = getTime();
         drawTunnel(&trn, &map, buff1, buff2, &mov, 1);
         scaleImage(&scr, &trn, INTERPOLATION_TYPE_NORMAL);
         
@@ -509,7 +509,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //set mouse pointer limitation
     setMousePosition(mcx, mdx);
-    showMouseCursor(SDL_DISABLE);
+    hideMouseCursor();
     
     //pre-calculate text position
     const int32_t tx = (scr.mWidth - getFontWidth(str)) >> 1;
@@ -523,7 +523,7 @@ void runLensFlare(GFX_IMAGE* outImg)
     const int32_t logox = alignedSize(getDrawBufferWidth() - gfxlogo.mWidth);
 
     //time for record FPS
-    uint32_t time = 0, oldTime = 0;
+    uint64_t time = 0, oldTime = 0;
 
     do {
         getMouseState(&mcx, &mdx, &lmb, NULL);
@@ -564,7 +564,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
     //cleanup...
     freeImage(&scr);
-    showMouseCursor(SDL_ENABLE);
+    showMouseCursor();
 }
 
 void runBumpImage()

@@ -1,12 +1,12 @@
 /*===============================================================*/
 /*                 GFXLIB Graphics Library                       */
-/*               Use SDL2 for render backend                     */
-/*               SDL2_image for image backend                    */
-/*            Target OS: cross-platform (win32, darwin)          */
+/*               Use SDL3 for backend render                     */
+/*               SDL3_image for backend image                    */
+/*            Target OS: cross-platform (win32, macos)           */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.3.2                                   */
-/*          Last Update: 2023-10-14                              */
+/*              Version: 1.4.2                                   */
+/*          Last Update: 2024-08-08                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -27,22 +27,23 @@
 #include <stdarg.h>
 #include <time.h>
 #include <float.h>
-#ifdef __APPLE__
+
+#ifdef SDL_PLATFORM_APPLE
 #include <libgen.h>
 #include <x86intrin.h>
-#include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/graphics/IOGraphicsLib.h>
 #else
-#include "SDL.h"
-#include "SDL_image.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #endif
 
 //just for x32 and old compiler only
 //optimize by using MMX technology
 //on modern system, don't use this option
-#if !defined(__APPLE__) && !defined(_WIN64)
+#if !defined(SDL_PLATFORM_APPLE) && !defined(_WIN64)
 #define _USE_ASM
 #pragma message("MMX technology is turned on. On modern system don't use this option!")
 #endif
@@ -52,8 +53,8 @@
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475 6001)
 
 //GFX version string
-#define GFX_VERSION             "v23.10.14"
-#define GFX_BUILD_ID            20231014
+#define GFX_VERSION             "v24.08.08"
+#define GFX_BUILD_ID            20240808
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
@@ -142,7 +143,7 @@
 #define clamp(x, lo, hi)        ((min(max(x, lo), hi)))
 
 //common routines
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 #define _rotr8(v, n)            __rorb(v, n)
 #define _rotl8(v, n)            __rolb(v, n)
 #define LOWORD(a)               ((a) & 0xffff)
@@ -150,7 +151,7 @@
 #endif
 
 //inline common
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 #define must_inline             __attribute__((always_inline))
 #else
 #define must_inline             __forceinline
@@ -179,14 +180,17 @@
 #define RGB_GREY127             0x7f7f7f
 #define RGB_GREY191             0xbfbfbf
 
+// Use custom math define
+#define M_PI                    3.14159265358979323846
+
 //benchmarks snipping code
 #define BENCH_START()           clock_t startClock = clock();
 #define BENCH_END()             messageBox(GFX_INFO, "Total time: %lu(ms)", clock() - startClock);
 
 #pragma pack(push, 1)
 
-//redefine RGB color
-typedef SDL_Color RGB;
+//redefine RGBA color
+typedef SDL_Color RGBA;
 
 //double point struct
 typedef struct {
@@ -372,7 +376,7 @@ enum PATTERN_TYPE {
 
 //load texture and image functions
 int32_t     loadTexture(uint32_t** texture, int32_t* txw, int32_t* txh, const char* fname);
-int32_t     loadPNG(uint8_t* raw, RGB* pal, const char* fname);
+int32_t     loadPNG(uint8_t* raw, RGBA* pal, const char* fname);
 int32_t     loadImage(const char* fname, GFX_IMAGE* im);
 void        freeImage(GFX_IMAGE* im);
 
@@ -421,15 +425,16 @@ const char* getRenderVersion();
 const char* getImageVersion();
 
 //mouse handler functions
-void        showMouseCursor(int32_t show);
+void        showMouseCursor();
+void        hideMouseCursor();
 void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb = NULL, int32_t* rmb = NULL);
 void        setMousePosition(int32_t x, int32_t y);
 
 //timer and FPS functions
-uint32_t    getTime();
-uint32_t    getElapsedTime(uint32_t tmstart);
-void        waitFor(uint32_t tmstart, uint32_t ms);
-void        sleepFor(uint32_t ms);
+uint64_t    getTime();
+uint64_t    getElapsedTime(uint64_t tmstart);
+void        waitFor(uint64_t tmstart, uint64_t ms);
+void        sleepFor(uint64_t ms);
 
 //video and render functions
 int32_t     initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "", int32_t resizeable = 0);
@@ -522,11 +527,11 @@ void        scaleImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t type = INTERPOLAT
 void        rotateImage(const GFX_IMAGE* dst, const GFX_IMAGE* src, double degree, int32_t type = INTERPOLATION_TYPE_SMOOTH);
 
 //palette function (use for mixed mode - 256 colors)
-void        getPalette(RGB* pal);
-void        setPalette(const RGB* pal);
-void        shiftPalette(RGB* pal);
-void        convertPalette(const uint8_t* palette, RGB* color);
-void        getBasePalette(RGB* pal);
+void        getPalette(RGBA* pal);
+void        setPalette(const RGBA* pal);
+void        shiftPalette(RGBA* pal);
+void        convertPalette(const uint8_t* palette, RGBA* color);
+void        getBasePalette(RGBA* pal);
 
 void        clearPalette();
 void        whitePalette();
@@ -537,11 +542,11 @@ void        makeFunkyPalette();
 void        scrollPalette(int32_t from, int32_t to, int32_t step);
 void        rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t wtime);
 
-void        fadeIn(const RGB* dest, uint32_t wtime);
-void        fadeOut(const RGB* dest, uint32_t wtime);
+void        fadeIn(const RGBA* dest, uint32_t wtime);
+void        fadeOut(const RGBA* dest, uint32_t wtime);
 void        fadeMax(uint32_t wtime);
 void        fadeMin(uint32_t wtime);
-void        fadeDown(RGB* pal);
+void        fadeDown(RGBA* pal);
 void        fadeCircle(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
 void        fadeRollo(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
 void        fadeOutImage(GFX_IMAGE* img, uint8_t step);

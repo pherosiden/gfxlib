@@ -425,7 +425,7 @@ void rayCasting()
     double dirX = -1.0, dirY = 0.0; //initial direction vector
     double planeX = 0.0, planeY = 0.66; //the 2d ray caster version of camera plane
     
-    uint32_t time = 0, oldTime = 0;
+    uint64_t time = 0, oldTime = 0;
 
     int32_t tw = 0, th = 0, i = 0;
     uint32_t* pbuffs[11] = { 0 };
@@ -975,7 +975,7 @@ void juliaExplorer()
     int32_t showText = 0, i = 0;
 
     //current and old time, and their difference (for input)
-    uint32_t time = 0, oldTime = 0;
+    uint64_t time = 0, oldTime = 0;
         
     //make memory access pixels
     uint32_t** pixels = (uint32_t**)calloc(SCR_HEIGHT, sizeof(uint32_t*));
@@ -1381,7 +1381,7 @@ void mandelbrotExporer()
     int32_t showText = 0, i = 0;
 
     //current and old time, and their difference (for input)
-    uint32_t time = 0, oldTime = 0;
+    uint64_t time = 0, oldTime = 0;
     
     uint32_t** pixels = (uint32_t**)calloc(SCR_HEIGHT, sizeof(uint32_t*));
     if (!pixels) return;
@@ -1751,9 +1751,9 @@ void tunnelDemo()
         render();
     }
 
-    free(pixels);
     free(texture[0]);
     free(texture);
+    free(pixels);
     cleanup();
 }
 
@@ -2663,7 +2663,7 @@ void doRayCasting()
 void runRayCasting()
 {
     //time for record FPS
-    uint32_t time = 0, oldTime = 0;
+    uint64_t time = 0, oldTime = 0;
 
     if (!loadFont("assets/sysfont.xfn", 0)) return;
     if (!initScreen(SCR_WIDTH, SCR_HEIGHT, 32, 0, "Raycasting [Shader] -- Arrows: move; Q/Z: lookup; E/C: fly/crouch; Tab:show/hide maze")) return;

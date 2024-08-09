@@ -1,12 +1,12 @@
 /*===============================================================*/
 /*                 GFXLIB Graphics Library                       */
-/*               Use SDL2 for render backend                     */
-/*               SDL2_image for image backend                    */
-/*            Target OS: cross-platform (win32, darwin)          */
+/*               Use SDL3 for backend render                     */
+/*               SDL3_image for backend image                    */
+/*            Target OS: cross-platform (win32, macos)           */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.3.2                                   */
-/*          Last Update: 2023-10-14                              */
+/*              Version: 1.4.2                                   */
+/*          Last Update: 2024-08-08                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -19,16 +19,15 @@
 
 #include <map>
 #include "gfxlib.h"
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 #include <cpuid.h>
 #include <sys/sysctl.h>
 #else
 #include <dxgi.h>
 #include <tchar.h>
-#pragma comment (lib, "dxgi")
-#pragma comment (lib, "sdl2")
-#pragma comment (lib, "sdl2main")
-#pragma comment (lib, "sdl2_image")
+#pragma comment (lib, "DXGI")
+#pragma comment (lib, "SDL3")
+#pragma comment (lib, "SDL3_image")
 #endif
 
 //drawing buffer
@@ -127,8 +126,8 @@ uint8_t*        keyStates = 0;                      //key input states
 //the "keyPressed" status map
 std::map<int32_t, int32_t> keyStatus;               //key input status
 
-//default 8-bits palette entries for mixed mode, SDL2 initialized with black
-RGB basePalette[256] = {
+//default 8-bits palette entries for mixed mode, SDL3 initialized with black
+SDL_Color basePalette[256] = {
     {0,0,0,255},{0,0,42,255},{0,42,0,255},{0,42,42,255},{42,0,0,255},{42,0,42,255},{42,21,0,255},{42,42,42,255},{21,21,21,255},{21,21,63,255},{21,63,21,255},{21,63,63,255},{63,21,21,255},{63,21,63,255},{63,63,21,255},{63,63,63,255},
     {0,0,0,255},{5,5,5,255},{8,8,8,255},{11,11,11,255},{14,14,14,255},{17,17,17,255},{20,20,20,255},{24,24,24,255},{28,28,28,255},{32,32,32,255},{36,36,36,255},{40,40,40,255},{45,45,45,255},{50,50,50,255},{56,56,56,255},{63,63,63,255},
     {0,0,63,255},{16,0,63,255},{31,0,63,255},{47,0,63,255},{63,0,63,255},{63,0,47,255},{63,0,31,255},{63,0,16,255},{63,0,0,255},{63,16,0,255},{63,31,0,255},{63,47,0,255},{63,63,0,255},{47,63,0,255},{31,63,0,255},{16,63,0,255},
@@ -210,56 +209,56 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
         {
             switch (event.type)
             {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 quit();
                 break;
 
-            case SDL_KEYDOWN:
+            case SDL_EVENT_KEY_DOWN:
                 if (inputMask & INPUT_KEY_PRESSED)
                 {
-                    return event.key.keysym.scancode;
+                    return event.key.scancode;
                 }
                 break;
 
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 if (inputMask & INPUT_MOUSE_CLICK)
                 {
-                    SDL_GetMouseState(&dataX, &dataY);
-                    return SDL_MOUSEBUTTONDOWN;
+                    SDL_GetMouseState((float*)&dataX, (float*)&dataY);
+                    return SDL_EVENT_MOUSE_BUTTON_DOWN;
                 }
                 break;
 
-            case SDL_MOUSEBUTTONUP:
+            case SDL_EVENT_MOUSE_BUTTON_UP:
                 if (inputMask & INPUT_MOUSE_CLICK)
                 {
-                    SDL_GetMouseState(&dataX, &dataY);
-                    return SDL_MOUSEBUTTONUP;
+                    SDL_GetMouseState((float*)&dataX, (float*)&dataY);
+                    return SDL_EVENT_MOUSE_BUTTON_UP;
                 }
                 break;
 
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
                 if (inputMask & INPUT_MOUSE_MOTION)
                 {
-                    SDL_GetMouseState(&dataX, &dataY);
-                    return SDL_MOUSEMOTION;
+                    SDL_GetMouseState((float*)&dataX, (float*)&dataY);
+                    return SDL_EVENT_MOUSE_MOTION;
                 }
                 break;
 
-            case SDL_MOUSEWHEEL:
+            case SDL_EVENT_MOUSE_WHEEL:
                 if (inputMask & INPUT_MOUSE_WHEEL)
                 {
-                    dataX = event.wheel.x;
-                    dataY = event.wheel.y;
-                    return SDL_MOUSEWHEEL;
+                    dataX = (int32_t)event.wheel.x;
+                    dataY = (int32_t)event.wheel.y;
+                    return SDL_EVENT_MOUSE_WHEEL;
                 }
                 break;
 
-            case SDL_WINDOWEVENT:
-                if ((inputMask & INPUT_WIN_RESIZED) && (event.window.event == SDL_WINDOWEVENT_RESIZED))
+            case SDL_EVENT_WINDOW_RESIZED:
+                if ((inputMask & INPUT_WIN_RESIZED) && (event.window.type == SDL_EVENT_WINDOW_RESIZED))
                 {
-                    dataX = event.window.data1;
-                    dataY = event.window.data2;
-                    return SDL_WINDOWEVENT_RESIZED;
+                    dataX = (int32_t)event.window.data1;
+                    dataY = (int32_t)event.window.data2;
+                    return SDL_EVENT_WINDOW_RESIZED;
                 }
                 break;
 
@@ -274,13 +273,13 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
 }
 
 //returns the time in milliseconds since the program started
-uint32_t getTime()
+uint64_t getTime()
 {
     return SDL_GetTicks();
 }
 
 //return passing time from start time
-uint32_t getElapsedTime(uint32_t tmstart)
+uint64_t getElapsedTime(uint64_t tmstart)
 {
     return getTime() - tmstart;
 }
@@ -309,12 +308,12 @@ int32_t finished(int32_t keyCode)
 }
 
 //wait until time wait is passed, program exit when ESCAPE key pressed
-void waitFor(uint32_t tmstart, uint32_t tmwait)
+void waitFor(uint64_t tmstart, uint64_t tmwait)
 {
     while (getElapsedTime(tmstart) < tmwait)
     {
         SDL_PollEvent(&sdlEvent);
-        if (sdlEvent.type == SDL_QUIT) quit();
+        if (sdlEvent.type == SDL_EVENT_QUIT) quit();
         keyStates = (uint8_t*)SDL_GetKeyboardState(NULL);
         if (keyStates[SDL_SCANCODE_ESCAPE]) quit();
         SDL_Delay(1);
@@ -322,15 +321,15 @@ void waitFor(uint32_t tmstart, uint32_t tmwait)
 }
 
 //sleep until time wait is passed or enter key, program exit when ESCAPE key pressed
-void sleepFor(uint32_t tmwait)
+void sleepFor(uint64_t tmwait)
 {
     int32_t done = 0;
-    const uint32_t tmstart = getTime();
+    const uint64_t tmstart = getTime();
 
     while (!done && getElapsedTime(tmstart) < tmwait)
     {
         SDL_PollEvent(&sdlEvent);
-        if (sdlEvent.type == SDL_QUIT) quit();
+        if (sdlEvent.type == SDL_EVENT_QUIT) quit();
         keyStates = (uint8_t*)SDL_GetKeyboardState(NULL);
         if (keyStates[SDL_SCANCODE_ESCAPE]) quit();
         if (keyStates[SDL_SCANCODE_RETURN])
@@ -349,16 +348,22 @@ void quit()
     exit(1);
 }
 
-//show or hide mouse cursor
-void showMouseCursor(int32_t show)
+//show the mouse cursor
+void showMouseCursor()
 {
-    SDL_ShowCursor(show);
+    SDL_ShowCursor();
+}
+
+//hide the mouse cursor
+void hideMouseCursor()
+{
+    SDL_HideCursor();
 }
 
 //get current mouse state
 void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
 {
-    const uint8_t mstate = SDL_GetMouseState(mx, my);
+    const uint8_t mstate = SDL_GetMouseState((float*)mx, (float*)my);
     if (lmb)
     {
         if (mstate & 1) *lmb = 1;
@@ -374,8 +379,8 @@ void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
 //set mouse position
 void setMousePosition(int32_t x, int32_t y)
 {
-    SDL_SetWindowGrab(sdlWindow, SDL_TRUE);
-    SDL_WarpMouseInWindow(sdlWindow, x, y);
+    SDL_SetWindowMouseGrab(sdlWindow, SDL_TRUE);
+    SDL_WarpMouseInWindow(sdlWindow, (float)x, (float)y);
 }
 
 //initialize graphic video system
@@ -396,7 +401,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE : SDL_WINDOW_SHOWN);
+    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_EVENT_WINDOW_RESIZED : 0);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
@@ -407,13 +412,13 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     SDL_Surface* icon = IMG_Load("assets/gfxicon-128x.png");
     if (icon)
     {
-        SDL_SetColorKey(icon, true, SDL_MapRGB(icon->format, 0, 0, 0));
+        SDL_SetSurfaceColorKey(icon, true, SDL_MapRGB(SDL_GetPixelFormatDetails(icon->format), NULL, 0, 0, 0));
         SDL_SetWindowIcon(sdlWindow, icon);
-        SDL_FreeSurface(icon);
+        SDL_DestroySurface(icon);
     }
 
     //create render windows
-    sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+    sdlRenderer = SDL_CreateRenderer(sdlWindow, NULL);
     if (!sdlRenderer)
     {
         messageBox(GFX_ERROR, "Failed to create renderer: %s", SDL_GetError());
@@ -421,7 +426,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create 32bits texture for render
-    sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (!sdlTexture)
     {
         messageBox(GFX_ERROR, "Failed to create texture: %s", SDL_GetError());
@@ -448,15 +453,15 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (bpp == 8)
     {
         //create 32bits surface and use this to convert to texture before render to screen
-        sdlScreen = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+        sdlScreen = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(32, 0, 0, 0, 0));
         if (!sdlScreen)
         {
             messageBox(GFX_ERROR, "Failed to create 32 bits surface: %s", SDL_GetError());
             return 0;
         }
 
-        //create 8bits surface
-        sdlSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+        //create 8bits surface with palette
+        sdlSurface = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(8, 0, 0, 0, 0));
         if (!sdlSurface)
         {
             messageBox(GFX_ERROR, "Failed to create 8 bits surface: %s", SDL_GetError());
@@ -471,9 +476,12 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
             return 0;
         }
 
-        //set default palette
+        //make default palette and retrive the surface palette
         shiftPalette(basePalette);
-        if (SDL_SetPaletteColors(sdlSurface->format->palette, basePalette, 0, 256))
+        SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
+
+        //set default palette to surface
+        if (palette && SDL_SetPaletteColors(palette, basePalette, 0, 256))
         {
             messageBox(GFX_ERROR, "Failed to initialize palette colors!");
             return 0;
@@ -483,13 +491,12 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     {
         //initialize drawing buffer for 32 bits RGBA (32-bytes alignment for AVX2 use)
         const uint32_t msize = height * bytesPerScanline;
-        drawBuff = _mm_malloc(msize, 32);
+        drawBuff = SDL_aligned_alloc(32, msize);
         if (!drawBuff)
         {
             messageBox(GFX_ERROR, "Failed to create render buffer!");
             return 0;
         }
-        memset(drawBuff, 0, msize);
     }
 
     //initialize random number generation
@@ -527,13 +534,13 @@ void cleanup()
     {
         if (sdlScreen)
         {
-            SDL_FreeSurface(sdlScreen);
+            SDL_DestroySurface(sdlScreen);
             sdlScreen = NULL;
         }
 
         if (sdlSurface)
         {
-            SDL_FreeSurface(sdlSurface);
+            SDL_DestroySurface(sdlSurface);
             sdlSurface = NULL;
         }
     }
@@ -541,7 +548,7 @@ void cleanup()
     {
         if (drawBuff)
         {
-            _mm_free(drawBuff);
+            SDL_aligned_free(drawBuff);
             drawBuff = NULL;
         }
     }
@@ -580,10 +587,10 @@ void render()
     if (bitsPerPixel == 8)
     {
         //256 colors palette, we must convert 8 bits surface to 32 bits surface
-        SDL_UpperBlit(sdlSurface, NULL, sdlScreen, NULL);
+        SDL_BlitSurface(sdlSurface, NULL, sdlScreen, NULL);
         SDL_UpdateTexture(sdlTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
         SDL_RenderClear(sdlRenderer);
-        SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+        SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
         SDL_RenderPresent(sdlRenderer);
     }
     else
@@ -591,7 +598,7 @@ void render()
         //rgb mode, just render texture to video memory without any conversation
         SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
         SDL_RenderClear(sdlRenderer);
-        SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+        SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
         SDL_RenderPresent(sdlRenderer);
     }
 }
@@ -615,7 +622,7 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
     {
         //create new texture with new size
         if (sdlTexture) SDL_DestroyTexture(sdlTexture);
-        sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+        sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
         if (!sdlTexture)
         {
             messageBox(GFX_ERROR, "Failed to create new texture: %s", SDL_GetError());
@@ -626,12 +633,12 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
         if (bytesPerPixel == 1)
         {
             //save current palette
-            RGB pal[256] = { 0 };
+            RGBA pal[256] = { 0 };
             getPalette(pal);
 
             //create new 32bits surface
-            if (sdlScreen) SDL_FreeSurface(sdlScreen);
-            sdlScreen = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+            if (sdlScreen) SDL_DestroySurface(sdlScreen);
+            sdlScreen = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(32, 0, 0, 0, 0));
             if (!sdlScreen)
             {
                 messageBox(GFX_ERROR, "Failed to create new 32bits surface: %s", SDL_GetError());
@@ -639,8 +646,8 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
             }
 
             //create new 8bits surface
-            if (sdlSurface) SDL_FreeSurface(sdlSurface);
-            sdlSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+            if (sdlSurface) SDL_DestroySurface(sdlSurface);
+            sdlSurface = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(8, 0, 0, 0, 0));
             if (!sdlSurface)
             {
                 messageBox(GFX_ERROR, "Failed to create new 8bits surface: %s", SDL_GetError());
@@ -654,22 +661,23 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
                 return;
             }
 
+            //make the draw buffer
             drawBuff = sdlSurface->pixels;
 
             //restore palette on new surface
-            SDL_SetPaletteColors(sdlSurface->format->palette, pal, 0, 256);
+            SDL_Palette* palette = SDL_GetSurfacePalette(sdlSurface);
+            if (palette) SDL_SetPaletteColors(palette, pal, 0, 256);
         }
         else
         {
             //adjust render buffer (32-bytes alignment)
-            if (drawBuff) _mm_free(drawBuff);
-            drawBuff = _mm_malloc(bytesCopy, 32);
+            if (drawBuff) SDL_aligned_free(drawBuff);
+            drawBuff = SDL_aligned_alloc(32, bytesCopy);
             if (!drawBuff)
             {
                 messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
                 return;
             }
-            memset(drawBuff, 0, bytesCopy);
         }
 
         //update new screen buffer size
@@ -2590,12 +2598,12 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
 
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t col = pattern[i & 7];
-        col = _rotl8(col, 7);
+        uint8_t pat = pattern[i & 7];
+        pat = _rotl8(pat, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (col & 1) *dstPixels = col;
-            col = _rotl8(col, 1);
+            if (pat & 1) *dstPixels = pat;
+            pat = _rotl8(pat, 1);
             dstPixels++;
         }
         if (addDstOffs > 0) dstPixels += addDstOffs;
@@ -2671,12 +2679,12 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
 
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t col = pattern[i & 7];
-        col = _rotl8(col, 7);
+        uint8_t pat = pattern[i & 7];
+        pat = _rotl8(pat, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (col & 1) *dstPixels = col;
-            col = _rotl8(col, 1);
+            if (pat & 1) *dstPixels = pat;
+            pat = _rotl8(pat, 1);
             dstPixels++;
         }
         if (addDstOffs > 0) dstPixels += addDstOffs;
@@ -2764,17 +2772,17 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //start scan line
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t col = pattern[i & 7];
-        col = _rotl8(col, 7);
+        uint8_t pat = pattern[i & 7];
+        pat = _rotl8(pat, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (col & 1)
+            if (pat & 1)
             {
                 pixels->r = min(pixels->r + pcol->r, 255);
                 pixels->g = min(pixels->g + pcol->g, 255);
                 pixels->b = min(pixels->b + pcol->b, 255);
             }
-            col = _rotl8(col, 1);
+            pat = _rotl8(pat, 1);
             pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -2862,17 +2870,17 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     //start scan line
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t col = pattern[i & 7];
-        col = _rotl8(col, 7);
+        uint8_t pat = pattern[i & 7];
+        pat = _rotl8(pat, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (col & 1)
+            if (pat & 1)
             {
                 pixels->r = max(pixels->r - pcol->r, 0);
                 pixels->g = max(pixels->g - pcol->g, 0);
                 pixels->b = max(pixels->b - pcol->b, 0);
             }
-            col = _rotl8(col, 1);
+            pat = _rotl8(pat, 1);
             pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -2949,18 +2957,18 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
 
     for (int32_t i = 0; i < height; i++)
     {
-        uint8_t col = pattern[i & 7];
-        col = _rotl8(col, 7);
+        uint8_t pat = pattern[i & 7];
+        pat = _rotl8(pat, 7);
         for (int32_t j = 0; j < width; j++)
         {
-            if (col & 1)
+            if (pat & 1)
             {
                 const uint32_t dst = *pixels;
                 const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
                 const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((argb & 0xff00ff00) >> 8) * cover);
                 *pixels = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
             }
-            col = _rotl8(col, 1);
+            pat = _rotl8(pat, 1);
             pixels++;
         }
         if (addOfs > 0) pixels += addOfs;
@@ -5144,7 +5152,7 @@ int32_t newImage(int32_t width, int32_t height, GFX_IMAGE* img)
     }
 
     //32-bytes alignment for SIMD optimize
-    img->mData = _mm_malloc(memSize, 32);
+    img->mData = SDL_aligned_alloc(32, memSize);
     if (!img->mData)
     {
         messageBox(GFX_ERROR, "Error alloc memory, size:%lu", memSize);
@@ -5185,8 +5193,8 @@ int32_t updateImage(int32_t width, int32_t height, GFX_IMAGE* img)
     }
 
     //reallocate new memory with new size (32-bytes alignment)
-    if (img->mData) _mm_free(img->mData);
-    img->mData = _mm_malloc(msize, 32);
+    if (img->mData) SDL_aligned_free(img->mData);
+    img->mData = SDL_aligned_alloc(32, msize);
     if (!img->mData)
     {
         messageBox(GFX_ERROR, "Error alloc memory with size: %lu", msize);
@@ -5207,7 +5215,7 @@ void freeImage(GFX_IMAGE* img)
 {
     if (img && img->mData)
     {
-        _mm_free(img->mData);
+        SDL_aligned_free(img->mData);
         img->mData     = NULL;
         img->mWidth    = 0;
         img->mHeight   = 0;
@@ -8976,36 +8984,38 @@ void lineTo(int32_t x, int32_t y, uint32_t col, int32_t mode /* = BLEND_MODE_NOR
 }
 
 //set palette color to render palette table
-void setPalette(const RGB* pal)
+void setPalette(const RGBA* pal)
 {
-    SDL_SetPaletteColors(sdlSurface->format->palette, pal, 0, 256);
+    SDL_Palette* palette = SDL_GetSurfacePalette(sdlSurface);
+    if (palette) SDL_SetPaletteColors(palette, pal, 0, 256);
     render();
 }
 
 //get current palette table
-void getPalette(RGB* pal)
+void getPalette(RGBA* pal)
 {
-    memcpy(pal, sdlSurface->format->palette->colors, sdlSurface->format->palette->ncolors * sizeof(RGB));
+    const SDL_Palette* palette = SDL_GetSurfacePalette(sdlSurface);
+    if (palette) memcpy(pal, palette->colors, palette->ncolors * sizeof(RGBA));
 }
 
 //FX-effect: palette rotation
 void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 {
-    RGB tmp = { 0 };
+    RGBA tmp = { 0 };
 
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = uint32_t((intptr_t(to) - from) * sizeof(RGB));
+    const uint32_t steps = uint32_t((intptr_t(to) - from) * sizeof(RGBA));
 
     if (loop > 0)
     {
         while (loop--)
         {
-            memcpy(&tmp, &pal[from], sizeof(RGB));
+            memcpy(&tmp, &pal[from], sizeof(RGBA));
             memcpy(&pal[from], &pal[from + 1], steps);
-            memcpy(&pal[to], &tmp, sizeof(RGB));
+            memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
             delay(ms);
             readKeys();
@@ -9017,9 +9027,9 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
     {
         while (true)
         {
-            memcpy(&tmp, &pal[from], sizeof(RGB));
+            memcpy(&tmp, &pal[from], sizeof(RGBA));
             memcpy(&pal[from], &pal[from + 1], steps);
-            memcpy(&pal[to], &tmp, sizeof(RGB));
+            memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
             delay(ms);
             readKeys();
@@ -9030,9 +9040,9 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 }
 
 //FX-effect: palette fade-in
-void fadeIn(const RGB* dest, uint32_t ms)
+void fadeIn(const RGBA* dest, uint32_t ms)
 {
-    RGB src[256] = { 0 };
+    RGBA src[256] = { 0 };
     getPalette(src);
 
     for (int32_t i = 63; i >= 0; i--)
@@ -9053,9 +9063,9 @@ void fadeIn(const RGB* dest, uint32_t ms)
 }
 
 //FX-effect: palette fade-out
-void fadeOut(const RGB* dest, uint32_t ms)
+void fadeOut(const RGBA* dest, uint32_t ms)
 {
-    RGB src[256] = { 0 };
+    RGBA src[256] = { 0 };
     getPalette(src);
 
     for (int32_t i = 63; i >= 0; i--)
@@ -9078,7 +9088,7 @@ void fadeOut(const RGB* dest, uint32_t ms)
 //FX-effect: palette fade-max
 void fadeMax(uint32_t ms)
 {
-    RGB src[256] = { 0 };
+    RGBA src[256] = { 0 };
     getPalette(src);
 
     for (int32_t i = 0; i < 64; i++)
@@ -9100,7 +9110,7 @@ void fadeMax(uint32_t ms)
 //FX-effect: palette fade-min
 void fadeMin(uint32_t ms)
 {
-    RGB src[256] = { 0 };
+    RGBA src[256] = { 0 };
     getPalette(src);
 
     for (int32_t i = 0; i < 64; i++)
@@ -9120,7 +9130,7 @@ void fadeMin(uint32_t ms)
 }
 
 //FX-effect: palette fade-down
-void fadeDown(RGB* pal)
+void fadeDown(RGBA* pal)
 {
     for (int32_t i = 0; i < 256; i++)
     {
@@ -9132,7 +9142,7 @@ void fadeDown(RGB* pal)
 }
 
 //convert mixed palette buffer to RGB buffer
-void convertPalette(const uint8_t* palette, RGB* color)
+void convertPalette(const uint8_t* palette, RGBA* color)
 {
     uint8_t* rgb = (uint8_t*)color;
     uint8_t* pal = (uint8_t*)palette;
@@ -9147,9 +9157,9 @@ void convertPalette(const uint8_t* palette, RGB* color)
 }
 
 //convert current RGB palette to RGB32
-void shiftPalette(RGB* pal)
+void shiftPalette(RGBA* pal)
 {
-    RGB* rgb = (RGB*)pal;
+    RGBA* rgb = (RGBA*)pal;
     for (int32_t i = 0; i < 256; i++)
     {
         rgb->r <<= 2;
@@ -9162,7 +9172,7 @@ void shiftPalette(RGB* pal)
 //make a black palette
 void clearPalette()
 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     memset(pal, 0, sizeof(pal));
     setPalette(pal);
 }
@@ -9170,13 +9180,13 @@ void clearPalette()
 //make white palette
 void whitePalette()
 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     memset(pal, 255, sizeof(pal));
     setPalette(pal);
 }
 
 //build default 256 colors palette
-void getBasePalette(RGB* pal)
+void getBasePalette(RGBA* pal)
 {
     memcpy(pal, basePalette, sizeof(basePalette));
 }
@@ -9184,7 +9194,7 @@ void getBasePalette(RGB* pal)
 //make linear palette (7 circles color)
 void makeLinearPalette()
 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     memset(pal, 0, sizeof(pal));
 
     for (int16_t i = 0; i < 32; i++)
@@ -9227,7 +9237,7 @@ void makeLinearPalette()
 //yet another funky palette
 void makeFunkyPalette()
 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
 
     int32_t r = 0, g = 0, b = 0;
     bool ry = true, gy = true, by = true;
@@ -9276,7 +9286,7 @@ void makeFunkyPalette()
 //make rainbow palette
 void makeRainbowPalette()
 {
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     memset(pal, 0, sizeof(pal));
 
     for (int32_t i = 0; i < 32; i++)
@@ -9302,14 +9312,14 @@ void makeRainbowPalette()
 //scrolling current palette
 void scrollPalette(int32_t from, int32_t to, int32_t step)
 {
-    RGB tmp = { 0 };
-    RGB pal[256] = { 0 };
+    RGBA tmp = { 0 };
+    RGBA pal[256] = { 0 };
 
     memset(pal, 0, sizeof(pal));
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = (intptr_t(to) - from) * sizeof(RGB);
+    const uint32_t steps = (intptr_t(to) - from) * sizeof(RGBA);
 
     while (step--)
     {
@@ -10088,7 +10098,7 @@ void showJPG(const char* fname)
 }
 
 //load image as 8bits texture to output buffer
-int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
+int32_t loadPNG(uint8_t* raw, RGBA* pal, const char* fname)
 {
     //simple image loader for all supported types
     SDL_Surface* image = IMG_Load(fname);
@@ -10098,8 +10108,8 @@ int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
         return 0;
     }
 
-    //check image format type
-    if (image->format->BitsPerPixel != 8)
+    //check image format type (must 256 palette colors)
+    if (image->format != SDL_PIXELFORMAT_INDEX8)
     {
         messageBox(GFX_ERROR, "Only 8 bits image format is supported! %s", fname);
         return 0;
@@ -10107,8 +10117,15 @@ int32_t loadPNG(uint8_t* raw, RGB* pal, const char* fname)
 
     //copy raw data and palette
     if (raw) memcpy(raw, image->pixels, intptr_t(image->pitch) * image->h);
-    if (pal) memcpy(pal, image->format->palette->colors, image->format->palette->ncolors * sizeof(RGB));
-    SDL_FreeSurface(image);
+    
+    //copy palette color
+    if (pal)
+    {
+        const SDL_Palette* palette = SDL_GetSurfacePalette(image);
+        if (palette) memcpy(pal, palette->colors, palette->ncolors * sizeof(RGBA));
+    }
+
+    SDL_DestroySurface(image);
     return 1;
 }
 
@@ -10124,19 +10141,19 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     }
 
     //create 32bits texture to convert image format
-    SDL_Surface* texture = SDL_CreateRGBSurface(0, image->w, image->h, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    SDL_Surface* texture = SDL_CreateSurface(image->w, image->h, SDL_GetPixelFormatForMasks(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000));
     if (!texture)
     {
-        SDL_FreeSurface(image);
+        SDL_DestroySurface(image);
         messageBox(GFX_ERROR, "Error create surface: %s!", SDL_GetError());
         return 0;
     }
 
     //convert to target pixel format
-    if (SDL_UpperBlit(image, NULL, texture, NULL))
+    if (SDL_BlitSurface(image, NULL, texture, NULL))
     {
-        SDL_FreeSurface(image);
-        SDL_FreeSurface(texture);
+        SDL_DestroySurface(image);
+        SDL_DestroySurface(texture);
         messageBox(GFX_ERROR, "Error convert texture: %s!", SDL_GetError());
         return 0;
     }
@@ -10145,15 +10162,15 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     if (!newImage(texture->w, texture->h, im))
     {
         messageBox(GFX_ERROR, "Error create new image!");
-        SDL_FreeSurface(image);
-        SDL_FreeSurface(texture);
+        SDL_DestroySurface(image);
+        SDL_DestroySurface(texture);
         return 0;
     }
 
     //copy data to image buffer
     memcpy(im->mData, texture->pixels, im->mSize);
-    SDL_FreeSurface(image);
-    SDL_FreeSurface(texture);
+    SDL_DestroySurface(image);
+    SDL_DestroySurface(texture);
     return 1;
 }
 
@@ -10169,19 +10186,19 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     }
 
     //create 32bits texture
-    SDL_Surface* texture = SDL_CreateRGBSurface(0, image->w, image->h, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    SDL_Surface* texture = SDL_CreateSurface(image->w, image->h, SDL_GetPixelFormatForMasks(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000));
     if (!texture)
     {
-        SDL_FreeSurface(image);
+        SDL_DestroySurface(image);
         messageBox(GFX_ERROR, "Error create surface: %s!", SDL_GetError());
         return 0;
     }
 
     //convert raw data to texture format
-    if (SDL_UpperBlit(image, NULL, texture, NULL))
+    if (SDL_BlitSurface(image, NULL, texture, NULL))
     {
-        SDL_FreeSurface(image);
-        SDL_FreeSurface(texture);
+        SDL_DestroySurface(image);
+        SDL_DestroySurface(texture);
         messageBox(GFX_ERROR, "Error convert texture: %s!", SDL_GetError());
         return 0;
     }
@@ -10191,8 +10208,8 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     txout[0] = (uint32_t*)calloc(size, 1);
     if (!txout[0])
     {
-        SDL_FreeSurface(image);
-        SDL_FreeSurface(texture);
+        SDL_DestroySurface(image);
+        SDL_DestroySurface(texture);
         messageBox(GFX_ERROR, "Error alloc memory!");
         return 0;
     }
@@ -10201,8 +10218,8 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     memcpy(txout[0], texture->pixels, size);
     if (txw) *txw = texture->w;
     if (txh) *txh = texture->h;
-    SDL_FreeSurface(image);
-    SDL_FreeSurface(texture);
+    SDL_DestroySurface(image);
+    SDL_DestroySurface(texture);
     return 1;
 }
 
@@ -10691,7 +10708,7 @@ void handleMouseButton()
     btn[1].btState = BUTTON_STATE_NORMAL;
 
     //hide mouse pointer
-    showMouseCursor(SDL_DISABLE);
+    hideMouseCursor();
 
     //install user-define mouse handler
     setMousePosition(centerX, centerY);
@@ -10709,7 +10726,7 @@ void handleMouseButton()
     //update last mouse pos
     int32_t lastx = centerX;
     int32_t lasty = centerY;
-    uint32_t lastTime = getTime();
+    uint64_t lastTime = getTime();
     
     //current mouse pointer
     GFX_BITMAP* msNew = NULL;
@@ -10845,7 +10862,7 @@ void handleMouseButton()
     freeMouse(&mi, mbm);
     freeButton(&btn[0]);
     freeButton(&btn[1]);
-    showMouseCursor(SDL_ENABLE);
+    showMouseCursor();
 }
 
 //create texture plasma
@@ -10950,7 +10967,7 @@ void createPlasma(uint8_t* dx, uint8_t* dy, const uint8_t* sint, const uint8_t* 
 void initPlasma(uint8_t* sint, uint8_t* cost)
 {
     int32_t i = 0;
-    RGB pal[256] = { 0 };
+    RGBA pal[256] = { 0 };
     memset(pal, 0, sizeof(pal));
 
     for (i = 0; i < 256; i++)
@@ -12237,7 +12254,7 @@ void fadeOutImage(GFX_IMAGE* img, uint8_t step)
 //get total system momory in MB
 void initMemoryInfo()
 {
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     size_t len = 0;
     uint64_t physMem = 0, memSize = 0;
     len = sizeof(memSize);
@@ -12291,7 +12308,7 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
         mov     [edi +  8], ecx
         mov     [edi + 12], edx
     }
-#elif defined(__APPLE__)
+#elif defined(SDL_PLATFORM_APPLE)
     __cpuid(funcid, cpuinfo[0], cpuinfo[1], cpuinfo[2], cpuinfo[3]);
 #else
     __cpuid(cpuinfo, funcid);
@@ -12416,7 +12433,7 @@ void calcCpuFeatures()
     if (cpuInfo[3] & 0x04000000) strncat(cpuFeatures, "SSE2,", sizeof(cpuFeatures) - 1);
     if (cpuInfo[2] & 0x10000000) strncat(cpuFeatures, "AVX,", sizeof(cpuFeatures) - 1);
 
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     __cpuid_count(7, 0, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
 #else
     __cpuidex(cpuInfo, 7, 0);
@@ -12447,13 +12464,10 @@ void initVideoInfo()
     strncpy(imageVersion, "0.0.0.0", sizeof(imageVersion));
 
     //retrive SDL and SDL_image version string
-    SDL_version sdl;
-    SDL_GetVersion(&sdl);
-    const SDL_version* img = IMG_Linked_Version();
-    snprintf(renderVersion, sizeof(renderVersion), "SDL %u.%u.%u", sdl.major, sdl.minor, sdl.patch);
-    snprintf(imageVersion, sizeof(imageVersion), "SDL_image %u.%u.%u", img->major, img->minor, img->patch);
+    snprintf(renderVersion, sizeof(renderVersion), "SDL %d.%s", SDL_GetVersion(), SDL_GetRevision());
+    snprintf(imageVersion, sizeof(imageVersion), "SDL_image %d", IMG_Version());
     
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     io_iterator_t iterator;
     CFMutableDictionaryRef matchDict;
 
@@ -12614,9 +12628,13 @@ void initVideoInfo()
 //initialize some system info
 int32_t initSystemInfo()
 {
-    SDL_DisplayMode mode;
-    SDL_GetWindowDisplayMode(sdlWindow, &mode);
-    snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%ub @ %dHz", mode.w, mode.h, SDL_BYTESPERPIXEL(mode.format) << 3, mode.refresh_rate);
+    SDL_DisplayMode* mode = (SDL_DisplayMode*)SDL_GetWindowFullscreenMode(sdlWindow);
+    if (mode)
+    {
+        snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%db @ %fHz", mode->w, mode->h, SDL_BYTESPERPIXEL(mode->format) << 3, mode->refresh_rate);
+        free(mode);
+    }
+
     initCpuInfo();
     initVideoInfo();
     initMemoryInfo();

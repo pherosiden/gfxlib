@@ -1,5 +1,5 @@
 #include "gfxlib.h"
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 #include <dirent.h>
 #else
 #include <io.h>
@@ -13,7 +13,7 @@ void showFontsDir(const char* path, const char* ext)
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
 
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
     DIR* dir;
     struct dirent* ent;
 
