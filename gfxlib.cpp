@@ -126,7 +126,7 @@ uint8_t*        keyStates = 0;                      //key input states
 //the "keyPressed" status map
 std::map<int32_t, int32_t> keyStatus;               //key input status
 
-//default 8-bits palette entries for mixed mode, SDL3 initialized with black
+//default 8-bits palette entries for mixed mode, SDL3 initialized with black palette
 SDL_Color basePalette[256] = {
     {0,0,0,255},{0,0,42,255},{0,42,0,255},{0,42,42,255},{42,0,0,255},{42,0,42,255},{42,21,0,255},{42,42,42,255},{21,21,21,255},{21,21,63,255},{21,63,21,255},{21,63,63,255},{63,21,21,255},{63,21,63,255},{63,63,21,255},{63,63,63,255},
     {0,0,0,255},{5,5,5,255},{8,8,8,255},{11,11,11,255},{14,14,14,255},{17,17,17,255},{20,20,20,255},{24,24,24,255},{28,28,28,255},{32,32,32,255},{36,36,36,255},{40,40,40,255},{45,45,45,255},{50,50,50,255},{56,56,56,255},{63,63,63,255},
@@ -223,7 +223,10 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 if (inputMask & INPUT_MOUSE_CLICK)
                 {
-                    SDL_GetMouseState((float*)&dataX, (float*)&dataY);
+                    float px = 0, py = 0;
+                    SDL_GetMouseState(&px, &py);
+                    dataX = int32_t(px);
+                    dataY = int32_t(py);
                     return SDL_EVENT_MOUSE_BUTTON_DOWN;
                 }
                 break;
@@ -231,7 +234,10 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 if (inputMask & INPUT_MOUSE_CLICK)
                 {
-                    SDL_GetMouseState((float*)&dataX, (float*)&dataY);
+					float px = 0, py = 0;
+					SDL_GetMouseState(&px, &py);
+					dataX = int32_t(px);
+					dataY = int32_t(py);
                     return SDL_EVENT_MOUSE_BUTTON_UP;
                 }
                 break;
@@ -239,7 +245,10 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_MOUSE_MOTION:
                 if (inputMask & INPUT_MOUSE_MOTION)
                 {
-                    SDL_GetMouseState((float*)&dataX, (float*)&dataY);
+					float px = 0, py = 0;
+					SDL_GetMouseState(&px, &py);
+					dataX = int32_t(px);
+					dataY = int32_t(py);
                     return SDL_EVENT_MOUSE_MOTION;
                 }
                 break;
@@ -247,8 +256,8 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_MOUSE_WHEEL:
                 if (inputMask & INPUT_MOUSE_WHEEL)
                 {
-                    dataX = (int32_t)event.wheel.x;
-                    dataY = (int32_t)event.wheel.y;
+                    dataX = int32_t(event.wheel.x);
+                    dataY = int32_t(event.wheel.y);
                     return SDL_EVENT_MOUSE_WHEEL;
                 }
                 break;
@@ -363,16 +372,19 @@ void hideMouseCursor()
 //get current mouse state
 void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
 {
-    const SDL_MouseButtonFlags mstate = SDL_GetMouseState((float*)mx, (float*)my);
+    float px = 0, py = 0;
+    const SDL_MouseButtonFlags mstate = SDL_GetMouseState(&px, &py);
     if (lmb) *lmb = (mstate == SDL_BUTTON_LEFT);
     if (rmb) *rmb = (mstate == SDL_BUTTON_RIGHT);
+    *mx = int32_t(px);
+    *my = int32_t(py);
 }
 
 //set mouse position
-void setMousePosition(int32_t x, int32_t y)
+void setMousePosition(int32_t px, int32_t py)
 {
     SDL_SetWindowMouseGrab(sdlWindow, SDL_TRUE);
-    SDL_WarpMouseInWindow(sdlWindow, float(x), float(y));
+    SDL_WarpMouseInWindow(sdlWindow, float(px), float(py));
 }
 
 //initialize graphic video system
@@ -393,7 +405,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_EVENT_WINDOW_RESIZED : 0);
+    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE : 0);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
@@ -12281,9 +12293,9 @@ uint64_t getCyclesCount()
 void calcCpuSpeed()
 {
     const uint64_t start = getCyclesCount();
-    delay(50);
+    SDL_Delay(200);
     const uint64_t stop = getCyclesCount();
-    const uint64_t speed = (stop - start) / 50000U;
+    const uint64_t speed = (stop - start) / 200000;
     cpuSpeed = uint32_t(speed);
 }
 
@@ -12450,15 +12462,26 @@ void initCpuInfo()
 void initVideoInfo()
 {
     videoMemory = 0;
-    strncpy(videoName, "Unknown", sizeof(videoName));
+    strncpy(videoName, "<Unknown>", sizeof(videoName));
+    strncpy(modeInfo, "<Unknown>", sizeof(modeInfo));
     strncpy(driverVersion, "0.0.0.0", sizeof(driverVersion));
     strncpy(renderVersion, "0.0.0.0", sizeof(renderVersion));
     strncpy(imageVersion, "0.0.0.0", sizeof(imageVersion));
-
-    //retrive SDL and SDL_image version string
-    snprintf(renderVersion, sizeof(renderVersion), "SDL %d.%s", SDL_GetVersion(), SDL_GetRevision());
-    snprintf(imageVersion, sizeof(imageVersion), "SDL_image %d", IMG_Version());
     
+    //retrive SDL and SDL_image version string
+    
+    const int32_t sdlver = SDL_GetVersion();
+    const int32_t imgver = IMG_Version();
+
+    snprintf(renderVersion, sizeof(renderVersion), "SDL %d.%d.%d", SDL_VERSIONNUM_MAJOR(sdlver), SDL_VERSIONNUM_MINOR(sdlver), SDL_VERSIONNUM_MICRO(sdlver));
+    snprintf(imageVersion, sizeof(imageVersion), "SDL_image %d.%d.%d", SDL_VERSIONNUM_MAJOR(imgver), SDL_VERSIONNUM_MINOR(imgver), SDL_VERSIONNUM_MICRO(imgver));
+    
+    //retrive current video mode info string
+    int width = 0, height = 0;
+	SDL_GetCurrentRenderOutputSize(sdlRenderer, &width, &height);
+	const SDL_DisplayMode* mode = (const SDL_DisplayMode*)SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(sdlWindow));
+	if (mode) snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%db @ %.2fHz", width, height, SDL_BYTESPERPIXEL(mode->format) << 3, mode->refresh_rate);
+
 #ifdef SDL_PLATFORM_APPLE
     io_iterator_t iterator;
     CFMutableDictionaryRef matchDict;
@@ -12620,13 +12643,6 @@ void initVideoInfo()
 //initialize some system info
 int32_t initSystemInfo()
 {
-    SDL_DisplayMode* mode = (SDL_DisplayMode*)SDL_GetWindowFullscreenMode(sdlWindow);
-    if (mode)
-    {
-        snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%db @ %fHz", mode->w, mode->h, SDL_BYTESPERPIXEL(mode->format) << 3, mode->refresh_rate);
-        free(mode);
-    }
-
     initCpuInfo();
     initVideoInfo();
     initMemoryInfo();

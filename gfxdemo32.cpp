@@ -782,15 +782,15 @@ void gfxDemo()
     writeText(xc + tx, 120, RGB_GREY127, 2, "all available features.");
     writeText(xc + tx, 150, RGB_GREY127, 2, "%s", getVideoName());
     writeText(xc + tx, 160, RGB_GREY127, 2, "Driver Version   : %s", getDriverVersion());
-    writeText(xc + tx, 170, RGB_GREY127, 2, "Video Memory     : %luMB", getVideoMemory());
+    writeText(xc + tx, 170, RGB_GREY127, 2, "Video Memory     : %lu MB", getVideoMemory());
     writeText(xc + tx, 180, RGB_GREY127, 2, "Video Mode       : %s", getVideoModeInfo());
     writeText(xc + tx, 190, RGB_GREY127, 2, "Render System    : %s", getRenderVersion());
     writeText(xc + tx, 200, RGB_GREY127, 2, "Image Library    : %s", getImageVersion());
     writeText(xc + tx, 220, RGB_GREY127, 2, "%s", getCpuName());
     writeText(xc + tx, 230, RGB_GREY127, 2, "CPU Features     : %s", getCpuFeatures());
-    writeText(xc + tx, 240, RGB_GREY127, 2, "CPU Frequency    : %luMHz", getCpuSpeed());
-    writeText(xc + tx, 250, RGB_GREY127, 2, "Physical Memory  : %luMB", getTotalMemory());
-    writeText(xc + tx, 260, RGB_GREY127, 2, "Available Memory : %luMB", getAvailableMemory());
+    writeText(xc + tx, 240, RGB_GREY127, 2, "CPU Frequency    : %.2f GHz", getCpuSpeed() / 1000.0);
+    writeText(xc + tx, 250, RGB_GREY127, 2, "Physical Memory  : %lu MB", getTotalMemory());
+    writeText(xc + tx, 260, RGB_GREY127, 2, "Available Memory : %lu MB", getAvailableMemory());
     render();
 
     fullSpeed = 1;

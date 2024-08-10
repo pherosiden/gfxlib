@@ -1203,7 +1203,6 @@ void gfxFractals()
         if (redraw)
         {
             allocBuffer();
-
             const uint32_t acx = alignedSize(cx);
             const clock_t t1 = clock();
             calculateMultiThread();
