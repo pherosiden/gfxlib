@@ -256,8 +256,8 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_WINDOW_RESIZED:
                 if ((inputMask & INPUT_WIN_RESIZED) && (event.window.type == SDL_EVENT_WINDOW_RESIZED))
                 {
-                    dataX = (int32_t)event.window.data1;
-                    dataY = (int32_t)event.window.data2;
+                    dataX = event.window.data1;
+                    dataY = event.window.data2;
                     return SDL_EVENT_WINDOW_RESIZED;
                 }
                 break;
@@ -363,24 +363,16 @@ void hideMouseCursor()
 //get current mouse state
 void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
 {
-    const uint8_t mstate = SDL_GetMouseState((float*)mx, (float*)my);
-    if (lmb)
-    {
-        if (mstate & 1) *lmb = 1;
-        else *lmb = 0;
-    }
-    if (rmb)
-    {
-        if (mstate & 4) *rmb = 1;
-        else *rmb = 0;
-    }
+    const SDL_MouseButtonFlags mstate = SDL_GetMouseState((float*)mx, (float*)my);
+    if (lmb) *lmb = (mstate == SDL_BUTTON_LEFT);
+    if (rmb) *rmb = (mstate == SDL_BUTTON_RIGHT);
 }
 
 //set mouse position
 void setMousePosition(int32_t x, int32_t y)
 {
     SDL_SetWindowMouseGrab(sdlWindow, SDL_TRUE);
-    SDL_WarpMouseInWindow(sdlWindow, (float)x, (float)y);
+    SDL_WarpMouseInWindow(sdlWindow, float(x), float(y));
 }
 
 //initialize graphic video system
@@ -504,7 +496,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     srand(randSeed);
 
     //initialize GFXLIB buffer
-    gfxBuff = (uint8_t*)calloc(GFX_BUFF_SIZE, 1);
+    gfxBuff = (uint8_t*)SDL_calloc(GFX_BUFF_SIZE, 1);
     if (!gfxBuff)
     {
         messageBox(GFX_ERROR, "Error initialize GFXLIB memory!");
@@ -555,7 +547,7 @@ void cleanup()
 
     if (gfxBuff)
     {
-        free(gfxBuff);
+        SDL_free(gfxBuff);
         gfxBuff = NULL;
     }
 
