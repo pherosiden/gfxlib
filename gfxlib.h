@@ -406,7 +406,7 @@ int32_t     getDataY();
 void        randomBuffer(void* buff, int32_t count, int32_t range);
 
 //system info
-int32_t     initSystemInfo();
+bool        initSystemInfo();
 uint32_t    getTotalMemory();
 uint32_t    getAvailableMemory();
 
@@ -418,8 +418,8 @@ const char* getCpuFeatures();
 
 //graphic info
 uint32_t    getVideoMemory();
-const char* getVideoModeInfo();
 const char* getVideoName();
+const char* getVideoModeInfo();
 const char* getDriverVersion();
 const char* getRenderVersion();
 const char* getImageVersion();
@@ -427,8 +427,8 @@ const char* getImageVersion();
 //mouse handler functions
 void        showMouseCursor();
 void        hideMouseCursor();
-void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb = NULL, int32_t* rmb = NULL);
 void        setMousePosition(int32_t x, int32_t y);
+void        getMouseState(int32_t* mx, int32_t* my, int32_t* lmb = NULL, int32_t* rmb = NULL);
 
 //timer and FPS functions
 uint64_t    getTime();

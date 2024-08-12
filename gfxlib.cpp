@@ -12641,7 +12641,7 @@ void initVideoInfo()
 }
 
 //initialize some system info
-int32_t initSystemInfo()
+bool initSystemInfo()
 {
     initCpuInfo();
     initVideoInfo();
@@ -12651,31 +12651,31 @@ int32_t initSystemInfo()
     if (!strstr(cpuFeatures, "AVX2"))
     {
         messageBox(GFX_ERROR, "GFXLIB require modern CPU with MMX, SSE2 and AVX2 extension!");
-        return 0;
+        return false;
     }
 
     //check CPU speed
     if (cpuSpeed < 2000)
     {
         messageBox(GFX_ERROR, "GFXLIB require CPU speed more than 2000 MHz!");
-        return 0;
+        return false;
     }
 
     //check free memory
     if (availableMemory < 500)
     {
         messageBox(GFX_ERROR, "GFXLIB require system RAM more than 500 MB!");
-        return 0;
+        return false;
     }
 
     //check for video RAM
     if (videoMemory < 64)
     {
         messageBox(GFX_ERROR, "GFXLIB require video RAM more than 64 MB!");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
 //set windows title text
