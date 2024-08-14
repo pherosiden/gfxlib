@@ -139,7 +139,8 @@
       </Message>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /Y /Q ..\lib\x64\*.dll .</Command>
+      <Command>xcopy /Y /Q ..\lib\x86\*.dll .
+xcopy /Y /Q /S /I ..\assets .\assets</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>Copying DLL files...</Outputs>
@@ -176,7 +177,7 @@
       </Message>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /Y /Q ..\lib\x64\*.dll .
+      <Command>xcopy /Y /Q ..\lib\x86\*.dll .
 xcopy /Y /Q /S /I ..\assets .\assets</Command>
     </CustomBuildStep>
     <CustomBuildStep>
@@ -200,7 +201,8 @@ xcopy /Y /Q /S /I ..\assets .\assets</Command>
       <AdditionalLibraryDirectories>../lib/x64</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>xcopy /Y /Q ..\lib\x64\*.dll .</Command>
+      <Command>xcopy /Y /Q ..\lib\x64\*.dll .
+xcopy /Y /Q /S /I ..\assets .\assets</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Copying DLL files...</Message>

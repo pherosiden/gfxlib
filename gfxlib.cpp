@@ -472,14 +472,6 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
             return 0;
         }
 
-        //initialize drawing buffer (use current surface pixel buffer)
-        drawBuff = sdlSurface->pixels;
-        if (!drawBuff)
-        {
-            messageBox(GFX_ERROR, "Failed to create render buffer!");
-            return 0;
-        }
-
         //make default palette and retrive the surface palette
         shiftPalette(basePalette);
         SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
@@ -490,17 +482,22 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
             messageBox(GFX_ERROR, "Failed to initialize palette colors!");
             return 0;
         }
+
+        //initialize drawing buffer (use current surface pixel buffer)
+        drawBuff = sdlSurface->pixels;
     }
     else
     {
         //initialize drawing buffer for 32 bits RGBA (32-bytes alignment for AVX2 use)
         const uint32_t msize = height * bytesPerScanline;
         drawBuff = SDL_aligned_alloc(32, msize);
-        if (!drawBuff)
-        {
-            messageBox(GFX_ERROR, "Failed to create render buffer!");
-            return 0;
-        }
+    }
+    
+    //validate drawing buffer
+    if (!drawBuff)
+    {
+        messageBox(GFX_ERROR, "Failed to create render buffer!");
+        return 0;
     }
 
     //initialize random number generation
@@ -8990,7 +8987,6 @@ void setPalette(const RGBA* pal)
 {
     SDL_Palette* palette = SDL_GetSurfacePalette(sdlSurface);
     if (palette) SDL_SetPaletteColors(palette, pal, 0, 256);
-    render();
 }
 
 //get current palette table
@@ -9019,6 +9015,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
             memcpy(&pal[from], &pal[from + 1], steps);
             memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
+            render();
             delay(ms);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9033,6 +9030,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
             memcpy(&pal[from], &pal[from + 1], steps);
             memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
+            render();
             delay(ms);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9057,6 +9055,7 @@ void fadeIn(const RGBA* dest, uint32_t ms)
             if (dest[j].b > k && src[j].b < 252) src[j].b += 4;
         }
         setPalette(src);
+        render();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9080,6 +9079,7 @@ void fadeOut(const RGBA* dest, uint32_t ms)
             if (dest[j].b < k && src[j].b > 4) src[j].b -= 4;
         }
         setPalette(src);
+        render();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9102,6 +9102,7 @@ void fadeMax(uint32_t ms)
             if (src[j].b < 252) src[j].b += 4; else src[j].b = 255;
         }
         setPalette(src);
+        render();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9124,6 +9125,7 @@ void fadeMin(uint32_t ms)
             if (src[j].b > 4) src[j].b -= 4; else src[j].b = 0;
         }
         setPalette(src);
+        render();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9141,6 +9143,7 @@ void fadeDown(RGBA* pal)
         if (pal[i].b > 4) pal[i].b -= 2; else pal[i].b = 0;
     }
     setPalette(pal);
+    render();
 }
 
 //convert mixed palette buffer to RGB buffer
@@ -9177,6 +9180,7 @@ void clearPalette()
     RGBA pal[256] = { 0 };
     memset(pal, 0, sizeof(pal));
     setPalette(pal);
+    render();
 }
 
 //make white palette
@@ -9185,6 +9189,7 @@ void whitePalette()
     RGBA pal[256] = { 0 };
     memset(pal, 255, sizeof(pal));
     setPalette(pal);
+    render();
 }
 
 //build default 256 colors palette

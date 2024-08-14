@@ -504,6 +504,7 @@ namespace crossFade {
                 }
 
                 setPalette(pal);
+                render();
                 delay(FPS_90);
 
                 readKeys();
@@ -533,6 +534,7 @@ namespace crossFade {
                 }
 
                 setPalette(pal);
+                render();
                 delay(FPS_90);
                 
                 readKeys();
@@ -1587,6 +1589,7 @@ namespace waterEffect {
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Water")) return;
         if (!loadPNG(dbuff[0], pal, "assets/sea.png")) return;
+
         setPalette(pal);
         memcpy(vbuff, dbuff, IMAGE_SIZE);
 
@@ -4965,12 +4968,12 @@ namespace intro16k {
     void setPalette()
     {
 #ifdef _USE_ASM
-        int32_t startIndex = firstIndex * 3;
+        const int16_t startIndex = firstIndex * 3;
 
         __asm {
             lea     esi, rgbpal
             lea     edi, outrgb
-            mov     ecx, startIndex
+            mov     cx, startIndex
         lp1:
             mov     al, [esi]
             mov     ah, 127
@@ -4990,8 +4993,8 @@ namespace intro16k {
             inc     edi
             inc     esi
             loop    lp1
-            mov     ecx, 768
-            sub     ecx, startIndex
+            mov     cx, 768
+            sub     cx, startIndex
         lp2:
             mov     al, [esi]
             mov     ah, 127
@@ -5013,7 +5016,7 @@ namespace intro16k {
             loop    lp2
             lea     esi, outrgb
             lea     edi, setrgb
-            mov     ecx, 256
+            mov     cx, 256
         again:
             movsw
             movsb
@@ -5309,25 +5312,25 @@ namespace intro16k {
     void initSintab()
     {
 #ifdef _USE_ASM
-        int16_t val = 0;
+        const int16_t val = 0;
         const int16_t scale = 64, diver = 128;
 
         __asm {
-            mov     ecx, 256
+            mov     cx, 256
             lea     esi, sinTab
             fninit
             fldpi
             fidiv   diver
             fldz
         again:
-            fld     ST(0)
+            fld     st(0)
             fsin
             fimul   scale
             fistp   val
             mov     ax, val
             mov     [esi], al
             inc     esi
-            fadd    ST, ST(1)
+            fadd    st, st(1)
             loop    again
         }
 #else
@@ -5401,10 +5404,11 @@ namespace intro16k {
         initBlobs();
         initTextures();
         initFonts();
-
+        
         order1 = (int16_t*)calloc(1024, sizeof(int16_t));
         order2 = (int16_t*)calloc(1024, sizeof(int16_t));
         if (!order1 || !order2) quit();
+        
     }
 
     void makeTunnel()
@@ -5484,13 +5488,13 @@ namespace intro16k {
         frames = 0;
         br1 = 120;
         sat = 1;
-
+        
         do {
             doBeat(30, 1, 123);
             doBeat(30, 1, 127);
 
             if (frames <= 120 && br1 < 110) br1 += 10;
-            if (frames > 460 && br1 > 0) br1 -= 5;
+            if (frames > 460 && br1 > 5) br1 -= 5;
 
             br2 = br1;
             sat = beatFunc >> 3;
@@ -6416,7 +6420,7 @@ namespace intro16k {
 
         do {
             if (frames <= 80 && br1 < 120) br1 += 5;
-            if (frames > 120 && br1 > 0) br1 -= 5;
+            if (frames > 120 && br1 > 5) br1 -= 5;
 
             const int16_t asin = exSin(frames);
             const int16_t acos = exSin(frames + 256);
@@ -11773,6 +11777,7 @@ namespace plasmaEffect3 {
             memcpy(&pal[0], &pal[1], 255 * sizeof(RGBA));
             memcpy(&pal[255], &tmp, sizeof(RGBA));
             setPalette(pal);
+            render();
             delay(FPS_90);
         }
         cleanup();
@@ -11975,6 +11980,7 @@ namespace plasmaEffect5 {
             memcpy(&pal[x], &pal[x + 1], y * sizeof(RGBA));
             memcpy(&pal[y], &tmp, sizeof(RGBA));
             setPalette(pal);
+            render();
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
 
@@ -14953,6 +14959,7 @@ namespace waterFall {
 
             shiftPalette(pal);
             setPalette(pal);
+            render();
             delay(FPS_90);
             ofs++;
         }
@@ -15070,6 +15077,7 @@ namespace wormEffect {
             for (int16_t i = 1; i < 16; i++) memcpy(&pal[(i - 1) << 4], &pal[i << 4], sizeof(tmp));
             memcpy(&pal[240], tmp, sizeof(tmp));
             setPalette(pal);
+            render();
             delay(FPS_90);
         }
 
@@ -15631,76 +15639,76 @@ namespace copper3Effect {
 
 void gfxEffectsMix()
 {
-//     mazeGeneration::run();
-//     starEffect::run();
-//     flagsEffect2::run();
-//     star2dEffect::run();
-//     flagsEffect::run();
-//     star3dEffect::run();
-//     plasmaEffect5::run();
-//     fadePalette::run();
-//     juliaSet::run();
-//     bumpMap::run();
-//     fireBump::run();
-//     circleEffect::run();
-//     crossFade::run();
-//     skyEffect::run();
-//     phongShader::run();
-//     plasmaTexture::run();
-//     fireDown::run();
-//     fireTexture::run();
-//     fireTexture2::run();
-//     fireTexture3::run();
-//     tunnelEffect::run();
-//     textureMappingEffect::run();
-//     bitmapRotate::run();
-//     intro16k::run();
-//     textScrolling::run();
-//     fastShowBMP::run();
-//     EMS::run();
-//     fillterEffect::run();
-//     fireworkEffect::run();
-//     candleEffect::run();
-//     fireEffect::run();
-//     fireEffect2::run();
-//     fireEffect3::run();
-//     fireEffect4::run();
-//     fireEffect5::run();
-//     fireEffect6::run();
-//     fireEffect7::run();
-//     fireEffect8::run();
-//     holeEffect1::run();
-//     holeEffect2::run();
-//     holeEffect3::run();
-//     kaleidoScope::run();
-//     kaleidoScope2::run(1);
-//     kaleidoScope2::run(0);
-//     fastCircleFill::run();
-//     lakeEffect::run();
-//     landScapeGeneration::run();
-//     landScapeEffect::run();
-//     lensEffect::run();
-//     zoomInEffect::run();
-//     zoomOutEffect::run();
-//     lineBobEffect::run();
-//     lineBlurEffect::run();
-//     pixelMorphing::run();
-//     pierraEffect::run();
-//     plasmaEffect1::run();
-//     plasmaEffect2::run();
-//     plasmaEffect3::run();
-//     plasmaEffect4::run();
-//     rippleEffect::run();
-//     rotateMap::run();
-//     rayCastingEffect::run();
-//     scaleMap::run();
-//     shadeBob::run();
-//     shadePattern::run(1);
-//     shadePattern::run(0);
-//     shadeBobSin::run();
-//     snowFall::run();
-//     softFire::run();
-//     spriteEffect::run();
+    mazeGeneration::run();
+    starEffect::run();
+    flagsEffect2::run();
+    star2dEffect::run();
+    flagsEffect::run();
+    star3dEffect::run();
+    plasmaEffect5::run();
+    fadePalette::run();
+    juliaSet::run();
+    bumpMap::run();
+    fireBump::run();
+    circleEffect::run();
+    crossFade::run();
+    skyEffect::run();
+    phongShader::run();
+    plasmaTexture::run();
+    fireDown::run();
+    fireTexture::run();
+    fireTexture2::run();
+    fireTexture3::run();
+    tunnelEffect::run();
+    textureMappingEffect::run();
+    bitmapRotate::run();
+    intro16k::run();
+    textScrolling::run();
+    fastShowBMP::run();
+    EMS::run();
+    fillterEffect::run();
+    fireworkEffect::run();
+    candleEffect::run();
+    fireEffect::run();
+    fireEffect2::run();
+    fireEffect3::run();
+    fireEffect4::run();
+    fireEffect5::run();
+    fireEffect6::run();
+    fireEffect7::run();
+    fireEffect8::run();
+    holeEffect1::run();
+    holeEffect2::run();
+    holeEffect3::run();
+    kaleidoScope::run();
+    kaleidoScope2::run(1);
+    kaleidoScope2::run(0);
+    fastCircleFill::run();
+    lakeEffect::run();
+    landScapeGeneration::run();
+    landScapeEffect::run();
+    lensEffect::run();
+    zoomInEffect::run();
+    zoomOutEffect::run();
+    lineBobEffect::run();
+    lineBlurEffect::run();
+    pixelMorphing::run();
+    pierraEffect::run();
+    plasmaEffect1::run();
+    plasmaEffect2::run();
+    plasmaEffect3::run();
+    plasmaEffect4::run();
+    rippleEffect::run();
+    rotateMap::run();
+    rayCastingEffect::run();
+    scaleMap::run();
+    shadeBob::run();
+    shadePattern::run(1);
+    shadePattern::run(0);
+    shadeBobSin::run();
+    snowFall::run();
+    softFire::run();
+    spriteEffect::run();
     fontEffect1::run();
     fontEffect2::run();
     fontEffect3::run();

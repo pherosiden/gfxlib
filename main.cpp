@@ -7,10 +7,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     chdir(dirname(args[0]));
     chdir("../Resources");
 #endif
-    //gfxEffects();
-    //gfxDemoMix();
-    //gfxDemo();
-    //gfxFontView();
+    gfxEffects();
+    gfxDemoMix();
+    gfxDemo();
+    gfxFontView();
     gfxEffectsMix();
     gfxFractals();
     return 0;
