@@ -12444,6 +12444,7 @@ void calcCpuFeatures()
 #endif
 
     if (cpuInfo[1] & 0x00000020) strncat(cpuFeatures, "AVX2,", sizeof(cpuFeatures) - 1);
+    if (cpuInfo[1] & 0x00010000) strncat(cpuFeatures, "AVX512,", sizeof(cpuFeatures) - 1);
 
     size_t len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
