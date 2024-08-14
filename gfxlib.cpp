@@ -97,7 +97,6 @@ uint8_t         ptnWideDot[]        = { 0x80, 0x00, 0x08, 0x00, 0x80, 0x00, 0x08
 uint8_t         ptnCloseDot[]       = { 0x88, 0x00, 0x22, 0x00, 0x88, 0x00, 0x22, 0x00 };
 
 //CPU and video card parameters
-uint32_t        cpuSpeed = 0;                       //CPU speed in MHz
 char            cpuName[50] = { 0 };                //full CPU name string
 char            cpuType[16] = { 0 };                //CPU type (GenuineIntel, AuthenticAMD, ...)
 char            cpuFeatures[50] = { 0 };            //CPU features (MMX, 3DNow!, 3DNowExt!, SSE, SSE2, SSE3, ...)
@@ -12276,29 +12275,6 @@ void initMemoryInfo()
 #endif
 }
 
-//get RDTSC count
-uint64_t getCyclesCount()
-{
-#ifdef _USE_ASM
-    __asm {
-        cpuid
-        rdtsc
-    }
-#else
-    return __rdtsc();
-#endif
-}
-
-//get current CPU clock rate in MHz
-void calcCpuSpeed()
-{
-    const uint64_t start = getCyclesCount();
-    SDL_Delay(200);
-    const uint64_t stop = getCyclesCount();
-    const uint64_t speed = (stop - start) / 200000;
-    cpuSpeed = uint32_t(speed);
-}
-
 //CPUID instruction wrapper
 void CPUID(int32_t* cpuinfo, uint32_t funcid)
 {
@@ -12410,7 +12386,7 @@ void calcCpuName()
 }
 
 //AMD 3DNow! detected
-int32_t have3DNow()
+bool have3DNow()
 {
     int32_t cpuInfo[4] = { 0 };
     CPUID(cpuInfo, 0x80000000);
@@ -12419,7 +12395,37 @@ int32_t have3DNow()
         CPUID(cpuInfo, 0x80000001);
         return cpuInfo[3] & 0x80000000;
     }
-    return 0;
+    return false;
+}
+
+bool haveMMX()
+{
+    return false;
+}
+
+bool haveSSE()
+{
+    return false;
+}
+
+bool haveSSE2()
+{
+    return false;
+}
+
+bool haveAVX()
+{
+    return false;
+}
+
+bool haveAVX2()
+{
+    return false;
+}
+
+bool haveAVX512()
+{
+    return false;
 }
 
 //calculate some CPU features...
@@ -12454,7 +12460,6 @@ void calcCpuFeatures()
 //initialize CPU info
 void initCpuInfo()
 {
-    calcCpuSpeed();
     calcCpuType();
     calcCpuName();
     calcCpuFeatures();
@@ -12609,8 +12614,8 @@ void initVideoInfo()
     //must include the null character
     subKeyMaxLength += 1;
 
-    LARGE_INTEGER driverVersionRaw = { 0 };
     bool foundVersion = false;
+    LARGE_INTEGER driverVersionRaw = { 0 };
     TCHAR* subKeyName = (TCHAR*)calloc(subKeyMaxLength, sizeof(TCHAR));
 
     for (DWORD i = 0; i < numOfAdapters; ++i)
@@ -12636,8 +12641,8 @@ void initVideoInfo()
 
     RegCloseKey(dxKeyHandle);
     free(subKeyName);
-    if (!foundVersion) return;
-    snprintf(driverVersion, sizeof(driverVersion), "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
+
+    if (foundVersion) snprintf(driverVersion, sizeof(driverVersion), "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
 #endif
 }
 
@@ -12656,7 +12661,7 @@ bool initSystemInfo()
     }
 
     //check CPU speed
-    if (cpuSpeed < 2000)
+    if (getCpuSpeed() < 2000)
     {
         messageBox(GFX_ERROR, "GFXLIB require CPU speed more than 2000 MHz!");
         return false;
@@ -12712,7 +12717,17 @@ const char* getVideoName()
 //return current CPU speed in MHZ
 uint32_t getCpuSpeed()
 {
-    return cpuSpeed;
+    int32_t cpuInfo[4] = { 0, 0, 0, 0 };
+
+    __cpuid(cpuInfo, 0);
+
+    if (cpuInfo[0] >= 0x16)
+    {
+        __cpuid(cpuInfo, 0x16);
+        return cpuInfo[0];
+    }
+
+    return 0;
 }
 
 //return current CPU type (INTEL, AMD)

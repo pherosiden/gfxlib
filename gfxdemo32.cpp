@@ -788,7 +788,7 @@ void gfxDemo()
     writeText(xc + tx, 200, RGB_GREY127, 2, "Image Library    : %s", getImageVersion());
     writeText(xc + tx, 220, RGB_GREY127, 2, "%s", getCpuName());
     writeText(xc + tx, 230, RGB_GREY127, 2, "CPU Features     : %s", getCpuFeatures());
-    writeText(xc + tx, 240, RGB_GREY127, 2, "CPU Frequency    : %.2f GHz", getCpuSpeed() / 1000.0);
+    writeText(xc + tx, 240, RGB_GREY127, 2, "CPU Frequency    : %u MHz", getCpuSpeed());
     writeText(xc + tx, 250, RGB_GREY127, 2, "Physical Memory  : %lu MB", getTotalMemory());
     writeText(xc + tx, 260, RGB_GREY127, 2, "Available Memory : %lu MB", getAvailableMemory());
     render();
