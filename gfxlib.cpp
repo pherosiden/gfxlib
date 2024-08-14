@@ -107,6 +107,7 @@ char            imageVersion[32] = { 0 };           //SDL2_image version string
 char            modeInfo[32] = { 0 };               //current display mode info string
 
 //system memory profiles
+uint32_t        cpuSpeed = 0;                       //CPU speed in MHz
 uint32_t        totalMemory = 0;                    //total physical memory in MB
 uint32_t        availableMemory = 0;                //available physical memory in MB
 uint32_t        videoMemory = 0;                    //total video memory in MB
@@ -592,7 +593,6 @@ void render()
         //256 colors palette, we must convert 8 bits surface to 32 bits surface
         SDL_BlitSurface(sdlSurface, NULL, sdlScreen, NULL);
         SDL_UpdateTexture(sdlTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
-        SDL_RenderClear(sdlRenderer);
         SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
         SDL_RenderPresent(sdlRenderer);
     }
@@ -600,7 +600,6 @@ void render()
     {
         //rgb mode, just render texture to video memory without any conversation
         SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
-        SDL_RenderClear(sdlRenderer);
         SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
         SDL_RenderPresent(sdlRenderer);
     }
@@ -12295,6 +12294,29 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
 #endif
 }
 
+//get RDTSC count
+uint64_t getCyclesCount()
+{
+#ifdef _USE_ASM
+	__asm {
+		cpuid
+		rdtsc
+	}
+#else
+	return __rdtsc();
+#endif
+}
+
+//get current CPU clock rate in MHz
+void calcCpuSpeed()
+{
+	const uint64_t start = getCyclesCount();
+	SDL_Delay(200);
+	const uint64_t stop = getCyclesCount();
+	const uint64_t speed = (stop - start) / 200000;
+	cpuSpeed = uint32_t(speed);
+}
+
 //return CPU type (INTEL, AMD, ...)
 void calcCpuType()
 {
@@ -12398,36 +12420,6 @@ bool have3DNow()
     return false;
 }
 
-bool haveMMX()
-{
-    return false;
-}
-
-bool haveSSE()
-{
-    return false;
-}
-
-bool haveSSE2()
-{
-    return false;
-}
-
-bool haveAVX()
-{
-    return false;
-}
-
-bool haveAVX2()
-{
-    return false;
-}
-
-bool haveAVX512()
-{
-    return false;
-}
-
 //calculate some CPU features...
 void calcCpuFeatures()
 {
@@ -12460,6 +12452,7 @@ void calcCpuFeatures()
 //initialize CPU info
 void initCpuInfo()
 {
+    calcCpuSpeed();
     calcCpuType();
     calcCpuName();
     calcCpuFeatures();
@@ -12654,14 +12647,14 @@ bool initSystemInfo()
     initMemoryInfo();
 
     //check CPU extension
-    if (!strstr(cpuFeatures, "AVX2"))
+    if (!strstr(cpuFeatures, "AVX2") && !strstr(cpuFeatures, "3DNow!"))
     {
-        messageBox(GFX_ERROR, "GFXLIB require modern CPU with MMX, SSE2 and AVX2 extension!");
+        messageBox(GFX_ERROR, "GFXLIB require modern CPU with 3DNow!, MMX, SSE2, AVX2 extension!");
         return false;
     }
 
     //check CPU speed
-    if (getCpuSpeed() < 2000)
+    if (cpuSpeed < 2000)
     {
         messageBox(GFX_ERROR, "GFXLIB require CPU speed more than 2000 MHz!");
         return false;
@@ -12717,17 +12710,7 @@ const char* getVideoName()
 //return current CPU speed in MHZ
 uint32_t getCpuSpeed()
 {
-    int32_t cpuInfo[4] = { 0, 0, 0, 0 };
-
-    __cpuid(cpuInfo, 0);
-
-    if (cpuInfo[0] >= 0x16)
-    {
-        __cpuid(cpuInfo, 0x16);
-        return cpuInfo[0];
-    }
-
-    return 0;
+    return cpuSpeed;
 }
 
 //return current CPU type (INTEL, AMD)

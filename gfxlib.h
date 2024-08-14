@@ -416,15 +416,6 @@ const char* getCpuType();
 const char* getCpuName();
 const char* getCpuFeatures();
 
-//CPU features
-bool        have3DNow();
-bool        haveMMX();
-bool        haveSSE();
-bool        haveSSE2();
-bool        haveAVX();
-bool        haveAVX2();
-bool        haveAVX512();
-
 //graphic info
 uint32_t    getVideoMemory();
 const char* getVideoName();
