@@ -15631,7 +15631,7 @@ namespace copper3Effect {
 
 void gfxEffectsMix()
 {
-    /*mazeGeneration::run();
+    mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15639,7 +15639,7 @@ void gfxEffectsMix()
     star3dEffect::run();
     plasmaEffect5::run();
     fadePalette::run();
-    juliaSet::run();*/
+    juliaSet::run();
     bumpMap::run();
     fireBump::run();
     circleEffect::run();

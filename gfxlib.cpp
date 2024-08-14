@@ -12340,7 +12340,7 @@ void calcCpuType()
     cpuType[i++] = cpuInfo[2] & 0xff; cpuInfo[2] >>= 8;
     cpuType[i++] = cpuInfo[2] & 0xff; cpuInfo[2] >>= 8;
     cpuType[i++] = cpuInfo[2] & 0xff;
-    if (!cpuType[0]) strncpy(cpuType, "Unknown", sizeof(cpuType));
+    if (!cpuType[0]) strncpy(cpuType, "<unknown>", sizeof(cpuType));
 }
 
 //return full CPU description string (i.e: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz)
@@ -12406,7 +12406,7 @@ void calcCpuName()
         cpuName[i++] = cpuInfo[3] & 0xff; cpuInfo[3] >>= 8;
         cpuName[i++] = cpuInfo[3] & 0xff; cpuInfo[3] >>= 8;
     }
-    if (!cpuName[0]) strncpy(cpuName, "Unknown", sizeof(cpuName));
+    if (!cpuName[0]) strncpy(cpuName, "<unknown>", sizeof(cpuName));
 }
 
 //AMD 3DNow! detected
@@ -12428,7 +12428,7 @@ void calcCpuFeatures()
     int32_t cpuInfo[4] = { 0 };
     CPUID(cpuInfo, 0);
     if (cpuInfo[0] >= 1) CPUID(cpuInfo, 1);
-    
+
     memset(cpuFeatures, 0, sizeof(cpuFeatures));
 
     if (have3DNow()) strncat(cpuFeatures, "3DNow!,", sizeof(cpuFeatures) - 1);
@@ -12447,6 +12447,7 @@ void calcCpuFeatures()
 
     size_t len = strlen(cpuFeatures);
     if (len > 1) cpuFeatures[len - 1] = '\0';
+    else strncpy(cpuFeatures, "<none>", sizeof(cpuFeatures));
 }
 
 //initialize CPU info
@@ -12462,14 +12463,13 @@ void initCpuInfo()
 void initVideoInfo()
 {
     videoMemory = 0;
-    strncpy(videoName, "<Unknown>", sizeof(videoName));
-    strncpy(modeInfo, "<Unknown>", sizeof(modeInfo));
+    strncpy(videoName, "<unknown>", sizeof(videoName));
+    strncpy(modeInfo, "<unknown>", sizeof(modeInfo));
     strncpy(driverVersion, "0.0.0.0", sizeof(driverVersion));
     strncpy(renderVersion, "0.0.0.0", sizeof(renderVersion));
     strncpy(imageVersion, "0.0.0.0", sizeof(imageVersion));
     
     //retrive SDL and SDL_image version string
-    
     const int32_t sdlver = SDL_GetVersion();
     const int32_t imgver = IMG_Version();
 
