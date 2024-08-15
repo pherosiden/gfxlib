@@ -5408,7 +5408,6 @@ namespace intro16k {
         order1 = (int16_t*)calloc(1024, sizeof(int16_t));
         order2 = (int16_t*)calloc(1024, sizeof(int16_t));
         if (!order1 || !order2) quit();
-        
     }
 
     void makeTunnel()
@@ -5498,8 +5497,8 @@ namespace intro16k {
 
             br2 = br1;
             sat = beatFunc >> 3;
-            br1 += beatFunc;
 
+            br1 += beatFunc;
             setPalette();
             br1 -= beatFunc;
 
@@ -5942,9 +5941,9 @@ namespace intro16k {
 
             br2 = br1;
             sat = beatFunc / 48;
+            setPalette();
 
             memset(vbuff, 0, IMAGE_SIZE);
-            setPalette();
 
             for (i = 0; i < 16; i++)
             {
@@ -15639,7 +15638,7 @@ namespace copper3Effect {
 
 void gfxEffectsMix()
 {
-    mazeGeneration::run();
+    /*mazeGeneration::run();
     starEffect::run();
     flagsEffect2::run();
     star2dEffect::run();
@@ -15661,7 +15660,7 @@ void gfxEffectsMix()
     fireTexture3::run();
     tunnelEffect::run();
     textureMappingEffect::run();
-    bitmapRotate::run();
+    bitmapRotate::run();*/
     intro16k::run();
     textScrolling::run();
     fastShowBMP::run();
