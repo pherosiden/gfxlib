@@ -393,14 +393,14 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     //initialize SDL video mode only
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        messageBox(GFX_ERROR, "Failed init SDL2: %s", SDL_GetError());
+        messageBox(GFX_ERROR, "Failed to init SDL3: %s", SDL_GetError());
         return 0;
     }
     
     //initialize SDL2 image lib
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
     {
-        messageBox(GFX_ERROR, "Failed init SDL image: %s", IMG_GetError());
+        messageBox(GFX_ERROR, "Failed to init SDL3 image: %s", IMG_GetError());
         return 0;
     }
 
@@ -416,7 +416,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     SDL_Surface* icon = IMG_Load("assets/gfxicon-128x.png");
     if (icon)
     {
-        SDL_SetSurfaceColorKey(icon, true, SDL_MapRGB(SDL_GetPixelFormatDetails(icon->format), NULL, 0, 0, 0));
+        SDL_SetSurfaceColorKey(icon, SDL_TRUE, SDL_MapRGB(SDL_GetPixelFormatDetails(icon->format), NULL, 0, 0, 0));
         SDL_SetWindowIcon(sdlWindow, icon);
         SDL_DestroySurface(icon);
     }
@@ -457,7 +457,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (bpp == 8)
     {
         //create 32bits surface and use this to convert to texture before render to screen
-        sdlScreen = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(32, 0, 0, 0, 0));
+        sdlScreen = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_ARGB8888);
         if (!sdlScreen)
         {
             messageBox(GFX_ERROR, "Failed to create 32 bits surface: %s", SDL_GetError());
@@ -465,7 +465,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         }
 
         //create 8bits surface with palette
-        sdlSurface = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(8, 0, 0, 0, 0));
+        sdlSurface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_INDEX8);
         if (!sdlSurface)
         {
             messageBox(GFX_ERROR, "Failed to create 8 bits surface: %s", SDL_GetError());
@@ -637,7 +637,7 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
 
             //create new 32bits surface
             if (sdlScreen) SDL_DestroySurface(sdlScreen);
-            sdlScreen = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(32, 0, 0, 0, 0));
+            sdlScreen = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_ARGB8888);
             if (!sdlScreen)
             {
                 messageBox(GFX_ERROR, "Failed to create new 32bits surface: %s", SDL_GetError());
@@ -646,7 +646,7 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
 
             //create new 8bits surface
             if (sdlSurface) SDL_DestroySurface(sdlSurface);
-            sdlSurface = SDL_CreateSurface(width, height, SDL_GetPixelFormatForMasks(8, 0, 0, 0, 0));
+            sdlSurface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_INDEX8);
             if (!sdlSurface)
             {
                 messageBox(GFX_ERROR, "Failed to create new 8bits surface: %s", SDL_GetError());
@@ -10147,8 +10147,8 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
         return 0;
     }
 
-    //create 32bits texture to convert image format
-    SDL_Surface* texture = SDL_CreateSurface(image->w, image->h, SDL_GetPixelFormatForMasks(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000));
+    //create 32bits texture to convert image format (support alpha channel image)
+    SDL_Surface* texture = SDL_CreateSurface(image->w, image->h, SDL_PIXELFORMAT_ARGB8888);
     if (!texture)
     {
         SDL_DestroySurface(image);
@@ -10193,7 +10193,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     }
 
     //create 32bits texture
-    SDL_Surface* texture = SDL_CreateSurface(image->w, image->h, SDL_GetPixelFormatForMasks(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000));
+    SDL_Surface* texture = SDL_CreateSurface(image->w, image->h, SDL_PIXELFORMAT_ARGB8888);
     if (!texture)
     {
         SDL_DestroySurface(image);
