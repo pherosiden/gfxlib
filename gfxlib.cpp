@@ -128,34 +128,34 @@ std::map<int32_t, int32_t> keyStatus;               //key input status
 
 //default 8-bits palette entries for mixed mode, SDL3 initialized with black palette
 SDL_Color basePalette[256] = {
-    {0,0,0,255},{0,0,42,255},{0,42,0,255},{0,42,42,255},{42,0,0,255},{42,0,42,255},{42,21,0,255},{42,42,42,255},{21,21,21,255},{21,21,63,255},{21,63,21,255},{21,63,63,255},{63,21,21,255},{63,21,63,255},{63,63,21,255},{63,63,63,255},
-    {0,0,0,255},{5,5,5,255},{8,8,8,255},{11,11,11,255},{14,14,14,255},{17,17,17,255},{20,20,20,255},{24,24,24,255},{28,28,28,255},{32,32,32,255},{36,36,36,255},{40,40,40,255},{45,45,45,255},{50,50,50,255},{56,56,56,255},{63,63,63,255},
-    {0,0,63,255},{16,0,63,255},{31,0,63,255},{47,0,63,255},{63,0,63,255},{63,0,47,255},{63,0,31,255},{63,0,16,255},{63,0,0,255},{63,16,0,255},{63,31,0,255},{63,47,0,255},{63,63,0,255},{47,63,0,255},{31,63,0,255},{16,63,0,255},
-    {0,63,0,255},{0,63,16,255},{0,63,31,255},{0,63,47,255},{0,63,63,255},{0,47,63,255},{0,31,63,255},{0,16,63,255},{31,31,63,255},{39,31,63,255},{47,31,63,255},{55,31,63,255},{63,31,63,255},{63,31,55,255},{63,31,47,255},{63,31,39,255},
-    {63,31,31,255},{63,39,31,255},{63,47,31,255},{63,55,31,255},{63,63,31,255},{55,63,31,255},{47,63,31,255},{39,63,31,255},{31,63,31,255},{31,63,39,255},{31,63,47,255},{31,63,55,255},{31,63,63,255},{31,55,63,255},{31,47,63,255},{31,39,63,255},
-    {45,45,63,255},{49,45,63,255},{54,45,63,255},{58,45,63,255},{63,45,63,255},{63,45,58,255},{63,45,54,255},{63,45,49,255},{63,45,45,255},{63,49,45,255},{63,54,45,255},{63,58,45,255},{63,63,45,255},{58,63,45,255},{54,63,45,255},{49,63,45,255},
-    {45,63,45,255},{45,63,49,255},{45,63,54,255},{45,63,58,255},{45,63,63,255},{45,58,63,255},{45,54,63,255},{45,49,63,255},{0,0,28,255},{7,0,28,255},{14,0,28,255},{21,0,28,255},{28,0,28,255},{28,0,21,255},{28,0,14,255},{28,0,7,255},
-    {28,0,0,255},{28,7,0,255},{28,14,0,255},{28,21,0,255},{28,28,0,255},{21,28,0,255},{14,28,0,255},{7,28,0,255},{0,28,0,255},{0,28,7,255},{0,28,14,255},{0,28,21,255},{0,28,28,255},{0,21,28,255},{0,14,28,255},{0,7,28,255},
-    {14,14,28,255},{17,14,28,255},{21,14,28,255},{24,14,28,255},{28,14,28,255},{28,14,24,255},{28,14,21,255},{28,14,17,255},{28,14,14,255},{28,17,14,255},{28,21,14,255},{28,24,14,255},{28,28,14,255},{24,28,14,255},{21,28,14,255},{17,28,14,255},
-    {14,28,14,255},{14,28,17,255},{14,28,21,255},{14,28,24,255},{14,28,28,255},{14,24,28,255},{14,21,28,255},{14,17,28,255},{20,20,28,255},{22,20,28,255},{24,20,28,255},{26,20,28,255},{28,20,28,255},{28,20,26,255},{28,20,24,255},{28,20,22,255},
-    {28,20,20,255},{28,22,20,255},{28,24,20,255},{28,26,20,255},{28,28,20,255},{26,28,20,255},{24,28,20,255},{22,28,20,255},{20,28,20,255},{20,28,22,255},{20,28,24,255},{20,28,26,255},{20,28,28,255},{20,26,28,255},{20,24,28,255},{20,22,28,255},
-    {0,0,16,255},{4,0,16,255},{8,0,16,255},{12,0,16,255},{16,0,16,255},{16,0,12,255},{16,0,8,255},{16,0,4,255},{16,0,0,255},{16,4,0,255},{16,8,0,255},{16,12,0,255},{16,16,0,255},{12,16,0,255},{8,16,0,255},{4,16,0,255},
-    {0,16,0,255},{0,16,4,255},{0,16,8,255},{0,16,12,255},{0,16,16,255},{0,12,16,255},{0,8,16,255},{0,4,16,255},{8,8,16,255},{10,8,16,255},{12,8,16,255},{14,8,16,255},{16,8,16,255},{16,8,14,255},{16,8,12,255},{16,8,10,255},
-    {16,8,8,255},{16,10,8,255},{16,12,8,255},{16,14,8,255},{16,16,8,255},{14,16,8,255},{12,16,8,255},{10,16,8,255},{8,16,8,255},{8,16,10,255},{8,16,12,255},{8,16,14,255},{8,16,16,255},{8,14,16,255},{8,12,16,255},{8,10,16,255},
-    {11,11,16,255},{12,11,16,255},{13,11,16,255},{15,11,16,255},{16,11,16,255},{16,11,15,255},{16,11,13,255},{16,11,12,255},{16,11,11,255},{16,12,11,255},{16,13,11,255},{16,15,11,255},{16,16,11,255},{15,16,11,255},{13,16,11,255},{12,16,11,255},
-    {11,16,11,255},{11,16,12,255},{11,16,13,255},{11,16,15,255},{11,16,16,255},{11,15,16,255},{11,13,16,255},{11,12,16,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},{0,0,0,255},
+    { 0,  0,  0, 0}, { 0,  0, 42, 0}, { 0, 42,  0, 0}, { 0, 42, 42, 0}, {42,  0,  0, 0}, {42,  0, 42, 0}, {42, 21,  0, 0}, {42, 42, 42, 0}, {21, 21, 21, 0}, {21, 21, 63, 0}, {21, 63, 21, 0}, {21, 63, 63, 0}, {63, 21, 21, 0}, {63, 21, 63, 0}, {63, 63, 21, 0}, {63, 63, 63, 0},
+    { 0,  0,  0, 0}, { 5,  5,  5, 0}, { 8,  8,  8, 0}, {11, 11, 11, 0}, {14, 14, 14, 0}, {17, 17, 17, 0}, {20, 20, 20, 0}, {24, 24, 24, 0}, {28, 28, 28, 0}, {32, 32, 32, 0}, {36, 36, 36, 0}, {40, 40, 40, 0}, {45, 45, 45, 0}, {50, 50, 50, 0}, {56, 56, 56, 0}, {63, 63, 63, 0},
+    { 0,  0, 63, 0}, {16,  0, 63, 0}, {31,  0, 63, 0}, {47,  0, 63, 0}, {63,  0, 63, 0}, {63,  0, 47, 0}, {63,  0, 31, 0}, {63,  0, 16, 0}, {63,  0,  0, 0}, {63, 16,  0, 0}, {63, 31,  0, 0}, {63, 47,  0, 0}, {63, 63,  0, 0}, {47, 63,  0, 0}, {31, 63,  0, 0}, {16, 63,  0, 0},
+    { 0, 63,  0, 0}, { 0, 63, 16, 0}, { 0, 63, 31, 0}, { 0, 63, 47, 0}, { 0, 63, 63, 0}, { 0, 47, 63, 0}, { 0, 31, 63, 0}, { 0, 16, 63, 0}, {31, 31, 63, 0}, {39, 31, 63, 0}, {47, 31, 63, 0}, {55, 31, 63, 0}, {63, 31, 63, 0}, {63, 31, 55, 0}, {63, 31, 47, 0}, {63, 31, 39, 0},
+    {63, 31, 31, 0}, {63, 39, 31, 0}, {63, 47, 31, 0}, {63, 55, 31, 0}, {63, 63, 31, 0}, {55, 63, 31, 0}, {47, 63, 31, 0}, {39, 63, 31, 0}, {31, 63, 31, 0}, {31, 63, 39, 0}, {31, 63, 47, 0}, {31, 63, 55, 0}, {31, 63, 63, 0}, {31, 55, 63, 0}, {31, 47, 63, 0}, {31, 39, 63, 0},
+    {45, 45, 63, 0}, {49, 45, 63, 0}, {54, 45, 63, 0}, {58, 45, 63, 0}, {63, 45, 63, 0}, {63, 45, 58, 0}, {63, 45, 54, 0}, {63, 45, 49, 0}, {63, 45, 45, 0}, {63, 49, 45, 0}, {63, 54, 45, 0}, {63, 58, 45, 0}, {63, 63, 45, 0}, {58, 63, 45, 0}, {54, 63, 45, 0}, {49, 63, 45, 0},
+    {45, 63, 45, 0}, {45, 63, 49, 0}, {45, 63, 54, 0}, {45, 63, 58, 0}, {45, 63, 63, 0}, {45, 58, 63, 0}, {45, 54, 63, 0}, {45, 49, 63, 0}, { 0,  0, 28, 0}, { 7,  0, 28, 0}, {14,  0, 28, 0}, {21,  0, 28, 0}, {28,  0, 28, 0}, {28,  0, 21, 0}, {28,  0, 14, 0}, {28,  0,  7, 0},
+    {28,  0,  0, 0}, {28,  7,  0, 0}, {28, 14,  0, 0}, {28, 21,  0, 0}, {28, 28,  0, 0}, {21, 28,  0, 0}, {14, 28,  0, 0}, { 7, 28,  0, 0}, { 0, 28,  0, 0}, { 0, 28,  7, 0}, { 0, 28, 14, 0}, { 0, 28, 21, 0}, { 0, 28, 28, 0}, { 0, 21, 28, 0}, { 0, 14, 28, 0}, { 0,  7, 28, 0},
+    {14, 14, 28, 0}, {17, 14, 28, 0}, {21, 14, 28, 0}, {24, 14, 28, 0}, {28, 14, 28, 0}, {28, 14, 24, 0}, {28, 14, 21, 0}, {28, 14, 17, 0}, {28, 14, 14, 0}, {28, 17, 14, 0}, {28, 21, 14, 0}, {28, 24, 14, 0}, {28, 28, 14, 0}, {24, 28, 14, 0}, {21, 28, 14, 0}, {17, 28, 14, 0},
+    {14, 28, 14, 0}, {14, 28, 17, 0}, {14, 28, 21, 0}, {14, 28, 24, 0}, {14, 28, 28, 0}, {14, 24, 28, 0}, {14, 21, 28, 0}, {14, 17, 28, 0}, {20, 20, 28, 0}, {22, 20, 28, 0}, {24, 20, 28, 0}, {26, 20, 28, 0}, {28, 20, 28, 0}, {28, 20, 26, 0}, {28, 20, 24, 0}, {28, 20, 22, 0},
+    {28, 20, 20, 0}, {28, 22, 20, 0}, {28, 24, 20, 0}, {28, 26, 20, 0}, {28, 28, 20, 0}, {26, 28, 20, 0}, {24, 28, 20, 0}, {22, 28, 20, 0}, {20, 28, 20, 0}, {20, 28, 22, 0}, {20, 28, 24, 0}, {20, 28, 26, 0}, {20, 28, 28, 0}, {20, 26, 28, 0}, {20, 24, 28, 0}, {20, 22, 28, 0},
+    { 0,  0, 16, 0}, { 4,  0, 16, 0}, { 8,  0, 16, 0}, {12,  0, 16, 0}, {16,  0, 16, 0}, {16,  0, 12, 0}, {16,  0,  8, 0}, {16,  0,  4, 0}, {16,  0,  0, 0}, {16,  4,  0, 0}, {16,  8,  0, 0}, {16, 12,  0, 0}, {16, 16,  0, 0}, {12, 16,  0, 0}, { 8, 16,  0, 0}, { 4, 16,  0, 0},
+    { 0, 16,  0, 0}, { 0, 16,  4, 0}, { 0, 16,  8, 0}, { 0, 16, 12, 0}, { 0, 16, 16, 0}, { 0, 12, 16, 0}, { 0,  8, 16, 0}, { 0,  4, 16, 0}, { 8,  8, 16, 0}, {10,  8, 16, 0}, {12,  8, 16, 0}, {14,  8, 16, 0}, {16,  8, 16, 0}, {16,  8, 14, 0}, {16,  8, 12, 0}, {16,  8, 10, 0},
+    {16,  8,  8, 0}, {16, 10,  8, 0}, {16, 12,  8, 0}, {16, 14,  8, 0}, {16, 16,  8, 0}, {14, 16,  8, 0}, {12, 16,  8, 0}, {10, 16,  8, 0}, { 8, 16,  8, 0}, { 8, 16, 10, 0}, { 8, 16, 12, 0}, { 8, 16, 14, 0}, { 8, 16, 16, 0}, { 8, 14, 16, 0}, { 8, 12, 16, 0}, { 8, 10, 16, 0},
+    {11, 11, 16, 0}, {12, 11, 16, 0}, {13, 11, 16, 0}, {15, 11, 16, 0}, {16, 11, 16, 0}, {16, 11, 15, 0}, {16, 11, 13, 0}, {16, 11, 12, 0}, {16, 11, 11, 0}, {16, 12, 11, 0}, {16, 13, 11, 0}, {16, 15, 11, 0}, {16, 16, 11, 0}, {15, 16, 11, 0}, {13, 16, 11, 0}, {12, 16, 11, 0},
+    {11, 16, 11, 0}, {11, 16, 12, 0}, {11, 16, 13, 0}, {11, 16, 15, 0}, {11, 16, 16, 0}, {11, 15, 16, 0}, {11, 13, 16, 0}, {11, 12, 16, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0}, { 0,  0,  0, 0},
 };
 
-//current input data
+//current position input data
 int32_t dataX = 0, dataY = 0;
 
-//get current input data x
+//get current position x
 int32_t getDataX()
 {
     return dataX;
 }
 
-//get current input data y
+//get current position y
 int32_t getDataY()
 {
     return dataY;
@@ -234,10 +234,10 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 if (inputMask & INPUT_MOUSE_CLICK)
                 {
-					float px = 0, py = 0;
-					SDL_GetMouseState(&px, &py);
-					dataX = int32_t(px);
-					dataY = int32_t(py);
+                    float px = 0, py = 0;
+                    SDL_GetMouseState(&px, &py);
+                    dataX = int32_t(px);
+                    dataY = int32_t(py);
                     return SDL_EVENT_MOUSE_BUTTON_UP;
                 }
                 break;
@@ -245,10 +245,10 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
             case SDL_EVENT_MOUSE_MOTION:
                 if (inputMask & INPUT_MOUSE_MOTION)
                 {
-					float px = 0, py = 0;
-					SDL_GetMouseState(&px, &py);
-					dataX = int32_t(px);
-					dataY = int32_t(py);
+                    float px = 0, py = 0;
+                    SDL_GetMouseState(&px, &py);
+                    dataX = int32_t(px);
+                    dataY = int32_t(py);
                     return SDL_EVENT_MOUSE_MOTION;
                 }
                 break;
@@ -405,7 +405,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE : 0);
+    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED : 0);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
@@ -9526,7 +9526,7 @@ GFX_FONT* getFont(int32_t type /* = 0 */)
 {
     if (type >= GFX_MAX_FONT) type = GFX_MAX_FONT - 1;
     if (type < 0) type = 0;
-    return &gfxFonts[type ? type : fontType];
+    return gfxFonts[type ? type : fontType].dataPtr ? &gfxFonts[type ? type : fontType] : NULL;
 }
 
 //get current loaded font type
@@ -9548,6 +9548,7 @@ void setFontType(int32_t type)
 void setFontSize(uint32_t size)
 {
     GFX_FONT* font = getFont(fontType);
+    if (!font) return;
 
     //have sub-fonts
     if (font->hdr.subFonts > 0)
@@ -9571,7 +9572,7 @@ int32_t getFontHeight(const char* str)
     const GFX_FONT* font = getFont(fontType);
 
     //check for font is loaded
-    if (!font->dataPtr) return 0;
+    if (!font) return 0;
     if (!str || !len) return 0;
 
     //fixed font, all characters have a same height
@@ -9643,7 +9644,7 @@ int32_t getFontWidth(const char* str)
     const GFX_FONT* font = getFont(fontType);
 
     //check for font is loaded
-    if (!font->dataPtr) return 0;
+    if (!font) return 0;
     if (!str || !len) return 0;
 
     //fixed font, all characters have a same width
@@ -9721,6 +9722,13 @@ int32_t loadFont(const char* fname, int32_t type)
         return 0;
     }
 
+    //check for already loaded
+    if (gfxFonts[type].dataPtr)
+    {
+        messageBox(GFX_WARNING, "Error load font: %s! font type: %d already loaded!", fname, type);
+        return 0;
+    }
+
     //open font file
     FILE* fp = fopen(fname, "rb");
     if (!fp)
@@ -9780,6 +9788,7 @@ int32_t loadFont(const char* fname, int32_t type)
 void freeFont(int32_t type)
 {
     //check for type range
+    if (type < 0) return;
     if (type >= GFX_MAX_FONT) return;
 
     //free font raw data buffer
@@ -9806,7 +9815,7 @@ int32_t outStroke(int32_t x, int32_t y, char chr, uint32_t col, uint32_t mode)
     const GFX_FONT* font = getFont(fontType);
 
     //check for font is loaded
-    if (!font->dataPtr) return 0;
+    if (!font) return 0;
 
     //check for non-drawable character
     if (font->hdr.subData.startChar > chr || font->hdr.subData.endChar < chr) return font->hdr.subData.spacer;
@@ -9845,7 +9854,7 @@ void writeString(int32_t x, int32_t y, uint32_t col, uint32_t mode, const char* 
     const GFX_FONT* font = getFont(fontType);
 
     //check for font is loaded
-    if (!font->dataPtr) return;
+    if (!font) return;
 
     const uint32_t len = uint32_t(strlen(str));
 
@@ -11475,8 +11484,8 @@ void blockOutMidImage(GFX_IMAGE* dst, GFX_IMAGE* src, int32_t xb, int32_t yb)
     if (bitsPerPixel <= 8) return;
 
     //check minimum blocking
-    if (xb == 0) xb = 1;
-    if (yb == 0) yb = 1;
+    if (xb <= 0) xb = 1;
+    if (yb <= 0) yb = 1;
 
     //nothing to do, make source and destination are the same
     if (xb == 1 && yb == 1) memcpy(pdst, psrc, src->mSize);
@@ -12303,23 +12312,23 @@ void CPUID(int32_t* cpuinfo, uint32_t funcid)
 uint64_t getCyclesCount()
 {
 #ifdef _USE_ASM
-	__asm {
-		cpuid
-		rdtsc
-	}
+    __asm {
+        cpuid
+        rdtsc
+    }
 #else
-	return __rdtsc();
+    return __rdtsc();
 #endif
 }
 
 //get current CPU clock rate in MHz
 void calcCpuSpeed()
 {
-	const uint64_t start = getCyclesCount();
-	SDL_Delay(200);
-	const uint64_t stop = getCyclesCount();
-	const uint64_t speed = (stop - start) / 200000;
-	cpuSpeed = uint32_t(speed);
+    const uint64_t start = getCyclesCount();
+    SDL_Delay(200);
+    const uint64_t stop = getCyclesCount();
+    const uint64_t speed = (stop - start) / 200000;
+    cpuSpeed = uint32_t(speed);
 }
 
 //return CPU type (INTEL, AMD, ...)
@@ -12482,9 +12491,9 @@ void initVideoInfo()
     
     //retrive current video mode info string
     int width = 0, height = 0;
-	SDL_GetCurrentRenderOutputSize(sdlRenderer, &width, &height);
-	const SDL_DisplayMode* mode = (const SDL_DisplayMode*)SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(sdlWindow));
-	if (mode) snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%db @ %.2fHz", width, height, SDL_BYTESPERPIXEL(mode->format) << 3, mode->refresh_rate);
+    SDL_GetCurrentRenderOutputSize(sdlRenderer, &width, &height);
+    const SDL_DisplayMode* mode = (const SDL_DisplayMode*)SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(sdlWindow));
+    if (mode) snprintf(modeInfo, sizeof(modeInfo), "%dx%dx%db @ %.2fHz", width, height, SDL_BYTESPERPIXEL(mode->format) << 3, mode->refresh_rate);
 
 #ifdef SDL_PLATFORM_APPLE
     io_iterator_t iterator;
@@ -12637,10 +12646,12 @@ void initVideoInfo()
         }
     }
 
+    //print driver version string
+    if (foundVersion) snprintf(driverVersion, sizeof(driverVersion), "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
+    
+    //cleanup...
     RegCloseKey(dxKeyHandle);
     free(subKeyName);
-
-    if (foundVersion) snprintf(driverVersion, sizeof(driverVersion), "%u.%u.%u.%u", HIWORD(driverVersionRaw.HighPart), LOWORD(driverVersionRaw.HighPart), HIWORD(driverVersionRaw.LowPart), LOWORD(driverVersionRaw.LowPart));
 #endif
 }
 
@@ -12654,7 +12665,7 @@ bool initSystemInfo()
     //check CPU extension
     if (!strstr(cpuFeatures, "AVX2") && !strstr(cpuFeatures, "3DNow!"))
     {
-        messageBox(GFX_ERROR, "GFXLIB require modern CPU with 3DNow!, MMX, SSE2, AVX2 extension!");
+        messageBox(GFX_ERROR, "GFXLIB require modern CPU with support 3DNow!, MMX, SSE2, AVX2 features!");
         return false;
     }
 

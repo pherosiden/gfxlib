@@ -34,6 +34,7 @@ void showFontsDir(const char* path, const char* ext)
             snprintf(buff, sizeof(buff), "%s - The quick brown fox jumps over the lazy dog", ent->d_name);
             
             const GFX_FONT* font = getFont();
+            if (!font) continue;
 
             //view all size of font
             for (i = 0; i <= font->hdr.subFonts; i++)
@@ -69,7 +70,7 @@ void showFontsDir(const char* path, const char* ext)
 
     //search font directory
     _finddata_t fileInfo;
-    intptr_t hfile = _findfirst(buff, &fileInfo);
+    const intptr_t hfile = _findfirst(buff, &fileInfo);
     if (hfile == -1) return;
 
     do {
@@ -78,6 +79,7 @@ void showFontsDir(const char* path, const char* ext)
         snprintf(buff, sizeof(buff), "%s - The quick brown fox jumps over the lazy dog", fileInfo.name);
         
         const GFX_FONT* font = getFont();
+        if (!font) continue;
 
         //view all size of font
         for (i = 0; i <= font->hdr.subFonts; i++)

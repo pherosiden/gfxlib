@@ -1282,8 +1282,10 @@ void resetParameters()
 
 void setPixelChar()
 {
-    const GFX_FONT* font = getFont();
     memset(chrPixels, 0, sizeof(chrPixels));
+    
+    const GFX_FONT* font = getFont();
+    if (!font) return;
 
     for (int32_t i = 32; i < CHR_MAX; i++)
     {
@@ -1300,8 +1302,10 @@ void scrollLed(const char *msg)
 {
     int32_t i = 0, j = 0, k = 0, m = 0;
     const int32_t zx = 5, zy = 3, sy = 50;
-    const GFX_FONT* font = getFont();
     const int32_t len = int32_t(strlen(msg));
+
+    const GFX_FONT* font = getFont();
+    if (!font) return;
 
     drawRoundRect(0, sy, getMaxX() - 1, font->hdr.subData.height << 2, 50, 10);
     
@@ -1584,14 +1588,21 @@ void gfxDemoMix()
     writeText(cx - (getFontWidth(msgLoading) >> 1), cy - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
     render();
     sleepFor(2000);
+
+    setWindowTitle("Show PNG with alpha channel");
     showPNG("assets/caibang.png");
     sleepFor(2000);
     fadeCircle(2, 0);
+
+    setWindowTitle("Show 32bit BMP image");
     showBMP("assets/1lan32.bmp");
     sleepFor(2000);
     fadeCircle(3, 0);
     
+    setWindowTitle("Mouse handle & Sprite pointer");
     handleMouseButton();
+
+    setWindowTitle("Sprite Animation");
     displaySprite("assets/smile24.png");
 
     freeFont(0);
@@ -1611,7 +1622,8 @@ void gfxDemoMix()
 
     getBasePalette(pal2);
     clearPalette();
-    
+
+    setWindowTitle("Custom font & Palette colors");
     if (!loadFont("assets/odhl.xfn", 0)) return;
     writeText(cx - (getFontWidth(msgWelcome[0]) >> 1), msgY, 40, 1, msgWelcome[0]);
     writeText(cx - (getFontWidth(msgWelcome[1]) >> 1), msgY + 60, 32, 1, msgWelcome[1]);
@@ -1625,6 +1637,7 @@ void gfxDemoMix()
 
     clearScreen();
     clearPalette();
+    setWindowTitle("Free drawing");
     graphDemo0(cx, cy, int32_t(200 * ratio), int32_t(100 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
@@ -1700,6 +1713,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(64, 103, 40, FPS_90);
 
+    setWindowTitle("Draw Polygon");
     clearScreen();
     makeLinearPalette();
     getPalette(pal1);
@@ -1711,6 +1725,7 @@ void gfxDemoMix()
     clearScreen();
     clearPalette();
 
+    setWindowTitle("Cycloidal Curves");
     findRepeat(&rept);
     drawCylodiod(cmx / 7 - 20, cmy / 5 - 30, 80, 1, 1, rept, 40);
     drawCylodiod(cmx / 3 + 30, cmy / 5 - 30, 80, 1, 2, rept, 40);
@@ -1749,24 +1764,28 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     sleepFor(2000);
 
+    setWindowTitle("Polygon Rotation");
     clearScreen();
     clearPalette();
     rotatePolygon(pts, 6, cx, cy, cx - 140, 100, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
     
+    setWindowTitle("Randomize Polygon");
     clearScreen();
     clearPalette();
     randomPoly(pts, 12, cmx, cmy, 40, 20, 37);
     fadeIn(pal2, FPS_90);
     rotatePalette(37, 103, 67, FPS_90);
 
+    setWindowTitle("Draw Hexagon");
     clearScreen();
     clearPalette();
     drawHexagon(pts, 12, cx, cy, 35, cx - 140, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
 
+    setWindowTitle("Fast Filled Circle");
     clearScreen();
     makePalette(0, 63, 32, 16);
     makePalette(64, 32, 63, 16);
@@ -1776,11 +1795,13 @@ void gfxDemoMix()
     graphDemo11();
     fadeRollo(2, 0);
     
+    setWindowTitle("Draw Line Bob Color");
     clearScreen();
     makeFunkyPalette();
     graphDemo12();
     fadeRollo(1, 0);
 
+    setWindowTitle("Scanline Filled Polygon");
     makeLinearPalette();
     getPalette(pal1);
     clearPalette();
@@ -1788,6 +1809,7 @@ void gfxDemoMix()
     fadeIn(pal1, FPS_90);
     rotatePalette(16, 207, 192, FPS_90);
 
+    setWindowTitle("Randomize Filled Polygon");
     clearScreen();
     makeLinearPalette();
     getPalette(pal1);
@@ -1796,6 +1818,7 @@ void gfxDemoMix()
     fadeIn(pal1, FPS_90);
     rotatePalette(16, 207, 192, FPS_90);
 
+    setWindowTitle("Draw Copper Bar");
     clearScreen();
     makeRainbowPalette();
     getPalette(pal1);
@@ -1809,9 +1832,9 @@ void gfxDemoMix()
 
     if (!loadFont("assets/sys8x16.xfn", 0)) return;
     if (!loadFont("assets/trip.xfn", 1)) return;
-    
-    FX = FX1;
 
+    setWindowTitle("3D Curves");
+    FX = FX1;
     initParameter1();
     rechercheFenetre();
     calculeEchelles();
@@ -1826,7 +1849,6 @@ void gfxDemoMix()
     resetParameters();
 
     FX = FX2;
-
     initParameter2();
     rechercheFenetre();
     calculeEchelles();
@@ -1841,7 +1863,6 @@ void gfxDemoMix()
     resetParameters();
 
     FX = FX3;
-
     initParameter3();
     rechercheFenetre();
     calculeEchelles();
@@ -1856,7 +1877,6 @@ void gfxDemoMix()
     resetParameters();
 
     FX = FX4;
-
     initParameter4();
     rechercheFenetre();
     calculeEchelles();
@@ -1871,7 +1891,6 @@ void gfxDemoMix()
     resetParameters();
 
     FX = FX5;
-
     initParameter5();
     rechercheFenetre();
     calculeEchelles();
@@ -1881,12 +1900,11 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    
+    clearScreen();
+
     FX = FX11;
     FY = FY11;
     FZ = FZ11;
-    
-    clearScreen();
     initParameter11();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
@@ -1895,12 +1913,11 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
+    clearScreen();
 
     FX = FX21;
     FY = FY21;
     FZ = FZ21;
-    
-    clearScreen();
     initParameter21();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
@@ -1909,12 +1926,11 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
+    clearScreen();
 
     FX = FX31;
     FY = FY31;
     FZ = FZ31;
-
-    clearScreen();
     initParameter31();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
@@ -1923,12 +1939,11 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
+    clearScreen();
 
     FX = FX41;
     FY = FY41;
     FZ = FZ41;
-
-    clearScreen();
     initParameter41();
     familleDesCourbesEnU();
     familleDesCourbesEnV();
@@ -1942,6 +1957,7 @@ void gfxDemoMix()
     freeFont(1);
     clearScreen();
     
+    setWindowTitle("Draw Font Palette");
     j = introY;
     if (!loadFont("assets/fontvn.xfn", 0)) return;
     for (i = 0; i < numTitles; i++)
@@ -1956,8 +1972,9 @@ void gfxDemoMix()
 
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 250, FPS_90);
-
     clearScreen();
+
+    setWindowTitle("Scrolling Led Font");
     setPalette(pal2);
     setPixelChar();
     makeFont(msgBanner);
@@ -1966,6 +1983,8 @@ void gfxDemoMix()
     scrollLed(msgScroll);
     freeFont(0);
     clearScreen();
+
+    setWindowTitle("Plasma Generating");
     displayPlasma();
     cleanup();
 }

@@ -22,6 +22,32 @@ double cre = 0;
 //max iterations (default value should be 255)
 int32_t iterations = 255;
 
+//function tables
+func_t* funcs[2][20] = { 0 };
+func_t* calculateFuncs[2] = { 0 };
+
+char sbuff[2000] = { 0 };
+const char* methodNames[20] = { 0 };
+
+int32_t funcCount[2] = { 0 };
+int32_t funcIndex[2] = { 0 };
+
+bool fractType = true;
+bool fullMode[2] = { 0 };
+
+double scale = 0;
+
+double xx = 0;
+double yy = 0;
+
+int32_t cx = 0;
+int32_t cy = 0;
+
+uint32_t* data = NULL;
+uint32_t dataSize = 0;
+
+int32_t cpuCores = 0;
+
 void mandelbrotFloat(uint32_t* out, double mx, double my, double scale, int32_t ys, int32_t px, int32_t py)
 {
     for (int32_t y = ys; y < py; y++)
@@ -862,31 +888,6 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
     }
 }
 
-func_t* funcs[2][20] = { 0 };
-func_t* calculateFuncs[2] = { 0 };
-
-char sbuff[2000] = { 0 };
-const char* methodNames[20] = { 0 };
-
-int32_t funcCount[2] = { 0 };
-int32_t funcIndex[2] = { 0 };
-
-bool fractType = true;
-bool fullMode[2] = { 0 };
-
-double scale = 0;
-
-double xx = 0;
-double yy = 0;
-
-int32_t cx = 0;
-int32_t cy = 0;
-
-uint32_t *data = NULL;
-uint32_t dataSize = 0;
-
-int32_t cpuCores = 0;
-
 void initThreads()
 {
 #ifdef SDL_PLATFORM_APPLE
@@ -1111,7 +1112,7 @@ void allocBuffer()
     {
         if (data) SDL_aligned_free(data);
         data = (uint32_t*)SDL_aligned_alloc(32, msize);
-        if (!data) exit(1);
+        if (!data) quit();
         memset(data, 0, msize);
         dataSize = msize;
     }
@@ -1243,12 +1244,7 @@ void gfxFractals()
         }
 
         //wait and process user input
-        input = waitUserInput(
-            INPUT_KEY_PRESSED   |
-            INPUT_MOUSE_CLICK   |
-            INPUT_MOUSE_MOTION  |
-            INPUT_MOUSE_WHEEL   |
-            INPUT_WIN_RESIZED);
+        input = waitUserInput(INPUT_KEY_PRESSED | INPUT_MOUSE_CLICK | INPUT_MOUSE_MOTION | INPUT_MOUSE_WHEEL | INPUT_WIN_RESIZED);
 
         switch (input)
         {
