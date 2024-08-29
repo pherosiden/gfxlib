@@ -275,9 +275,6 @@ int32_t waitUserInput(int32_t inputMask /* = INPUT_KEY_PRESSED */)
                 break;
             }
         }
-
-        //reduce CPU time
-        SDL_Delay(1);
     }
 }
 
@@ -405,7 +402,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     }
 
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED : 0);
+    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE : 0);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());

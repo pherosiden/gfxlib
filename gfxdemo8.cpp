@@ -705,9 +705,9 @@ void graphDemo12()
 void graphDemo13()
 {
     const POINT2D lpoints[] = { {659, 336}, {452, 374}, {602, 128}, {509, 90}, {433, 164}, {300, 71}, {113, 166}, {205, 185}, {113, 279}, {169, 278}, {206, 334}, {263, 279}, {355, 129}, {301, 335}, {432, 204}, {433, 297}, {245, 467}, {414, 392}, {547, 523} };
-
-    srand(uint32_t(time(NULL)));
-    fillPolygon(lpoints, sizeof(points) / sizeof(lpoints[0]), 50);
+    const int32_t num = sizeof(lpoints) / sizeof(lpoints[0]);
+    
+    fillPolygon(lpoints, num, 50);
 
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
@@ -731,10 +731,11 @@ void graphDemo14()
     const int32_t cy = getCenterY();
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
+    const int32_t num = sizeof(randPoints) / sizeof(randPoints[0]);
 
     srand(uint32_t(time(NULL)));
-    randomPolygon(cx, cy, 150, 0.7, 0.4, 20, randPoints);
-    fillPolygon(randPoints, 20, 50);
+    randomPolygon(cx, cy, 150, 0.7, 0.4, num, randPoints);
+    fillPolygon(randPoints, num, 50);
 
     for (int32_t j = 0; j <= cmy; j++)
     {
@@ -1280,7 +1281,7 @@ void resetParameters()
     resetProjection();
 }
 
-void setPixelChar()
+void initCharsTable()
 {
     memset(chrPixels, 0, sizeof(chrPixels));
     
@@ -1844,11 +1845,10 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    
     clearScreen();
-    resetParameters();
 
     FX = FX2;
+    resetParameters();
     initParameter2();
     rechercheFenetre();
     calculeEchelles();
@@ -1858,11 +1858,10 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-
     clearScreen();
-    resetParameters();
 
     FX = FX3;
+    resetParameters();
     initParameter3();
     rechercheFenetre();
     calculeEchelles();
@@ -1872,11 +1871,10 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-
     clearScreen();
-    resetParameters();
 
     FX = FX4;
+    resetParameters(); 
     initParameter4();
     rechercheFenetre();
     calculeEchelles();
@@ -1886,11 +1884,10 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-
     clearScreen();
-    resetParameters();
 
     FX = FX5;
+    resetParameters();
     initParameter5();
     rechercheFenetre();
     calculeEchelles();
@@ -1952,14 +1949,16 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
+    clearScreen();
 
     freeFont(0);
     freeFont(1);
-    clearScreen();
     
     setWindowTitle("Draw Font Palette");
-    j = introY;
+
     if (!loadFont("assets/fontvn.xfn", 0)) return;
+
+    j = introY;
     for (i = 0; i < numTitles; i++)
     {
         j += i * getFontHeight(msgTitle[i]);
@@ -1976,10 +1975,10 @@ void gfxDemoMix()
 
     setWindowTitle("Scrolling Led Font");
     setPalette(pal2);
-    setPixelChar();
+    initCharsTable();
     makeFont(msgBanner);
-    writeText(cx - (getFontWidth(msgBanner) >> 1), cmy - getFontHeight(msgBanner) - 2, 40, 1, msgBanner);
     makeFont(msgScroll);
+    writeText(cx - (getFontWidth(msgBanner) >> 1), cmy - getFontHeight(msgBanner) - 2, 40, 1, msgBanner);
     scrollLed(msgScroll);
     freeFont(0);
     clearScreen();

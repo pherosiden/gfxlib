@@ -1380,10 +1380,6 @@ void gfxFractals()
         default:
             break;
         }
-
-        //reduce CPU time
-        if (!redraw) delay(1);
-
     } while (input != SDL_SCANCODE_RETURN);
 
     //cleanup
