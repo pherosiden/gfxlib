@@ -373,8 +373,8 @@ void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
     const SDL_MouseButtonFlags mstate = SDL_GetMouseState(&px, &py);
     if (lmb) *lmb = (mstate == SDL_BUTTON_LEFT);
     if (rmb) *rmb = (mstate == SDL_BUTTON_RIGHT);
-    *mx = int32_t(px);
-    *my = int32_t(py);
+    if (mx) *mx = int32_t(px);
+    if (my) *my = int32_t(py);
 }
 
 //set mouse position
