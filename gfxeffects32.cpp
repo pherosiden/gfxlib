@@ -151,7 +151,7 @@ void juliaSet()
     }
 
     render();
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     free(pixels);
     cleanup();
 }
@@ -823,7 +823,7 @@ void basicDrawing()
 
     //make all visible on screen
     render();
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     cleanup();
 }
 
@@ -912,7 +912,7 @@ void imageArithmetic()
 
     //redraw & sleep
     render();
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     free(image1);
     free(image2);
     cleanup();
@@ -1364,7 +1364,7 @@ void mandelbrotSet()
 
     //make the Mandelbrot Set visible and wait to exit
     render();
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     free(pixels);
     cleanup();
 }
@@ -1958,7 +1958,7 @@ void imageFillter()
 
     //redraw & sleep
     render();
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     free(image[0]);
     free(image);
     free(pixels);

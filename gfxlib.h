@@ -395,10 +395,12 @@ void        freeFont(int32_t type);
 void        quit();
 void        readKeys();
 void        delay(uint32_t miliseconds);
+bool        finished(int32_t key);
+void        waitKeyPressed(int32_t scanCode);
+
 int32_t     keyDown(int32_t key);
 int32_t     keyPressed(int32_t key);
 int32_t     waitUserInput(int32_t inputMask = INPUT_KEY_PRESSED);
-int32_t     finished(int32_t key);
 int32_t     getDataX();
 int32_t     getDataY();
 

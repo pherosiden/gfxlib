@@ -7005,7 +7005,7 @@ namespace fastShowBMP {
         if (!loadBMP("assets/face.bmp")) return;
 
         flipScreen();
-        while (!finished(SDL_SCANCODE_RETURN));
+        waitKeyPressed(SDL_SCANCODE_RETURN);
         cleanup();
     }
 }
@@ -10022,7 +10022,7 @@ namespace landScapeGeneration {
         setPalette(pal);
         calcPlasma(0, 0, MAX_WIDTH, MAX_HEIGHT);
         renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
-        while (!finished(SDL_SCANCODE_RETURN));
+        waitKeyPressed(SDL_SCANCODE_RETURN);
         cleanup();
     }
 }
@@ -12023,10 +12023,10 @@ namespace plasmaEffect5 {
         makeCoolPalette();
         drawSinCos();
 
-        while (!finished(SDL_SCANCODE_RETURN));
+        waitKeyPressed(SDL_SCANCODE_RETURN);
         filterSinCos();
 
-        while (!finished(SDL_SCANCODE_RETURN));
+        waitKeyPressed(SDL_SCANCODE_RETURN);
         rotatePalette(1, 512);
     }
 }
@@ -14173,7 +14173,7 @@ namespace fontEffect1 {
         writeXY(1, 110, "BITMAP!");
         writeXY(1, 146, "SUPER VESA!");
         renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-        while (!finished(SDL_SCANCODE_RETURN));
+        waitKeyPressed(SDL_SCANCODE_RETURN);
         freeMem();
         cleanup();
     }
@@ -14509,6 +14509,7 @@ namespace thunderBoltEffect {
         flash[0].g = 255;
         flash[0].b = 255;
         setPalette(flash);
+        render();
         delay(15);
 
         for (j = 63; j >= 0; j--)
@@ -14521,6 +14522,7 @@ namespace thunderBoltEffect {
             }
 
             setPalette(pal);
+            render();
             delay(15);
 
             readKeys();

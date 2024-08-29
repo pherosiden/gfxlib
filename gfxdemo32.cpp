@@ -822,7 +822,7 @@ void gfxDemo()
     showText(tx, yc, &txt, "is an alpha mapped image. You may see that working");
     showText(tx, yc, &txt, "with images has gotten very easy in GFXLIB-no");
     showText(tx, yc, &txt, "half-things anymore! Press the enter key!");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runAddImage(alignedSize(20), 20);
 
     fullSpeed = 0;
@@ -833,9 +833,9 @@ void gfxDemo()
     showText(tx, yc, &txt, "are also able to subtract the image and to work");
     showText(tx, yc, &txt, "with an alpha map like PNG-images can contain one.");
     showText(tx, yc, &txt, "The next effect - press enter...");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runCrossFade(alignedSize(20), 20);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "This thing is called crossFading or alphaBlending.");
@@ -843,9 +843,9 @@ void gfxDemo()
     showText(tx, yc, &txt, "This procedure creates 2 images of one another,");
     showText(tx, yc, &txt, "where you can decide which image covers more of");
     showText(tx, yc, &txt, "the other. For the next, enter...");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runFastRotateImage(alignedSize(20), 20);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "This is a smooth rotation. The responsible routine");
@@ -858,27 +858,27 @@ void gfxDemo()
     showText(tx, yc, &txt, "rotate and show the image. Check my source code");
     showText(tx, yc, &txt, "for an optimize version using hardware accelera-");
     showText(tx, yc, &txt, "tion of the AVX2 instructions. Press Enter...");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runScaleUpImage(alignedSize(20), 20);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "Much fancier than the other FX...Yeah, you see");
     showText(tx, yc, &txt, "two effects combined here. Scales and blurred");
     showText(tx, yc, &txt, "image are doing their work here. Check the source");
     showText(tx, yc, &txt, "code to see the details. Press enter... ;)");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runAntiAliased(alignedSize(20), 20);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "Anti-aliased lines, circles and ellipses. Possible");
     showText(tx, yc, &txt, "with GFXLIB and also even faster than seen here");
     showText(tx, yc, &txt, "(just slow for show). Ideal for 3D models and the");
     showText(tx, yc, &txt, "like. Enter for the next...");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runPlasmaScale(alignedSize(20), 20);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "Plasma effect with high colors. This also combines");
@@ -887,7 +887,7 @@ void gfxDemo()
     showText(tx, yc, &txt, "sion is fully optimized by using a fixed number");
     showText(tx, yc, &txt, "and SSE2 instructions to maximize speed (extremely");
     showText(tx, yc, &txt, "fast). Enter for the next...");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     fillRect(alignedSize(20), 20, alignedSize(xc - 39), yc - 39, 0);
 
     GFX_IMAGE scr = { 0 };
@@ -900,7 +900,7 @@ void gfxDemo()
     scaleImage(&im, &old, 0);
     putImage(0, 0, &scr);
     putImage(alignedSize(20), 20, &im);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "2D bump mapping effect with full screen, this");
@@ -908,12 +908,12 @@ void gfxDemo()
     showText(tx, yc, &txt, "tracting and adding pixels to calculate the render");
     showText(tx, yc, &txt, "buffer. Scale the image using Bresenham algorithm");
     showText(tx, yc, &txt, "for quick image interpolation. Enter for the next.");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
     runLensFlare(&old);
     scaleImage(&im, &old, INTERPOLATION_TYPE_BICUBIC);
     putImage(0, 0, &scr);
     putImage(alignedSize(20), 20, &im);
-    
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "The lens flare effect, this effect is a simulation");
@@ -923,8 +923,8 @@ void gfxDemo()
     showText(tx, yc, &txt, "render buffer. This is also used for bi-cubic");
     showText(tx, yc, &txt, "interpolation with the best quality for scale.");
     showText(tx, yc, &txt, "Use hardware mouse tracking events. Enter...");
-    while (!finished(SDL_SCANCODE_RETURN));
-    
+    waitKeyPressed(SDL_SCANCODE_RETURN);
+
     fullSpeed = 0;
     showText(tx, yc, &txt, "----");
     showText(tx, yc, &txt, "That's all, folks! More to come soon. In a short");
@@ -936,7 +936,7 @@ void gfxDemo()
     showText(tx, yc, &txt, "Nguyen Ngoc Van -- pherosiden@gmail.com");
     showText(tx, yc, &txt, "");
     showText(tx, yc, &txt, "Enter to exit ;-)");
-    while (!finished(SDL_SCANCODE_RETURN));
+    waitKeyPressed(SDL_SCANCODE_RETURN);
 
     runExit();
     freeImage(&bg);

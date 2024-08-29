@@ -296,21 +296,26 @@ void delay(uint32_t miliseconds)
     SDL_Delay(miliseconds);
 }
 
-//only return 1 when exit key scancode (not escape) is given, ESCAPE key to exit program
-int32_t finished(int32_t keyCode)
+//only return 1 when exit key scanCode (not escape) is given, ESCAPE key to exit program
+bool finished(int32_t scanCode)
 {
     //what the user input key?
     readKeys();
     if (keyStates[SDL_SCANCODE_ESCAPE]) quit();
-    if (keyStates[keyCode])
+    if (keyStates[scanCode])
     {
         //clear buffer
-        keyStates[keyCode] = 0;
-        return 1;
+        keyStates[scanCode] = 0;
+        return true;
     }
 
-    SDL_Delay(1);
-    return 0;
+    return false;
+}
+
+//wait for key with scancode is pressed
+void waitKeyPressed(int32_t scanCode)
+{
+    while (!finished(scanCode)) SDL_Delay(1);
 }
 
 //wait until time wait is passed, program exit when ESCAPE key pressed
@@ -390,14 +395,14 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     //initialize SDL video mode only
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        messageBox(GFX_ERROR, "Failed to init SDL3: %s", SDL_GetError());
+        messageBox(GFX_ERROR, "Failed to initialize SDL3: %s", SDL_GetError());
         return 0;
     }
     
     //initialize SDL2 image lib
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
     {
-        messageBox(GFX_ERROR, "Failed to init SDL3 image: %s", IMG_GetError());
+        messageBox(GFX_ERROR, "Failed to initialize SDL3 image: %s", IMG_GetError());
         return 0;
     }
 
