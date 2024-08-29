@@ -14542,6 +14542,7 @@ namespace thunderBoltEffect {
             } while (abs(dx) <= 1);
 
             setPalette(dst);
+            render();
             processItem(random(100) + 110, 0, 10, dx);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             flashPalette(dst);
