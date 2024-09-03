@@ -5178,9 +5178,8 @@ namespace intro16k {
         lp1:
             push    dx
             mov     dx, word ptr wiredFont[esi]
-            add     esi, 2
-            mov     ax, word ptr wiredFont[esi]
-            add     esi, 2
+            mov     ax, word ptr wiredFont[esi + 2]
+            add     esi, 4
             mov     ecx, 16
         lp2:
             rcr     ax, 1
@@ -5238,9 +5237,8 @@ namespace intro16k {
         lp1:
             push    dx
             mov     dx, word ptr wiredFont[esi]
-            add     esi, 2
-            mov     ax, word ptr wiredFont[esi]
-            add     esi, 2
+            mov     ax, word ptr wiredFont[esi + 2]
+            add     esi, 4
             mov     ecx, FONT_WIDTH
         lp2:
             rcr     ax, 1

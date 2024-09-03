@@ -547,13 +547,14 @@ void runLensFlare(GFX_IMAGE* outImg)
         putImage(logox, 1, &gfxlogo, BLEND_MODE_ALPHA);
         writeText(tx, ty, RGB_WHITE, 2, str);
 
-        //timing for input and FPS counter
-        oldTime = time;
-        time = getTime();
-
         //report FPS counter
         writeText(1, 1, RGB_WHITE, 0, "FPS: %.2f", 1000.0 / (time - oldTime));
         render();
+
+        //timing for input and FPS counter
+		oldTime = time;
+		time = getTime();
+        delay(1);
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
     //capture current screen
@@ -939,6 +940,7 @@ void gfxDemo()
     waitKeyPressed(SDL_SCANCODE_RETURN);
 
     runExit();
+    freeFont(0);
     freeImage(&bg);
     freeImage(&txt);
     freeImage(&scr);
