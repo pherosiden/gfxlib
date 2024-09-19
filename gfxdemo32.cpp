@@ -384,7 +384,7 @@ void runRotateImage(int32_t sx, int32_t sy)
     if (!img.mData) return;
 
     //pre-calculate lookup table
-    int32_t* tables = (int32_t*)calloc(intptr_t(fade2.mWidth) * 2 + fade2.mHeight + 2, sizeof(int32_t));
+    int32_t* tables = (int32_t*)calloc(fade2.mWidth * 2 + fade2.mHeight + 2, sizeof(int32_t));
     if (!tables)
     {
         messageBox(GFX_ERROR, "RotateImage: cannot alloc lookup tables.");

@@ -1638,7 +1638,7 @@ void gfxDemoMix()
 
     clearScreen();
     clearPalette();
-    setWindowTitle("Free drawing");
+    setWindowTitle("Free Drawing");
     graphDemo0(cx, cy, int32_t(200 * ratio), int32_t(100 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);

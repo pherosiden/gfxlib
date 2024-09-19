@@ -414,8 +414,8 @@ void sortSprites(int32_t* order, double* dist, int32_t amount)
     //restore in reverse order to go from farthest to nearest
     for (int32_t i = 0; i < amount; i++)
     {
-        dist[i] = sprites[intptr_t(amount) - i - 1].first;
-        order[i] = sprites[intptr_t(amount) - i - 1].second;
+        dist[i] = sprites[amount - i - 1].first;
+        order[i] = sprites[amount - i - 1].second;
     }
 }
 

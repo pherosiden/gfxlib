@@ -1751,7 +1751,7 @@ must_inline void vertLineAdd(int32_t x, int32_t y, int32_t sy, uint32_t color)
         pixels->r = min(pixels->r + rgb->r, 255);
         pixels->g = min(pixels->g + rgb->g, 255);
         pixels->b = min(pixels->b + rgb->b, 255);
-        pixels += intptr_t(texWidth);
+        pixels += texWidth;
     }
 #endif
 }
@@ -1789,7 +1789,7 @@ must_inline void vertLineSub(int32_t x, int32_t y, int32_t sy, uint32_t color)
         pixels->r = max(pixels->r - rgb->r, 0);
         pixels->g = max(pixels->g - rgb->g, 0);
         pixels->b = max(pixels->b - rgb->b, 0);
-        pixels += intptr_t(texWidth);
+        pixels += texWidth;
     }
 #endif
 }
@@ -1845,7 +1845,7 @@ must_inline void vertLineAlpha(int32_t x, int32_t y, int32_t sy, uint32_t argb)
         const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
         const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((argb & 0xff00ff00) >> 8) * cover);
         *pixels = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
-        pixels += intptr_t(texWidth);
+        pixels += texWidth;
     }
 #endif
 }
@@ -9007,7 +9007,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = uint32_t((intptr_t(to) - from) * sizeof(RGBA));
+    const uint32_t steps = (to - from) * sizeof(RGBA);
 
     if (loop > 0)
     {
@@ -9328,7 +9328,7 @@ void scrollPalette(int32_t from, int32_t to, int32_t step)
     getPalette(pal);
 
     //how many steps to rotated
-    const uint32_t steps = (intptr_t(to) - from) * sizeof(RGBA);
+    const uint32_t steps = (to - from) * sizeof(RGBA);
 
     while (step--)
     {
@@ -9558,7 +9558,7 @@ void setFontSize(uint32_t size)
         //correct sub-fonts number
         if (size > font->hdr.subFonts) size = font->hdr.subFonts;
         //copy sub-fonts hdr
-        memcpy(&font->hdr.subData, &font->dataPtr[(intptr_t(font->hdr.subData.endChar) - font->hdr.subData.startChar + 1) * 4 * (intptr_t(font->hdr.subFonts) + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
+        memcpy(&font->hdr.subData, &font->dataPtr[4 * (font->hdr.subData.endChar - font->hdr.subData.startChar + 1) * (font->hdr.subFonts + 1) + size * sizeof(GFX_CHAR_HEADER)], sizeof(GFX_CHAR_HEADER));
     }
     subFonts = size;
 }
@@ -10134,7 +10134,7 @@ int32_t loadPNG(uint8_t* raw, RGBA* pal, const char* fname)
     }
 
     //copy raw data and palette
-    if (raw) memcpy(raw, image->pixels, intptr_t(image->pitch) * image->h);
+    if (raw) memcpy(raw, image->pixels, image->pitch * image->h);
     
     //copy palette color
     if (pal)
@@ -10343,7 +10343,7 @@ void drawMouseCursor(GFX_MOUSE* mi)
 #else
     //calculate starting address
     const int32_t addOffs = texWidth - msWidth;
-    uint32_t* srcPixels = (uint32_t*)drawBuff + intptr_t(texWidth) * my + mx;
+    uint32_t* srcPixels = (uint32_t*)drawBuff + (texWidth * my + mx);
 
     //scan bitmap data
     for (int32_t i = 0; i < msHeight; i++)

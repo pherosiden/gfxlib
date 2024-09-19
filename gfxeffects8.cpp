@@ -41,12 +41,12 @@ namespace juliaSet {
 
         for (int32_t y = 0; y < cheight; y++)
         {
-            const double preim = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
+            const double preim = 1.0 * (y - mheight) / (0.5 * zoom * cheight) + my;
             for (int32_t x = 0; x < cwidth; x++)
             {
                 int32_t i = 0;
                 double newim = preim;
-                double newre = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + mx;
+                double newre = 1.5 * (x - mwidth) / (0.5 * zoom * cwidth) + mx;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -84,14 +84,14 @@ namespace juliaSet {
 
         for (int32_t y = 0; y < cheight; y++)
         {
-            const double pi = 1.0 * (intptr_t(y) - mheight) / (0.5 * zoom * cheight) + my;
+            const double pi = 1.0 * (y - mheight) / (0.5 * zoom * cheight) + my;
 
             for (int32_t x = 0; x < cwidth; x++)
             {
                 int32_t i = 0;
                 double newre = 0;
                 double newim = 0;
-                const double pr = 1.5 * (intptr_t(x) - mwidth) / (0.5 * zoom * cwidth) + mx;
+                const double pr = 1.5 * (x - mwidth) / (0.5 * zoom * cwidth) + mx;
 
                 for (i = 1; i <= iters; i++)
                 {
@@ -6216,7 +6216,7 @@ namespace intro16k {
                         x = pos >> 12;
                         if (x > MAX_WIDTH) x = MAX_WIDTH;
                         if (x < mask[y]) break;
-                        memset(&vbuff[y][mask[y]], (i << 5) & 63, intptr_t(x) - mask[y] + 1);
+                        memset(&vbuff[y][mask[y]], (i << 5) & 63, x - mask[y] + 1);
                         mask[y] = x;
                         pos += koef;
                         y--;
@@ -6226,7 +6226,7 @@ namespace intro16k {
 
             for (i = 0; i < IMAGE_HEIGHT; i++)
             {
-                if (mask[i] < IMAGE_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, intptr_t(IMAGE_WIDTH) - mask[i]);
+                if (mask[i] < IMAGE_WIDTH) memset(&vbuff[i][mask[i]], (u << 5) & 63, IMAGE_WIDTH - mask[i]);
             }
 
             for (i = 0; i < 5; i++)
@@ -9062,7 +9062,7 @@ namespace holeEffect3 {
         }
 #else
         if (xe < xb) swap(xe, xb);
-        memset(&vbuff[y][xb], col, intptr_t(xe) - xb + 1);
+        memset(&vbuff[y][xb], col, xe - xb + 1);
 #endif
     }
 
@@ -9632,7 +9632,7 @@ namespace kaleidoScope2 {
         while (step--)
         {
             memcpy(&tmp, &pal[from], sizeof(tmp));
-            memcpy(&pal[from], &pal[from + 1], (intptr_t(to) - from) * sizeof(RGBA));
+            memcpy(&pal[from], &pal[from + 1], (to - from) * sizeof(RGBA));
             memcpy(&pal[to], &tmp, sizeof(tmp));
         }
 
@@ -9925,7 +9925,7 @@ namespace lakeEffect {
         for (i = 1; i <= STARTY; i++)
         {
             val = sintab[i];
-            memcpy(&water[STARTY - i][val], &bitmap[i - 1][0], intptr_t(IMAGE_WIDTH) - val);
+            memcpy(&water[STARTY - i][val], &bitmap[i - 1][0], IMAGE_WIDTH - val);
         }
 
         val = sintab[0];
@@ -14127,7 +14127,7 @@ namespace fontEffect1 {
         {
             for (uint8_t i = 0; i < x; i++)
             {
-                const uint8_t c = *(chars[ch - 32] + intptr_t(j) * x + i);
+                const uint8_t c = *(chars[ch - 32] + (j * x + i));
                 if (c > 0) vmem[dy + j][dx + i] = c;
             }
         }
@@ -14276,7 +14276,7 @@ namespace fontEffect2 {
         }
         else
         {
-            for (y = 0; y < chrinfo[chr - 32][1]; y++) bitmap[y + x][pos] = *(chars[chr - 32] + intptr_t(y) * chrinfo[chr - 32][0] + row);
+            for (y = 0; y < chrinfo[chr - 32][1]; y++) bitmap[y + x][pos] = *(chars[chr - 32] + (y * chrinfo[chr - 32][0] + row));
         }
     }
 
@@ -14396,7 +14396,7 @@ namespace fontEffect3 {
         }
         else
         {
-            for (height = 0; height < chrinfo[chr - 32][1]; height++) bitmap[height + i][pos] = *(chars[chr - 32] + intptr_t(height) * chrinfo[chr - 32][0] + row);
+            for (height = 0; height < chrinfo[chr - 32][1]; height++) bitmap[height + i][pos] = *(chars[chr - 32] + (height * chrinfo[chr - 32][0] + row));
         }
     }
 
