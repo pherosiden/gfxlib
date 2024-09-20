@@ -2011,8 +2011,7 @@ void fillRectNormal(int32_t x, int32_t y, int32_t width, int32_t height, uint32_
     const int32_t addOffset = texWidth - width;
 
     //calculate starting address
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* dstPixels = &pdata[texWidth * y + x];
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * y + x);
 
     //initialize vector color
     const __m256i ymm0 = _mm256_set1_epi32(color);
@@ -2254,8 +2253,7 @@ void fillRectAnd(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pdata = (ARGB*)drawBuff;
-    ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pixels = (ARGB*)drawBuff + (texWidth * y + x);
 
     //initialize vector color
     const __m256i ymm0 = _mm256_set1_epi32(color);
@@ -2338,8 +2336,7 @@ void fillRectXor(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t c
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pdata = (ARGB*)drawBuff;
-    ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pixels = (ARGB*)drawBuff + (texWidth * y + x);
 
     //initialize vector color
     const __m256i ymm0 = _mm256_set1_epi32(color);
@@ -2427,8 +2424,7 @@ void fillRectAlpha(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
     const uint8_t cover = argb >> 24;
 
     //calculate starting address
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* pixels = &pdata[texWidth * y + x];
+    uint32_t* pixels = (uint32_t*)drawBuff + (texWidth * y + x);
 
     //zero all
     const __m256i ymm0 = _mm256_setzero_si256();
@@ -2594,8 +2590,7 @@ void fillRectPatternMix(int32_t x, int32_t y, int32_t width, int32_t height, uin
 #else
     //calculate starting address
     const int32_t addDstOffs = texWidth - width;
-    uint8_t* pdata = (uint8_t*)drawBuff;
-    uint8_t* dstPixels = &pdata[texWidth * y + x];
+    uint8_t* dstPixels = (uint8_t*)drawBuff + (texWidth * y + x);
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -2675,8 +2670,7 @@ void fillRectPatternNormal(int32_t x, int32_t y, int32_t width, int32_t height, 
 #else
     //calculate starting address
     const int32_t addDstOffs = texWidth - width;
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* dstPixels = &pdata[texWidth * y + x];
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * y + x);
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -2767,8 +2761,7 @@ void fillRectPatternAdd(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pdata = (ARGB*)drawBuff;
-    ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pixels = (ARGB*)drawBuff + (texWidth * y + x);
     
     //start scan line
     for (int32_t i = 0; i < height; i++)
@@ -2865,8 +2858,7 @@ void fillRectPatternSub(int32_t x, int32_t y, int32_t width, int32_t height, uin
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    ARGB* pdata = (ARGB*)drawBuff;
-    ARGB* pixels = &pdata[texWidth * y + x];
+    ARGB* pixels = (ARGB*)drawBuff + (texWidth * y + x);
 
     //start scan line
     for (int32_t i = 0; i < height; i++)
@@ -2953,8 +2945,7 @@ void fillRectPatternAlpha(int32_t x, int32_t y, int32_t width, int32_t height, u
     const int32_t addOfs = texWidth - width;
 
     //calculate starting address
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* pixels = &pdata[texWidth * y + x];
+    uint32_t* pixels = (uint32_t*)drawBuff + (texWidth * y + x);
 
     for (int32_t i = 0; i < height; i++)
     {
@@ -5268,9 +5259,8 @@ void getImageMix(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMAGE*
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* pdata = (uint8_t*)drawBuff;
     uint8_t* srcPixels = (uint8_t*)img->mData;
-    uint8_t* dstPixels = &pdata[texWidth * y + x];
+    uint8_t* dstPixels = (uint8_t*)drawBuff + (texWidth * y + x);
 
     //use AVX2 for faster copy alignment memory
     for (int32_t i = 0; i < height; i++)
@@ -5346,10 +5336,9 @@ void getImageNormal(int32_t x, int32_t y, int32_t width, int32_t height, GFX_IMA
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint32_t* pdata = (uint32_t*)drawBuff;
     uint32_t* srcPixels = (uint32_t*)img->mData;
-    uint32_t* dstPixels = &pdata[texWidth * y + x];
-
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * y + x);
+    
     //use AVX2 for faster copy alignment memory
     for (int32_t i = 0; i < height; i++)
     {
@@ -5468,10 +5457,8 @@ void putImageMix(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint8_t* dstData = (uint8_t*)drawBuff;
-    uint8_t* srcData = (uint8_t*)img->mData;
-    uint8_t* dstPixels = &dstData[texWidth * ly + lx];
-    uint8_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    uint8_t* dstPixels = (uint8_t*)drawBuff + (texWidth * ly + lx);
+    uint8_t* srcPixels = (uint8_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //use AVX2 for faster copy alignment memory
     for (int32_t i = 0; i < height; i++)
@@ -5561,10 +5548,8 @@ void putImageNormal(const int32_t x, const int32_t y, const int32_t lx, const in
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-    uint32_t* dstData = (uint32_t*)drawBuff;
-    uint32_t* srcData = (uint32_t*)img->mData;
-    uint32_t* dstPixels = &dstData[texWidth * ly + lx];
-    uint32_t* srcPixels = &srcData[img->mWidth * (ly - y) + (lx - x)];
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
+    uint32_t* srcPixels = (uint32_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //use AVX2 for faster copy alignment memory
     for (int32_t i = 0; i < height; i++)
