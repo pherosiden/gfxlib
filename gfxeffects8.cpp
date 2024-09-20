@@ -14529,7 +14529,7 @@ namespace thunderBoltEffect {
         }
     }
 
-    void thunderBolt(const RGBA* src, RGBA* dst)
+    void thunderBolt(const RGBA* src, RGBA* dst, uint16_t palSize)
     {
         int16_t dx = 0;
 
@@ -14539,12 +14539,11 @@ namespace thunderBoltEffect {
                 dx = random(6) - 3;
             } while (abs(dx) <= 1);
 
-            setPalette(dst);
-            render();
+            whitePalette();
             processItem(random(100) + 110, 0, 10, dx);
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
             flashPalette(dst);
-            memcpy(dst, src, 1024);
+            memcpy(dst, src, palSize);
             memset(vmem, 0, IMAGE_SIZE);
         }
 
@@ -14578,7 +14577,7 @@ namespace thunderBoltEffect {
 
         shiftPalette(dst);
         memcpy(src, dst, sizeof(dst));
-        thunderBolt(src, dst);
+        thunderBolt(src, dst, sizeof(src));
     }
 }
 
