@@ -6260,11 +6260,8 @@ void putSpriteMix(const int32_t x, const int32_t y, const uint32_t keyColor, con
         for (int32_t j = 0; j < width; j++)
         {
             //source color diff with key color, plot it
-            if (!(*srcPixels ^ keyColor)) *dstPixels = *srcPixels;
-
-            //next pixels
-            dstPixels++;
-            srcPixels++;
+            const uint32_t col = *srcPixels++;
+            if (!(col ^ keyColor)) *dstPixels++ = col;
         }
 
         //next line
