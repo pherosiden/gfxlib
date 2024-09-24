@@ -1,6 +1,6 @@
 #include "gfxlib.h"
 
-namespace juliaSet {
+namespace juliaSetEffect {
 
     void makePalette()
     {
@@ -120,7 +120,7 @@ namespace juliaSet {
     }
 }
 
-namespace fadePalette {
+namespace fadePaletteEffect {
     void run()
     {
         const RGBA dst[256] = { 0 };
@@ -140,7 +140,7 @@ namespace fadePalette {
     }
 }
 
-namespace bumpMap {
+namespace bumpMapEffect {
     uint8_t dbuff[SIZE_256][SIZE_256] = { 0 };
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff2[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -277,7 +277,7 @@ namespace bumpMap {
     }
 }
 
-namespace fireBump {
+namespace fireBumpEffect {
     uint16_t    num = 0;
     uint16_t    limit[8] = { 0 };
     uint8_t     vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -407,7 +407,7 @@ namespace circleEffect {
     }
 }
 
-namespace crossFade {
+namespace crossFadeEffect {
     RGBA     src[256] = { 0 };
     RGBA     dst[256] = { 0 };
 
@@ -423,8 +423,7 @@ namespace crossFade {
 
         clearPalette();
 
-        if (!loadPNG(vbuff1[0], pal2, "assets/to.png")) return;
-        memcpy(vbuff3, vbuff1, IMAGE_SIZE);
+        if (!loadPNG(vbuff3[0], pal2, "assets/to.png")) return;
         if (!loadPNG(vbuff1[0], pal1, "assets/from.png")) return;
     
         for (int16_t y = 0; y < IMAGE_HEIGHT; y++)
@@ -485,7 +484,6 @@ namespace crossFade {
         if (dirt)
         {
             memcpy(pal, src, sizeof(pal));
-            setPalette(src);
 
             for (i = 0; i < depth; i++)
             {
@@ -497,15 +495,11 @@ namespace crossFade {
                     if (pal[j].g > dst[j].g && pal[j].g >   3) pal[j].g -= 4;
                     if (pal[j].b < dst[j].b && pal[j].b < 252) pal[j].b += 4;
                     if (pal[j].b > dst[j].b && pal[j].b >   3) pal[j].b -= 4;
-
-                    readKeys();
-                    if (keyDown(SDL_SCANCODE_RETURN)) return;
-                    if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 }
 
                 setPalette(pal);
                 render();
-                delay(FPS_90);
+                delay(FPS_60);
 
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
@@ -515,7 +509,6 @@ namespace crossFade {
         else
         {
             memcpy(pal, dst, sizeof(pal));
-            setPalette(dst);
 
             for (i = 0; i < depth; i++)
             {
@@ -527,15 +520,11 @@ namespace crossFade {
                     if (pal[j].g > src[j].g && pal[j].g >   3) pal[j].g -= 4;
                     if (pal[j].b < src[j].b && pal[j].b < 252) pal[j].b += 4;
                     if (pal[j].b > src[j].b && pal[j].b >   3) pal[j].b -= 4;
-
-                    readKeys();
-                    if (keyDown(SDL_SCANCODE_RETURN)) return;
-                    if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 }
 
                 setPalette(pal);
                 render();
-                delay(FPS_90);
+                delay(FPS_60);
                 
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
@@ -738,10 +727,11 @@ namespace rainEffect {
         }
 #endif
         render();
+        delay(FPS_90);
+
         readKeys();
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         if (keyDown(SDL_SCANCODE_RETURN)) aborts = 1;
-        delay(FPS_90);
     }
 
     void stabylize()
@@ -1361,7 +1351,9 @@ namespace rainEffect {
             pal[i].g = rgbPal[i * 3 + 1] << 2;
             pal[i].b = rgbPal[i * 3 + 2] << 2;
         }
+
         setPalette(pal);
+        render();
     }
 
     void run()
@@ -1767,7 +1759,7 @@ namespace skyEffect {
     }
 }
 
-namespace phongShader {
+namespace phongShaderEffect {
     int16_t faces[IMAGE_WIDTH][3] = { 0 };
     int16_t ut[IMAGE_MIDX] = { 0 };
     int16_t vt[IMAGE_MIDX] = { 0 };
@@ -2184,7 +2176,7 @@ namespace phongShader {
     }
 }
 
-namespace plasmaTexture {
+namespace plasmaTextureEffect {
     #define LCOS 0.9993908
     #define LSIN 0.0348994
 
@@ -2491,7 +2483,7 @@ namespace plasmaTexture {
     }
 }
 
-namespace fireDown {
+namespace fireDownEffect {
     typedef struct {
         int16_t cx, cy;
         int16_t dx, dy;
@@ -2668,7 +2660,7 @@ namespace fireDown {
     }
 }
 
-namespace fireTexture {
+namespace fireTextureEffect {
     #define LCOS 0.9993908
     #define LSIN 0.0348994
 
@@ -2969,7 +2961,7 @@ namespace fireTexture {
     }
 }
 
-namespace fireTexture2 {
+namespace fireTextureEffect2 {
     #define MPOS	200
     #define DIVD	128
     #define FDST	150
@@ -3225,7 +3217,7 @@ namespace fireTexture2 {
     }
 }
 
-namespace fireTexture3 {
+namespace fireTextureEffect3 {
     #define MPOS    200
     #define DIVD    128
     #define DIST    400
@@ -4461,8 +4453,9 @@ namespace textureMappingEffect {
             sortPoints();
             drawPoints();
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
-            memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             delay(FPS_90);
+
+            memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             deg1 = (deg1 + 1) % 360;
             deg2 = (deg2 + 1) % 360;
         }
@@ -4471,7 +4464,7 @@ namespace textureMappingEffect {
     }
 }
 
-namespace bitmapRotate {
+namespace bitmapRotateEffect {
     int16_t sintab[256] = { 0 };
     int16_t costab[256] = { 0 };
     int16_t sin2tab[256] = { 0 };
@@ -4564,7 +4557,7 @@ namespace bitmapRotate {
     }
 }
 
-namespace intro16k {
+namespace intro16kDemo {
     #define FONT_HEIGHT 32
     #define FONT_WIDTH  16
 
@@ -6810,7 +6803,7 @@ namespace intro16k {
         }
 
         makeTexture();
-        printString(1, "WIN32 SDL2", 64, 64, 192, 96, 0);
+        printString(1, "WIN32 SDL3", 64, 64, 192, 96, 0);
         printString(1, "16K Intro!", 128, 96, 192, 96, 0);
         printString(1, "(The End)", 80, 160, 192, 64, 0);
 
@@ -6845,7 +6838,7 @@ namespace intro16k {
     }
 }
 
-namespace textScrolling {
+namespace textScrollingEffect {
     #define FONT_SIZE   8192
     #define OFS 	    80
     #define AMP 	    8
@@ -7008,7 +7001,7 @@ namespace fastShowBMP {
     }
 }
 
-namespace EMS {
+namespace EMSEffect {
     uint8_t vbuff[IMAGE_SIZE] = { 0 };
     uint8_t* vmem = NULL;
     uint8_t* handle[15] = { 0 };
@@ -7293,6 +7286,10 @@ namespace fillterEffect {
         memcpy(vbuff2, vbuff1, 40000);
 
         do {
+            drawPicture();
+            renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
+            delay(FPS_90);
+
             readKeys();
             if (keyDown(SDL_SCANCODE_A))        translate(1);
             if (keyDown(SDL_SCANCODE_B))        translate(2);
@@ -7309,9 +7306,6 @@ namespace fillterEffect {
             if (keyDown(SDL_SCANCODE_M))        oilTransfer();
             if (keyDown(SDL_SCANCODE_SPACE))    translate(57);
             if (keyDown(SDL_SCANCODE_ESCAPE))   quit();
-            drawPicture();
-            renderBuffer(dbuff, SCREEN_MIDX, SCREEN_MIDY);
-            delay(FPS_90);
         } while (!keyDown(SDL_SCANCODE_RETURN));
         cleanup();
     }
@@ -8117,9 +8111,9 @@ namespace fireEffect4 {
             pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
-            pal[i + 64].r = 63;
-            pal[i + 64].g = i;
-            pal[i + 64].b = 0;
+            pal[i +  64].r = 63;
+            pal[i +  64].g = i;
+            pal[i +  64].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
             pal[i + 128].b = i;
@@ -8218,6 +8212,7 @@ namespace fireEffect4 {
                 vbuff[100][i] = delta;
                 vbuff[101][i] = delta;
             }
+
             interpolation();
             purgeBuff();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
@@ -9429,6 +9424,7 @@ namespace holeEffect3 {
             drawHole(art);
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
+
             readKeys();
             if (keyDown(SDL_SCANCODE_1)) art = 0;
             if (keyDown(SDL_SCANCODE_2)) art = 1;
@@ -9442,7 +9438,7 @@ namespace holeEffect3 {
     }
 }
 
-namespace kaleidoScope {
+namespace kaleidoScopeEffect {
     #define START_COLOR     0
     #define END_COLOR       255
 
@@ -9488,10 +9484,6 @@ namespace kaleidoScope {
         makePalette();
 
         do {
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
             int16_t x1 = random(md) + 1;
             int16_t x2 = random(md) + 1;
             int16_t y1 = random(x1);
@@ -9499,10 +9491,6 @@ namespace kaleidoScope {
 
             while (random(130) > 5)
             {
-                readKeys();
-                if (keyDown(SDL_SCANCODE_RETURN)) break;
-                if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
                 const int16_t xv1 = random(10) - 5;
                 const int16_t xv2 = random(10) - 5;
                 const int16_t yv1 = random(10) - 5;
@@ -9510,10 +9498,6 @@ namespace kaleidoScope {
 
                 while (random(100) > 20)
                 {
-                    readKeys();
-                    if (keyDown(SDL_SCANCODE_RETURN)) break;
-                    if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
                     const int16_t xa = (x1 << 2) / 3;
                     const int16_t xb = (x2 << 2) / 3;
                     const int16_t ya = (y1 << 2) / 3;
@@ -9539,7 +9523,14 @@ namespace kaleidoScope {
 
                     render();
                     delay(FPS_90);
+                    
+                    readKeys();
+                    if (keyDown(SDL_SCANCODE_RETURN)) break;
+                    if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 }
+
+                if (keyDown(SDL_SCANCODE_RETURN)) break;
+                if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             }
 
             clearScreen();
@@ -9549,7 +9540,7 @@ namespace kaleidoScope {
     }
 }
 
-namespace kaleidoScope2 {
+namespace kaleidoScopeEffect2 {
     #define MAX_STEP1   50
     #define MAX_STEP2   20
 
@@ -9689,22 +9680,17 @@ namespace kaleidoScope2 {
                     y1 = (y1 + yv1) % md;
                     x2 = (x2 + xv2) % md;
                     y2 = (y2 + yv2) % md;
-
                     step2++;
+
                     readKeys();
                     if (keyDown(SDL_SCANCODE_RETURN)) break;
                     if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
                 }
 
                 step1++;
-                readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) break;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             }
-
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
 
             clearScreen();
             if (mode) scrollPalette(0, 255, 64);
@@ -9714,7 +9700,7 @@ namespace kaleidoScope2 {
     }
 }
 
-namespace fastCircleFill {
+namespace fastFillCircleEffect {
     #define MAX_RAD 64
 
     RGBA pal[256] = { 0 };
@@ -11246,7 +11232,7 @@ namespace mazeGeneration {
     }
 }
 
-namespace pixelMorphing {
+namespace pixelMorphingEffect {
     #define JUMP    64
     #define SJUMP   6
 
@@ -11288,10 +11274,6 @@ namespace pixelMorphing {
                     vbuff[y][x] = nextrow[i].color;
                 }
             }
-
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         }
 
         renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
@@ -11325,7 +11307,13 @@ namespace pixelMorphing {
             }
         }
 
-        for (int16_t i = 0; i < JUMP; i++) moveEmOut(k);
+        for (int16_t i = 0; i < JUMP; i++)
+        {
+            moveEmOut(k);
+            readKeys();
+            if (keyDown(SDL_SCANCODE_RETURN)) break;
+            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+        }
     }
 
     void run()
@@ -11603,9 +11591,9 @@ namespace plasmaEffect1 {
             pal[i].r = uint8_t(i);
             pal[i].g = 0;
             pal[i].b = 0;
-            pal[i + 64].r = 63;
-            pal[i + 64].g = uint8_t(i);
-            pal[i + 64].b = 0;
+            pal[i +  64].r = 63;
+            pal[i +  64].g = uint8_t(i);
+            pal[i +  64].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = uint8_t(63 - i);
             pal[i + 128].b = 0;
@@ -12101,7 +12089,7 @@ namespace rippleEffect {
     }
 }
 
-namespace rotateMap {
+namespace rotateMapEffect {
     #define SCALING_FACTOR1     10
     #define SCALING_FACTOR2     50
     #define XOFFSET             160
@@ -12418,7 +12406,7 @@ namespace rotateMap {
     }
 }
 
-namespace scaleMap {
+namespace scaleMapEffect {
     int16_t costab[256] = { 0 };
     int16_t sintab[256] = { 0 };
     uint8_t vbuff1[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -12578,7 +12566,7 @@ namespace scaleMap {
     }
 }
 
-namespace shadeBob {
+namespace shadeBobEffect {
     int16_t gw = 0, gh = 0, col = 0;
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
@@ -12678,6 +12666,7 @@ namespace shadeBob {
                 makeShadeBob(w - xp, h - yp);
                 renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
                 delay(FPS_90);
+
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) break;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12688,7 +12677,7 @@ namespace shadeBob {
     }
 }
 
-namespace shadePattern {
+namespace shadePatternEffect {
     typedef struct {
         uint16_t x, y;
     } TPoint;
@@ -12832,27 +12821,41 @@ namespace shadePattern {
     }
 }
 
-namespace shadeBobSin {
-    double alpha, rx, ry;
+namespace shadeBobSinEffect {
+    double rx, ry;
+    double powx[17400];
+    double powy[17400];
 
-    int16_t clear, reg;
+    int16_t count, reg;
     int16_t orgx, orgy;
-    int16_t ux[1001] = { 0 };
-    int16_t uy[1001] = { 0 };
+    int16_t ux[1000] = { 0 };
+    int16_t uy[1000] = { 0 };
     uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
-    inline int16_t range(int16_t x, int16_t y)
+    __forceinline int16_t range(int16_t x, int16_t y)
     {
         return (x >= 0 && x <= MAX_WIDTH && y >= 0 && y <= MAX_HEIGHT);
     }
 
-    void outDraw()
+    void initPowTable()
     {
-        const double sinx = sin(alpha);
-        const double cosx = cos(alpha);
+        int16_t i;
+        double alpha = 0.0;
 
-        const int16_t x = int16_t(orgx + rx * pow(cosx, 3) * pow(sinx, 2));
-        const int16_t y = int16_t(orgy + ry * pow(sinx, 3) * pow(cosx, 2));
+        for (i = 0; i < 17400; i++)
+        {
+            const double sinx = sin(alpha);
+            const double cosx = cos(alpha);
+            powx[i] = pow(cosx, 3) * pow(sinx, 2);
+            powy[i] = pow(sinx, 3) * pow(cosx, 2);
+            alpha += 0.001;
+        }
+    }
+
+    void outDraw(int16_t step)
+    {
+        const int16_t x = orgx + int16_t(rx * powx[step]);
+        const int16_t y = orgy + int16_t(ry * powy[step]);
 
         ux[reg] = x;
         uy[reg] = y;
@@ -12874,7 +12877,7 @@ namespace shadeBobSin {
     {
         int16_t x = 0, y = 0;
 
-        if (reg >= 999)
+        if (reg > 999)
         {
             x = ux[0];
             y = uy[0];
@@ -12905,7 +12908,7 @@ namespace shadeBobSin {
         int16_t x = 0, y = 0;
         RGBA pal[256] = { 0 };
 
-        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Shade-Bob")) return;
+        if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "ShadeBob-Sin")) return;
 
         memset(pal, 0, sizeof(pal));
 
@@ -12914,9 +12917,9 @@ namespace shadeBobSin {
             pal[x].r = uint8_t(x);
             pal[x].g = 0;
             pal[x].b = 0;
-            pal[x + 64].r = 63;
-            pal[x + 64].g = uint8_t(x);
-            pal[x + 64].b = 0;
+            pal[x +  64].r = 63;
+            pal[x +  64].g = uint8_t(x);
+            pal[x +  64].b = 0;
             pal[x + 128].r = 63;
             pal[x + 128].g = 63;
             pal[x + 128].b = 0;
@@ -12927,19 +12930,19 @@ namespace shadeBobSin {
 
         shiftPalette(pal);
         setPalette(pal);
+        initPowTable();
 
         if (!loadPNG(vbuff[0], NULL, "assets/killer.png")) return;
 
-        alpha = 0;
         rx = 150;
         ry = 90;
         orgx = IMAGE_MIDX;
         orgy = IMAGE_MIDY;
-        clear = 17400;
         reg = 0;
+        count = 0;
 
         do {
-            outDraw();
+            outDraw(count);
             inDraw();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
 
@@ -12950,12 +12953,11 @@ namespace shadeBobSin {
             reg++;
             if (reg > 999) reg = 0;
 
-            alpha += 0.001;
             rx += 0.05;
             ry += rx * 0.0001;
-            clear--;
+            count++;
             
-        } while (clear);
+        } while (count < 17400);
 
         for (y = 0; y < IMAGE_MIDY; y++)
         {
@@ -12963,6 +12965,7 @@ namespace shadeBobSin {
             for (x = 0; x < IMAGE_WIDTH; x++) vbuff[MAX_HEIGHT - y][x] = 0;
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
+
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12972,7 +12975,7 @@ namespace shadeBobSin {
     }
 }
 
-namespace snowFall {
+namespace snowFallEffect {
     int16_t     actflk = 0;
     int16_t     xflake[IMAGE_WIDTH] = { 0 };
     int16_t     yflake[IMAGE_WIDTH] = { 0 };
@@ -13072,7 +13075,7 @@ namespace snowFall {
     }
 }
 
-namespace softFire {
+namespace softFireEffect {
     uint16_t    incx = 48;
     uint8_t     dark[194][2] = { 0 };
     uint8_t     flames[122][IMAGE_HEIGHT] = { 0 };
@@ -13563,6 +13566,7 @@ namespace softFire {
 
             render();
             delay(FPS_90);
+
             readKeys();
             if (keyDown(SDL_SCANCODE_A) && incx < 74) incx += 4;
             if (keyDown(SDL_SCANCODE_S) && incx > 4) incx -= 4;
@@ -13717,11 +13721,6 @@ namespace spriteEffect {
         newBubmio();
 
         do {
-            readKeys();
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-            if (keyPressed(SDL_SCANCODE_A)) newBubmio();
-            if (keyPressed(SDL_SCANCODE_S)) removeBubmio();
-            
             for (i = 0; i < 10; i++)
             {
                 if (bubmio[i].active)
@@ -13750,6 +13749,11 @@ namespace spriteEffect {
 
             renderBuffer(vbuff1, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_30);
+
+            readKeys();
+            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            if (keyPressed(SDL_SCANCODE_A)) newBubmio();
+            if (keyPressed(SDL_SCANCODE_S)) removeBubmio();
         } while (!keyDown(SDL_SCANCODE_RETURN));
 
         cleanup();
@@ -14057,9 +14061,9 @@ namespace star3dEffect {
             delay(FPS_90);
             clearStars();
             moveStars(direction);
-            readKeys();
-
             if (bounce) bounceStars();
+
+            readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             if (keyPressed(SDL_SCANCODE_A)) if (speed < 30) speed++;
             if (keyPressed(SDL_SCANCODE_S)) if (speed > 0) speed--;
@@ -14456,10 +14460,6 @@ namespace thunderBoltEffect {
 
         while (ints > 0 && y < IMAGE_HEIGHT - 10 && x > 10 && x < IMAGE_WIDTH - 10)
         {
-            readKeys();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-
             addItem(x + 1, y, (ints - 3) * 20 + 50);
             addItem(x, y, (ints * 20) + 50);
             addItem(x - 1, y, (ints - 2) * 20 + 50);
@@ -14500,15 +14500,6 @@ namespace thunderBoltEffect {
     void flashPalette(RGBA* pal)
     {
         int16_t i = 0, j = 0;
-        RGBA flash[256] = { 0 };
-
-        memcpy(flash, pal, 1024);
-        flash[0].r = 255;
-        flash[0].g = 255;
-        flash[0].b = 255;
-        setPalette(flash);
-        render();
-        delay(15);
 
         for (j = 63; j >= 0; j--)
         {
@@ -14558,15 +14549,16 @@ namespace thunderBoltEffect {
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Thunder-Bold")) return;
 
         memset(dst, 0, sizeof(dst));
+        memset(src, 0, sizeof(src));
 
         for (uint8_t i = 0; i < 64; i++)
         {
             dst[i].r = 0;
             dst[i].g = 0;
             dst[i].b = i;
-            dst[i + 64].r = 0;
-            dst[i + 64].g = i;
-            dst[i + 64].b = 63;
+            dst[i +  64].r = 0;
+            dst[i +  64].g = i;
+            dst[i +  64].b = 63;
             dst[i + 128].r = i;
             dst[i + 128].g = 63;
             dst[i + 128].b = 63;
@@ -14603,12 +14595,12 @@ namespace scrollingEffect {
         return 1;
     }
 
-    void calcSin()
+    void calcSinCos()
     {
         for (int16_t x = 0; x < IMAGE_WIDTH; x++)
         {
             sintab[x] = uint16_t(sin(5 * M_PI * x / IMAGE_WIDTH) * 22 + 22);
-            if (cos(5 * M_PI * x / IMAGE_WIDTH) <= 0) coltab[x] = 15;
+            if (cos(5 * M_PI * x / IMAGE_WIDTH) <= 0.0) coltab[x] = 15;
             else coltab[x] = 14;
         }
     }
@@ -14619,17 +14611,9 @@ namespace scrollingEffect {
         const uint16_t len = uint16_t(strlen(scrolledText));
 
         do {
-            readKeys();
-            if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-            if (keyDown(SDL_SCANCODE_RETURN)) break;
-
             const uint8_t chr = scrolledText[pos];
             for (int16_t i = 0; i < 16; i++)
             {
-                readKeys();
-                if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
-                if (keyDown(SDL_SCANCODE_RETURN)) break;
-
                 for (int16_t x = 0; x < MAX_WIDTH; x++) chrtab[x] = chrtab[x + 1];
                 chrtab[MAX_WIDTH] = tbuff[chr][i];
 
@@ -14644,6 +14628,10 @@ namespace scrollingEffect {
 
                 renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
                 delay(FPS_90);
+
+                readKeys();
+                if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+                if (keyDown(SDL_SCANCODE_RETURN)) break;
             }
 
             pos++;
@@ -14663,7 +14651,7 @@ namespace scrollingEffect {
         setPalette(pal);
         memcpy(vmem, vbuff, IMAGE_SIZE);
         renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-        calcSin();
+        calcSinCos();
         scrollText();
     }
 }
@@ -14702,7 +14690,12 @@ namespace voxelEffect {
             jnz     next
         }
 #else
-        for (uint16_t i = 0; i < len; i++) vbuff[y + i][x] = col;
+        uint8_t* pcol = &vbuff[y][x];
+        while (len--)
+        {
+            *pcol = col;
+            pcol += IMAGE_WIDTH;
+        }
 #endif
     }
 
@@ -14719,7 +14712,7 @@ namespace voxelEffect {
             dx += delx;
             dy += dely;
 
-            const int32_t h = hmap[dy >> 8][dx >> 8] - height;
+            const int16_t h = hmap[dy >> 8][dx >> 8] - height;
             const uint16_t y = dcomp[dt - 1] - (h << 5) / dt + dst;
 
             if (y <= miny)
@@ -14918,7 +14911,7 @@ namespace rippleEffect2 {
     }
 }
 
-namespace waterFall {
+namespace waterFallEffect {
 
     void makeDrip()
     {
@@ -15209,11 +15202,8 @@ namespace rayCastingEffect {
         done:
         }
 #else
-        int32_t bx, cx;
-        uint16_t ax, py;
-
-        int32_t cy = verts;
-        uint16_t px = horiz & 0x7f;
+        int32_t bx, cx, cy = verts;
+        uint16_t px = horiz & 0x7f, py;
 
         for (cx = hmh; cx < hph; cx++)
         {
@@ -15230,10 +15220,8 @@ namespace rayCastingEffect {
             px = (((cx * cosy) >> 20) + py128) & 0x7f;
             cx >>= 10;
             if (cx > 15) cx = 15;
-            ax = floors[py][px];
-            vbuff[bx][vofs] = shade[cx][ax];
-            ax = ceils[py][px];
-            vbuff[MAX_HEIGHT - bx][vofs] = shade[cx][ax];
+            vbuff[bx][vofs] = shade[cx][floors[py][px]];
+            vbuff[MAX_HEIGHT - bx][vofs] = shade[cx][ceils[py][px]];
         }
 #endif
     }
@@ -15451,8 +15439,6 @@ namespace rayCastingEffect {
         setShade();
 
         do {
-            readKeys();
-            checkEvalKeys();
             head += turn;
 
             if (head > 360.0) head = 0.0;
@@ -15481,6 +15467,9 @@ namespace rayCastingEffect {
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_60);
+
+            readKeys();
+            checkEvalKeys();
         } while (!keyDown(SDL_SCANCODE_RETURN));
 
         cleanup();
@@ -15527,7 +15516,7 @@ namespace chain4Effect {
     }
 }
 
-namespace hardwareScroll {
+namespace hardwareScrollEffect {
     uint8_t vsave[IMAGE_WIDTH] = { 0 };
     uint8_t vmem[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
@@ -15645,26 +15634,26 @@ void gfxEffectsMix()
     flagsEffect::run();
     star3dEffect::run();
     plasmaEffect5::run();
-    fadePalette::run();
-    juliaSet::run();
-    bumpMap::run();
-    fireBump::run();
+    fadePaletteEffect::run();
+    juliaSetEffect::run();
+    bumpMapEffect::run();
+    fireBumpEffect::run();
     circleEffect::run();
-    crossFade::run();
+    crossFadeEffect::run();
     skyEffect::run();
-    phongShader::run();
-    plasmaTexture::run();
-    fireDown::run();
-    fireTexture::run();
-    fireTexture2::run();
-    fireTexture3::run();
+    phongShaderEffect::run();
+    plasmaTextureEffect::run();
+    fireDownEffect::run();
+    fireTextureEffect::run();
+    fireTextureEffect2::run();
+    fireTextureEffect3::run();
     tunnelEffect::run();
     textureMappingEffect::run();
-    bitmapRotate::run();
-    intro16k::run();
-    textScrolling::run();
+    bitmapRotateEffect::run();
+    intro16kDemo::run();
+    textScrollingEffect::run();
     fastShowBMP::run();
-    EMS::run();
+    EMSEffect::run();
     fillterEffect::run();
     fireworkEffect::run();
     candleEffect::run();
@@ -15679,10 +15668,10 @@ void gfxEffectsMix()
     holeEffect1::run();
     holeEffect2::run();
     holeEffect3::run();
-    kaleidoScope::run();
-    kaleidoScope2::run(1);
-    kaleidoScope2::run(0);
-    fastCircleFill::run();
+    kaleidoScopeEffect::run();
+    kaleidoScopeEffect2::run(1);
+    kaleidoScopeEffect2::run(0);
+    fastFillCircleEffect::run();
     lakeEffect::run();
     landScapeGeneration::run();
     landScapeEffect::run();
@@ -15691,22 +15680,22 @@ void gfxEffectsMix()
     zoomOutEffect::run();
     lineBobEffect::run();
     lineBlurEffect::run();
-    pixelMorphing::run();
+    pixelMorphingEffect::run();
     pierraEffect::run();
     plasmaEffect1::run();
     plasmaEffect2::run();
     plasmaEffect3::run();
     plasmaEffect4::run();
     rippleEffect::run();
-    rotateMap::run();
+    rotateMapEffect::run();
     rayCastingEffect::run();
-    scaleMap::run();
-    shadeBob::run();
-    shadePattern::run(1);
-    shadePattern::run(0);
-    shadeBobSin::run();
-    snowFall::run();
-    softFire::run();
+    scaleMapEffect::run();
+    shadeBobEffect::run();
+    shadePatternEffect::run(1);
+    shadePatternEffect::run(0);
+    shadeBobSinEffect::run();
+    snowFallEffect::run();
+    softFireEffect::run();
     spriteEffect::run();
     fontEffect1::run();
     fontEffect2::run();
@@ -15715,12 +15704,12 @@ void gfxEffectsMix()
     scrollingEffect::run();
     voxelEffect::run();
     rippleEffect2::run();
-    waterFall::run();
+    waterFallEffect::run();
     winterEffect::run();
     wormEffect::run();
     waterEffect::run();
     rainEffect::run();
     chain4Effect::run();
-    hardwareScroll::run();
+    hardwareScrollEffect::run();
     copper3Effect::run();
 }

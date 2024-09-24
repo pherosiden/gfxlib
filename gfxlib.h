@@ -5,8 +5,8 @@
 /*            Target OS: cross-platform (win32, macos)           */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.4.3                                   */
-/*          Last Update: 2024-09-20                              */
+/*              Version: 1.4.4                                   */
+/*          Last Update: 2024-09-24                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -53,8 +53,8 @@
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475 6001)
 
 //GFX version string
-#define GFX_VERSION             "v24.09.20"
-#define GFX_BUILD_ID            20240920
+#define GFX_VERSION             "v24.09.24"
+#define GFX_BUILD_ID            20240924
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size
