@@ -291,15 +291,14 @@ namespace fireBumpEffect {
 
         for (int16_t y = 1; y < MAX_HEIGHT; y++)
         {
-            int16_t vy = y - ly;
+            const int16_t vy = y - ly;
             for (int16_t x = 1; x < MAX_WIDTH; x++)
             {
                 const int16_t vx = x - lx;
                 const int16_t nx = vbuff1[y][x + 1] - vbuff1[y][x - 1];
                 const int16_t ny = vbuff1[y + 1][x] - vbuff1[y - 1][x];
                 const int16_t col = (abs(vx - nx) + abs(vy - ny) + vbuff1[y][x]) >> 1;
-                if (col > 127) vbuff2[y][x] = 0;
-                else vbuff2[y][x] = limit[uint16_t(vbuff1[y][x]) >> 8] - col;
+                vbuff2[y][x] = (col > 127) ? 0 : limit[uint16_t(vbuff1[y][x]) >> 8] - col;
             }
         }
     }
@@ -3199,9 +3198,9 @@ namespace fireTextureEffect2 {
             pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
-            pal[i + 64].r = 63;
-            pal[i + 64].g = i;
-            pal[i + 64].b = 0;
+            pal[i +  64].r = 63;
+            pal[i +  64].g = i;
+            pal[i +  64].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
             pal[i + 128].b = i;
@@ -3452,15 +3451,15 @@ namespace fireTextureEffect3 {
             pal[i].r = 0;
             pal[i].g = 0;
             pal[i].b = i;
-            pal[i + 32].r = i;
-            pal[i + 32].g = i >> 1;
-            pal[i + 32].b = 31 - (i >> 1);
-            pal[i + 64].r = 31 + i;
-            pal[i + 64].g = (31 + i) >> 1;
-            pal[i + 64].b = 31 - ((31 + i) >> 1);
-            pal[i + 96].r = 63;
-            pal[i + 96].g = 31 + i;
-            pal[i + 96].b = 0;
+            pal[i +  32].r = i;
+            pal[i +  32].g = i >> 1;
+            pal[i +  32].b = 31 - (i >> 1);
+            pal[i +  64].r = 31 + i;
+            pal[i +  64].g = (31 + i) >> 1;
+            pal[i +  64].b = 31 - ((31 + i) >> 1);
+            pal[i +  96].r = 63;
+            pal[i +  96].g = 31 + i;
+            pal[i +  96].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
             pal[i + 128].b = i;
@@ -6903,6 +6902,7 @@ namespace textScrollingEffect {
                 j = (j + SPEED) % LEN;
                 renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
                 delay(FPS_90);
+
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -10584,44 +10584,6 @@ namespace lineBobEffect {
         else if (a <= 0) *b = 1;
     }
 
-    void lineBob(uint32_t cnt)
-    {
-        const int32_t cmx = getMaxX();
-        const int32_t cmy = getMaxY();
-        const int32_t cwidth = getDrawBufferWidth();
-        const int32_t cheight = getDrawBufferHeight();
-
-        int32_t x1 = rand() % cwidth;
-        int32_t x2 = rand() % cwidth;
-        int32_t y1 = rand() % cheight;
-        int32_t y2 = rand() % cheight;
-
-        int32_t dx1 = 1;
-        int32_t dx2 = -1;
-        int32_t dy1 = 1;
-        int32_t dy2 = -1;
-
-        while (!keyDown(SDL_SCANCODE_RETURN) && cnt < 2000U + random(4000))
-        {
-            x1 += dx1;
-            x2 += dx2;
-            y1 += dy1;
-            y2 += dy2;
-
-            checkBounds(x1, &dx1, cmx);
-            checkBounds(x2, &dx2, cmx);
-            checkBounds(y1, &dy1, cmy);
-            checkBounds(y2, &dy2, cmy);
-
-            if ((cnt % 10) == 0) delay(10);
-
-            drawLineBob(x1, y1, x2, y2);
-            render();
-            readKeys();
-            cnt++;
-        }
-    }
-
     void makeFunkyPalette()
     {
         RGBA pal[256] = { 0 };
@@ -10666,25 +10628,64 @@ namespace lineBobEffect {
         setPalette(pal);
     }
 
-    void run()
+    void lineBob()
     {
         uint32_t cnt = 0;
-        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Line-Bob")) return;
 
         do {
             cnt = 0;
-            readKeys();
-            makeFunkyPalette();
-            lineBob(cnt);
             clearScreen();
-        } while (!keyDown(SDL_SCANCODE_RETURN));
+            makeFunkyPalette();
 
+            const int32_t cmx = getMaxX();
+            const int32_t cmy = getMaxY();
+            const int32_t cwidth = getDrawBufferWidth();
+            const int32_t cheight = getDrawBufferHeight();
+
+            int32_t x1 = rand() % cwidth;
+            int32_t x2 = rand() % cwidth;
+            int32_t y1 = rand() % cheight;
+            int32_t y2 = rand() % cheight;
+
+            int32_t dx1 = 1;
+            int32_t dx2 = -1;
+            int32_t dy1 = 1;
+            int32_t dy2 = -1;
+
+            do {
+                x1 += dx1;
+                x2 += dx2;
+                y1 += dy1;
+                y2 += dy2;
+
+                checkBounds(x1, &dx1, cmx);
+                checkBounds(x2, &dx2, cmx);
+                checkBounds(y1, &dy1, cmy);
+                checkBounds(y2, &dy2, cmy);
+
+                if (!(cnt % 10)) delay(10);
+
+                drawLineBob(x1, y1, x2, y2);
+                render();
+                cnt++;
+
+                readKeys();
+                if (keyDown(SDL_SCANCODE_RETURN)) break;
+                if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
+            } while (cnt < 2000U + random(4000));
+        } while (!keyDown(SDL_SCANCODE_RETURN));
+    }
+
+    void run()
+    {
+        if (!initScreen(SCREEN_WIDTH, SCREEN_HEIGHT, 8, 0, "Line-Bob")) return;
+        lineBob();
         cleanup();
     }
 }
 
 namespace lineBlurEffect {
-    #define LSPEED   2
+    #define LSPEED  2
     #define PLUS    1
     #define MINUS   0
 
@@ -10696,9 +10697,10 @@ namespace lineBlurEffect {
 
     TPoint      points;
 
-    RGBA         curpal[1024] = { 0 };
-    RGBA         oldpal[6][1024] = { 0 };
-    int16_t     flag = 1;
+    RGBA        curpal[1024] = { 0 };
+    RGBA        oldpal[6][1024] = { 0 };
+
+    bool        flag = true;
     uint8_t     vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
     void setColors()
@@ -10845,7 +10847,7 @@ namespace lineBlurEffect {
             if (curpal[i].g > oldpal[k][i].g) curpal[i].g--;
             if (curpal[i].b < oldpal[k][i].b) curpal[i].b++;
             if (curpal[i].b > oldpal[k][i].b) curpal[i].b--;
-            flag = (curpal[i].r == oldpal[k][i].r) && (curpal[i].g == oldpal[k][i].g) && (curpal[i].b == oldpal[k][i].b) ? 0 : 1;
+            flag = (curpal[i].r == oldpal[k][i].r) && (curpal[i].g == oldpal[k][i].g) && (curpal[i].b == oldpal[k][i].b) ? false : true;
         }
 
         memcpy(pal, curpal, sizeof(pal));
@@ -10853,12 +10855,26 @@ namespace lineBlurEffect {
         setPalette(pal);
     }
 
+    void blurLine()
+    {
+        for (int16_t y = 1; y < MAX_HEIGHT; y++)
+        {
+            for (int16_t x = 0; x <= MAX_WIDTH; x++)
+            {
+                const uint8_t col = (vbuff[y][x - 1] + vbuff[y][x + 1] + vbuff[y - 1][x] + vbuff[y + 1][x]) >> 2;
+                vbuff[y][x] = col;
+            }
+        }
+    }
+
     void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t col)
     {
-        const int16_t dx = abs(x2 - x1);
-        const int16_t dy = abs(y2 - y1);
+        if (x1 >= MAX_WIDTH - 1 || x1 <= 0 || y1 <= 0 || y1 >= MAX_HEIGHT - 1 || x2 >= MAX_WIDTH - 1 || x2 <= 0 || y2 <= 0 || y2 >= MAX_HEIGHT - 1) return;
+
         int16_t x = x1;
         int16_t y = y1;
+        const int16_t dx = abs(x2 - x1);
+        const int16_t dy = abs(y2 - y1);
         int16_t xinc1 = 0, xinc2 = 0, yinc1 = 0, yinc2 = 0;
         int16_t den = 0, num = 0, numadd = 0, numpixels = 0, curpixel = 0;
 
@@ -11005,16 +11021,8 @@ namespace lineBlurEffect {
             if (points.diry1 == PLUS)   points.y1 += rd7;
             if (points.diry1 == MINUS)  points.y1 -= rd8;
 
-            if (points.x0 < MAX_WIDTH - 1 && points.x0 > 1 && points.y0 > 1 && points.y0 < MAX_HEIGHT - 1 && points.x1 < MAX_WIDTH - 1 && points.x1 > 1 && points.y1 > 1 && points.y1 < MAX_HEIGHT - 1)
-            {
-                drawLine(points.x0, points.y0, points.x1, points.y1, 245);
-            }
-
-            for (int16_t y = 1; y < MAX_HEIGHT; y++)
-            {
-                for (int16_t x = 0; x <= MAX_WIDTH; x++) vbuff[y][x] = (vbuff[y][x - 1] + vbuff[y][x + 1] + vbuff[y - 1][x] + vbuff[y + 1][x]) >> 2;
-            }
-
+            drawLine(points.x0, points.y0, points.x1, points.y1, 245);
+            blurLine();
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             delay(FPS_90);
         }
@@ -11191,8 +11199,6 @@ namespace mazeGeneration {
 
     void run()
     {
-        int32_t keyCode = 0;
-
         if (!loadFont("assets/sysfont.xfn", 0)) return;
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "Maze-Generation -- Keys: spacer change maze; enter save maze")) return;
 
@@ -11203,8 +11209,7 @@ namespace mazeGeneration {
             writeBorder();
             drawMaze();
             renderBuffer(vmem, SCREEN_MIDX, SCREEN_MIDY);
-            keyCode = waitUserInput();
-        } while (keyCode != SDL_SCANCODE_RETURN);
+        } while (waitUserInput() != SDL_SCANCODE_RETURN);
 
         changeDrawBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
         writeText(20, 15, 28, 0, "Write maze to maze.dat file (Y/N)?");
@@ -15615,7 +15620,7 @@ namespace copper3Effect {
         while (!finished(SDL_SCANCODE_RETURN))
         {
             scroll(addx);
-            renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
+            renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
             delay(3);
             x += addx;
             if (x == 0 || x == IMAGE_WIDTH) addx = -addx;

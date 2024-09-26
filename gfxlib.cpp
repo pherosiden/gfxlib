@@ -301,7 +301,7 @@ bool finished(int32_t scanCode)
 {
     //what the user input key?
     readKeys();
-    if (keyStates[SDL_SCANCODE_ESCAPE]) quit();
+    if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
     if (keyStates[scanCode])
     {
         //clear buffer
