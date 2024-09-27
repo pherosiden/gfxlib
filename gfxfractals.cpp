@@ -1112,9 +1112,11 @@ void allocBuffer()
     {
         if (data) SDL_aligned_free(data);
         data = (uint32_t*)SDL_aligned_alloc(32, msize);
-        if (!data) quit();
-        memset(data, 0, msize);
-        dataSize = msize;
+        if (data)
+        {
+            memset(data, 0, msize);
+            dataSize = msize;
+        }
     }
 }
 
