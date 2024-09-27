@@ -667,7 +667,8 @@ namespace rainEffect {
         lp2:
             mov     [edi], bx
             sub     di, IMAGE_WIDTH
-            loop    lp2
+            dec     ecx
+            jnz     lp2
         lp1:
             add     esi, 2
             add     bx, 0x101
@@ -684,7 +685,8 @@ namespace rainEffect {
             pop     ecx
             pop     edi
             add     edi, 2
-            loop    lp4
+            dec     ecx
+            jnz     lp4
         }
 #else
         uint16_t *si = (uint16_t*)vbuff;
@@ -827,7 +829,8 @@ namespace rainEffect {
             mov     word ptr vbuff[edi], ax
             add     edi, 2
             add     esi, 2
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         uint16_t si = actualPage;
@@ -1052,7 +1055,8 @@ namespace rainEffect {
             mov     [edi + IMAGE_MIDY * 8 ], esi
             mov     [edi + IMAGE_MIDY * 10], esi
             add     edi, 4
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         const uint32_t esi = _rotl(idx, 16) + idx;
@@ -2526,7 +2530,8 @@ namespace fireDownEffect {
             dec     al
         skip:
             stosb
-            loop   again
+            dec     ecx
+            jnz     again
         }
 #else
         for (int16_t i = 1; i < MAX_HEIGHT; i++)
@@ -3526,7 +3531,8 @@ namespace tunnelEffect {
             add     ax, bx
             shr     ax, 2
             stosb
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         for (int16_t i = 1; i < MAX_HEIGHT; i++)
@@ -3576,7 +3582,8 @@ namespace tunnelEffect {
             not     esi
             inc     esi
             add     edi, 4
-            loop    next
+            dec     ecx
+            jnz     next
         }
 #else
         for (int16_t i = 0; i < IMAGE_MIDY; i++)
@@ -4306,7 +4313,8 @@ namespace textureMappingEffect {
                 movsb
                 add     bx, pxadd
                 add     dx, pyadd
-                loop    again
+                dec     ecx
+                jnz     again
             }
 #else
             for (int16_t x = 0; x < width; x++)
@@ -4673,9 +4681,8 @@ namespace intro16kDemo {
     uint8_t     sat = 0;
     uint16_t    firstIndex = 255;
 
-    RGB8        rgbpal[256] = { 0 };
-    RGB8        outrgb[256] = { 0 };
-    RGBA         setrgb[256] = { 0 };
+    RGBA        rgbpal[256] = { 0 };
+    RGBA        outrgb[256] = { 0 };
 
     int8_t      sinTab[256] = { 0 };
     uint8_t     sqrTab[4096] = { 0 };
@@ -4960,7 +4967,7 @@ namespace intro16kDemo {
     void setPalette()
     {
 #ifdef _USE_ASM
-        const int16_t startIndex = firstIndex * 3;
+        const int16_t startIndex = firstIndex << 2;
 
         __asm {
             lea     esi, rgbpal
@@ -4977,15 +4984,16 @@ namespace intro16kDemo {
             add     al, ah
             mul     br1
             mov     al, ah
-            cmp     al, 0x3F
+            cmp     al, 0x3f
             jbe     lp3
-            mov     al, 0x3F
+            mov     al, 0x3f
         lp3:
             mov     [edi], al
             inc     edi
             inc     esi
-            loop    lp1
-            mov     cx, 768
+            dec     cx
+            jnz     lp1
+            mov     cx, 1024
             sub     cx, startIndex
         lp2:
             mov     al, [esi]
@@ -4998,22 +5006,15 @@ namespace intro16kDemo {
             add     al, ah
             mul     br2
             mov     al, ah
-            cmp     al, 0x3F
+            cmp     al, 0x3f
             jbe     lp4
-            mov     al, 0x3F
+            mov     al, 0x3f
         lp4:
             mov     [edi], al
             inc     esi
             inc     edi
-            loop    lp2
-            lea     esi, outrgb
-            lea     edi, setrgb
-            mov     cx, 256
-        again:
-            movsw
-            movsb
-            inc     edi
-            loop    again
+            dec     cx
+            jnz     lp2
         }
 #else
         uint8_t col = 0;
@@ -5024,23 +5025,20 @@ namespace intro16kDemo {
             val = 127 - rgbpal[i].r;
             val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].r;
-            col = ((((val & 0xFF00) + col) & 0xff) * br1) >> 8;
-            if (col > 0x3F) col = 0x3F;
-            outrgb[i].r = col;
+            col = ((((val & 0xff00) + col) & 0xff) * br1) >> 8;
+            outrgb[i].r = min(col, 0x3f);
 
             val = 127 - rgbpal[i].g;
             val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].g;
-            col = ((((val & 0xFF00) + col) & 0xff) * br1) >> 8;
-            if (col > 0x3F) col = 0x3F;
-            outrgb[i].g = col;
+            col = ((((val & 0xff00) + col) & 0xff) * br1) >> 8;
+            outrgb[i].g = min(col, 0x3f);
 
             val = 127 - rgbpal[i].b;
             val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].b;
-            col = ((((val & 0xFF00) + col) & 0xff) * br1) >> 8;
-            if (col > 0x3F) col = 0x3F;
-            outrgb[i].b = col;
+            col = ((((val & 0xff00) + col) & 0xff) * br1) >> 8;
+            outrgb[i].b = min(col, 0x3f);
         }
 
         for (i = firstIndex; i < 256; i++)
@@ -5048,36 +5046,24 @@ namespace intro16kDemo {
             val = 127 - rgbpal[i].r;
             val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].r;
-            col = ((((val & 0xFF00) + col) & 0xff) * br2) >> 8;
-            if (col > 0x3F) col = 0x3F;
-            outrgb[i].r = col;
+            col = ((((val & 0xff00) + col) & 0xff) * br2) >> 8;
+            outrgb[i].r = min(col, 0x3f);
 
             val = 127 - rgbpal[i].g;
             val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].g;
-            col = ((((val & 0xFF00) + col) & 0xff) * br2) >> 8;
-            if (col > 0x3F) col = 0x3F;
-            outrgb[i].g = col;
+            col = ((((val & 0xff00) + col) & 0xff) * br2) >> 8;
+            outrgb[i].g = min(col, 0x3f);
 
             val = 127 - rgbpal[i].b;
             val = ((((val << 8) + sat) & 0xff) * val) << 2;
             col = (val >> 8) + rgbpal[i].b;
-            col = ((((val & 0xFF00) + col) & 0xff) * br2) >> 8;
-            if (col > 0x3F) col = 0x3F;
-            outrgb[i].b = col;
-        }
-
-        uint8_t* rgb = (uint8_t*)outrgb;
-        uint8_t* pal = (uint8_t*)setrgb;
-        for (i = 0; i < 256; i++)
-        {
-            memcpy(pal, rgb, sizeof(RGB8));
-            rgb += 3;
-            pal += 4;
+            col = ((((val & 0xff00) + col) & 0xff) * br2) >> 8;
+            outrgb[i].b = min(col, 0x3f);
         }
 #endif
-        shiftPalette(setrgb);
-        setPalette(setrgb);
+        shiftPalette(outrgb);
+        setPalette(outrgb);
     }
 
     void tunnelBlur()
@@ -5100,7 +5086,8 @@ namespace intro16kDemo {
             add     ax, bx
             shr     ax, 2
             stosb
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         for (int16_t i = 1; i < MAX_HEIGHT; i++)
@@ -5133,7 +5120,8 @@ namespace intro16kDemo {
             dec     al
         skip:
             stosb
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         for (int16_t i = 1; i < MAX_HEIGHT; i++)
@@ -5183,7 +5171,8 @@ namespace intro16kDemo {
             mov     vmem[edi], bl
         lp4:
             inc     edi
-            loop    lp2
+            dec     ecx
+            jnz     lp2
             add     edi, 304
             pop     dx
             dec     dx
@@ -5242,7 +5231,8 @@ namespace intro16kDemo {
             mov     vbuff[edi], bl
         lp4:
             inc     edi
-            loop    lp2
+            dec     ecx
+            jnz     lp2
             add     edi, 304
             pop     dx
             dec     dx
@@ -5299,14 +5289,18 @@ namespace intro16kDemo {
         return b + (c - b) * (x - arg) / (256 - arg);
     }
 
-    void initSintab()
+    void initSinTable()
     {
-#ifdef _USE_ASM
+        for (int16_t i = 0; i < 256; i++) sinTab[i] = int8_t(sin(i * M_PI / 128) * 64);
+
+        /***************************************
+         * ASM version not work in 32bit build *
+         ***************************************
         const int16_t val = 0;
         const int16_t scale = 64, diver = 128;
 
         __asm {
-            mov     cx, 256
+            mov     ecx, 256
             lea     esi, sinTab
             fninit
             fldpi
@@ -5321,11 +5315,10 @@ namespace intro16kDemo {
             mov     [esi], al
             inc     esi
             fadd    st, st(1)
-            loop    again
+            dec     ecx
+            jnz     again
         }
-#else
-        for (int16_t i = 0; i < 256; i++) sinTab[i] = int8_t(sin(i * M_PI / 128) * 64);
-#endif
+        ***************************************/
     }
 
     void initBlobs()
@@ -5386,11 +5379,10 @@ namespace intro16kDemo {
     {
         memset(rgbpal, 0, sizeof(rgbpal));
         memset(outrgb, 0, sizeof(outrgb));
-        memset(setrgb, 0, sizeof(setrgb));
 
         if (!initScreen(IMAGE_WIDTH, IMAGE_HEIGHT, 8, 1, "16K-Intro")) return;
         
-        initSintab();
+        initSinTable();
         initBlobs();
         initTextures();
         initFonts();
@@ -5434,7 +5426,8 @@ namespace intro16kDemo {
             not     esi
             inc     esi
             add     edi, 4
-            loop    next
+            dec     ecx
+            jnz     next
         }
 #else
         for (int16_t i = 0; i < IMAGE_MIDY; i++)
@@ -5550,7 +5543,8 @@ namespace intro16kDemo {
             mov     al, texture[ebx]
             shl     al, 1
             stosb
-            loop    lp2
+            dec     ecx
+            jnz     lp2
             dec     edx
             jnz     lp1
         }
@@ -5666,7 +5660,8 @@ namespace intro16kDemo {
             mov     al, 255
         lp3:
             stosb
-            loop    lp2
+            dec     ecx
+            jnz     lp2
             add     edi, IMAGE_WIDTH - 128
             dec     dx
             jnz     lp1
@@ -5713,7 +5708,8 @@ namespace intro16kDemo {
             add     edx, py
             inc     edi
             inc     esi
-            loop    lp1
+            dec     ecx
+            jnz     lp1
             jmp     lp4
         lp2: 
             xor     ah, ah
@@ -5807,7 +5803,8 @@ namespace intro16kDemo {
         next:
             add     [esi], al
             inc     esi
-            loop    next
+            dec     ecx
+            jnz     next
         }
 #else
         const uint8_t col = (x >> 3) + 20;
@@ -5886,7 +5883,8 @@ namespace intro16kDemo {
             mov     vbuff[IMAGE_SIZE + esi], al
             not     esi
             inc     esi
-            loop    next
+            dec     ecx
+            jnz     next
         }
 #else
         for (uint16_t i = 0; i < mx; i++)
@@ -6128,7 +6126,8 @@ namespace intro16kDemo {
             add     esi, v
             add     [edi], al
             inc     edi
-            loop    lp2
+            dec     ecx
+            jnz     lp2
             pop     esi
             add     esi, u
             dec     ebx
@@ -6464,7 +6463,8 @@ namespace intro16kDemo {
             add     bx, asin
             sub     dx, acos
             add     esi, IMAGE_WIDTH * 2
-            loop    lp1
+            dec     ecx
+            jnz     lp1
         }
 #else
         int16_t ax = 0, bx = 0;
@@ -6530,7 +6530,8 @@ namespace intro16kDemo {
             add     bx, asin
             sub     dx, acos
             add     esi, IMAGE_WIDTH * 2
-            loop    lp1
+            dec     ecx
+            jnz     lp1
         }
 #else
         int16_t ax = 0, bx = 0;
@@ -6597,7 +6598,8 @@ namespace intro16kDemo {
             add     bx, asin
             sub     dx, acos
             add     esi, IMAGE_WIDTH * 2
-            loop    lp1
+            dec     ecx
+            jnz     lp1
         }
 #else
         int16_t ax = 0, bx = 0;
@@ -7415,7 +7417,7 @@ namespace fireworkEffect {
         }
     }
 
-    void showArrow(TArrow* arrow, uint8_t from, uint8_t to, uint8_t hide)
+    void showArrow(const TArrow* arrow, uint8_t from, uint8_t to, uint8_t hide)
     {
         int16_t i = 0;
 
@@ -8067,7 +8069,8 @@ namespace fireEffect3 {
             mov     [edi], al
         done:
             inc     edi
-            loop    start
+            dec     ecx
+            jnz     start
         }
 #else
         for (i = 1 + (IMAGE_MIDY >> 1); i < IMAGE_HEIGHT + 3; i++)
@@ -8144,7 +8147,8 @@ namespace fireEffect4 {
         lp2:
             mov     [edi - IMAGE_WIDTH], ax
             add     edi, 2
-            loop    lp1
+            dec     ecx
+            jnz     lp1
         }
 #else
         for (int16_t i = 1; i < IMAGE_MIDY + 1; i++)
@@ -8300,7 +8304,8 @@ namespace fireEffect5 {
         lp2:
             mov     [edi - IMAGE_WIDTH], ax
             add     edi, 2
-            loop    lp1
+            dec     ecx
+            jnz     lp1
         }
 #else
         for (int16_t i = 1; i < IMAGE_MIDY + 1; i++)
@@ -8628,7 +8633,8 @@ namespace fireEffect8 {
             add     ax, bx
             shr     ax, 2
             stosb
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         for (int16_t i = 1; i < MAX_HEIGHT; i++)
@@ -11366,7 +11372,8 @@ namespace pierraEffect {
             add     ax, bx
             shr     ax, 2
             stosb
-            loop    again
+            dec     ecx
+            jnz     again
         }
 #else
         for (int16_t i = 1; i < MAX_HEIGHT; i++)
@@ -11811,9 +11818,9 @@ namespace plasmaEffect4 {
             pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
-            pal[i + 64].r = 63 - i;
-            pal[i + 64].g = 0;
-            pal[i + 64].b = 0;
+            pal[i +  64].r = 63 - i;
+            pal[i +  64].g = 0;
+            pal[i +  64].b = 0;
             pal[i + 128].r = i;
             pal[i + 128].g = 0;
             pal[i + 128].b = i;
@@ -12716,9 +12723,9 @@ namespace shadePatternEffect {
             pal[i].r = i;
             pal[i].g = 0;
             pal[i].b = 0;
-            pal[i + 64].r = 63;
-            pal[i + 64].g = i;
-            pal[i + 64].b = 0;
+            pal[i +  64].r = 63;
+            pal[i +  64].g = i;
+            pal[i +  64].b = 0;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
             pal[i + 128].b = 0;
@@ -13480,9 +13487,9 @@ namespace softFireEffect {
             pal[i].r = i;
             pal[i].g = i;
             pal[i].b = i;
-            pal[i + 8].r = 8 - i;
-            pal[i + 8].g = 8 - i;
-            pal[i + 8].b = 8 - i;
+            pal[i +  8].r = 8 - i;
+            pal[i +  8].g = 8 - i;
+            pal[i +  8].b = 8 - i;
             pal[i + 16].r = i;
             pal[i + 16].g = i;
             pal[i + 16].b = i;
@@ -13493,15 +13500,15 @@ namespace softFireEffect {
 
         for (i = 0; i <= 31; i++)
         {
-            pal[i + 32].r = i << 1;
-            pal[i + 32].g = 0;
-            pal[i + 32].b = 0;
-            pal[i + 64].r = 63;
-            pal[i + 64].g = i;
-            pal[i + 64].b = 0;
-            pal[i + 96].r = 63;
-            pal[i + 96].g = 32 + i;
-            pal[i + 96].b = i;
+            pal[i +  32].r = i << 1;
+            pal[i +  32].g = 0;
+            pal[i +  32].b = 0;
+            pal[i +  64].r = 63;
+            pal[i +  64].g = i;
+            pal[i +  64].b = 0;
+            pal[i +  96].r = 63;
+            pal[i +  96].g = 32 + i;
+            pal[i +  96].b = i;
             pal[i + 128].r = 63;
             pal[i + 128].g = 63;
             pal[i + 128].b = i + 32;
@@ -13560,11 +13567,12 @@ namespace softFireEffect {
             {
                 for (i = 0; i < IMAGE_HEIGHT; i++)
                 {
-                    switch (text[j][i])
+                    switch(text[j][i])
                     {
                     case 1: putPixel(i + 60, j + 50, flames[j][i]); break;
                     case 2: putPixel(i + 60, j + 50, dark[flames[j][i]][0]); break;
                     case 3: putPixel(i + 60, j + 50, dark[flames[j][i]][1]); break;
+                    default: break;
                     }
                 }
             }
@@ -13610,7 +13618,7 @@ namespace spriteEffect {
     void putFrame(int16_t x, int16_t y, int16_t k)
     {
 #ifdef _USE_ASM
-        uint8_t* pdata = (uint8_t*)frames[k];
+        const uint8_t* pdata = (const uint8_t*)frames[k];
 
         __asm {
             mov     esi, pdata
@@ -13633,11 +13641,13 @@ namespace spriteEffect {
             jnz     store
             inc     esi
             inc     edi
-            loop    line
+            dec     ecx
+            jnz     line
             jmp     next
         store:
             movsb
-            loop    line
+            dec     ecx
+            jnz     line
         next:
             pop     edi
             dec     dl
