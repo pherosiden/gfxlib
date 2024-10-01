@@ -552,8 +552,8 @@ void runLensFlare(GFX_IMAGE* outImg)
         render();
 
         //timing for input and FPS counter
-		oldTime = time;
-		time = getTime();
+        oldTime = time;
+        time = getTime();
         delay(1);
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 

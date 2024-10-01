@@ -5739,8 +5739,8 @@ void putImageSub(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
-	ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
+    ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5846,8 +5846,8 @@ void putImageAnd(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
-	ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
+    ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -5953,8 +5953,8 @@ void putImageXor(const int32_t x, const int32_t y, const int32_t lx, const int32
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
-	ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
+    ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6068,7 +6068,7 @@ void putImageAlpha(const int32_t x, const int32_t y, const int32_t lx, const int
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
     uint32_t* srcPixels = (uint32_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //scan height
@@ -6357,8 +6357,8 @@ void putSpriteNormal(const int32_t x, const int32_t y, const uint32_t keyColor, 
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
-	uint32_t* srcPixels = (uint32_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
+    uint32_t* srcPixels = (uint32_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6502,8 +6502,8 @@ void putSpriteAdd(const int32_t x, const int32_t y, const uint32_t keyColor, con
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
-	ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
+    ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6654,8 +6654,8 @@ void putSpriteSub(const int32_t x, const int32_t y, const uint32_t keyColor, con
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
-	ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    ARGB* dstPixels = (ARGB*)drawBuff + (texWidth * ly + lx);
+    ARGB* srcPixels = (ARGB*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
@@ -6805,8 +6805,8 @@ void putSpriteAlpha(const int32_t x, const int32_t y, const uint32_t keyColor, c
     const int32_t addImgOffs = img->mWidth - width;
 
     //calculate starting address
-	uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
-	uint32_t* srcPixels = (uint32_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly + lx);
+    uint32_t* srcPixels = (uint32_t*)img->mData + (img->mWidth * (ly - y) + (lx - x));
 
     //line-by-line
     for (int32_t i = 0; i < height; i++)
