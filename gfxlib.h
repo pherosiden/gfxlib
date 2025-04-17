@@ -46,6 +46,9 @@
 #if !defined(SDL_PLATFORM_APPLE) && !defined(_WIN64)
 #define _USE_ASM
 #pragma message("MMX technology is turned on. On modern system don't use this option!")
+#elif defined(_WIN64)
+#define _USE_SIMD
+#pragma message("Use SIMD technology to optimize!")
 #endif
 
 //disable C-cast warnings

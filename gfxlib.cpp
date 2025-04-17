@@ -592,16 +592,17 @@ void render()
         //256 colors palette, we must convert 8 bits surface to 32 bits surface
         SDL_BlitSurface(sdlSurface, NULL, sdlScreen, NULL);
         SDL_UpdateTexture(sdlTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
-        SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
-        SDL_RenderPresent(sdlRenderer);
     }
     else
     {
         //rgb mode, just render texture to video memory without any conversation
         SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
-        SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
-        SDL_RenderPresent(sdlRenderer);
     }
+    
+    //clear screen and render texture to screen
+    SDL_RenderClear(sdlRenderer);
+    SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
+    SDL_RenderPresent(sdlRenderer);
 }
 
 //render from user-defined buffer
@@ -906,11 +907,8 @@ void clearScreenMix(uint32_t color)
     }
 
     //have unaligned bytes?
-    const int32_t remainder = msize % 32;
-    if (remainder > 0)
-    {
-        for (int32_t i = 0; i < remainder; i++) *pixels++ = color;
-    }
+    int32_t remainder = msize % 32;
+    while (remainder--) *pixels++ = color;
 #endif
     render();
 }
@@ -961,11 +959,8 @@ void clearScreen(uint32_t color)
     }
 
     //have unaligned bytes?
-    const int32_t remainder = msize % 8;
-    if (remainder > 0)
-    {
-        for (int32_t i = 0; i < remainder; i++) *pixels++ = color;
-    }
+    int32_t remainder = msize % 8;
+    while (remainder--) *pixels++ = color;
 #endif
     render();
 }
@@ -984,8 +979,8 @@ must_inline void putPixelMix(int32_t x, int32_t y, uint32_t color)
         stosb
     }
 #else
-    uint8_t* pixels = (uint8_t*)drawBuff;
-    pixels[y * texWidth + x] = color;
+    uint8_t* pixels = (uint8_t*)drawBuff + (texWidth * y + x);
+    *pixels = color;
 #endif
 }
 
@@ -1004,8 +999,8 @@ must_inline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
         stosd
     }
 #else
-    uint32_t* pixel = (uint32_t*)drawBuff;
-    pixel[y * texWidth + x] = color;
+    uint32_t* pixel = (uint32_t*)drawBuff + (texWidth * y + x);
+    *pixel = color;
 #endif
 }
 
@@ -1014,9 +1009,9 @@ must_inline void putPixelNormal(int32_t x, int32_t y, uint32_t color)
 //don't use (SC*SA+DC*(255-SA))>>8, you'll always get 254 as your maximum value.
 //ie: (255*128+255*(255-128))>>8=254 --> WRONG!!!
 //with: (255*128+255*(256-128))>>8=255 --> ACCEPTED!!!
-must_inline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
+must_inline void putPixelAlpha(int32_t x, int32_t y, uint32_t src)
 {
-#ifdef _USE_ASM
+#if defined (_USE_ASM)
     __asm {
         mov         eax, y
         mul         texWidth
@@ -1024,7 +1019,7 @@ must_inline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
         shl         eax, 2
         mov         edi, drawBuff   
         add         edi, eax
-        mov         eax, argb
+        mov         eax, src
         shr         eax, 24
         pxor        mm5, mm5
         movd        mm7, eax
@@ -1034,7 +1029,7 @@ must_inline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
         movd	    mm6, eax
         pshufw	    mm6, mm6, 0
         movd        mm0, [edi]
-        movd        mm1, argb
+        movd        mm1, src
         punpcklbw   mm0, mm5
         punpcklbw   mm1, mm5
         pmullw      mm0, mm6
@@ -1045,15 +1040,50 @@ must_inline void putPixelAlpha(int32_t x, int32_t y, uint32_t argb)
         movd        [edi], mm0
         emms
     }
-#else
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* pixels = &pdata[texWidth * y + x];
-    const uint32_t dst = *pixels;
-    const uint8_t cover = argb >> 24;
+#elif defined (_USE_SIMD)
+    const uint8_t cover = src >> 24;
     const uint8_t rcover = 255 - cover;
-    const uint32_t rb = ((dst & 0x00ff00ff) * rcover + (argb & 0x00ff00ff) * cover);
-    const uint32_t ag = (((dst & 0xff00ff00) >> 8) * rcover + ((argb & 0xff00ff00) >> 8) * cover);
-    *pixels = ((rb & 0xff00ff00) >> 8) | (ag & 0xff00ff00);
+
+    uint32_t* pixels = (uint32_t*)drawBuff + (texWidth * y + x);
+    const uint32_t dst = *pixels;
+   
+    const __m128i vsrc = _mm_cvtsi32_si128(src);
+    const __m128i vdst = _mm_cvtsi32_si128(dst);
+
+    // Extract RGB and Alpha
+    const __m128i vcover = _mm_set1_epi16(cover);
+    const __m128i vrcover = _mm_set1_epi16(rcover);
+
+    // make constants
+    const __m128i vmask = _mm_set1_epi32(0x00FF00FF);
+    const __m128i vsrb = _mm_and_si128(vsrc, vmask);
+    const __m128i vdrb = _mm_and_si128(vdst, vmask);
+
+    const __m128i vsag = _mm_and_si128(_mm_srli_epi32(vsrc, 8), vmask);
+    const __m128i vdag = _mm_and_si128(_mm_srli_epi32(vdst, 8), vmask);
+
+    // Blend RB channels
+    __m128i vblendrb = _mm_add_epi16(_mm_mullo_epi16(vdrb, vrcover), _mm_mullo_epi16(vsrb, vcover));
+    vblendrb = _mm_srli_epi16(vblendrb, 8);
+    vblendrb = _mm_and_si128(vblendrb, vmask);
+
+    // Blend AG channels
+    __m128i vblendag = _mm_add_epi16(_mm_mullo_epi16(vdag, vrcover), _mm_mullo_epi16(vsag, vcover));
+    vblendag = _mm_and_si128(vblendag, _mm_set1_epi32(0xFF00FF00));
+
+    // Combine final pixel
+    *pixels = _mm_cvtsi128_si32(_mm_or_si128(vblendrb, vblendag));
+#else
+    const uint8_t cover = src >> 24;
+    const uint8_t rcover = 255 - cover;
+    
+    uint32_t* pixels = (uint32_t*)drawBuff + (texWidth * y + x);
+    const uint32_t dst = *pixels;
+
+    const uint32_t rb = ((dst & 0x00FF00FF) * rcover + (src & 0x00FF00FF) * cover) >> 8;
+    const uint32_t ag = (((dst >> 8) & 0x00FF00FF) * rcover + ((src >> 8) & 0x00FF00FF) * cover) & 0xFF00FF00;
+    
+    *pixels = (rb & 0x00FF00FF) | ag;
 #endif
 }
 
