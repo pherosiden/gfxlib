@@ -5,8 +5,8 @@
 /*            Target OS: cross-platform (win32, macos)           */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.4.5                                   */
-/*          Last Update: 2024-09-27                              */
+/*              Version: 1.4.6                                   */
+/*          Last Update: 2025-08-27                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
