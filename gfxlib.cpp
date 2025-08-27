@@ -393,19 +393,12 @@ void setMousePosition(int32_t px, int32_t py)
 int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable)
 {
     //initialize SDL video mode only
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (!SDL_Init(SDL_INIT_VIDEO))
     {
         messageBox(GFX_ERROR, "Failed to initialize SDL3: %s", SDL_GetError());
         return 0;
     }
     
-    //initialize SDL2 image lib
-    if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
-    {
-        messageBox(GFX_ERROR, "Failed to initialize SDL3 image: %s", IMG_GetError());
-        return 0;
-    }
-
     //create screen to display contents
     sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE : 0);
     if (!sdlWindow)
@@ -479,9 +472,9 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
 
         //set default palette to surface
-        if (palette && SDL_SetPaletteColors(palette, basePalette, 0, 256))
+        if (palette && SDL_SetPaletteColors(palette, basePalette, 0, 256) < 0)
         {
-            messageBox(GFX_ERROR, "Failed to initialize palette colors!");
+            messageBox(GFX_ERROR, "Failed to initialize palette colors: %s", SDL_GetError());
             return 0;
         }
 
@@ -581,7 +574,6 @@ void cleanup()
     }
 
     SDL_Quit();
-    IMG_Quit();
 }
 
 //render function, use this to render draw buffer to video memory
@@ -10151,7 +10143,7 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     }
 
     //convert to target pixel format
-    if (SDL_BlitSurface(image, NULL, texture, NULL))
+    if (SDL_BlitSurface(image, NULL, texture, NULL) < 0)
     {
         SDL_DestroySurface(image);
         SDL_DestroySurface(texture);
@@ -10196,7 +10188,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     }
 
     //convert raw data to texture format
-    if (SDL_BlitSurface(image, NULL, texture, NULL))
+    if (SDL_BlitSurface(image, NULL, texture, NULL) < 0)
     {
         SDL_DestroySurface(image);
         SDL_DestroySurface(texture);
