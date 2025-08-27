@@ -178,12 +178,13 @@ xcopy /Y /Q /S /I ..\assets .\assets</Command>
       </Message>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /Y /Q ..\lib\x86\*.dll .
+      <Command>xcopy /Y /Q Release\*.exe .
+xcopy /Y /Q ..\lib\x86\*.dll .
 xcopy /Y /Q /S /I ..\assets .\assets</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copying DLL files...</Message>
-      <Outputs>Copying DLL files...</Outputs>
+      <Message>Copying assets and DLL files...</Message>
+      <Outputs>Copying assets and DLL files...</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -253,10 +254,11 @@ xcopy /Y /Q /S /I ..\assets .\assets</Command>
       </Message>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /Y /Q ..\lib\x64\*.dll .
+      <Command>xcopy /Y /Q x64\Release\*.exe .
+xcopy /Y /Q ..\lib\x64\*.dll .
 xcopy /Y /Q /S /I ..\assets .\assets</Command>
-      <Message>Copying DLL files...</Message>
-      <Outputs>Copying DLL files...</Outputs>
+      <Message>Copying assets and DLL files...</Message>
+      <Outputs>Copying assets and DLL files...</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
