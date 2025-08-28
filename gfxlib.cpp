@@ -669,7 +669,7 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
             drawBuff = SDL_aligned_alloc(32, bytesCopy);
             if (!drawBuff)
             {
-                messageBox(GFX_INFO, "Error create new render buffer:%u!", bytesCopy);
+                messageBox(GFX_INFO, "Error create new render buffer: %u!", bytesCopy);
                 return;
             }
         }
