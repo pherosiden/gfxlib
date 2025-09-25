@@ -610,20 +610,19 @@ void runPlasmaScale(int32_t sx, int32_t sy)
     if (!newImage(getDrawBufferWidth() >> 1, getDrawBufferHeight() >> 1, &screen)) return;
 
     uint32_t frames = 0;
-    uint32_t* data = (uint32_t*)plasma.mData;
-    const uint16_t endx = plasma.mWidth >> 1;
+    const int32_t endx = plasma.mWidth >> 1;
 
     //loop until return
     while (!finished(SDL_SCANCODE_RETURN))
     {
-        uint32_t ofs = 0;
+        uint32_t* data = (uint32_t*)plasma.mData;
         const uint32_t tectr = frames * 10;
         const uint16_t x1 = sina[(tectr / 12) & 0xff];
         const uint16_t x2 = sina[(tectr / 11) & 0xff];
         const uint16_t x3 = sina[frames & 0xff];
         const uint16_t y1 = sina[((tectr >> 3) + 64) & 0xff];
-        const uint16_t y2 = sina[(tectr / 7 + 64) & 0xff];
-        const uint16_t y3 = sina[(tectr / 12 + 64) & 0xff];
+        const uint16_t y2 = sina[((tectr / 7) + 64) & 0xff];
+        const uint16_t y3 = sina[((tectr / 12) + 64) & 0xff];
 
         //calculate plasma buffer
         for (int32_t y = 0; y < plasma.mHeight; y++)
@@ -634,17 +633,17 @@ void runPlasmaScale(int32_t sx, int32_t sy)
             uint16_t cr = sina[(a >> 6) & 0xff];
             uint16_t cg = sina[(b >> 6) & 0xff];
             uint16_t cb = sina[(c >> 6) & 0xff];
+
 #ifdef _USE_ASM
             __asm {
-                xor     eax, eax
                 mov     edi, data
-                add     edi, ofs
+                xor     eax, eax
                 xor     edx, edx
             next:
                 xor     ebx, ebx
                 mov     cl, 6
-                mov     bx, ax
-                push    ax
+                mov     ebx, eax
+                push    eax
                 sub     bx, x3
                 add     bx, c
                 mov     c, bx
@@ -685,32 +684,30 @@ void runPlasmaScale(int32_t sx, int32_t sy)
                 mov     bh, byte ptr cg
                 mov     [edi + 4], ebx
                 add     edi, 8
-                pop     ax
-                inc     ax
-                cmp     ax, endx
+                pop     eax
+                inc     eax
+                cmp     eax, endx
                 jnae    next
             }
-            ofs += (plasma.mWidth << 2);
+            data += plasma.mWidth;
 #else
-            uint32_t idx = ofs;
             for (int32_t x = 0; x < endx; x++)
             {
-                c = x - x3 + c;
+                c += (x - x3);
                 const uint8_t sc = sina[(c >> 6) & 0xff];
-                b = x - x2 + b;
+                b += (x - x2);
                 const uint8_t sb = sina[(b >> 6) & 0xff];
-                a = x - x1 + a;
+                a += (x - x1);
                 const uint8_t sa = sina[(a >> 6) & 0xff];
                 const uint32_t col2 = ((sa + cr) << 15) & 0xffff0000;
-                const uint16_t col1 = (((sb + cg) << 7) & 0xff00) + ((sc + cb) >> 1);
+                const uint32_t col1 = (((sb + cg) << 7) & 0xff00) + ((sc + cb) >> 1);
+                *data = col1 | col2;
+                *(data + 1) = (sa << 16) | (sb << 8) | sc;
                 cr = sa;
                 cg = sb;
                 cb = sc;
-                data[idx] = col2 + col1;
-                data[idx + 1] = (cr << 16) | (cg << 8) | cb;
-                idx += 2;
+                data += 2;
             }
-            ofs += plasma.mWidth;
 #endif
         }
 
