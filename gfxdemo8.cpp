@@ -665,41 +665,53 @@ void checkBounds(int32_t a, int32_t c, int32_t *b)
 
 void graphDemo12()
 {
-    uint32_t frames = 0;
-    const int32_t cwidth = getDrawBufferWidth();
-    const int32_t cheight = getDrawBufferHeight();
-    
-    srand(uint32_t(time(NULL)));
-
-    int32_t x1 = rand() % cwidth;
-    int32_t x2 = rand() % cwidth;
-    int32_t y1 = rand() % cheight;
-    int32_t y2 = rand() % cheight;
-    
-    int32_t dx1 = 1;
-    int32_t dx2 = -1;
-    int32_t dy1 = 1;
-    int32_t dy2 = -1;
-    
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
 
-    while (frames < 4000 && !finished(SDL_SCANCODE_RETURN))
-    {
-        x1 += dx1;
-        x2 += dx2;
-        y1 += dy1;
-        y2 += dy2;
-        
-        checkBounds(x1, cmx, &dx1);
-        checkBounds(x2, cmx, &dx2);
-        checkBounds(y1, cmy, &dy1);
-        checkBounds(y2, cmy, &dy2);
+    const int32_t cwidth = getDrawBufferWidth();
+    const int32_t cheight = getDrawBufferHeight();
 
-        drawLineBob(x1, y1, x2, y2);
-        render();
-        frames++;
-    }
+    do {
+        uint32_t frames = 0;
+        makeFunkyPalette();
+
+        int32_t x1 = rand() % cwidth;
+        int32_t x2 = rand() % cwidth;
+        int32_t y1 = rand() % cheight;
+        int32_t y2 = rand() % cheight;
+
+        int32_t dx1 = 1;
+        int32_t dx2 = -1;
+        int32_t dy1 = 1;
+        int32_t dy2 = -1;
+
+        while (frames < 4000)
+        {
+            x1 += dx1;
+            x2 += dx2;
+            y1 += dy1;
+            y2 += dy2;
+
+            checkBounds(x1, cmx, &dx1);
+            checkBounds(x2, cmx, &dx2);
+            checkBounds(y1, cmy, &dy1);
+            checkBounds(y2, cmy, &dy2);
+
+            if (x1 < 0) x1 = 0;
+            if (x2 < 0) x2 = 0;
+            if (y1 < 0) y1 = 0;
+            if (y2 < 0) y2 = 0;
+
+            drawLineBob(x1, y1, x2, y2);
+            render();
+            frames++;
+
+            readKeys();
+            if (keyPressed(SDL_SCANCODE_RETURN)) break;
+        }
+
+        clearScreen();
+    } while (!finished(SDL_SCANCODE_RETURN));
 }
 
 void graphDemo13()
@@ -1798,7 +1810,6 @@ void gfxDemoMix()
     
     setWindowTitle("Draw Line Bob Color");
     clearScreen();
-    makeFunkyPalette();
     graphDemo12();
     fadeRollo(1, 0);
 
