@@ -5,8 +5,8 @@
 /*            Target OS: cross-platform (win32, macos)           */
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
-/*              Version: 1.4.5                                   */
-/*          Last Update: 2024-09-27                              */
+/*              Version: 1.4.7                                   */
+/*          Last Update: 2025-10-01                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -168,7 +168,7 @@ void readKeys()
     keyStates = (uint8_t*)SDL_GetKeyboardState(NULL);
 }
 
-//this checks if the key is held down, returns true all the time until the key is up
+//this checks if the key is hold down, returns true all the time until the key is up
 int32_t keyDown(int32_t key)
 {
     if (!keyStates) return 0;

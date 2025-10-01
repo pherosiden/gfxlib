@@ -668,17 +668,14 @@ void graphDemo12()
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
 
-    const int32_t cwidth = getDrawBufferWidth();
-    const int32_t cheight = getDrawBufferHeight();
-
     do {
         uint32_t frames = 0;
         makeFunkyPalette();
 
-        int32_t x1 = rand() % cwidth;
-        int32_t x2 = rand() % cwidth;
-        int32_t y1 = rand() % cheight;
-        int32_t y2 = rand() % cheight;
+        int32_t x1 = rand() % cmx;
+        int32_t x2 = rand() % cmx;
+        int32_t y1 = rand() % cmy;
+        int32_t y2 = rand() % cmy;
 
         int32_t dx1 = 1;
         int32_t dx2 = -1;
@@ -1571,7 +1568,7 @@ void gfxDemoMix()
         "GFXLIB Library Demo",
         "Full supports 8/15/16/24/32 bits color",
         "Load/Save BMP & PNG 32 bits image",
-        "Copyright (c) 1998 - 2023 by Nguyen Ngoc Van",
+        "Copyright (c) 1998 - 2025 by Nguyen Ngoc Van",
         "Please wait to continue..."
     };
 
@@ -1579,14 +1576,14 @@ void gfxDemoMix()
         "Khoa Co6ng Nghe65 Tho6ng Tin - Kho1a 2000",
         "Tru7o72ng D9a5i Ho5c Ky4 Thua65t TP.HCM - HUTECH",
         "Thu7 Vie65n D9o62 Ho5a VESA 8/15/16/24/32 bits Ma2u",
-        "Copyright (c) 1998 - 2023 by Nguye64n Ngo5c Va6n",
+        "Copyright (c) 1998 - 2025 by Nguye64n Ngo5c Va6n",
         "Trang chu3: https://github.com/pherosiden/"
     };
 
     const int32_t numTitles = sizeof(msgTitle) / sizeof(msgTitle[0]);
 
     char msgScroll[] = "*** Ca1m o7n ca1c ba5n d9a4 su73 du5ng chu7o7ng tri2nh na2y. Ba5n co1 the63 ta3i toa2n bo65 ma4 nguo62n cu3a chu7o7ng tri2nh ta5i d9i5a chi3 https://github.com/pherosiden/gfxlib. Chu1c Ca1c Ba5n Tha2nh Co6ng       ";
-    char msgBanner[] = "Light Banner (c) 1998 - 2023 Nguye64n Ngo5c Va6n";
+    char msgBanner[] = "Light Banner (c) 1998 - 2025 Nguye64n Ngo5c Va6n";
     char msgLoading[] = "D9ang ta3i du74 lie65u a3nh PNG & BMP 32bit ma2u, vui lo2ng d9o75i mo65t la1t....";
 
     if (!initScreen(800, 600, 32, 0, "GFX-Demo8")) return;
