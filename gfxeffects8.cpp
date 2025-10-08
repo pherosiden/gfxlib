@@ -6931,7 +6931,7 @@ namespace textScrollingEffect {
 }
 
 namespace fastShowBMP {
-    uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = {0};
+    uint8_t vbuff[IMAGE_HEIGHT][IMAGE_WIDTH] = { 0 };
 
     void setRGB(const uint8_t* pal)
     {

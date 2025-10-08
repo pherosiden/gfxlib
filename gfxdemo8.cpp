@@ -15,18 +15,18 @@
 typedef uint8_t FNTBUFF[CHR_WIDTH][CHR_HEIGHT];
 
 //VNI font table
-FNTBUFF     chrPixels[CHR_MAX] = {0};
+FNTBUFF     chrPixels[CHR_MAX] = { 0 };
 
 //circle palette
 RGBA        cpal[256] = { 0 };
 
 //Character buffer
-int32_t     grData[120][2] = {0};
-uint8_t     chrBuff[CHR_NUM * CHR_WIDTH][CHR_HEIGHT] = {0};
+int32_t     grData[120][2] = { 0 };
+uint8_t     chrBuff[CHR_NUM * CHR_WIDTH][CHR_HEIGHT] = { 0 };
 
 //Max coordinate buffer
-int32_t     maxHeight[LIMITX] = {0};
-int32_t     minHeight[LIMITX] = {0};
+int32_t     maxHeight[LIMITX] = { 0 };
+int32_t     minHeight[LIMITX] = { 0 };
 
 int32_t     lines = 0, points = 0;
 int32_t     visiPrec = 0, visiCour = 0;
@@ -325,8 +325,8 @@ void graphDemo5(int32_t xi, int32_t yi, int32_t r, int32_t xr, int32_t yr)
 
 void graphDemo6(int32_t xc, int32_t yc, int32_t r)
 {
-    int32_t xx[120] = {0};
-    int32_t yy[120] = {0};
+    int32_t xx[120] = { 0 };
+    int32_t yy[120] = { 0 };
    
     int32_t i = 0;
     double alpha = 0.0;
@@ -370,8 +370,8 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
 
 void graphDemo7(int32_t xc, int32_t yc, int32_t r)
 {
-    int32_t xx[120] = {0};
-    int32_t yy[120] = {0};
+    int32_t xx[120] = { 0 };
+    int32_t yy[120] = { 0 };
 
     int32_t i = 0;
     double alpha = 0.0;
@@ -419,8 +419,8 @@ void graphDemo7(int32_t xc, int32_t yc, int32_t r)
 
 void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
 {
-    int32_t xx[120] = {0};
-    int32_t yy[120] = {0};
+    int32_t xx[120] = { 0 };
+    int32_t yy[120] = { 0 };
     int32_t i = 0;
 
     double alpha = 0.0;
@@ -607,7 +607,7 @@ void initDemo10(int32_t num, int32_t n)
 void graphDemo10(int32_t xc, int32_t yc, int32_t rx, int32_t ry, int32_t col)
 {
     int32_t i = 0;
-    int32_t data[120][2] = {0};
+    int32_t data[120][2] = { 0 };
 
     for (i = 0; i < 120; i++)
     {
@@ -1486,8 +1486,8 @@ void displayPlasma()
 
     uint32_t frames = 0;
     uint8_t dx = 0, dy = 0;
-    uint8_t sint[256] = {0};
-    uint8_t cost[256] = {0};
+    uint8_t sint[256] = { 0 };
+    uint8_t cost[256] = { 0 };
 
     //load text font
     if (!loadFont("assets/hyena.xfn", 0)) return;
@@ -1550,8 +1550,8 @@ void displayPlasma()
 
 void gfxDemoMix()
 {
-    RGBA 	pal1[256] = {0};
-    RGBA 	pal2[256] = {0};
+    RGBA 	pal1[256] = { 0 };
+    RGBA 	pal2[256] = { 0 };
     POINT2D	pts[50] = { 0 };
 
     double ratio = 0.0, rept = 0.0;

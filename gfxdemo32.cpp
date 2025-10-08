@@ -13,7 +13,7 @@ typedef char STRBUFF[MAX_MSG_LEN];
 int32_t     fullSpeed = 0;
 
 //greets scrolling text
-STRBUFF     texts[MAX_TEXT_LINE] = {0};
+STRBUFF     texts[MAX_TEXT_LINE] = { 0 };
 
 //global cached image
 GFX_IMAGE   flare = { 0 };
