@@ -3252,9 +3252,6 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     //this function only support mixed mode
     if (bitsPerPixel != 8) return;
 
-    //range check
-    //if (x1 < 0 || x1 > cmaxX || x2 < 0 || x2 > cmaxX || y1 < 0 || y1 > cmaxY || y2 < 0 || y2 > cmaxY) return;
-
 #ifdef _USE_ASM    
     int32_t dst = 0, sc = 0, dc = 0;
     int32_t adddx = 0, adddy = 0;
