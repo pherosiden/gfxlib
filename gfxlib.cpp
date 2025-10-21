@@ -3317,69 +3317,37 @@ void drawLineBob(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     done:
     }
 #else
-    const int32_t dx = abs(x2 - x1);
-    const int32_t dy = abs(y2 - y1);
+    int32_t step = abs(y2 - y1) > abs(x2 - x1);
 
-    int32_t x = x1;
-    int32_t y = y1;
-    int32_t addx1 = 0, addx2 = 0;
-    int32_t addy1 = 0, addy2 = 0;
-    int32_t numpixels = 0, curpixel = 0;
-    int32_t den = 0, num = 0, numadd = 0;
-
-    if (x2 >= x1)
+    if (step)
     {
-        addx1 = 1;
-        addx2 = 1;
-    }
-    else
-    {
-        addx1 = -1;
-        addx2 = -1;
+        swap(x1, y1);
+        swap(x2, y2);
     }
 
-    if (y2 >= y1)
+    if (x1 > x2)
     {
-        addy1 = 1;
-        addy2 = 1;
-    }
-    else
-    {
-        addy1 = -1;
-        addy2 = -1;
+        swap(x1, x2);
+        swap(y1, y2);
     }
 
-    if (dx >= dy)
-    {
-        addx1 = 0;
-        addy2 = 0;
-        den = dx;
-        num = dx >> 1;
-        numadd = dy;
-        numpixels = dx;
-    }
-    else
-    {
-        addx2 = 0;
-        addy1 = 0;
-        den = dy;
-        num = dy >> 1;
-        numadd = dx;
-        numpixels = dy;
-    }
+    int32_t dx = x2 - x1;
+    int32_t dy = abs(y2 - y1);
+    int32_t err = dx >> 1;
+    int32_t ystep = (y1 < y2) ? 1 : -1;
+    int32_t x, y = y1;
 
-    for (curpixel = 0; curpixel < numpixels; curpixel++)
+    for (x = x1; x <= x2; ++x)
     {
-        putPixelBob(x, y);
-        num += numadd;
-        if (num >= den)
+        if (step) putPixelBob(y, x);
+        else putPixelBob(x, y);
+
+        err -= dy;
+        if (err < 0)
         {
-            num -= den;
-            x += addx1;
-            y += addy1;
+            y += ystep;
+            err += dx;
         }
-        x += addx2;
-        y += addy2;
     }
 #endif
 }
@@ -3437,16 +3405,19 @@ void calcCircle(int32_t rd, int32_t* points)
     {
         if (ebx < 0)
         {
-            edx = (ecx++ << 1) + 3;
+            edx = (ecx << 1) + 3;
             ebx += edx;
             esi--;
+            ecx++;
         }
         else
         {
-            edx = ((ecx++ - eax--) << 1) + 3;
+            edx = ((ecx - eax) << 1) + 3;
             ebx += edx;
             esi--;
             edi++;
+            ecx++;
+            eax--;
         }
         points[edi] = ecx;
         points[esi] = eax;
