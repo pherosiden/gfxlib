@@ -26,6 +26,9 @@ void juliaSet()
     const double my = -0.5 * SCR_HEIGHT * scale;
 
     /*==================================== use FMA version below ==============================
+    const double gamma = 0.85;
+    const double brightness = 1.6;
+    
     for (int32_t y = 0; y < SCR_HEIGHT; y++)
     {
         const double y0 = y * scale + my;
@@ -43,12 +46,20 @@ void juliaSet()
                 x1 = x2 - y2 + cre;
             }
 
-            //use color model conversion to get rainbow palette
-            pixels[y][x] = hsv2rgb(0xff * i / iterations, 0xff, (i < iterations) ? 0xff : 0);
+            //calculate smooth colors
+            const double s0 = i + 1 - log(log(sqrt(x1 * x1 + y1 * y1))) / log(2.0);
+            const double t0 = s0 / iterations;
+            const double rf = pow(9 * (1 - t0) * t0 * t0 * t0 * brightness, gamma);
+            const double gf = pow(15 * (1 - t0) * (1 - t0) * t0 * t0 * brightness, gamma);
+            const double bf = pow(8.5 * (1 - t0) * (1 - t0) * (1 - t0) * t0 * brightness, gamma);
+            const uint8_t ru = uint8_t(clamp(rf * 255, 0, 255));
+            const uint8_t gu = uint8_t(clamp(gf * 255, 0, 255));
+            const uint8_t bu = uint8_t(clamp(bf * 255, 0, 255));
+            pixels[y][x] = rgb(ru, gu, bu);
         }
     }
-    ====================AVX-512 version support INTEL 11th later===============================
 
+    /*====================AVX-512 version support INTEL 11th later===============================
     const __m512d xim = _mm512_set1_pd(cim);
     const __m512d xre = _mm512_set1_pd(cre);
 
@@ -138,15 +149,15 @@ void juliaSet()
             }
 
             //extract iteration position for each pixel
-            alignas(32) int32_t it[8] = { 0 };
+            alignas(32) uint32_t it[8] = { 0 };
             _mm256_stream_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
-            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+            pdst[0] = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+            pdst[1] = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+            pdst[2] = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+            pdst[3] = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
         }
     }
 
