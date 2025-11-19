@@ -150,7 +150,7 @@ void juliaSet()
 
             //extract iteration position for each pixel
             alignas(32) uint32_t it[8] = { 0 };
-            _mm256_stream_si256((__m256i*)it, iters);
+            _mm256_store_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
@@ -238,12 +238,10 @@ void fireDemo1()
             dstBuff[i] = avg;
         }
 
-        //Copy back and scroll up one row.
-        //The bottom row is all zeros, so it can be skipped.
+        //Copy back and scroll up one row. The bottom row is all zeros, so it can be skipped.
         for (i = 0; i < (SCR_HEIGHT - 2) * SCR_WIDTH; i++) prevBuff[i] = dstBuff[i + SCR_WIDTH];
 
-        //Remove dark pixels from the bottom rows (except again the
-        // bottom row which is all zeros).
+        //Remove dark pixels from the bottom rows (except again the bottom row which is all zeros).
         for (i = (SCR_HEIGHT - 7) * SCR_WIDTH; i < (SCR_HEIGHT - 1) * SCR_WIDTH; i++)
         {
             if (dstBuff[i] < 15) dstBuff[i] = 22 - dstBuff[i];
@@ -669,7 +667,7 @@ void rayCasting()
 
         //SPRITE CASTING
         //sort sprites from far to close
-        for (int32_t i = 0; i < NUM_SPRITES; i++)
+        for (i = 0; i < NUM_SPRITES; i++)
         {
             spriteOrder[i] = i;
             spriteDistance[i] = (sqr(posX - sprite[i].x) + sqr(posY - sprite[i].y)); //sqrt not taken, unneeded
@@ -678,7 +676,7 @@ void rayCasting()
         sortSprites(spriteOrder, spriteDistance, NUM_SPRITES);
 
         //after sorting the sprites, do the projection and draw them
-        for (int32_t i = 0; i < NUM_SPRITES; i++)
+        for (i = 0; i < NUM_SPRITES; i++)
         {
             //translate sprite position to relative to camera
             const double spriteX = sprite[spriteOrder[i]].x - posX;
@@ -1129,14 +1127,14 @@ void juliaExplorer()
 
                 //extract iteration position for each pixel
                 alignas(32) int32_t it[8] = { 0 };
-                _mm256_stream_si256((__m256i*)it, iters);
+                _mm256_store_si256((__m256i*)it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
-                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+                pdst[0] = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+                pdst[1] = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+                pdst[2] = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+                pdst[3] = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
             }
         }
 
@@ -1362,14 +1360,14 @@ void mandelbrotSet()
 
             //extract iteration position for each pixel
             alignas(32) int32_t it[8] = { 0 };
-            _mm256_stream_si256((__m256i*)it, iters);
+            _mm256_store_si256((__m256i*)it, iters);
 
             //use HSV convert to get full rainbow palette
             uint32_t* pdst = &pixels[y][x];
-            *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-            *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+            pdst[0] = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+            pdst[1] = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+            pdst[2] = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+            pdst[3] = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
         }
     }
 
@@ -1527,14 +1525,14 @@ void mandelbrotExporer()
 
                 //extract iteration position for each pixel
                 alignas(32) int32_t it[8] = { 0 };
-                _mm256_stream_si256((__m256i*)it, iters);
+                _mm256_store_si256((__m256i*)it, iters);
 
                 //use HSV convert to get full rainbow palette
                 uint32_t* pdst = &pixels[y][x];
-                *pdst++ = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
-                *pdst++ = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
+                pdst[0] = hsv2rgb(255 * it[0] / iterations, 255, (it[0] < iterations) ? 255 : 0);
+                pdst[1] = hsv2rgb(255 * it[2] / iterations, 255, (it[2] < iterations) ? 255 : 0);
+                pdst[2] = hsv2rgb(255 * it[4] / iterations, 255, (it[4] < iterations) ? 255 : 0);
+                pdst[3] = hsv2rgb(255 * it[6] / iterations, 255, (it[6] < iterations) ? 255 : 0);
             }
         }
 
