@@ -2,26 +2,47 @@
 
 namespace juliaSetEffect {
 
-    void makePalette()
+    void makePalette(bool type)
     {
-        RGBA pal[256] = { 0 };
-
+        RGBA pal[256] = {0};
         memset(pal, 0, sizeof(pal));
         
-        for (uint8_t a = 1; a <= 85; a++)
+        if (type)
         {
-            const uint8_t b = a * 255 / 85;
-            pal[a      ].r = b;
-            pal[85  + a].g = b;
-            pal[170 + a].b = b;
-            pal[170 + a].r = 0;
-            pal[a      ].g = 0;
-            pal[85  + a].b = 0;
-            pal[171 - a].r = b;
-            pal[256 - a].g = b;
-            pal[86  - a].b = b;
+            const double gamma = 0.85;
+            const double brightness = 1.6;
+
+            for (int32_t k = 0; k < 256; k++)
+            {
+                const double t0 = k / 255.0;
+
+                const double rf = pow(9.0 * (1 - t0) * t0 * t0 * t0 * brightness, gamma);
+                const double gf = pow(15.0 * (1 - t0) * (1 - t0) * t0 * t0 * brightness, gamma);
+                const double bf = pow(8.5 * (1 - t0) * (1 - t0) * (1 - t0) * t0 * brightness, gamma);
+
+                const uint8_t r = (uint8_t)clamp(rf * 255.0, 0.0, 255.0);
+                const uint8_t g = (uint8_t)clamp(gf * 255.0, 0.0, 255.0);
+                const uint8_t b = (uint8_t)clamp(bf * 255.0, 0.0, 255.0);
+
+                pal[k] = { r, g, b };
+            }
         }
-        
+        else
+        {
+            for (int32_t a = 1; a <= 85; a++)
+            {
+                const int32_t b = a * 255 / 85;
+                pal[a      ].r = b;
+                pal[85  + a].g = b;
+                pal[170 + a].b = b;
+                pal[170 + a].r = 0;
+                pal[a      ].g = 0;
+                pal[85  + a].b = 0;
+                pal[171 - a].r = b;
+                pal[256 - a].g = b;
+                pal[86  - a].b = b;
+            }
+        }
         setPalette(pal);
     }
 
@@ -59,11 +80,13 @@ namespace juliaSetEffect {
                     if ((newre * newre + newim * newim) > 4) break;
                 }
 
-                *pixels++ = (i & 0xff);
+                *pixels++ = i;
             }
         }
 
-        makePalette();
+        makePalette(1);
+        render();
+        waitUserInput();
         rotatePalette(1, 255, 0, 10);
         cleanup();
     }
@@ -104,11 +127,13 @@ namespace juliaSetEffect {
                     if ((newre * newre + newim * newim) > 4) break;
                 }
 
-                *pixels++ = (i & 0xff);
+                *pixels++ = i % 256;
             }
         }
 
-        makePalette();
+        makePalette(0);
+        render();
+        waitUserInput();
         rotatePalette(1, 255, 0, 10);
         cleanup();
     }

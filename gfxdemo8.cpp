@@ -1121,7 +1121,7 @@ void visibilite(int32_t x, int32_t y, int32_t *vs)
     else if (y >= maxHeight[x % LIMITX]) *vs = 1; else *vs = -1;
 }
 
-void inter(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t *taux, int32_t *xi, int32_t *yi)
+void inter(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const int32_t *taux, int32_t *xi, int32_t *yi)
 {
     int32_t xii = 0, yii = 0;
     
@@ -1252,7 +1252,7 @@ void affichage(int32_t range)
     const uint8_t oldFont = getFontType();
 
     char buff[80] = { 0 };
-    const char *strTitle = "Shapes 3D Transform";
+    const char strTitle[] = "Shapes 3D Transform";
     const int32_t cx = getCenterX();
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
@@ -1351,7 +1351,7 @@ void displaySprite(const char *fname)
 {
     uint32_t frames = 0;
     GFX_IMAGE bkg = { 0 }, spr = { 0 }, img1 = { 0 }, img2 = { 0 }, page1 = { 0 }, page2 = { 0 };
-    const char* const fbkg[] = {"assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp"};
+    const char* const fbkg[] = { "assets/1lan8.bmp", "assets/1lan16.bmp", "assets/1lan24.bmp", "assets/1lan32.bmp" };
 
     int32_t lx = 0;
     int32_t ly = 0;
@@ -1359,8 +1359,8 @@ void displaySprite(const char *fname)
     int32_t dy = 1;
     int32_t v1 = 0;
     int32_t v2 = 0;
-    int32_t x = (20 + dx) >> 1;
-    int32_t y = (12 + dy) >> 1;
+    int32_t x0 = (20 + dx) >> 1;
+    int32_t y0 = (12 + dy) >> 1;
 
     //load sprite bitmap
     if (!loadImage(fname, &spr)) return;
@@ -1387,54 +1387,54 @@ void displaySprite(const char *fname)
         setVisualPage(&page2);
         if (v1) putImage(alignedSize(lx), ly, &img1);
         
-        lx = x;
-        ly = y;
+        lx = x0;
+        ly = y0;
         v1 = 1;
 
-        x += dx;
-        if (x > cmx - spr.mWidth || x <= 0)
+        x0 += dx;
+        if (x0 > cmx - spr.mWidth || x0 <= 0)
         {
-            x -= dx;
+            x0 -= dx;
             dx = -dx;
         }
 
-        y += dy;
-        if (y > cmy - spr.mHeight || y <= 0)
+        y0 += dy;
+        if (y0 > cmy - spr.mHeight || y0 <= 0)
         {
-            y -= dy;
+            y0 -= dy;
             dy = -dy;
         }
 
         dy++;
-        getImage(alignedSize(x), y, spr.mWidth, spr.mHeight, &img1);
-        putSprite(alignedSize(x), y, 0, &spr);
+        getImage(alignedSize(x0), y0, spr.mWidth, spr.mHeight, &img1);
+        putSprite(alignedSize(x0), y0, 0, &spr);
 
         //draw on 2nd page
         setActivePage(&page2);
         setVisualPage(&page1);
         if (v2) putImage(alignedSize(lx), ly, &img2);
         
-        lx = x;
-        ly = y;
+        lx = x0;
+        ly = y0;
         v2 = 1;
 
-        x += dx;
-        if (x > cmx - spr.mWidth || x <= 0)
+        x0 += dx;
+        if (x0 > cmx - spr.mWidth || x0 <= 0)
         {
-            x -= dx;
+            x0 -= dx;
             dx = -dx;
         }
 
-        y += dy;
-        if (y > cmy - spr.mHeight || y <= 0)
+        y0 += dy;
+        if (y0 > cmy - spr.mHeight || y0 <= 0)
         {
-            y -= dy;
+            y0 -= dy;
             dy = -dy;
         }
 
         dy++;
-        getImage(alignedSize(x), y, spr.mWidth, spr.mHeight, &img2);
-        putSprite(alignedSize(x), y, 0, &spr);
+        getImage(alignedSize(x0), y0, spr.mWidth, spr.mHeight, &img2);
+        putSprite(alignedSize(x0), y0, 0, &spr);
         delay(FPS_60);
         frames++;
     }
@@ -1462,7 +1462,7 @@ void displayPlasma()
         "If you have some improvements, additions,",
         "bug reports or something else, please contact me",
         "",
-        "(c) 1998-2023 by Nguyen Ngoc Van",
+        "(c) 1998-2025 by Nguyen Ngoc Van",
         "Email: pherosiden@gmail.com",
         "",
         "Greets fly to:",
@@ -1472,7 +1472,7 @@ void displayPlasma()
         "permadi.com",
         "eyecandyarchive.com",
         "crossfire-designs.de",
-        "And all persons which helped me in any way.",
+        "And all those who helped me in any way.",
         "",
         "CYA!"
     };
@@ -1552,7 +1552,7 @@ void gfxDemoMix()
 {
     RGBA 	pal1[256] = { 0 };
     RGBA 	pal2[256] = { 0 };
-    POINT2D	pts[50] = { 0 };
+    POINT2D	points[50] = { 0 };
 
     double ratio = 0.0, rept = 0.0;
 
@@ -1633,7 +1633,7 @@ void gfxDemoMix()
     getBasePalette(pal2);
     clearPalette();
 
-    setWindowTitle("Custom font & Palette colors");
+    setWindowTitle("Custom fonts & Palette colors");
     if (!loadFont("assets/odhl.xfn", 0)) return;
     writeText(cx - (getFontWidth(msgWelcome[0]) >> 1), msgY, 40, 1, msgWelcome[0]);
     writeText(cx - (getFontWidth(msgWelcome[1]) >> 1), msgY + 60, 32, 1, msgWelcome[1]);
@@ -1777,21 +1777,21 @@ void gfxDemoMix()
     setWindowTitle("Polygon Rotation");
     clearScreen();
     clearPalette();
-    rotatePolygon(pts, 6, cx, cy, cx - 140, 100, 20, 40);
+    rotatePolygon(points, 6, cx, cy, cx - 140, 100, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
     
     setWindowTitle("Randomize Polygon");
     clearScreen();
     clearPalette();
-    randomPoly(pts, 12, cmx, cmy, 40, 20, 37);
+    randomPoly(points, 12, cmx, cmy, 40, 20, 37);
     fadeIn(pal2, FPS_90);
     rotatePalette(37, 103, 67, FPS_90);
 
     setWindowTitle("Draw Hexagon");
     clearScreen();
     clearPalette();
-    drawHexagon(pts, 12, cx, cy, 35, cx - 140, 20, 40);
+    drawHexagon(points, 12, cx, cy, 35, cx - 140, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
 
