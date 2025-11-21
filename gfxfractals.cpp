@@ -179,7 +179,7 @@ void mandelbrotFloatSSE(uint32_t* out, double mx, double my, double scale, int32
             }
 
             alignas(16) int32_t itpos[4] = { 0 };
-            _mm_stream_si128((__m128i*)itpos, iters);
+            _mm_store_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -223,7 +223,7 @@ void mandelbrotDoubleSSE2(uint32_t* out, double mx, double my, double scale, int
             }
 
             alignas(16) int32_t itpos[4] = { 0 };
-            _mm_stream_si128((__m128i*)itpos, iters);
+            _mm_store_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
         }
@@ -268,7 +268,7 @@ void juliaFloatSSE(uint32_t* out, double mx, double my, double scale, int32_t ys
             }
 
             alignas(16) int32_t itpos[4] = { 0 };
-            _mm_stream_si128((__m128i*)itpos, iters);
+            _mm_store_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -315,7 +315,7 @@ void juliaDoubleSSE2(uint32_t* out, double mx, double my, double scale, int32_t 
             }
 
             alignas(16) int32_t itpos[4] = { 0 };
-            _mm_stream_si128((__m128i*)itpos, iters);
+            _mm_store_si128((__m128i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
         }
@@ -357,7 +357,7 @@ void mandelbrotFloatAVX(uint32_t* out, double mx, double my, double scale, int32
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -405,7 +405,7 @@ void mandelbrotDoubleAVX(uint32_t* out, double mx, double my, double scale, int3
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -452,7 +452,7 @@ void juliaFloatAVX(uint32_t* out, double mx, double my, double scale, int32_t ys
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -503,7 +503,7 @@ void juliaDoubleAVX(uint32_t* out, double mx, double my, double scale, int32_t y
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -547,7 +547,7 @@ void mandelbrotFloatAVX2(uint32_t* out, double mx, double my, double scale, int3
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -595,7 +595,7 @@ void mandelbrotDoubleAVX2(uint32_t* out, double mx, double my, double scale, int
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -642,7 +642,7 @@ void juliaFloatAVX2(uint32_t* out, double mx, double my, double scale, int32_t y
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -693,7 +693,7 @@ void juliaDoubleAVX2(uint32_t* out, double mx, double my, double scale, int32_t 
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -736,7 +736,7 @@ void mandelbrotFloatFMA(uint32_t* out, double mx, double my, double scale, int32
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -783,7 +783,7 @@ void mandelbrotDoubleFMA(uint32_t* out, double mx, double my, double scale, int3
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
@@ -829,7 +829,7 @@ void juliaFloatFMA(uint32_t* out, double mx, double my, double scale, int32_t ys
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[1] / iterations, 255, (itpos[1] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
@@ -879,7 +879,7 @@ void juliaDoubleFMA(uint32_t* out, double mx, double my, double scale, int32_t y
             }
 
             alignas(32) int32_t itpos[8] = { 0 };
-            _mm256_stream_si256((__m256i*)itpos, iters);
+            _mm256_store_si256((__m256i*)itpos, iters);
             *out++ = hsv2rgb(255 * itpos[0] / iterations, 255, (itpos[0] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[2] / iterations, 255, (itpos[2] < iterations) ? 255 : 0);
             *out++ = hsv2rgb(255 * itpos[4] / iterations, 255, (itpos[4] < iterations) ? 255 : 0);
