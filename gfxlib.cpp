@@ -10586,10 +10586,10 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
         const int32_t bwidth = i * btnWidth;
         for (int32_t y = 0; y < btnHeight; y++)
         {
-            uint8_t* dst = &btn->btData[i][y * bytesLine];
-            const uint8_t* psrc = (const uint8_t*)img.mData;
-            const uint8_t* src = &psrc[(bwidth + y * img.mWidth) * bytesPerPixel];
-            memcpy(dst, src, bytesLine);
+            uint8_t* pdst = &btn->btData[i][y * bytesLine];
+            const uint8_t* pdata = (const uint8_t*)img.mData;
+            const uint8_t* psrc = pdata + (bwidth + y * img.mWidth) * bytesPerPixel;
+            memcpy(pdst, psrc, bytesLine);
         }
     }
 
