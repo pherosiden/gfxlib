@@ -6,7 +6,7 @@
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
 /*              Version: 1.4.7                                   */
-/*          Last Update: 2025-10-01                              */
+/*          Last Update: 2026-03-19                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
@@ -56,8 +56,8 @@
 #pragma warning(disable: 26485 26481 26408 26826 26814 26438 26448 26475 6001)
 
 //GFX version string
-#define GFX_VERSION             "v25.10.01"
-#define GFX_BUILD_ID            20251001
+#define GFX_VERSION             "v26.03.19"
+#define GFX_BUILD_ID            20260319
 
 //MIXED mode constants
 #define SCREEN_WIDTH            640     //default screen size

@@ -6,7 +6,7 @@
 /*               Author: Nguyen Ngoc Van                         */
 /*               Create: 22/10/2018                              */
 /*              Version: 1.4.7                                   */
-/*          Last Update: 2025-10-01                              */
+/*          Last Update: 2026-03-19                              */
 /*              Website: http://codedemo.net                     */
 /*                Email: pherosiden@gmail.com                    */
 /*           References: https://lodev.org                       */
