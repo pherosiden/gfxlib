@@ -184,7 +184,6 @@ void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, in
 
                 pt[0].x = pt[0].x + (pt[2].x - pt[0].x) / odre;
                 pt[0].y = pt[0].y + (pt[2].y - pt[0].y) / odre;
-
             }
             else
             {
