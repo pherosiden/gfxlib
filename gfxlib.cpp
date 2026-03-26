@@ -1112,8 +1112,7 @@ must_inline void putPixelAA(int32_t x, int32_t y, uint32_t argb)
         emms
     }
 #else
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* pixels = &pdata[texWidth * y + x];
+    uint32_t* pixels = (uint32_t*)drawBuff + (texWidth * y + x);
     const uint32_t dst = *pixels;
     const uint8_t cover = argb >> 24;
     const uint8_t rcover = 255 - cover;
@@ -10373,8 +10372,7 @@ void clearMouseCursor(GFX_MOUSE* mi)
 #else
     //calculate starting address
     const int32_t addOffs = texWidth - msWidth;
-    uint32_t* pdata = (uint32_t*)drawBuff;
-    uint32_t* dstPixels = &pdata[texWidth * my + mx];
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * my + mx);
 
     //scan bitmap data
     for (int32_t i = 0; i < msHeight; i++)
@@ -10471,10 +10469,8 @@ void drawButton(GFX_BUTTON* btn)
     const int32_t addDstOffs = texWidth - lbWidth;
     const int32_t addImgOffs = btnWidth - lbWidth;
 
-    uint32_t* dstData = (uint32_t*)drawBuff;
-    uint32_t* srcData = (uint32_t*)btnData;
-    uint32_t* dstPixels = &dstData[texWidth * ly1 + lx1];
-    uint32_t* srcPixels = &srcData[btnWidth * (ly1 - y1) + (lx1 - x1)];
+    uint32_t* dstPixels = (uint32_t*)drawBuff + (texWidth * ly1 + lx1);
+    uint32_t* srcPixels = (uint32_t*)btnData + (btnWidth * (ly1 - y1) + (lx1 - x1));
 
     //scan button image
     for (int32_t i = 0; i < lbHeight; i++)
@@ -10538,9 +10534,8 @@ void loadMouse(const char* fname, GFX_MOUSE* mi, GFX_BITMAP* mbm)
         const int32_t mwidth = i * msWidth;
         for (int32_t y = 0; y < msHeight; y++)
         {
-            uint8_t* dst = &mbm[i].mbData[y * bytesLine];
-            const uint8_t* psrc = (const uint8_t*)msPointer.mData;
-            const uint8_t* src = &psrc[(mwidth + y * msPointer.mWidth) * bytesPerPixel];
+            uint8_t* dst = (uint8_t*)mbm[i].mbData + (y * bytesLine);
+            const uint8_t* src = (const uint8_t*)msPointer.mData + ((mwidth + y * msPointer.mWidth) * bytesPerPixel);
             memcpy(dst, src, bytesLine);
         }
     }
@@ -10586,9 +10581,8 @@ void loadButton(const char* fname, GFX_BUTTON* btn)
         const int32_t bwidth = i * btnWidth;
         for (int32_t y = 0; y < btnHeight; y++)
         {
-            uint8_t* pdst = &btn->btData[i][y * bytesLine];
-            const uint8_t* pdata = (const uint8_t*)img.mData;
-            const uint8_t* psrc = pdata + (bwidth + y * img.mWidth) * bytesPerPixel;
+            uint8_t* pdst = (uint8_t*)btn->btData[i] + (y * bytesLine);
+            const uint8_t* psrc = (const uint8_t*)img.mData + ((bwidth + y * img.mWidth) * bytesPerPixel);
             memcpy(pdst, psrc, bytesLine);
         }
     }
