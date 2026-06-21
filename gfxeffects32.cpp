@@ -3065,7 +3065,7 @@ namespace
             {
                 //Five curved arms form a rotating, multicolored galaxy.
                 const int32_t arm = i % 5;
-                const double distance = double(i / 5) / (firework.particleCount / 5 - 1);
+                const double distance = double(i / 5.0) / (firework.particleCount / 5.0 - 1);
                 angle = arm * M_PI * 2.0 / 5.0 + distance * M_PI * 2.8 + fireworkRandom(-0.035, 0.035);
                 speed = 2.0 + distance * 5.0;
             }
@@ -3088,7 +3088,7 @@ namespace
                 //Particles sharing a ray create the fine, comb-like branches of a silver palm.
                 const int32_t rayCount = 28;
                 const int32_t ray = i % rayCount;
-                const double distance = double(i / rayCount) / (firework.particleCount / rayCount);
+                const double distance = double(1.0 * i / rayCount) / (1.0 * firework.particleCount / rayCount);
                 angle = ray * M_PI * 2.0 / rayCount + fireworkRandom(-0.012, 0.012);
                 speed = 1.8 + distance * 6.2;
             }
@@ -3097,7 +3097,7 @@ namespace
                 //A dense gold flower built from many bright radial streaks.
                 const int32_t rayCount = 32;
                 const int32_t ray = i % rayCount;
-                const double distance = double(i / rayCount) / (firework.particleCount / rayCount);
+                const double distance = double(1.0 * i / rayCount) / (1.0 * firework.particleCount / rayCount);
                 angle = ray * M_PI * 2.0 / rayCount + fireworkRandom(-0.02, 0.02);
                 speed = 1.2 + distance * 6.4;
             }
@@ -3118,7 +3118,7 @@ namespace
                 //Long, sparse golden spokes with heavy luminous tails.
                 const int32_t rayCount = 24;
                 const int32_t ray = i % rayCount;
-                const double distance = double(i / rayCount) / (firework.particleCount / rayCount);
+                const double distance = double(1.0 * i / rayCount) / (1.0 * firework.particleCount / rayCount);
                 angle = ray * M_PI * 2.0 / rayCount + fireworkRandom(-0.01, 0.01);
                 speed = 2.1 + distance * 6.8;
             }
@@ -3144,7 +3144,7 @@ namespace
                 //Dense radial filaments slowly bend down into the red-gold dome.
                 const int32_t rayCount = 64;
                 const int32_t ray = i % rayCount;
-                const double distance = double(i / rayCount) / (firework.particleCount / rayCount - 1);
+                const double distance = double(1.0 * i / rayCount) / (1.0 * firework.particleCount / rayCount - 1);
                 angle = ray * M_PI * 2.0 / rayCount + fireworkRandom(-0.012, 0.012);
                 speed = 1.7 + distance * 7.4 + fireworkRandom(-0.1, 0.1);
             }
@@ -3216,7 +3216,7 @@ namespace
             else if (firework.burstType == 15)
             {
                 const int32_t rayCount = 64;
-                const double distance = double(i / rayCount) / (firework.particleCount / rayCount - 1);
+                const double distance = double(1.0 * i / rayCount) / (1.0 * firework.particleCount / rayCount - 1);
                 if (distance < 0.42)
                     particle.color = (i % 5 == 0) ? RGB_WHITE : 0xffe6a0;
                 else if (distance < 0.68)
