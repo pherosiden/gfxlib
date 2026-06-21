@@ -2955,6 +2955,15 @@ namespace
         return (red << 16) | (green << 8) | blue;
     }
 
+    uint32_t boostFireworkColor(uint32_t color, double gain)
+    {
+        return color;
+        //const uint32_t red = min(255u, uint32_t(((color >> 16) & 0xff) * gain));
+        //const uint32_t green = min(255u, uint32_t(((color >> 8) & 0xff) * gain));
+        //const uint32_t blue = min(255u, uint32_t((color & 0xff) * gain));
+        //return (red << 16) | (green << 8) | blue;
+    }
+
     void scheduleFirework(int32_t index, int32_t waitFrames)
     {
         FIREWORK& firework = fireworkList[index];
@@ -3526,7 +3535,8 @@ namespace
         const uint32_t hotColor = particle.tipColor != 0 ? particle.tipColor : mixFireworkColor(color, RGB_WHITE, heat * 0.88);
         const int32_t x = int32_t(particle.position.x);
         const int32_t y = int32_t(particle.position.y);
-        const uint32_t headColor = fadeFireworkColor(hotColor, brightness);
+        const uint32_t headColor = boostFireworkColor(
+            fadeFireworkColor(hotColor, brightness), 1.15);
         if (particle.taperedHead)
         {
             const double magnitude = sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y);
@@ -3606,7 +3616,8 @@ namespace
                 trailX = int32_t(round(particle.trail[i].x + normalX * wave));
                 trailY = int32_t(round(particle.trail[i].y + normalY * wave));
             }
-            const uint32_t trailColor = fadeFireworkColor(color, fade);
+            const uint32_t trailColor = boostFireworkColor(
+                fadeFireworkColor(color, fade), 1.3);
             const int32_t trailWidth = particle.taperedHead
                 ? (particle.trailWidth >= 4
                     ? (trailScale > 0.66 ? 4 : trailScale > 0.33 ? 3 : 1)
