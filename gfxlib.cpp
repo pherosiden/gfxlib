@@ -389,8 +389,32 @@ void setMousePosition(int32_t px, int32_t py)
     SDL_WarpMouseInWindow(sdlWindow, float(px), float(py));
 }
 
+//get the native size of the primary display
+int32_t getDisplaySize(int32_t* width, int32_t* height)
+{
+    if (!width || !height) return 0;
+    if (!(SDL_WasInit(SDL_INIT_VIDEO) & SDL_INIT_VIDEO) && !SDL_Init(SDL_INIT_VIDEO)) return 0;
+
+    const SDL_DisplayID display = SDL_GetPrimaryDisplay();
+    if (!display) return 0;
+
+    const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(display);
+    if (mode)
+    {
+        *width = mode->w;
+        *height = mode->h;
+        return 1;
+    }
+
+    SDL_Rect bounds = { 0 };
+    if (SDL_GetDisplayBounds(display, &bounds) < 0) return 0;
+    *width = bounds.w;
+    *height = bounds.h;
+    return 1;
+}
+
 //initialize graphic video system
-int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable)
+int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable, int32_t fullscreen)
 {
     //initialize SDL video mode only
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -398,9 +422,24 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         messageBox(GFX_ERROR, "Failed to initialize SDL3: %s", SDL_GetError());
         return 0;
     }
+
+    //native fullscreen uses the display resolution for both texture and draw buffer
+    if (fullscreen)
+    {
+        int32_t resWidth = 0, resHeight = 0;
+        if (getDisplaySize(&resWidth, &resHeight))
+        {
+            width = resWidth;
+            height = resHeight;
+            scaled = 0;
+        }
+    }
     
     //create screen to display contents
-    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, resizeable ? SDL_WINDOW_RESIZABLE : 0);
+    SDL_WindowFlags windowFlags = 0;
+    if (resizeable) windowFlags |= SDL_WINDOW_RESIZABLE;
+    if (fullscreen) windowFlags |= SDL_WINDOW_FULLSCREEN;
+    sdlWindow = SDL_CreateWindow(title, scaled ? SCREEN_WIDTH : width, scaled ? SCREEN_HEIGHT : height, windowFlags);
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());

@@ -1,0 +1,91 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build: Debug x64",
+            "type": "process",
+            "command": "MSBuild.exe",
+            "args": [
+                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "/t:Build",
+                "/p:Configuration=Debug",
+                "/p:Platform=x64",
+                "/m",
+                "/nologo",
+                "/verbosity:minimal"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Build: Release x64",
+            "type": "process",
+            "command": "MSBuild.exe",
+            "args": [
+                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "/t:Build",
+                "/p:Configuration=Release",
+                "/p:Platform=x64",
+                "/m",
+                "/nologo",
+                "/verbosity:minimal"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Rebuild: Debug x64",
+            "type": "process",
+            "command": "MSBuild.exe",
+            "args": [
+                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "/t:Rebuild",
+                "/p:Configuration=Debug",
+                "/p:Platform=x64",
+                "/m",
+                "/nologo",
+                "/verbosity:minimal"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Clean: x64",
+            "type": "process",
+            "command": "MSBuild.exe",
+            "args": [
+                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "/t:Clean",
+                "/p:Configuration=Debug",
+                "/p:Platform=x64",
+                "/m",
+                "/nologo",
+                "/verbosity:minimal"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build: Debug Win32",
+            "type": "process",
+            "command": "MSBuild.exe",
+            "args": [
+                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "/t:Build",
+                "/p:Configuration=Debug",
+                "/p:Platform=Win32",
+                "/m",
+                "/nologo",
+                "/verbosity:minimal"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

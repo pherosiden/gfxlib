@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug gfxlib (x64)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\visualc\\x64\\Debug\\gfxlib.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}\\visualc",
+            "environment": [],
+            "console": "internalConsole",
+            "preLaunchTask": "Build: Debug x64"
+        },
+        {
+            "name": "Debug gfxlib (Win32)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\visualc\\Debug\\gfxlib.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}\\visualc",
+            "environment": [],
+            "console": "internalConsole",
+            "preLaunchTask": "Build: Debug Win32"
+        },
+        {
+            "name": "Attach to gfxlib",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

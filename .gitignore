@@ -7,6 +7,10 @@ visualc
 !visualc/gfxlib.sln
 !visualc/gfxlib.rc
 !visualc/gfxicon.ico
+.vs
+.agents
+.vscode/*
+!.vscode/*.template
 
 # MAC OSX
 .DS_Store

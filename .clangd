@@ -1,0 +1,9 @@
+CompileFlags:
+  Compiler: clang-cl
+  Add:
+    - -std=c++17
+    - -I.
+    - -Iinclude
+    - -D_DEBUG
+    - -D_WINDOWS
+    - -D_CRT_SECURE_NO_WARNINGS
