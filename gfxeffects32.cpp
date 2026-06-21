@@ -2860,6 +2860,7 @@ namespace
         double sparkleRate;
         double trailStrength;
         double headCoreStrength;
+        double waveAmplitude;
         uint32_t color;
         uint32_t tipColor;
         int32_t size;
@@ -3105,6 +3106,9 @@ namespace
         firework.rocket.sparkleRate = 0.72;
         firework.rocket.trailStrength = 1.0;
         firework.rocket.headCoreStrength = 0.7;
+        const int32_t waveStyle = rand() % 3;
+        firework.rocket.waveAmplitude = waveStyle == 0 ? 2.4
+            : waveStyle == 1 ? 3.3 : 4.3;
         firework.rocket.color = 0xffd080;
         firework.rocket.tipColor = 0;
         firework.rocket.size = 2;
@@ -3297,6 +3301,7 @@ namespace
             particle.sparkleRate = fireworkRandom(0.48, 1.15);
             particle.trailStrength = 0.64;
             particle.headCoreStrength = 0.7;
+            particle.waveAmplitude = 0.0;
             particle.tipColor = 0;
             particle.trailLength = 9 + rand() % 4;
             particle.trailWidth = 1;
@@ -3470,6 +3475,35 @@ namespace
         }
     }
 
+    void fillFireworkEllipseAAAdd(double centerX, double centerY,
+        double directionX, double directionY, double halfLength,
+        double halfWidth, uint32_t color)
+    {
+        const double normalX = -directionY;
+        const double normalY = directionX;
+        const int32_t radius = int32_t(ceil(max(halfLength, halfWidth) + 1.0));
+        const int32_t minX = int32_t(floor(centerX)) - radius;
+        const int32_t maxX = int32_t(ceil(centerX)) + radius;
+        const int32_t minY = int32_t(floor(centerY)) - radius;
+        const int32_t maxY = int32_t(ceil(centerY)) + radius;
+        const double edgeScale = min(halfLength, halfWidth);
+
+        for (int32_t y = minY; y <= maxY; y++)
+        {
+            for (int32_t x = minX; x <= maxX; x++)
+            {
+                const double offsetX = x - centerX;
+                const double offsetY = y - centerY;
+                const double along = (offsetX * directionX + offsetY * directionY) / halfLength;
+                const double across = (offsetX * normalX + offsetY * normalY) / halfWidth;
+                const double distance = sqrt(along * along + across * across);
+                const double coverage = clamp((1.0 - distance) * edgeScale + 0.5, 0.0, 1.0);
+                if (coverage > 0.0)
+                    putPixel(x, y, fadeFireworkColor(color, coverage * 255.0), BLEND_MODE_ADD);
+            }
+        }
+    }
+
     void drawFireworkParticle(const FIREWORK_PARTICLE& particle, uint32_t color, int32_t age)
     {
         if (particle.alpha <= 0.0) return;
@@ -3507,15 +3541,8 @@ namespace
             {
                 const double halfLength = 1.4 + particle.size * 1.35;
                 const double halfWidth = 0.95 + particle.size * 0.78;
-                POINT2D head[12];
-                for (int32_t i = 0; i < 12; i++)
-                {
-                    const double headAngle = M_PI * 2.0 * i / 12.0;
-                    const double along = cos(headAngle) * halfLength;
-                    const double across = sin(headAngle) * halfWidth;
-                    head[i] = { px + directionX * along + normalX * across, py + directionY * along + normalY * across };
-                }
-                fillPolygon(head, 12, headColor, BLEND_MODE_ADD);
+                fillFireworkEllipseAAAdd(px, py, directionX, directionY,
+                    halfLength, halfWidth, headColor);
             }
             else
             {
@@ -3572,7 +3599,8 @@ namespace
                 const double normalY = velocityLength > 0.0
                     ? particle.velocity.x / velocityLength : 0.0;
                 const double tailPosition = double(i + 1) / particle.trailLength;
-                const double amplitude = 0.4 + tailPosition * 3.6;
+                const double amplitude = 0.35
+                    + tailPosition * (particle.waveAmplitude - 0.35);
                 const double wave = sin(i * 0.86 - age * 0.48 + particle.sparkle)
                     * amplitude;
                 trailX = int32_t(round(particle.trail[i].x + normalX * wave));
@@ -3589,23 +3617,8 @@ namespace
                     : 1)
                 : max(particle.trailEndWidth,
                     particle.trailWidth - i * particle.trailWidth / particle.trailLength);
-            const int32_t offsetX = abs(trailX - previousX) > abs(trailY - previousY) ? 0 : 1;
-            const int32_t offsetY = offsetX ? 0 : 1;
-            const uint32_t edgeColor = fadeFireworkColor(color, fade * trailScale * 0.55);
-
-            drawLine(previousX, previousY, trailX, trailY, trailColor, BLEND_MODE_ADD);
-
-            if (trailWidth >= 2)
-                drawLine(previousX + offsetX, previousY + offsetY, trailX + offsetX, trailY + offsetY, edgeColor, BLEND_MODE_ADD);
-            
-            if (trailWidth >= 3)
-                drawLine(previousX - offsetX, previousY - offsetY, trailX - offsetX, trailY - offsetY, edgeColor, BLEND_MODE_ADD);
-            
-            if (trailWidth >= 4)
-                drawLine(previousX + offsetX * 2, previousY + offsetY * 2, trailX + offsetX * 2, trailY + offsetY * 2, edgeColor, BLEND_MODE_ADD);
-            
-            if (trailWidth >= 5)
-                drawLine(previousX - offsetX * 2, previousY - offsetY * 2, trailX - offsetX * 2, trailY - offsetY * 2, edgeColor, BLEND_MODE_ADD);
+            drawLineWidthAAAdd(previousX, previousY, trailX, trailY,
+                double(trailWidth), trailColor);
 
             previousX = trailX;
             previousY = trailY;

@@ -3895,6 +3895,54 @@ void drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, 
     }
 }
 
+//Draw an anti-aliased luminous line in one pass. Coverage scales the source
+//RGB before additive blending, avoiding a second solid line over the AA line.
+void drawLineWidthAAAdd(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col)
+{
+    const int32_t dx = abs(x1 - x0), sx = (x0 < x1) ? 1 : -1;
+    const int32_t dy = abs(y1 - y0), sy = (y0 < y1) ? 1 : -1;
+    int32_t err = dx - dy, e2 = 0, x2 = 0, y2 = 0;
+    const double ed = (dx + dy == 0) ? 1 : sqrt(sqr(double(dx)) + sqr(double(dy)));
+
+    const auto plotCoverage = [col](int32_t x, int32_t y, double transparency)
+    {
+        const int32_t inverseCoverage = clamp(int32_t(transparency), 0, 255);
+        const int32_t coverage = 255 - inverseCoverage;
+        if (coverage <= 0) return;
+        const uint32_t red = ((col >> 16) & 0xff) * coverage / 255;
+        const uint32_t green = ((col >> 8) & 0xff) * coverage / 255;
+        const uint32_t blue = (col & 0xff) * coverage / 255;
+        putPixel(x, y, (red << 16) | (green << 8) | blue, BLEND_MODE_ADD);
+    };
+
+    wd = (wd + 1) / 2;
+    while (true)
+    {
+        plotCoverage(x0, y0, 255 * (abs(err - dx + dy) / ed - wd + 1));
+        e2 = err;
+        x2 = x0;
+
+        if (2 * e2 >= -dx)
+        {
+            for (e2 += dy, y2 = y0; e2 < ed * wd && (y1 != y2 || dx > dy); e2 += dx)
+                plotCoverage(x0, y2 += sy, 255 * (abs(e2) / ed - wd + 1));
+            if (x0 == x1) break;
+            e2 = err;
+            err -= dy;
+            x0 += sx;
+        }
+
+        if (2 * e2 <= dy)
+        {
+            for (e2 = dx - e2; e2 < ed * wd && (x1 != x2 || dx < dy); e2 += dy)
+                plotCoverage(x2 += sx, y0, 255 * (abs(e2) / ed - wd + 1));
+            if (y0 == y1) break;
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
 //draw anti-aliased full quad bezier segment
 void drawQuadBezierSegAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t col)
 {
