@@ -2831,9 +2831,9 @@ void runRayCasting()
 namespace
 {
     constexpr int32_t MAX_FIREWORK_COUNT = 10;
-    constexpr int32_t MAX_PARTICLE_COUNT = 762;
+    constexpr int32_t MAX_PARTICLE_COUNT = 800;
     constexpr int32_t MAX_TRAIL_LENGTH = 18;
-    constexpr int32_t BURST_COUNT = 19;
+    constexpr int32_t BURST_COUNT = 20;
     constexpr int32_t RANDOM_BURST = BURST_COUNT;
     constexpr int32_t DENSE_COUNT = 2;
 
@@ -3068,7 +3068,7 @@ namespace
         {
             if (!keyPressed(SDL_SCANCODE_A + i)) continue;
             burstSelection = i;
-            activeCount = (i >= 14 && i <= 18) ? DENSE_COUNT : MAX_FIREWORK_COUNT;
+            activeCount = (i >= 14 && i <= 19) ? DENSE_COUNT : MAX_FIREWORK_COUNT;
             const int32_t launchSpacing = (activeCount == DENSE_COUNT) ? 70 : 4;
             for (int32_t j = 0; j < activeCount; j++) scheduleFirework(j, 1 + j * launchSpacing);
             return;
@@ -3089,10 +3089,11 @@ namespace
         firework.scale = 1.0 + (screenScale - 1.0) * 0.82;
 
         if (firework.burstType == 15) firework.scale *= 1.05;
-        else if (firework.burstType == 16) firework.scale *= 0.90;
+        else if (firework.burstType == 16) firework.scale *= 1.15;
         else if (firework.burstType == 17) firework.scale *= 1.12;
         else if (firework.burstType == 18) firework.scale *= 1.02;
         else if (firework.burstType == 19) firework.scale *= 1.04;
+        else if (firework.burstType == 20) firework.scale *= 1.08;
         
         const double densityScale = pow(screenScale, 0.58);
         if (firework.burstType == 15) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 46) * 6);
@@ -3100,6 +3101,7 @@ namespace
         else if (firework.burstType == 17) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 42) * 6);
         else if (firework.burstType == 18) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 210));
         else if (firework.burstType == 19) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 72) * 3);
+        else if (firework.burstType == 20) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 68) * 4);
         else firework.particleCount = min(MAX_PARTICLE_COUNT, int32_t(180 * densityScale + 0.5));
 
         firework.primaryColor = palette[rand() % FIREWORK_COLOR_COUNT];
@@ -3189,6 +3191,13 @@ namespace
             firework.secondaryColor = 0xff58b8;   //pink luminous heart
             firework.gravity = 0.062;
             firework.drag = 0.988;
+        }
+        else if (firework.burstType == 20)
+        {
+            firework.primaryColor = 0xff182d;     //dense red inner stars
+            firework.secondaryColor = 0x9b55ff;   //fine violet outer filaments
+            firework.gravity = 0.048;
+            firework.drag = 0.989;
         }
 
         firework.gravity *= firework.scale;
@@ -3370,6 +3379,21 @@ namespace
                 else if (layer == 1) speed = frand(3.85, 6.35);
                 else speed = frand(5.55, 7.75);
             }
+            else if (firework.burstType == 20)
+            {
+                //Four particles share each ray: a heavy red star near the core,
+                //a hot orange bridge, then two violet-white outer filaments.
+                const int32_t layerCount = 4;
+                const int32_t rayCount = firework.particleCount / layerCount;
+                const int32_t layer = i / rayCount;
+                const int32_t ray = i % rayCount;
+                angle = firework.burstRotation + ray * M_PI * 2.0 / rayCount
+                      + layer * M_PI * 0.46 / rayCount + frand(-0.012, 0.012);
+                if (layer == 0) speed = frand(3.0, 5.35);
+                else if (layer == 1) speed = frand(4.8, 6.95);
+                else if (layer == 2) speed = frand(6.65, 8.75);
+                else speed = frand(8.35, 10.15);
+            }
             else
             {
                 //Bias speed outwards for a full but naturally uneven peony.
@@ -3503,7 +3527,7 @@ namespace
             }
             else if (firework.burstType == 19)
             {
-                const int32_t rayCount = firework.particleCount / 3;
+                const int32_t rayCount = firework.particleCount / 4;
                 const int32_t layer = i / rayCount;
                 const int32_t colorChance = rand() % 100;
                 if (layer == 0) particle.color = colorChance < 22 ? 0xffd2ed : colorChance < 66 ? 0xff4fac : 0xd746c9;
@@ -3515,6 +3539,44 @@ namespace
                 particle.sparkleRate = frand(0.18, 0.46);
                 particle.trailLength = layer == 0 ? 8 + rand() % 4 : layer == 1 ? 10 + rand() % 5 : 12 + rand() % 5;
                 particle.trailWidth = layer == 2 ? 2 : 3;
+                particle.trailEndWidth = 1;
+                particle.taperedHead = true;
+                particle.roundedHead = true;
+            }
+            else if (firework.burstType == 20)
+            {
+                const int32_t rayCount = firework.particleCount / 3;
+                const int32_t layer = i / rayCount;
+                const int32_t colorChance = rand() % 100;
+                if (layer == 0)
+                {
+                    particle.color = colorChance < 22 ? 0xff7130 : colorChance < 72 ? firework.primaryColor : 0xd00024;
+                    particle.tipColor = colorChance < 30 ? 0xfff1c4 : 0xff8a38;
+                }
+                else if (layer == 1)
+                {
+                    particle.color = colorChance < 24 ? 0xffcf72 : colorChance < 62 ? 0xff5338 : 0xf6e8ff;
+                    particle.tipColor = RGB_WHITE;
+                }
+                else if (layer == 2)
+                {
+                    particle.color = colorChance < 18 ? 0xf4dcff : colorChance < 70 ? firework.secondaryColor : 0x6735cf;
+                    particle.tipColor = colorChance < 38 ? RGB_WHITE : 0xdcc7ff;
+                }
+                else
+                {
+                    particle.color = colorChance < 28 ? 0xf8efff : colorChance < 72 ? 0xb57aff : 0x7040dc;
+                    particle.tipColor = RGB_WHITE;
+                }
+                particle.trailStrength = layer == 0 ? frand(0.92, 1.18) : layer == 1 ? frand(0.72, 0.98)
+                                       : layer == 2 ? frand(0.58, 0.82) : frand(0.45, 0.68);
+                particle.alphaRate = layer == 0 ? frand(1.55, 2.15) : layer == 1 ? frand(1.45, 2.05)
+                                    : layer == 2 ? frand(1.25, 1.85) : frand(1.1, 1.65);
+                particle.headCoreStrength = layer == 0 ? 0.66 : layer == 1 ? 0.54 : layer == 2 ? 0.42 : 0.32;
+                particle.sparkleRate = frand(0.16, 0.4);
+                particle.trailLength = layer == 0 ? 6 + rand() % 4 : layer == 1 ? 8 + rand() % 4
+                                     : layer == 2 ? 12 + rand() % 5 : 14 + rand() % 5;
+                particle.trailWidth = layer == 0 ? 3 : layer == 1 ? 2 : 1;
                 particle.trailEndWidth = 1;
                 particle.taperedHead = true;
                 particle.roundedHead = true;
@@ -3545,9 +3607,18 @@ namespace
             }
             else if (firework.burstType == 19)
             {
-                const int32_t rayCount = firework.particleCount / 3;
+                const int32_t rayCount = firework.particleCount / 4;
                 const int32_t layer = i / rayCount;
                 particle.size = layer == 0 ? (rand() % 100 < 24 ? 3 : 2) : layer == 1 ? 2 : (rand() % 100 < 28 ? 2 : 1);
+            }
+            else if (firework.burstType == 20)
+            {
+                const int32_t rayCount = firework.particleCount / 3;
+                const int32_t layer = i / rayCount;
+                particle.size = layer == 0 ? (rand() % 100 < 38 ? 4 : 3)
+                              : layer == 1 ? (rand() % 100 < 35 ? 3 : 2)
+                              : layer == 2 ? (rand() % 100 < 18 ? 2 : 1)
+                              : 1;
             }
 
             if (firework.burstType <= 15)
@@ -3693,6 +3764,17 @@ namespace
                                fadeColor(0xffb8e4, 235.0 * life), 12);
                 addGlowEllipse(coreX, coreY, 1.0, 0.0, 1.0, 1.0,
                                fadeColor(RGB_WHITE, 255.0 * life), 6);
+            }
+            else if (firework.burstType == 20 && firework.age < 18)
+            {
+                const double life = 1.0 - firework.age / 18.0;
+                const double glowRadius = (3.0 + life * 8.0) * firework.scale;
+                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,
+                               1.0, 0.0, glowRadius, glowRadius,
+                               fadeColor(0xd80028, 150.0 * life), 16);
+                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,
+                               1.0, 0.0, glowRadius * 0.42, glowRadius * 0.42,
+                               fadeColor(0xff6038, 220.0 * life), 12);
             }
 
             if (firework.age < (grandBurst ? 6 : 4))
