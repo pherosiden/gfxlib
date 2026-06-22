@@ -2912,8 +2912,8 @@ namespace
 
     //Firework geometry is accumulated on CPU, but rasterization and additive
     //blending are performed by SDL's accelerated renderer in one draw call.
-    std::vector<SDL_Vertex> fireworkVertices;
-    std::vector<int> fireworkIndices;
+    std::vector<SDL_Vertex> vertices;
+    std::vector<int> indices;
 
     SDL_FColor gpuColor(uint32_t color)
     {
@@ -2927,8 +2927,8 @@ namespace
 
     int addVertex(float x, float y, const SDL_FColor& color)
     {
-        fireworkVertices.push_back({ { x, y }, color, { 0.0f, 0.0f } });
-        return int(fireworkVertices.size()) - 1;
+        vertices.push_back({ { x, y }, color, { 0.0f, 0.0f } });
+        return int(vertices.size()) - 1;
     }
 
     void addGlowEllipse(double centerX, double centerY, double directionX, double directionY,
@@ -2941,7 +2941,7 @@ namespace
         const double normalY = directionX;
 
         const int center = addVertex(float(centerX), float(centerY), centerColor);
-        const int edgeStart = int(fireworkVertices.size());
+        const int edgeStart = int(vertices.size());
         for (int32_t i = 0; i < segments; i++)
         {
             const double angle = M_PI * 2.0 * i / segments;
@@ -2951,9 +2951,9 @@ namespace
         }
         for (int32_t i = 0; i < segments; i++)
         {
-            fireworkIndices.push_back(center);
-            fireworkIndices.push_back(edgeStart + i);
-            fireworkIndices.push_back(edgeStart + (i + 1) % segments);
+            indices.push_back(center);
+            indices.push_back(edgeStart + i);
+            indices.push_back(edgeStart + (i + 1) % segments);
         }
     }
 
@@ -2971,13 +2971,13 @@ namespace
         const float nx = float(-dy / length * width * 0.5);
         const float ny = float(dx / length * width * 0.5);
         const SDL_FColor c = gpuColor(color);
-        const int base = int(fireworkVertices.size());
+        const int base = int(vertices.size());
         addVertex(float(x0) + nx, float(y0) + ny, c);
         addVertex(float(x0) - nx, float(y0) - ny, c);
         addVertex(float(x1) - nx, float(y1) - ny, c);
         addVertex(float(x1) + nx, float(y1) + ny, c);
         const int quad[] = { base, base + 1, base + 2, base, base + 2, base + 3 };
-        fireworkIndices.insert(fireworkIndices.end(), quad, quad + 6);
+        indices.insert(indices.end(), quad, quad + 6);
     }
 
     int32_t scaledRayCount(const FIREWORK& firework, int32_t baseCount)
@@ -3440,23 +3440,15 @@ namespace
             }
             else if (firework.burstType == 23)
             {
-                //One dotted ring plus four staggered ray layers. Every ray keeps a
-                //mostly straight axis, while uneven angles and lengths fill a sphere.
                 const int32_t rayCount = firework.particleCount / 5;
                 const bool dot = i < rayCount;
                 const int32_t layer = dot ? -1 : (i - rayCount) / rayCount;
                 const int32_t ray = dot ? i : (i - rayCount) % rayCount;
-                const double rayJitter = sin((ray + 1) * 12.9898) * 0.019
-                                       + sin((ray + 1) * 4.1414) * 0.008;
+                const double rayJitter = sin((ray + 1) * 12.9898) * 0.019 + sin((ray + 1) * 4.1414) * 0.008;
                 const double depthWave = 0.5 + 0.5 * sin(ray * 2.399963 + 1.7);
                 const double sphereDepth = 0.78 + 0.30 * sqrt(max(0.0, depthWave));
-                angle = firework.burstRotation + ray * M_PI * 2.0 / rayCount
-                      + rayJitter + (dot ? M_PI * 0.55 / rayCount : (layer - 1.5) * 0.004)
-                      + frand(-0.003, 0.003);
-                //A layer has one coherent speed band. The non-linear base speeds
-                //separate colors radially; shared depth variation shapes the sphere.
-                const double layerSpeed = dot ? 4.85 : layer == 0 ? 3.0 : layer == 1 ? 4.4
-                                        : layer == 2 ? 6.25 : 8.7;
+                angle = firework.burstRotation + ray * M_PI * 2.0 / rayCount + rayJitter + (dot ? M_PI * 0.55 / rayCount : (layer - 1.5) * 0.004) + frand(-0.003, 0.003);
+                const double layerSpeed = dot ? 4.85 : layer == 0 ? 3.0 : layer == 1 ? 4.4 : layer == 2 ? 6.25 : 8.7;
                 speed = layerSpeed * sphereDepth * frand(0.97, 1.03);
             }
             else
@@ -3500,9 +3492,7 @@ namespace
             if (firework.burstType == 2)
             {
                 const int32_t layer = i % 3;
-                particle.color = layer == 0 ? firework.primaryColor
-                               : layer == 1 ? mixColor(firework.primaryColor, firework.secondaryColor, 0.5)
-                                            : firework.secondaryColor;
+                particle.color = layer == 0 ? firework.primaryColor : layer == 1 ? mixColor(firework.primaryColor, firework.secondaryColor, 0.5) : firework.secondaryColor;
             }
             else if (firework.burstType == 4) particle.color = palette[(i / 7 + rand() % 3) % FIREWORK_COLOR_COUNT];
             else if (firework.burstType == 6 && i % 3 == 0) particle.color = RGB_WHITE;
@@ -3718,15 +3708,13 @@ namespace
                 const int32_t rayCount = firework.particleCount / 5;
                 const bool dot = i < rayCount;
                 const int32_t layer = dot ? -1 : (i - rayCount) / rayCount;
-                particle.color = dot ? 0xffe84a : layer == 0 ? 0xff3d24 : layer == 1 ? 0xff8a28
-                               : layer == 2 ? 0xd9e83b : 0x45d878;
+                particle.color = dot ? 0xffe84a : layer == 0 ? 0xff3d24 : layer == 1 ? 0xff8a28 : layer == 2 ? 0xd9e83b : 0x45d878;
                 particle.tipColor = 0;
                 particle.headGlowColor = dot ? 0xffd52e : 0;
                 particle.headGlowStrength = dot ? frand(0.48, 0.68) : 0.0;
                 particle.headCoreStrength = dot ? 0.16 : 0.0;
                 particle.headHeatStrength = dot ? 0.12 : 0.06;
-                particle.trailStrength = dot ? 0.0 : layer == 0 ? 0.92 : layer == 1 ? 0.94
-                                       : layer == 2 ? 0.98 : 1.04;
+                particle.trailStrength = dot ? 0.0 : layer == 0 ? 0.92 : layer == 1 ? 0.94 : layer == 2 ? 0.98 : 1.04;
                 particle.trailFadePower = dot ? 3.0 : frand(1.35, 1.65);
                 particle.alphaRate = dot ? frand(2.4, 3.1) : frand(1.7, 2.3);
                 particle.sparkleRate = dot ? frand(0.16, 0.32) : frand(0.08, 0.2);
@@ -3771,10 +3759,7 @@ namespace
             {
                 const int32_t rayCount = firework.particleCount / 4;
                 const int32_t layer = i / rayCount;
-                particle.size = layer == 0 ? (rand() % 100 < 38 ? 4 : 3)
-                              : layer == 1 ? (rand() % 100 < 35 ? 3 : 2)
-                              : layer == 2 ? (rand() % 100 < 18 ? 2 : 1)
-                              : 1;
+                particle.size = layer == 0 ? (rand() % 100 < 38 ? 4 : 3) : layer == 1 ? (rand() % 100 < 35 ? 3 : 2) : layer == 2 ? (rand() % 100 < 18 ? 2 : 1) : 1;
             }
             else if (firework.burstType == 21)
             {
@@ -3785,12 +3770,8 @@ namespace
                 const int32_t innerCount = max(1, firework.particleCount / 5);
                 const int32_t middleCount = max(1, firework.particleCount / 4);
                 const int32_t outerMiddleCount = max(1, firework.particleCount / 4);
-                const int32_t layer = i < innerCount ? 0 : i < innerCount + middleCount ? 1
-                                    : i < innerCount + middleCount + outerMiddleCount ? 2 : 3;
-                particle.size = layer == 0 ? (rand() % 100 < 30 ? 5 : 4)
-                              : layer == 1 ? (rand() % 100 < 38 ? 5 : 4)
-                              : layer == 2 ? (rand() % 100 < 43 ? 5 : 4)
-                                           : (rand() % 100 < 48 ? 5 : 4);
+                const int32_t layer = i < innerCount ? 0 : i < innerCount + middleCount ? 1 : i < innerCount + middleCount + outerMiddleCount ? 2 : 3;
+                particle.size = layer == 0 ? (rand() % 100 < 30 ? 5 : 4) : layer == 1 ? (rand() % 100 < 38 ? 5 : 4) : layer == 2 ? (rand() % 100 < 43 ? 5 : 4) : (rand() % 100 < 48 ? 5 : 4);
             }
             else if (firework.burstType == 23)
             {
@@ -3823,32 +3804,6 @@ namespace
         }
     }
 
-    void blendFillEllipse(double centerX, double centerY, double directionX, double directionY, double halfLength, double halfWidth, uint32_t color)
-    {
-        const double normalX = -directionY;
-        const double normalY = directionX;
-        const int32_t radius = int32_t(ceil(max(halfLength, halfWidth) + 1.0));
-        const int32_t minX = int32_t(floor(centerX)) - radius;
-        const int32_t maxX = int32_t(ceil(centerX)) + radius;
-        const int32_t minY = int32_t(floor(centerY)) - radius;
-        const int32_t maxY = int32_t(ceil(centerY)) + radius;
-        const double edgeScale = min(halfLength, halfWidth);
-
-        for (int32_t y = minY; y <= maxY; y++)
-        {
-            for (int32_t x = minX; x <= maxX; x++)
-            {
-                const double offsetX = x - centerX;
-                const double offsetY = y - centerY;
-                const double along = (offsetX * directionX + offsetY * directionY) / halfLength;
-                const double across = (offsetX * normalX + offsetY * normalY) / halfWidth;
-                const double distance = sqrt(along * along + across * across);
-                const double coverage = clamp((1.0 - distance) * edgeScale + 0.5, 0.0, 1.0);
-                if (coverage > 0.0) putPixel(x, y, fadeColor(color, coverage * 255.0), BLEND_MODE_ADD);
-            }
-        }
-    }
-
     void drawParticles(const FIREWORK_PARTICLE& particle, uint32_t color, int32_t age)
     {
         if (particle.alpha <= 0.0) return;
@@ -3868,8 +3823,7 @@ namespace
 
         //Fresh sparks have a white-hot core which cools into their shell color.
         const double heat = clamp((particle.alpha - 185.0) / 70.0, 0.0, 1.0);
-        const uint32_t hotColor = particle.tipColor != 0 ? particle.tipColor
-                                                        : mixColor(color, RGB_WHITE, heat * particle.headHeatStrength);
+        const uint32_t hotColor = particle.tipColor != 0 ? particle.tipColor : mixColor(color, RGB_WHITE, heat * particle.headHeatStrength);
         const int32_t x = int32_t(particle.position.x);
         const int32_t y = int32_t(particle.position.y);
         const uint32_t headColor = boostColor(fadeColor(hotColor, brightness), 1.15);
@@ -3883,18 +3837,13 @@ namespace
             const double outerGlowSize = particle.size * (particle.solidHead ? 3.8 : 2.45);
             const double innerGlowSize = particle.size * (particle.solidHead ? 2.35 : 1.7);
             const double outerGlowStrength = particle.solidHead ? 0.58 : 0.34;
-            addGlowEllipse(particle.position.x, particle.position.y, 1.0, 0.0,
-                           outerGlowSize, outerGlowSize,
-                           fadeColor(particle.headGlowColor, brightness * particle.headGlowStrength * outerGlowStrength), 16);
-            addGlowEllipse(particle.position.x, particle.position.y, 1.0, 0.0,
-                           innerGlowSize, innerGlowSize,
-                           fadeColor(particle.headGlowColor, brightness * particle.headGlowStrength), 12);
+            addGlowEllipse(particle.position.x, particle.position.y, 1.0, 0.0, outerGlowSize, outerGlowSize, fadeColor(particle.headGlowColor, brightness * particle.headGlowStrength * outerGlowStrength), 16);
+            addGlowEllipse(particle.position.x, particle.position.y, 1.0, 0.0, innerGlowSize, innerGlowSize, fadeColor(particle.headGlowColor, brightness * particle.headGlowStrength), 12);
         }
-        addGlowEllipse(particle.position.x, particle.position.y, directionX, directionY,
-                       halfLength, halfWidth, headColor, 10, particle.solidHead);
+
+        addGlowEllipse(particle.position.x, particle.position.y, directionX, directionY, halfLength, halfWidth, headColor, 10, particle.solidHead);
         const double coreSize = particle.headGlowStrength > 0.0 ? max(1.0, particle.size * 0.36) : 0.9;
-        addGlowEllipse(x, y, 1.0, 0.0, coreSize, coreSize,
-                       fadeColor(RGB_WHITE, brightness * particle.headCoreStrength), 6);
+        addGlowEllipse(x, y, 1.0, 0.0, coreSize, coreSize, fadeColor(RGB_WHITE, brightness * particle.headCoreStrength), 6);
 
         //A dim halo gives bright sparks a small bloom without using SDL textures.
         if (brightness > 150.0 && !particle.taperedHead)
@@ -3936,8 +3885,7 @@ namespace
                     ? (trailScale > 0.66 ? 3 : trailScale > 0.33 ? 2 : 1)
                     : particle.trailWidth == 2
                     ? (trailScale > 0.55 ? 2 : 1)
-                    : 1) : max(particle.trailEndWidth,
-                               int32_t(ceil(particle.trailWidth * (0.18 + 0.82 * trailScale))));
+                    : 1) : max(particle.trailEndWidth, int32_t(ceil(particle.trailWidth * (0.18 + 0.82 * trailScale))));
 
             addTrailSegment(previousX, previousY, trailX, trailY, double(trailWidth), trailColor);
             previousX = trailX;
@@ -3950,8 +3898,7 @@ namespace
         if (firework.state == FIREWORK_LAUNCHING)
         {
             drawParticles(firework.rocket, firework.rocket.color, firework.age);
-            addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,
-                           1.0, 0.0, 1.0, 1.0, RGB_WHITE, 6);
+            addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y, 1.0, 0.0, 1.0, 1.0, RGB_WHITE, 6);
         }
         else if (firework.state == FIREWORK_EXPLODING)
         {
@@ -3962,30 +3909,22 @@ namespace
                 const int32_t coreX = int32_t(firework.rocket.position.x);
                 const int32_t coreY = int32_t(firework.rocket.position.y);
                 const int32_t glowRadius = max(2, int32_t((2.5 + life * 7.0) * firework.scale));
-                addGlowEllipse(coreX, coreY, 1.0, 0.0, glowRadius, glowRadius,
-                               fadeColor(0xff3fae, 155.0 * life), 16);
-                addGlowEllipse(coreX, coreY, 1.0, 0.0, max(1, glowRadius / 2), max(1, glowRadius / 2),
-                               fadeColor(0xffb8e4, 235.0 * life), 12);
-                addGlowEllipse(coreX, coreY, 1.0, 0.0, 1.0, 1.0,
-                               fadeColor(RGB_WHITE, 255.0 * life), 6);
+                addGlowEllipse(coreX, coreY, 1.0, 0.0, glowRadius, glowRadius, fadeColor(0xff3fae, 155.0 * life), 16);
+                addGlowEllipse(coreX, coreY, 1.0, 0.0, max(1, glowRadius / 2), max(1, glowRadius / 2), fadeColor(0xffb8e4, 235.0 * life), 12);
+                addGlowEllipse(coreX, coreY, 1.0, 0.0, 1.0, 1.0, fadeColor(RGB_WHITE, 255.0 * life), 6);
             }
             else if (firework.burstType == 20 && firework.age < 18)
             {
                 const double life = 1.0 - firework.age / 18.0;
                 const double glowRadius = (3.0 + life * 8.0) * firework.scale;
-                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,
-                               1.0, 0.0, glowRadius, glowRadius,
-                               fadeColor(0xd80028, 150.0 * life), 16);
-                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,
-                               1.0, 0.0, glowRadius * 0.42, glowRadius * 0.42,
-                               fadeColor(0xff6038, 220.0 * life), 12);
+                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,1.0, 0.0, glowRadius, glowRadius, fadeColor(0xd80028, 150.0 * life), 16);
+                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y, 1.0, 0.0, glowRadius * 0.42, glowRadius * 0.42, fadeColor(0xff6038, 220.0 * life), 12);
             }
 
             if (firework.age < (grandBurst ? 6 : 4))
             {
                 const int32_t radius = int32_t((grandBurst ? 15 - firework.age * 2 : 8 - firework.age * 2) * firework.scale);
-                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y, 1.0, 0.0,
-                               radius, radius, fadeColor(0xfff4c8, 190.0 - firework.age * 28.0), 16);
+                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y, 1.0, 0.0, radius, radius, fadeColor(0xfff4c8, 190.0 - firework.age * 28.0), 16);
             }
 
             for (int32_t i = 0; i < firework.particleCount; i++)
@@ -4002,20 +3941,13 @@ namespace
                     const bool dot = i < rayCount;
                     if (dot && firework.age >= COLOR_SHELL_STATE3_AGE) continue;
 
-                    if (dot)
-                        color = firework.age < COLOR_SHELL_STATE2_AGE ? 0xffe43d : 0xb8ff42;
+                    if (dot) color = firework.age < COLOR_SHELL_STATE2_AGE ? 0xffe43d : 0xb8ff42;
                     else
                     {
                         const int32_t layer = (i - rayCount) / rayCount;
-                        if (firework.age < COLOR_SHELL_STATE2_AGE)
-                            color = layer == 0 ? 0xff1d28 : layer == 1 ? 0xff7924
-                                  : layer == 2 ? 0xffd832 : 0x43d84f;
-                        else if (firework.age < COLOR_SHELL_STATE3_AGE)
-                            color = layer == 0 ? 0xff9a28 : layer == 1 ? 0xe7df36
-                                  : layer == 2 ? 0x45dc62 : 0x348eff;
-                        else
-                            color = layer == 0 ? 0xffad2d : layer == 1 ? 0xcde13b
-                                  : layer == 2 ? 0x3ed475 : 0x5264ff;
+                        if (firework.age < COLOR_SHELL_STATE2_AGE) color = layer == 0 ? 0xff1d28 : layer == 1 ? 0xff7924 : layer == 2 ? 0xffd832 : 0x43d84f;
+                        else if (firework.age < COLOR_SHELL_STATE3_AGE) color = layer == 0 ? 0xff9a28 : layer == 1 ? 0xe7df36 : layer == 2 ? 0x45dc62 : 0x348eff;
+                        else color = layer == 0 ? 0xffad2d : layer == 1 ? 0xcde13b : layer == 2 ? 0x3ed475 : 0x5264ff;
                     }
                 }
                 drawParticles(firework.particles[i], color, firework.age);
@@ -4050,8 +3982,7 @@ namespace
         for (int32_t i = 0; i < firework.particleCount; i++)
         {
             FIREWORK_PARTICLE& particle = firework.particles[i];
-            if (firework.burstType == 23 && firework.age == COLOR_SHELL_STATE3_AGE
-                && i >= firework.particleCount / 5)
+            if (firework.burstType == 23 && firework.age == COLOR_SHELL_STATE3_AGE && i >= firework.particleCount / 5)
             {
                 const int32_t rayCount = firework.particleCount / 5;
                 const int32_t layer = (i - rayCount) / rayCount;
@@ -4084,28 +4015,24 @@ void fireworksDemo()
 
     burstSelection = RANDOM_BURST;
     activeCount = MAX_FIREWORK_COUNT;
-    fireworkVertices.clear();
-    fireworkIndices.clear();
-    fireworkVertices.reserve(450000);
-    fireworkIndices.reserve(700000);
+    vertices.clear();
+    indices.clear();
+    vertices.reserve(450000);
+    indices.reserve(700000);
 
     for (int32_t i = 0; i < activeCount; i++) scheduleFirework(i, 1 + i * 9 + rand() % 12);
 
     do {
         readKeys();
         selectBurst();
-        fireworkVertices.clear();
-        fireworkIndices.clear();
+        vertices.clear();
+        indices.clear();
         for (int32_t i = 0; i < activeCount; i++)
         {
             drawFirework(fireworkList[i]);
             updateFirework(i, width, height);
         }
-
-        renderGeometry(fireworkVertices.data(), int32_t(fireworkVertices.size()),
-                       fireworkIndices.data(), int32_t(fireworkIndices.size()),
-                       SDL_BLENDMODE_ADD, false);
-        delay(FPS_60);
+        renderGeometry(vertices.data(), int32_t(vertices.size()), indices.data(), int32_t(indices.size()), SDL_BLENDMODE_ADD, false);
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();

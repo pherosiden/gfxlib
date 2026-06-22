@@ -636,11 +636,8 @@ void render()
     SDL_RenderPresent(sdlRenderer);
 }
 
-//Render the normal software framebuffer, then overlay one batched geometry
-//stream. This leaves the low-level CPU drawing path unchanged while allowing
-//selected effects to move their expensive rasterization and blending to GPU.
-void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* indices,
-                    int32_t indexCount, SDL_BlendMode blendMode, bool includeFramebuffer)
+// use GPU geometry render
+void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* indices, int32_t indexCount, SDL_BlendMode blendMode, bool includeFramebuffer)
 {
     if (includeFramebuffer && bitsPerPixel == 8)
     {
@@ -663,6 +660,7 @@ void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* 
     SDL_RenderPresent(sdlRenderer);
 }
 
+// enable v-sync
 bool setRenderVSync(int32_t vsync)
 {
     return sdlRenderer && SDL_SetRenderVSync(sdlRenderer, vsync);
