@@ -2830,8 +2830,8 @@ void runRayCasting()
 
 namespace
 {
-    constexpr int32_t MAX_FIREWORK_COUNT = 15;
-    constexpr int32_t MAX_PARTICLE_COUNT = 1000;
+    constexpr int32_t MAX_FIREWORK_COUNT = 10;
+    constexpr int32_t MAX_PARTICLE_COUNT = 800;
     constexpr int32_t MAX_TRAIL_LENGTH = 18;
     constexpr int32_t BURST_COUNT = 21;
     constexpr int32_t RANDOM_BURST = BURST_COUNT;
@@ -2931,14 +2931,6 @@ namespace
         return int(fireworkVertices.size()) - 1;
     }
 
-    void addTriangle(float x0, float y0, float x1, float y1, float x2, float y2,
-                     const SDL_FColor& c0, const SDL_FColor& c1, const SDL_FColor& c2)
-    {
-        fireworkIndices.push_back(addVertex(x0, y0, c0));
-        fireworkIndices.push_back(addVertex(x1, y1, c1));
-        fireworkIndices.push_back(addVertex(x2, y2, c2));
-    }
-
     void addGlowEllipse(double centerX, double centerY, double directionX, double directionY,
                         double halfLength, double halfWidth, uint32_t color, int32_t segments = 10,
                         bool solid = false)
@@ -2986,25 +2978,6 @@ namespace
         addVertex(float(x1) + nx, float(y1) + ny, c);
         const int quad[] = { base, base + 1, base + 2, base, base + 2, base + 3 };
         fireworkIndices.insert(fireworkIndices.end(), quad, quad + 6);
-    }
-
-    void addGlowRing(double centerX, double centerY, double radius, double width, uint32_t color)
-    {
-        const SDL_FColor c = gpuColor(color);
-        constexpr int32_t segments = 32;
-        const double inner = max(0.0, radius - width * 0.5);
-        const double outer = radius + width * 0.5;
-        for (int32_t i = 0; i < segments; i++)
-        {
-            const double a0 = M_PI * 2.0 * i / segments;
-            const double a1 = M_PI * 2.0 * (i + 1) / segments;
-            const float ix0 = float(centerX + cos(a0) * inner), iy0 = float(centerY + sin(a0) * inner);
-            const float ox0 = float(centerX + cos(a0) * outer), oy0 = float(centerY + sin(a0) * outer);
-            const float ix1 = float(centerX + cos(a1) * inner), iy1 = float(centerY + sin(a1) * inner);
-            const float ox1 = float(centerX + cos(a1) * outer), oy1 = float(centerY + sin(a1) * outer);
-            addTriangle(ix0, iy0, ox0, oy0, ox1, oy1, c, c, c);
-            addTriangle(ix0, iy0, ox1, oy1, ix1, iy1, c, c, c);
-        }
     }
 
     int32_t scaledRayCount(const FIREWORK& firework, int32_t baseCount)
@@ -4014,11 +3987,6 @@ namespace
                 addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y, 1.0, 0.0,
                                radius, radius, fadeColor(0xfff4c8, 190.0 - firework.age * 28.0), 16);
             }
-
-            if (grandBurst && firework.age > 1 && firework.age < 14)
-                addGlowRing(firework.rocket.position.x, firework.rocket.position.y,
-                            firework.age * 3 * firework.scale, 1.4,
-                            fadeColor(firework.primaryColor, 150.0 - firework.age * 9.0));
 
             for (int32_t i = 0; i < firework.particleCount; i++)
             {
