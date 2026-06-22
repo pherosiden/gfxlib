@@ -11,7 +11,7 @@
             "cwd": "${workspaceFolder}\\visualc",
             "environment": [],
             "console": "internalConsole",
-            "preLaunchTask": "Build: Debug x64"
+            "preLaunchTask": "Build Debug x64"
         },
         {
             "name": "Debug gfxlib (Win32)",
@@ -23,7 +23,7 @@
             "cwd": "${workspaceFolder}\\visualc",
             "environment": [],
             "console": "internalConsole",
-            "preLaunchTask": "Build: Debug Win32"
+            "preLaunchTask": "Build Debug Win32"
         },
         {
             "name": "Attach to gfxlib",

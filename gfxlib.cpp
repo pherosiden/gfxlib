@@ -385,42 +385,42 @@ void getMouseState(int32_t* mx, int32_t* my, int32_t* lmb, int32_t* rmb)
 //set mouse position
 void setMousePosition(int32_t px, int32_t py)
 {
-    SDL_SetWindowMouseGrab(sdlWindow, SDL_TRUE);
+    SDL_SetWindowMouseGrab(sdlWindow, true);
     SDL_WarpMouseInWindow(sdlWindow, float(px), float(py));
 }
 
 //get the native size of the primary display
-int32_t getDisplaySize(int32_t* width, int32_t* height)
+bool getDisplaySize(int32_t* width, int32_t* height)
 {
-    if (!width || !height) return 0;
-    if (!(SDL_WasInit(SDL_INIT_VIDEO) & SDL_INIT_VIDEO) && !SDL_Init(SDL_INIT_VIDEO)) return 0;
+    if (!width || !height) return false;
+    if (!(SDL_WasInit(SDL_INIT_VIDEO) & SDL_INIT_VIDEO) && !SDL_Init(SDL_INIT_VIDEO)) return false;
 
     const SDL_DisplayID display = SDL_GetPrimaryDisplay();
-    if (!display) return 0;
+    if (!display) return false;
 
     const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(display);
     if (mode)
     {
         *width = mode->w;
         *height = mode->h;
-        return 1;
+        return true;
     }
 
     SDL_Rect bounds = { 0 };
-    if (SDL_GetDisplayBounds(display, &bounds) < 0) return 0;
+    if (!SDL_GetDisplayBounds(display, &bounds)) return false;
     *width = bounds.w;
     *height = bounds.h;
-    return 1;
+    return true;
 }
 
 //initialize graphic video system
-int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable, int32_t fullscreen)
+bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable, int32_t fullscreen)
 {
     //initialize SDL video mode only
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         messageBox(GFX_ERROR, "Failed to initialize SDL3: %s", SDL_GetError());
-        return 0;
+        return false;
     }
 
     //native fullscreen uses the display resolution for both texture and draw buffer
@@ -443,14 +443,14 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (!sdlWindow)
     {
         messageBox(GFX_ERROR, "Failed to create window: %s", SDL_GetError());
-        return 0;
+        return false;
     }
 
     //set windows icon
     SDL_Surface* icon = IMG_Load("assets/gfxicon-128x.png");
     if (icon)
     {
-        SDL_SetSurfaceColorKey(icon, SDL_TRUE, SDL_MapRGB(SDL_GetPixelFormatDetails(icon->format), NULL, 0, 0, 0));
+        SDL_SetSurfaceColorKey(icon, true, SDL_MapRGB(SDL_GetPixelFormatDetails(icon->format), NULL, 0, 0, 0));
         SDL_SetWindowIcon(sdlWindow, icon);
         SDL_DestroySurface(icon);
     }
@@ -460,7 +460,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (!sdlRenderer)
     {
         messageBox(GFX_ERROR, "Failed to create renderer: %s", SDL_GetError());
-        return 0;
+        return false;
     }
 
     //create 32bits texture for render
@@ -468,7 +468,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (!sdlTexture)
     {
         messageBox(GFX_ERROR, "Failed to create texture: %s", SDL_GetError());
-        return 0;
+        return false;
     }
 
     //initialize bits per pixel
@@ -484,7 +484,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (bytesPerScanline % 32)
     {
         messageBox(GFX_ERROR, "GFXLIB required 32-bytes alignment:%d", width);
-        return 0;
+        return false;
     }
 
     //use palette color for 8 bits?
@@ -495,7 +495,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         if (!sdlScreen)
         {
             messageBox(GFX_ERROR, "Failed to create 32 bits surface: %s", SDL_GetError());
-            return 0;
+            return false;
         }
 
         //create 8bits surface with palette
@@ -503,7 +503,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         if (!sdlSurface)
         {
             messageBox(GFX_ERROR, "Failed to create 8 bits surface: %s", SDL_GetError());
-            return 0;
+            return false;
         }
 
         //make default palette and retrive the surface palette
@@ -511,10 +511,10 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
         SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
 
         //set default palette to surface
-        if (palette && SDL_SetPaletteColors(palette, basePalette, 0, 256) < 0)
+        if (palette && !SDL_SetPaletteColors(palette, basePalette, 0, 256))
         {
             messageBox(GFX_ERROR, "Failed to initialize palette colors: %s", SDL_GetError());
-            return 0;
+            return false;
         }
 
         //initialize drawing buffer (use current surface pixel buffer)
@@ -531,7 +531,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (!drawBuff)
     {
         messageBox(GFX_ERROR, "Failed to create render buffer!");
-        return 0;
+        return false;
     }
 
     //initialize random number generation
@@ -543,7 +543,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     if (!gfxBuff)
     {
         messageBox(GFX_ERROR, "Error initialize GFXLIB memory!");
-        return 0;
+        return false;
     }
 
     //initialize screen buffer size
@@ -559,7 +559,7 @@ int32_t initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, c
     cmaxY       = texHeight - 1;
     
     //OK, I'm fine!
-    return 1;
+    return true;
 }
 
 //cleanup function must call after graphics operations ended
@@ -10144,7 +10144,7 @@ int32_t loadPNG(uint8_t* raw, RGBA* pal, const char* fname)
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
-        messageBox(GFX_ERROR, "Load image error: %s", IMG_GetError());
+        messageBox(GFX_ERROR, "Load image error: %s", SDL_GetError());
         return 0;
     }
 
@@ -10176,7 +10176,7 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
-        messageBox(GFX_ERROR, "Load image error: %s", IMG_GetError());
+        messageBox(GFX_ERROR, "Load image error: %s", SDL_GetError());
         return 0;
     }
 
@@ -10190,7 +10190,7 @@ int32_t loadImage(const char* fname, GFX_IMAGE* im)
     }
 
     //convert to target pixel format
-    if (SDL_BlitSurface(image, NULL, texture, NULL) < 0)
+    if (!SDL_BlitSurface(image, NULL, texture, NULL))
     {
         SDL_DestroySurface(image);
         SDL_DestroySurface(texture);
@@ -10221,7 +10221,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     SDL_Surface* image = IMG_Load(fname);
     if (!image)
     {
-        messageBox(GFX_ERROR, "Error load texture: %s", IMG_GetError());
+        messageBox(GFX_ERROR, "Error load texture: %s", SDL_GetError());
         return 0;
     }
 
@@ -10235,7 +10235,7 @@ int32_t loadTexture(uint32_t** txout, int32_t* txw, int32_t* txh, const char* fn
     }
 
     //convert raw data to texture format
-    if (SDL_BlitSurface(image, NULL, texture, NULL) < 0)
+    if (!SDL_BlitSurface(image, NULL, texture, NULL))
     {
         SDL_DestroySurface(image);
         SDL_DestroySurface(texture);
