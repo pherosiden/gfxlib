@@ -477,6 +477,7 @@ void        clearScreen(uint32_t color = 0);
 //pixels function
 uint32_t    getPixel(int32_t x, int32_t y);
 void        putPixel(int32_t x, int32_t y, uint32_t color, int32_t mode = BLEND_MODE_NORMAL);
+void        blendPixel(int32_t x, int32_t y, uint32_t col, double transparency);
 
 //drawing functions
 void        clipLine(int32_t* xs, int32_t* ys, int32_t* xe, int32_t* ye);
@@ -498,7 +499,7 @@ void        drawQuadRationalBezier(int32_t x0, int32_t y0, int32_t x1, int32_t y
 void        drawRotatedEllipse(int32_t x, int32_t y, int32_t ra, int32_t rb, double angle, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
 void        drawLineWidthAA(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col);
-void        drawLineWidthAAAdd(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col);
+void        blendLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, double wd, uint32_t col);
 void        drawRoundBox(int32_t x, int32_t y, int32_t width, int32_t height, int32_t rd, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 void        drawPolygon(const POINT2D* point, int32_t num, uint32_t col, int32_t mode = BLEND_MODE_NORMAL);
 
