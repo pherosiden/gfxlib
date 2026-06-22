@@ -3973,7 +3973,7 @@ namespace
             firework.rocket.position.y += firework.rocket.velocity.y;
             firework.rocket.velocity.y += 0.16 * firework.scale;
             moveTrails(firework.rocket, previous);
-            if (firework.rocket.velocity.y >= -0.15 || firework.rocket.position.y < height * 0.12) explodeFirework(firework);
+            if (firework.rocket.velocity.y >= -0.15 || firework.rocket.position.y < height * 0.32) explodeFirework(firework);
             return;
         }
 
