@@ -636,6 +636,38 @@ void render()
     SDL_RenderPresent(sdlRenderer);
 }
 
+//Render the normal software framebuffer, then overlay one batched geometry
+//stream. This leaves the low-level CPU drawing path unchanged while allowing
+//selected effects to move their expensive rasterization and blending to GPU.
+void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* indices,
+                    int32_t indexCount, SDL_BlendMode blendMode, bool includeFramebuffer)
+{
+    if (includeFramebuffer && bitsPerPixel == 8)
+    {
+        SDL_BlitSurface(sdlSurface, NULL, sdlScreen, NULL);
+        SDL_UpdateTexture(sdlTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
+    }
+    else if (includeFramebuffer) SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
+
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(sdlRenderer);
+    if (includeFramebuffer) SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
+
+    if (vertices && vertexCount > 0)
+    {
+        SDL_SetRenderDrawBlendMode(sdlRenderer, blendMode);
+        SDL_RenderGeometry(sdlRenderer, NULL, vertices, vertexCount, indices, indexCount);
+        SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_NONE);
+    }
+
+    SDL_RenderPresent(sdlRenderer);
+}
+
+bool setRenderVSync(int32_t vsync)
+{
+    return sdlRenderer && SDL_SetRenderVSync(sdlRenderer, vsync);
+}
+
 //render from user-defined buffer
 void renderBuffer(const void* buffer, int32_t width, int32_t height)
 {

@@ -460,6 +460,10 @@ void        changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
 void        cleanup();
 void        render();
+void        renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount,
+                           const int* indices = NULL, int32_t indexCount = 0,
+                           SDL_BlendMode blendMode = SDL_BLENDMODE_ADD, bool includeFramebuffer = true);
+bool        setRenderVSync(int32_t vsync);
 void        renderBuffer(const void* buffer, int32_t width, int32_t height);
 void*       getDrawBuffer(int32_t* width = NULL, int32_t* height = NULL);
 void        changeDrawBuffer(void* newBuff, int32_t newWidth, int32_t newHeight);

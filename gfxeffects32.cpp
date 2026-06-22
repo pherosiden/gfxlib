@@ -2830,7 +2830,7 @@ void runRayCasting()
 
 namespace
 {
-    constexpr int32_t MAX_FIREWORK_COUNT = 6;
+    constexpr int32_t MAX_FIREWORK_COUNT = 8;
     constexpr int32_t MAX_PARTICLE_COUNT = 762;
     constexpr int32_t MAX_TRAIL_LENGTH = 18;
     constexpr int32_t BURST_COUNT = 19;
@@ -2902,6 +2902,102 @@ namespace
     };
     
     constexpr int32_t FIREWORK_COLOR_COUNT = sizeof(palette) / sizeof(palette[0]);
+
+    //Firework geometry is accumulated on CPU, but rasterization and additive
+    //blending are performed by SDL's accelerated renderer in one draw call.
+    std::vector<SDL_Vertex> fireworkVertices;
+    std::vector<int> fireworkIndices;
+
+    SDL_FColor gpuColor(uint32_t color)
+    {
+        return {
+            float((color >> 16) & 0xff) / 255.0f,
+            float((color >> 8) & 0xff) / 255.0f,
+            float(color & 0xff) / 255.0f,
+            1.0f
+        };
+    }
+
+    int addVertex(float x, float y, const SDL_FColor& color)
+    {
+        fireworkVertices.push_back({ { x, y }, color, { 0.0f, 0.0f } });
+        return int(fireworkVertices.size()) - 1;
+    }
+
+    void addTriangle(float x0, float y0, float x1, float y1, float x2, float y2,
+                     const SDL_FColor& c0, const SDL_FColor& c1, const SDL_FColor& c2)
+    {
+        fireworkIndices.push_back(addVertex(x0, y0, c0));
+        fireworkIndices.push_back(addVertex(x1, y1, c1));
+        fireworkIndices.push_back(addVertex(x2, y2, c2));
+    }
+
+    void addGlowEllipse(double centerX, double centerY, double directionX, double directionY,
+                        double halfLength, double halfWidth, uint32_t color, int32_t segments = 10)
+    {
+        const SDL_FColor centerColor = gpuColor(color);
+        const SDL_FColor edgeColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+        const double normalX = -directionY;
+        const double normalY = directionX;
+
+        const int center = addVertex(float(centerX), float(centerY), centerColor);
+        const int edgeStart = int(fireworkVertices.size());
+        for (int32_t i = 0; i < segments; i++)
+        {
+            const double angle = M_PI * 2.0 * i / segments;
+            addVertex(float(centerX + directionX * cos(angle) * halfLength + normalX * sin(angle) * halfWidth),
+                      float(centerY + directionY * cos(angle) * halfLength + normalY * sin(angle) * halfWidth),
+                      edgeColor);
+        }
+        for (int32_t i = 0; i < segments; i++)
+        {
+            fireworkIndices.push_back(center);
+            fireworkIndices.push_back(edgeStart + i);
+            fireworkIndices.push_back(edgeStart + (i + 1) % segments);
+        }
+    }
+
+    void addTrailSegment(double x0, double y0, double x1, double y1, double width, uint32_t color)
+    {
+        const double dx = x1 - x0;
+        const double dy = y1 - y0;
+        const double length = sqrt(dx * dx + dy * dy);
+        if (length < 0.01)
+        {
+            addGlowEllipse(x0, y0, 1.0, 0.0, width * 0.55, width * 0.55, color, 6);
+            return;
+        }
+
+        const float nx = float(-dy / length * width * 0.5);
+        const float ny = float(dx / length * width * 0.5);
+        const SDL_FColor c = gpuColor(color);
+        const int base = int(fireworkVertices.size());
+        addVertex(float(x0) + nx, float(y0) + ny, c);
+        addVertex(float(x0) - nx, float(y0) - ny, c);
+        addVertex(float(x1) - nx, float(y1) - ny, c);
+        addVertex(float(x1) + nx, float(y1) + ny, c);
+        const int quad[] = { base, base + 1, base + 2, base, base + 2, base + 3 };
+        fireworkIndices.insert(fireworkIndices.end(), quad, quad + 6);
+    }
+
+    void addGlowRing(double centerX, double centerY, double radius, double width, uint32_t color)
+    {
+        const SDL_FColor c = gpuColor(color);
+        constexpr int32_t segments = 32;
+        const double inner = max(0.0, radius - width * 0.5);
+        const double outer = radius + width * 0.5;
+        for (int32_t i = 0; i < segments; i++)
+        {
+            const double a0 = M_PI * 2.0 * i / segments;
+            const double a1 = M_PI * 2.0 * (i + 1) / segments;
+            const float ix0 = float(centerX + cos(a0) * inner), iy0 = float(centerY + sin(a0) * inner);
+            const float ox0 = float(centerX + cos(a0) * outer), oy0 = float(centerY + sin(a0) * outer);
+            const float ix1 = float(centerX + cos(a1) * inner), iy1 = float(centerY + sin(a1) * inner);
+            const float ox1 = float(centerX + cos(a1) * outer), oy1 = float(centerY + sin(a1) * outer);
+            addTriangle(ix0, iy0, ox0, oy0, ox1, oy1, c, c, c);
+            addTriangle(ix0, iy0, ox1, oy1, ix1, iy1, c, c, c);
+        }
+    }
 
     int32_t scaledRayCount(const FIREWORK& firework, int32_t baseCount)
     {
@@ -3520,57 +3616,21 @@ namespace
         const int32_t x = int32_t(particle.position.x);
         const int32_t y = int32_t(particle.position.y);
         const uint32_t headColor = boostColor(fadeColor(hotColor, brightness), 1.15);
-        if (particle.taperedHead)
-        {
-            const double magnitude = sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y);
-            const double directionX = magnitude > 0.0 ? particle.velocity.x / magnitude : 1.0;
-            const double directionY = magnitude > 0.0 ? particle.velocity.y / magnitude : 0.0;
-            const double normalX = -directionY;
-            const double normalY = directionX;
-            const double px = particle.position.x;
-            const double py = particle.position.y;
-
-            if (particle.roundedHead)
-            {
-                const double halfLength = 1.4 + particle.size * 1.35;
-                const double halfWidth = 0.95 + particle.size * 0.78;
-                blendFillEllipse(px, py, directionX, directionY, halfLength, halfWidth, headColor);
-            }
-            else
-            {
-                const double length = 2.2 + particle.size * 2.1;
-                const double halfWidth = 0.75 + particle.size * 0.7;
-                const POINT2D head[] = {
-                    { px + directionX * length * 0.68, py + directionY * length * 0.68 },
-                    { px + directionX * length * 0.12 + normalX * halfWidth * 0.72,
-                      py + directionY * length * 0.12 + normalY * halfWidth * 0.72 },
-                    { px - directionX * length * 0.12 + normalX * halfWidth,
-                      py - directionY * length * 0.12 + normalY * halfWidth },
-                    { px - directionX * length * 0.52, py - directionY * length * 0.52 },
-                    { px - directionX * length * 0.12 - normalX * halfWidth,
-                      py - directionY * length * 0.12 - normalY * halfWidth },
-                    { px + directionX * length * 0.12 - normalX * halfWidth * 0.72,
-                      py + directionY * length * 0.12 - normalY * halfWidth * 0.72 }
-                };
-
-                fillPolygon(head, 6, headColor, BLEND_MODE_ADD);
-            }
-
-            putPixel(x, y, fadeColor(RGB_WHITE, brightness * particle.headCoreStrength), BLEND_MODE_ADD);
-        }
-        else
-        {
-            fillCircle(x, y, particle.size, headColor, BLEND_MODE_ADD);
-        }
+        const double magnitude = sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y);
+        const double directionX = magnitude > 0.0 ? particle.velocity.x / magnitude : 1.0;
+        const double directionY = magnitude > 0.0 ? particle.velocity.y / magnitude : 0.0;
+        const double halfLength = particle.taperedHead ? 1.4 + particle.size * 1.35 : max(1.0, double(particle.size));
+        const double halfWidth = particle.taperedHead ? 0.95 + particle.size * 0.78 : max(1.0, double(particle.size));
+        addGlowEllipse(particle.position.x, particle.position.y, directionX, directionY,
+                       halfLength, halfWidth, headColor);
+        addGlowEllipse(x, y, 1.0, 0.0, 0.9, 0.9,
+                       fadeColor(RGB_WHITE, brightness * particle.headCoreStrength), 6);
 
         //A dim halo gives bright sparks a small bloom without using SDL textures.
         if (brightness > 150.0 && !particle.taperedHead)
         {
             const uint32_t halo = fadeColor(color, brightness * 0.18);
-            putPixel(x - 2, y, halo, BLEND_MODE_ADD);
-            putPixel(x + 2, y, halo, BLEND_MODE_ADD);
-            putPixel(x, y - 2, halo, BLEND_MODE_ADD);
-            putPixel(x, y + 2, halo, BLEND_MODE_ADD);
+            addGlowEllipse(x, y, 1.0, 0.0, 3.2, 3.2, halo, 8);
         }
 
         int32_t previousX = x;
@@ -3604,7 +3664,7 @@ namespace
                     ? (trailScale > 0.55 ? 2 : 1)
                     : 1) : max(particle.trailEndWidth, particle.trailWidth - i * particle.trailWidth / particle.trailLength);
 
-            blendLine(previousX, previousY, trailX, trailY, double(trailWidth), trailColor);
+            addTrailSegment(previousX, previousY, trailX, trailY, double(trailWidth), trailColor);
             previousX = trailX;
             previousY = trailY;
         }
@@ -3615,7 +3675,8 @@ namespace
         if (firework.state == FIREWORK_LAUNCHING)
         {
             drawParticles(firework.rocket, firework.rocket.color, firework.age);
-            putPixel(int32_t(firework.rocket.position.x), int32_t(firework.rocket.position.y), RGB_WHITE, BLEND_MODE_ADD);
+            addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y,
+                           1.0, 0.0, 1.0, 1.0, RGB_WHITE, 6);
         }
         else if (firework.state == FIREWORK_EXPLODING)
         {
@@ -3626,19 +3687,25 @@ namespace
                 const int32_t coreX = int32_t(firework.rocket.position.x);
                 const int32_t coreY = int32_t(firework.rocket.position.y);
                 const int32_t glowRadius = max(2, int32_t((2.5 + life * 7.0) * firework.scale));
-                fillCircle(coreX, coreY, glowRadius, fadeColor(0xff3fae, 155.0 * life), BLEND_MODE_ADD);
-                fillCircle(coreX, coreY, max(1, glowRadius / 2), fadeColor(0xffb8e4, 235.0 * life), BLEND_MODE_ADD);
-                putPixel(coreX, coreY, fadeColor(RGB_WHITE, 255.0 * life), BLEND_MODE_ADD);
+                addGlowEllipse(coreX, coreY, 1.0, 0.0, glowRadius, glowRadius,
+                               fadeColor(0xff3fae, 155.0 * life), 16);
+                addGlowEllipse(coreX, coreY, 1.0, 0.0, max(1, glowRadius / 2), max(1, glowRadius / 2),
+                               fadeColor(0xffb8e4, 235.0 * life), 12);
+                addGlowEllipse(coreX, coreY, 1.0, 0.0, 1.0, 1.0,
+                               fadeColor(RGB_WHITE, 255.0 * life), 6);
             }
 
             if (firework.age < (grandBurst ? 6 : 4))
             {
                 const int32_t radius = int32_t((grandBurst ? 15 - firework.age * 2 : 8 - firework.age * 2) * firework.scale);
-                fillCircle(int32_t(firework.rocket.position.x), int32_t(firework.rocket.position.y), radius, fadeColor(0xfff4c8, 190.0 - firework.age * 28.0), BLEND_MODE_ADD);
+                addGlowEllipse(firework.rocket.position.x, firework.rocket.position.y, 1.0, 0.0,
+                               radius, radius, fadeColor(0xfff4c8, 190.0 - firework.age * 28.0), 16);
             }
 
             if (grandBurst && firework.age > 1 && firework.age < 14)
-                drawCircle(int32_t(firework.rocket.position.x), int32_t(firework.rocket.position.y), int32_t(firework.age * 3 * firework.scale), fadeColor(firework.primaryColor, 150.0 - firework.age * 9.0), BLEND_MODE_ADD);
+                addGlowRing(firework.rocket.position.x, firework.rocket.position.y,
+                            firework.age * 3 * firework.scale, 1.4,
+                            fadeColor(firework.primaryColor, 150.0 - firework.age * 9.0));
 
             for (int32_t i = 0; i < firework.particleCount; i++)
             {
@@ -3698,26 +3765,35 @@ namespace
 void fireworksDemo()
 {
     if (!initScreen(640, 480, 32, 0, "Fireworks - Press Enter for next demo", 0, 1)) return;
+    setRenderVSync(1);
 
     const int width = getDrawBufferWidth();
     const int height = getDrawBufferHeight();
 
     burstSelection = RANDOM_BURST;
     activeCount = MAX_FIREWORK_COUNT;
+    fireworkVertices.clear();
+    fireworkIndices.clear();
+    fireworkVertices.reserve(450000);
+    fireworkIndices.reserve(700000);
 
     for (int32_t i = 0; i < activeCount; i++) scheduleFirework(i, 1 + i * 9 + rand() % 12);
 
     do {
+        const uint64_t frameStart = getTime();
         readKeys();
         selectBurst();
-        clearScreen(RGB_BLACK);
+        fireworkVertices.clear();
+        fireworkIndices.clear();
         for (int32_t i = 0; i < activeCount; i++)
         {
             drawFirework(fireworkList[i]);
             updateFirework(i, width, height);
         }
 
-        render();
+        renderGeometry(fireworkVertices.data(), int32_t(fireworkVertices.size()),
+                       fireworkIndices.data(), int32_t(fireworkIndices.size()),
+                       SDL_BLENDMODE_ADD, false);
         delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN));
 
