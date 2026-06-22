@@ -4033,6 +4033,7 @@ void fireworksDemo()
             updateFirework(i, width, height);
         }
         renderGeometry(vertices.data(), int32_t(vertices.size()), indices.data(), int32_t(indices.size()), SDL_BLENDMODE_ADD, false);
+        delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();
