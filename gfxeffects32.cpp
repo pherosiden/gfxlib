@@ -2830,7 +2830,7 @@ void runRayCasting()
 
 namespace
 {
-    constexpr int32_t MAX_FIREWORK_COUNT = 8;
+    constexpr int32_t MAX_FIREWORK_COUNT = 10;
     constexpr int32_t MAX_PARTICLE_COUNT = 762;
     constexpr int32_t MAX_TRAIL_LENGTH = 18;
     constexpr int32_t BURST_COUNT = 19;
@@ -3780,7 +3780,6 @@ void fireworksDemo()
     for (int32_t i = 0; i < activeCount; i++) scheduleFirework(i, 1 + i * 9 + rand() % 12);
 
     do {
-        const uint64_t frameStart = getTime();
         readKeys();
         selectBurst();
         fireworkVertices.clear();
