@@ -2896,6 +2896,7 @@ namespace
         double gravity;
         double drag;
         double scale;
+        double explosionY;
     };
 
     FIREWORK fireworkList[MAX_FIREWORK_COUNT];
@@ -3221,8 +3222,9 @@ namespace
 
         const int32_t waveStyle = rand() % 3;
         const double launchMargin = firework.burstType >= 4 ? 0.22 : 0.08;
+        firework.explosionY = frand(height * 0.34, height * 0.48);
         firework.rocket.position = { frand(width * launchMargin, width * (1.0 - launchMargin)), double(height + 4) };
-        firework.rocket.velocity = { frand(-0.65, 0.65), -frand(firework.burstType >= 4 ? 10.2 : 8.2, (firework.burstType >= 4) ? 12.0 : 11.5) };
+        firework.rocket.velocity = { frand(-0.65, 0.65), -frand(firework.burstType >= 4 ? 10.2 : 9.4, (firework.burstType >= 4) ? 12.0 : 11.5) };
         firework.rocket.velocity.x *= firework.scale;
         firework.rocket.velocity.y *= firework.scale;
         firework.rocket.alpha = 255.0;
@@ -3973,7 +3975,7 @@ namespace
             firework.rocket.position.y += firework.rocket.velocity.y;
             firework.rocket.velocity.y += 0.16 * firework.scale;
             moveTrails(firework.rocket, previous);
-            if (firework.rocket.velocity.y >= -0.15 || firework.rocket.position.y < height * 0.32) explodeFirework(firework);
+            if (firework.rocket.velocity.y >= -0.15 || firework.rocket.position.y <= firework.explosionY) explodeFirework(firework);
             return;
         }
 
