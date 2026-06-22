@@ -2830,8 +2830,8 @@ void runRayCasting()
 
 namespace
 {
-    constexpr int32_t MAX_FIREWORK_COUNT = 10;
-    constexpr int32_t MAX_PARTICLE_COUNT = 800;
+    constexpr int32_t MAX_FIREWORK_COUNT = 20;
+    constexpr int32_t MAX_PARTICLE_COUNT = 1000;
     constexpr int32_t MAX_TRAIL_LENGTH = 18;
     constexpr int32_t BURST_COUNT = 21;
     constexpr int32_t RANDOM_BURST = BURST_COUNT;
