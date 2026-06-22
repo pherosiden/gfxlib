@@ -3215,7 +3215,7 @@ namespace
             firework.primaryColor = 0x55e84a;     //green outer rays in state 1
             firework.secondaryColor = 0xffdf38;   //yellow dotted ring
             firework.gravity = 0.018;
-            firework.drag = 0.996;
+            firework.drag = 0.984;
         }
 
         firework.gravity *= firework.scale;
@@ -3448,9 +3448,9 @@ namespace
                 const int32_t ray = dot ? i : (i - rayCount) % rayCount;
                 const double rayJitter = sin((ray + 1) * 12.9898) * 0.019 + sin((ray + 1) * 4.1414) * 0.008;
                 const double depthWave = 0.5 + 0.5 * sin(ray * 2.399963 + 1.7);
-                const double sphereDepth = 0.78 + 0.30 * sqrt(max(0.0, depthWave));
+                const double sphereDepth = 0.84 + 0.18 * sqrt(max(0.0, depthWave));
                 angle = firework.burstRotation + ray * M_PI * 2.0 / rayCount + rayJitter + (dot ? M_PI * 0.55 / rayCount : (layer - 1.5) * 0.004) + frand(-0.003, 0.003);
-                const double layerSpeed = dot ? 4.85 : layer == 0 ? 3.0 : layer == 1 ? 4.4 : layer == 2 ? 6.25 : 8.7;
+                const double layerSpeed = dot ? 3.45 : layer == 0 ? 2.0 : layer == 1 ? 2.9 : layer == 2 ? 3.9 : 5.0;
                 speed = layerSpeed * sphereDepth * frand(0.97, 1.03);
             }
             else
@@ -3720,8 +3720,10 @@ namespace
                 particle.trailFadePower = dot ? 3.0 : frand(1.35, 1.65);
                 particle.alphaRate = dot ? frand(2.4, 3.1) : frand(1.7, 2.3);
                 particle.sparkleRate = dot ? frand(0.16, 0.32) : frand(0.08, 0.2);
-                particle.trailLength = dot ? 1 : 7 + rand() % 4;
-                particle.trailWidth = dot ? 1 : (rand() % 100 < 62 ? 3 : 2);
+                particle.trailLength = dot ? 1 : layer == 0 ? 14 + rand() % 5
+                                     : layer == 1 ? 11 + rand() % 4
+                                     : layer == 2 ? 9 + rand() % 4 : 7 + rand() % 4;
+                particle.trailWidth = dot ? 1 : (layer == 0 && rand() % 100 < 28 ? 3 : 2);
                 particle.trailEndWidth = 1;
                 particle.taperedHead = !dot;
                 particle.roundedHead = true;
@@ -3943,13 +3945,24 @@ namespace
                     const bool dot = i < rayCount;
                     if (dot && firework.age >= COLOR_SHELL_STATE3_AGE) continue;
 
-                    if (dot) color = firework.age < COLOR_SHELL_STATE2_AGE ? 0xffe43d : 0xb8ff42;
+                    const double state2Time = clamp((firework.age - (COLOR_SHELL_STATE2_AGE - 6)) / 12.0, 0.0, 1.0);
+                    const double state3Time = clamp((firework.age - (COLOR_SHELL_STATE3_AGE - 6)) / 14.0, 0.0, 1.0);
+                    const double state2Blend = state2Time * state2Time * (3.0 - 2.0 * state2Time);
+                    const double state3Blend = state3Time * state3Time * (3.0 - 2.0 * state3Time);
+
+                    if (dot)
+                    {
+                        color = mixColor(0xffe43d, 0xb8ff42, state2Blend);
+                        if (firework.age > COLOR_SHELL_STATE3_AGE - 10)
+                            color = fadeColor(color, (COLOR_SHELL_STATE3_AGE - firework.age) * 25.5);
+                    }
                     else
                     {
                         const int32_t layer = (i - rayCount) / rayCount;
-                        if (firework.age < COLOR_SHELL_STATE2_AGE) color = layer == 0 ? 0xff1d28 : layer == 1 ? 0xff7924 : layer == 2 ? 0xffd832 : 0x43d84f;
-                        else if (firework.age < COLOR_SHELL_STATE3_AGE) color = layer == 0 ? 0xff9a28 : layer == 1 ? 0xe7df36 : layer == 2 ? 0x45dc62 : 0x348eff;
-                        else color = layer == 0 ? 0xffad2d : layer == 1 ? 0xcde13b : layer == 2 ? 0x3ed475 : 0x5264ff;
+                        const uint32_t state1Color = layer == 0 ? 0xff1d28 : layer == 1 ? 0xff7924 : layer == 2 ? 0xffd832 : 0x43d84f;
+                        const uint32_t state2Color = layer == 0 ? 0xff9a28 : layer == 1 ? 0xe7df36 : layer == 2 ? 0x45dc62 : 0x348eff;
+                        const uint32_t state3Color = layer == 0 ? 0xff3424 : layer == 1 ? 0xffa52a : layer == 2 ? 0x43d94c : 0x405fff;
+                        color = mixColor(mixColor(state1Color, state2Color, state2Blend), state3Color, state3Blend);
                     }
                 }
                 drawParticles(firework.particles[i], color, firework.age);
@@ -3984,14 +3997,6 @@ namespace
         for (int32_t i = 0; i < firework.particleCount; i++)
         {
             FIREWORK_PARTICLE& particle = firework.particles[i];
-            if (firework.burstType == 23 && firework.age == COLOR_SHELL_STATE3_AGE && i >= firework.particleCount / 5)
-            {
-                const int32_t rayCount = firework.particleCount / 5;
-                const int32_t layer = (i - rayCount) / rayCount;
-                const double expansion = layer == 0 ? 1.05 : layer == 1 ? 1.12 : layer == 2 ? 1.23 : 1.36;
-                particle.velocity.x *= expansion;
-                particle.velocity.y *= expansion;
-            }
             particle.alpha = max(0.0, particle.alpha - particle.alphaRate);
             alive |= particle.alpha > 0.0;
 
