@@ -81,7 +81,7 @@ void drawCylodiod(int32_t xc, int32_t yc, int32_t rd, uint8_t a, uint8_t b, doub
         lineTo(int32_t(x2), int32_t(y2), uint32_t(angle + col));
         angle += 0.001;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void drawPolygon(int32_t xc, int32_t yc, int32_t rd, uint8_t odre, uint8_t pas)
@@ -95,7 +95,7 @@ void drawPolygon(int32_t xc, int32_t yc, int32_t rd, uint8_t odre, uint8_t pas)
         lineTo(int32_t(xc + rd * cos(odre * rad)), int32_t(yc + rd * sin(odre * rad)), (angle % 192) + 16);
         angle += pas;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void rotatePolygon(POINT2D *pt, int32_t n, int32_t xc, int32_t yc, int32_t rd, int32_t num, uint8_t odre, uint32_t col)
@@ -121,7 +121,7 @@ void rotatePolygon(POINT2D *pt, int32_t n, int32_t xc, int32_t yc, int32_t rd, i
             pt[i].y = pt[i].y + (pt[(i + 1) % n].y - pt[i].y) / odre;
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uint8_t odre, uint32_t col)
@@ -147,7 +147,7 @@ void randomPoly(POINT2D *pt, int32_t n, int32_t xm, int32_t ym, int32_t num, uin
             pt[k].y = pt[k].y + (pt[(k + 1) % n].y - pt[k].y) / odre;
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, int32_t rd, uint8_t odre, uint32_t col)
@@ -195,7 +195,7 @@ void drawHexagon(POINT2D *pt, int32_t num, int32_t xc, int32_t yc, int32_t n, in
             }
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo0(int32_t xc, int32_t yc, int32_t xr, int32_t yr)
@@ -217,7 +217,7 @@ void graphDemo0(int32_t xc, int32_t yc, int32_t xr, int32_t yr)
         drawLine(int32_t(x0), int32_t(y0), int32_t(x0 + x1), int32_t(y0 - y1), i / 12 + 32);
         a += M_PI / 400;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo1(int32_t xc, int32_t yc, int32_t xr, int32_t yr)
@@ -235,7 +235,7 @@ void graphDemo1(int32_t xc, int32_t yc, int32_t xr, int32_t yr)
         drawLine(int32_t(x1), int32_t(y1), int32_t(x2), int32_t(y2), i / 7 + 32);
         angle += M_PI / 250.5;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo2(int32_t xc, int32_t yc, int32_t r)
@@ -252,7 +252,7 @@ void graphDemo2(int32_t xc, int32_t yc, int32_t r)
         drawLine(int32_t(x1), int32_t(y1), int32_t(x2), int32_t(y2), i / 23 + 32);
         angle += M_PI / 800;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo3(int32_t xc, int32_t yc, int32_t r)
@@ -269,7 +269,7 @@ void graphDemo3(int32_t xc, int32_t yc, int32_t r)
         drawLine(int32_t(x1), int32_t(y1), int32_t(x2), int32_t(y2), i / 23 + 32);
         angle += M_PI / 800;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo4(int32_t xc, int32_t yc, int32_t r)
@@ -286,7 +286,7 @@ void graphDemo4(int32_t xc, int32_t yc, int32_t r)
         drawLine(int32_t(x1), int32_t(y1), int32_t(x2), int32_t(y2), i / 12 + 32);
         angle += M_PI / 200;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo5(int32_t xi, int32_t yi, int32_t r, int32_t xr, int32_t yr)
@@ -319,7 +319,7 @@ void graphDemo5(int32_t xi, int32_t yi, int32_t r, int32_t xr, int32_t yr)
             lineTo(int32_t(sx), int32_t(sy), 6 * n + j + 48);
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo6(int32_t xc, int32_t yc, int32_t r)
@@ -364,7 +364,7 @@ void graphDemo6(int32_t xc, int32_t yc, int32_t r)
             lineTo(int32_t(sx), int32_t(sy), (120 * (2 * py + px) + i) / 22 + 32);
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo7(int32_t xc, int32_t yc, int32_t r)
@@ -413,7 +413,7 @@ void graphDemo7(int32_t xc, int32_t yc, int32_t r)
             lineTo(int32_t(sx), int32_t(sy), (120 * (2 * py + px) + i) / 22 + 32);
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
@@ -472,7 +472,7 @@ void graphDemo8(int32_t xc, int32_t yc, int32_t d, int32_t r)
             lineTo(int32_t(sx), int32_t(sy), uint32_t((120 * (px + py) + i) / 42 + 32));
         }
     }
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo9(int32_t xc, int32_t yc, double rd)
@@ -549,7 +549,7 @@ void graphDemo9(int32_t xc, int32_t yc, double rd)
         a += M_PI / 60;
         i++;
     }
-    render();
+    renderDrawBuffer();
 }
 
 void initDemo10(int32_t num, int32_t n)
@@ -616,7 +616,7 @@ void graphDemo10(int32_t xc, int32_t yc, int32_t rx, int32_t ry, int32_t col)
 
     for (i = 0; i < 119; i++) drawLine(data[i][0], data[i][1], data[i + 1][0], data[i + 1][1], col);
     drawLine(data[119][0], data[119][1], data[0][0], data[0][1], col);
-    render();
+    renderDrawBuffer();
 }
 
 void makePalette(uint8_t n, uint8_t r, uint8_t g, uint8_t b)
@@ -649,7 +649,7 @@ void graphDemo11()
         const int32_t y = rand() % getMaxY();
         const int32_t col = (rand() % 4) << 6;
         for (int32_t i = 0; i < 64; i++) fillCircle(x + (64 - i) / 2, y + (64 - i) / 2, (64 - i) * 2, i + col);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
         frames++;
     }
@@ -699,7 +699,7 @@ void graphDemo12()
             if (y2 < 0) y2 = 0;
 
             drawLineBob(x1, y1, x2, y2);
-            render();
+            renderDrawBuffer();
             frames++;
 
             readKeys();
@@ -728,7 +728,7 @@ void graphDemo13()
         }
     }
 
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo14()
@@ -753,14 +753,14 @@ void graphDemo14()
         }
     }
 
-    render();
+    renderDrawBuffer();
 }
 
 void graphDemo15()
 {
     const int32_t cmx = getMaxX();
     for (int32_t i = 0; i < cmx; i++) horizLine(0, i, cmx, 1 + ((int32_t)(i / 1.87) % 255));
-    render();
+    renderDrawBuffer();
 }
 
 double FX1(double x, double y)
@@ -1278,7 +1278,7 @@ void affichage(int32_t range)
     }
     
     setFontType(oldFont);
-    render();
+    renderDrawBuffer();
 }
 
 void resetParameters()
@@ -1340,7 +1340,7 @@ void scrollLed(const char *msg)
             }
             delay(10);
         }
-        render();
+        renderDrawBuffer();
         if (++m >= len) break;
     }
 }
@@ -1507,7 +1507,7 @@ void displayPlasma()
         //create plasma buffer and display on screen
         createPlasma(&dx, &dy, sint, cost, &src);
         putImage(alignedSize(x), y, &src);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
 
         //check limitation
@@ -1537,7 +1537,7 @@ void displayPlasma()
         putImage(0, 0, &dst);
         endPos = drawText(greets, count, ypos--);
         if (endPos <= 98) fadeDown(pal);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
     } while (ypos > -32767 && endPos > -30 && !finished(SDL_SCANCODE_RETURN));
 
@@ -1595,7 +1595,7 @@ void gfxDemoMix()
 
     makeFont(msgLoading);
     writeText(cx - (getFontWidth(msgLoading) >> 1), cy - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
-    render();
+    renderDrawBuffer();
     sleepFor(2000);
 
     setWindowTitle("Show PNG with alpha channel");

@@ -34,7 +34,7 @@ void runExit()
     {
         fadeOutImage(&img, 8);
         putImage(0, 0, &img);
-        render();
+        renderDrawBuffer();
         delay(10);
     }
 
@@ -69,7 +69,7 @@ void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
         delay(10);
         putImage(sx, sy, img);
         for (i = 0; i < MAX_TEXT_LINE; i++) writeText(sx + 10, sy + 10 + i * 10, RGB_GREY127, 2, texts[i]);
-        render();
+        renderDrawBuffer();
     }
     else
     {
@@ -79,7 +79,7 @@ void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
             //fill original background
             putImage(sx, sy, img);
             for (i = 0; i < MAX_TEXT_LINE - 1; i++) writeText(sx + 10, sy + 10 + i * 10 + y, RGB_GREY127, 2, texts[i]);
-            render();
+            renderDrawBuffer();
             delay(10);
         }
 
@@ -91,7 +91,7 @@ void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
         {
             msg[0] = str[i];
             writeText(sx + 10 + x, sy + 10 + 220, RGB_WHITE, 2, msg);
-            render();
+            renderDrawBuffer();
             x += getFontWidth(msg);
 
             //check for delay and skip
@@ -201,7 +201,7 @@ void runIntro()
                 if (getElapsedTime(startTime) / 1000 >= to) fadeOutCircle(((getElapsedTime(startTime) / 1000.0 - to) / 3.0) * 100.0, 20, 3, 0);
             }
         }
-        render();
+        renderDrawBuffer();
         waitFor(waitTime, 50);
     } while (!finished(SDL_SCANCODE_RETURN) && getElapsedTime(startTime) / 1000 < ts);
 
@@ -234,7 +234,7 @@ void runBlocking(int32_t sx, int32_t sy)
         blockOutMidImage(&img2, &fade1, dec << 1, dec << 1);
         brightnessImage(&img2, &img2, uint8_t(255.0 - double(dec) / (fade1.mWidth >> 2) * 255.0));
         putImage(sx, sy, &img2);
-        render();
+        renderDrawBuffer();
         delay(FPS_60);
     } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
 
@@ -243,7 +243,7 @@ void runBlocking(int32_t sx, int32_t sy)
     const int32_t height = fade1.mHeight;
 
     putImage(sx, sy, &fade1);
-    render();
+    renderDrawBuffer();
     freeImage(&img2);
 
     //load next step
@@ -265,7 +265,7 @@ void runBlocking(int32_t sx, int32_t sy)
         brightnessAlpha(&img2, uint8_t(255.0 - double(dec) / (img1.mWidth >> 3) * 255.0));
         putImage(sx + posx, sy + posy, &img3);
         putImage(sx + posx, sy + posy, &img2, BLEND_MODE_ALPHA);
-        render();
+        renderDrawBuffer();
         delay(FPS_60);
     } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
 
@@ -312,7 +312,7 @@ void runScaleUpImage(int32_t sx, int32_t sy)
         //restore to screen buffer to draw
         restoreDrawBuffer();
         putImage(sx, sy, &img2);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
 
         //save current buffer for next step
@@ -344,7 +344,7 @@ void runCrossFade(int32_t sx, int32_t sy)
         //blend image buffer
         blendImage(&img, &fade1, &fade2, val);
         putImage(sx, sy, &img);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
 
         //check for change direction
@@ -370,7 +370,7 @@ void runAddImage(int32_t sx, int32_t sy)
         putImage(alignedSize(int32_t(320 - cos(step / 160.0) * 320)), 0, &flare, BLEND_MODE_ADD);
         restoreDrawBuffer();
         putImage(sx, sy, &img);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
         clearImage(&img);
     } while (step > 0 && !finished(SDL_SCANCODE_RETURN));
@@ -403,7 +403,7 @@ void runRotateImage(int32_t sx, int32_t sy)
         //rotate buffer
         rotateImage(&img, &fade2, tables, fade2.mWidth >> 1, fade2.mHeight >> 1, degree % 360, 1);
         putImage(sx, sy, &img);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
         degree++;
     }
@@ -432,7 +432,7 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         //rotate buffer
         rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BILINEAR);
         putImage(sx, sy, &img);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
         degree++;
     }
@@ -480,7 +480,7 @@ void runAntiAliased(int32_t sx, int32_t sy)
         //fade-out current buffer
         putImage(sx, sy, &dst);
         fadeOutImage(&dst, 4);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
     }
 
@@ -549,7 +549,7 @@ void runLensFlare(GFX_IMAGE* outImg)
 
         //report FPS counter
         writeText(1, 1, RGB_WHITE, 0, "FPS: %.2f", 1000.0 / (time - oldTime));
-        render();
+        renderDrawBuffer();
 
         //timing for input and FPS counter
         oldTime = time;
@@ -588,7 +588,7 @@ void runBumpImage()
         //start bumping buffer
         bumpImage(&dst, &bumpchn, &bumpimg, lx, ly);
         putImage(0, 0, &dst);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
         clearImage(&dst);
         cnt++;
@@ -714,7 +714,7 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         //bilinear scale plasma buffer
         scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BICUBIC);
         putImage(sx, sy, &screen);
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
         frames++;
     }
@@ -738,7 +738,7 @@ void gfxDemo()
     const int32_t cheight = getDrawBufferHeight();
     
     writeText(cx - 8 * (uint32_t(strlen(initMsg)) >> 1), cy, RGB_GREY191, 2, initMsg);
-    render();
+    renderDrawBuffer();
 
     if (!initSystemInfo())
     {
@@ -789,7 +789,7 @@ void gfxDemo()
     writeText(xc + tx, 240, RGB_GREY127, 2, "CPU Frequency    : %.2f GHz", getCpuSpeed() / 1000.0);
     writeText(xc + tx, 250, RGB_GREY127, 2, "Physical Memory  : %lu MB", getTotalMemory());
     writeText(xc + tx, 260, RGB_GREY127, 2, "Available Memory : %lu MB", getAvailableMemory());
-    render();
+    renderDrawBuffer();
 
     fullSpeed = 1;
     showText(tx, yc, &txt, "Please wait while loading images...");

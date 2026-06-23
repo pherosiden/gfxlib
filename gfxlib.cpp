@@ -616,7 +616,7 @@ void cleanup()
 }
 
 //render function, use this to render draw buffer to video memory
-void render()
+void renderDrawBuffer()
 {
     if (bitsPerPixel == 8)
     {
@@ -637,18 +637,10 @@ void render()
 }
 
 // use GPU geometry render
-void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* indices, int32_t indexCount, SDL_BlendMode blendMode, bool includeFramebuffer)
+void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* indices, int32_t indexCount, SDL_BlendMode blendMode)
 {
-    if (includeFramebuffer && bitsPerPixel == 8)
-    {
-        SDL_BlitSurface(sdlSurface, NULL, sdlScreen, NULL);
-        SDL_UpdateTexture(sdlTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
-    }
-    else if (includeFramebuffer) SDL_UpdateTexture(sdlTexture, NULL, drawBuff, bytesPerScanline);
-
     SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(sdlRenderer);
-    if (includeFramebuffer) SDL_RenderTexture(sdlRenderer, sdlTexture, NULL, NULL);
 
     if (vertices && vertexCount > 0)
     {
@@ -761,7 +753,7 @@ void renderBuffer(const void* buffer, int32_t width, int32_t height)
 
     //done adjustment render buffer
     memcpy(drawBuff, buffer, bytesCopy);
-    render();
+    renderDrawBuffer();
 }
 
 //raise a message box
@@ -971,7 +963,7 @@ void clearScreenMix(uint32_t color)
     int32_t remainder = msize % 32;
     while (remainder--) *pixels++ = color;
 #endif
-    render();
+    renderDrawBuffer();
 }
 
 //clear screen with color
@@ -1023,7 +1015,7 @@ void clearScreen(uint32_t color)
     int32_t remainder = msize % 8;
     while (remainder--) *pixels++ = color;
 #endif
-    render();
+    renderDrawBuffer();
 }
 
 //plot a pixel at (x,y) with color
@@ -5096,7 +5088,7 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
             {
                 for (x = 0; x <= cmaxX / 40; x++) fillCircle(x * 40 + 20, y * 40 + 20, i, col);
             }
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5111,7 +5103,7 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                     if (cmaxY / 40 - y + i < 29) fillCircle(x * 40 + 20, y * 40 + 20, cmaxY / 40 - y + i, col);
                 }
             }
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5126,7 +5118,7 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                     if (cmaxX / 40 - x + i < 29) fillCircle(x * 40 + 20, y * 40 + 20, cmaxX / 40 - x + i, col);
                 }
             }
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5141,7 +5133,7 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                     if (cmaxX / 40 - x - y + i < 29) fillCircle(x * 40 + 20, y * 40 + 20, cmaxX / 40 - x - y + i, col);
                 }
             }
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5162,7 +5154,7 @@ void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
         for (i = 0; i < 20; i++)
         {
             for (j = 0; j <= cmaxY / 10; j++) horizLine(0, j * 20 + i, cmaxX, col);
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5171,7 +5163,7 @@ void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
         for (i = 0; i < 20; i++)
         {
             for (j = 0; j <= cmaxX / 10; j++) vertLine(j * 20 + i, 0, cmaxY, col);
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5184,7 +5176,7 @@ void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
                 vertLine(j * 20 + i, 0, cmaxY, col);
                 if (j * 10 < cmaxY) horizLine(0, j * 20 + i, cmaxX, col);
             }
-            render();
+            renderDrawBuffer();
             delay(mswait);
         }
         break;
@@ -5206,7 +5198,7 @@ void setActivePage(GFX_IMAGE* page)
 void setVisualPage(GFX_IMAGE* page)
 {
     changeDrawBuffer(page->mData, page->mWidth, page->mHeight);
-    render();
+    renderDrawBuffer();
     restoreDrawBuffer();
 }
 
@@ -9067,7 +9059,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
             memcpy(&pal[from], &pal[from + 1], steps);
             memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(ms);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9082,7 +9074,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
             memcpy(&pal[from], &pal[from + 1], steps);
             memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(ms);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9107,7 +9099,7 @@ void fadeIn(const RGBA* dest, uint32_t ms)
             if (dest[j].b > k && src[j].b < 252) src[j].b += 4;
         }
         setPalette(src);
-        render();
+        renderDrawBuffer();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9131,7 +9123,7 @@ void fadeOut(const RGBA* dest, uint32_t ms)
             if (dest[j].b < k && src[j].b > 4) src[j].b -= 4;
         }
         setPalette(src);
-        render();
+        renderDrawBuffer();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9154,7 +9146,7 @@ void fadeMax(uint32_t ms)
             if (src[j].b < 252) src[j].b += 4; else src[j].b = 255;
         }
         setPalette(src);
-        render();
+        renderDrawBuffer();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9177,7 +9169,7 @@ void fadeMin(uint32_t ms)
             if (src[j].b > 4) src[j].b -= 4; else src[j].b = 0;
         }
         setPalette(src);
-        render();
+        renderDrawBuffer();
         delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
@@ -9195,7 +9187,7 @@ void fadeDown(RGBA* pal)
         if (pal[i].b > 4) pal[i].b -= 2; else pal[i].b = 0;
     }
     setPalette(pal);
-    render();
+    renderDrawBuffer();
 }
 
 //convert mixed palette buffer to RGB buffer
@@ -9232,7 +9224,7 @@ void clearPalette()
     RGBA pal[256] = { 0 };
     memset(pal, 0, sizeof(pal));
     setPalette(pal);
-    render();
+    renderDrawBuffer();
 }
 
 //make white palette
@@ -9241,7 +9233,7 @@ void whitePalette()
     RGBA pal[256] = { 0 };
     memset(pal, 255, sizeof(pal));
     setPalette(pal);
-    render();
+    renderDrawBuffer();
 }
 
 //build default 256 colors palette
@@ -10127,7 +10119,7 @@ void showBMP(const char* fname)
     GFX_IMAGE bmp;
     loadImage(fname, &bmp);
     putImage(0, 0, &bmp);
-    render();
+    renderDrawBuffer();
     freeImage(&bmp);
 }
 
@@ -10148,7 +10140,7 @@ void showPNG(const char* fname)
 
     //render image
     putImage(0, 0, &png, BLEND_MODE_ALPHA);
-    render();
+    renderDrawBuffer();
     freeImage(&png);
 }
 
@@ -10161,7 +10153,7 @@ void showJPG(const char* fname)
 
     //render image
     putImage(0, 0, &jpg, BLEND_MODE_NORMAL);
-    render();
+    renderDrawBuffer();
     freeImage(&jpg);
 }
 
@@ -10917,7 +10909,7 @@ void handleMouseButton()
             }
         }
 
-        render();
+        renderDrawBuffer();
         delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN) && !done);
 

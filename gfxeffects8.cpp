@@ -85,7 +85,7 @@ namespace juliaSetEffect {
         }
 
         makePalette(1);
-        render();
+        renderDrawBuffer();
         waitUserInput();
         rotatePalette(1, 255, 0, 10);
         cleanup();
@@ -132,7 +132,7 @@ namespace juliaSetEffect {
         }
 
         makePalette(0);
-        render();
+        renderDrawBuffer();
         waitUserInput();
         rotatePalette(1, 255, 0, 10);
         cleanup();
@@ -522,7 +522,7 @@ namespace crossFadeEffect {
                 }
 
                 setPalette(pal);
-                render();
+                renderDrawBuffer();
                 delay(FPS_60);
 
                 readKeys();
@@ -547,7 +547,7 @@ namespace crossFadeEffect {
                 }
 
                 setPalette(pal);
-                render();
+                renderDrawBuffer();
                 delay(FPS_60);
                 
                 readKeys();
@@ -752,7 +752,7 @@ namespace rainEffect {
             di++;
         }
 #endif
-        render();
+        renderDrawBuffer();
         delay(FPS_90);
 
         readKeys();
@@ -1381,7 +1381,7 @@ namespace rainEffect {
         }
 
         setPalette(pal);
-        render();
+        renderDrawBuffer();
     }
 
     void run()
@@ -7014,7 +7014,7 @@ namespace fastShowBMP {
             vmem += IMAGE_WIDTH;
         }
 #endif
-        render();
+        renderDrawBuffer();
     }
 
     void run()
@@ -7083,7 +7083,7 @@ namespace EMSEffect {
         while (!finished(SDL_SCANCODE_RETURN)) 
         {
             EMS2RAM(vmem, handle[i]);
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
             if (i++ >= 14) i = 0;
         }
@@ -7720,7 +7720,7 @@ namespace fireworkEffect {
             cnt += arrowsPerFrame;
             for (i = 0; i < NUM_ARROWS; i++) handleArrow(arrows[i]);
             if (cnt > 1000) cnt = 0;
-            render();
+            renderDrawBuffer();
             delay(FPS_60);
         }
 
@@ -9552,7 +9552,7 @@ namespace kaleidoScopeEffect {
 
                     if (hc > END_COLOR) hc = START_COLOR;
 
-                    render();
+                    renderDrawBuffer();
                     delay(FPS_90);
                     
                     readKeys();
@@ -9704,7 +9704,7 @@ namespace kaleidoScopeEffect2 {
                     drawLineBob(cx + xa, cy + y1, cx + xb, cy + y2);
                     drawLineBob(cx + ya, cy + x1, cx + yb, cy + x2);
 
-                    render();
+                    renderDrawBuffer();
                     delay(FPS_90);
 
                     x1 = (x1 + xv1) % md;
@@ -9777,7 +9777,7 @@ namespace fastFillCircleEffect {
             const uint32_t y = rand() % cmy;
             const uint32_t col = (rand() % 4) * MAX_RAD;
             for (uint32_t i = 0; i < MAX_RAD; i++) fillCircle(x + ((MAX_RAD - i) >> 1), y + ((MAX_RAD - i) >> 1), (MAX_RAD - i) << 1, i + col);
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
         }
 
@@ -10697,7 +10697,7 @@ namespace lineBobEffect {
                 if (!(cnt % 10)) delay(10);
 
                 drawLineBob(x1, y1, x2, y2);
-                render();
+                renderDrawBuffer();
                 cnt++;
 
                 readKeys();
@@ -11799,7 +11799,7 @@ namespace plasmaEffect3 {
             memcpy(&pal[0], &pal[1], 255 * sizeof(RGBA));
             memcpy(&pal[255], &tmp, sizeof(RGBA));
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
         }
         cleanup();
@@ -12002,7 +12002,7 @@ namespace plasmaEffect5 {
             memcpy(&pal[x], &pal[x + 1], y * sizeof(RGBA));
             memcpy(&pal[y], &tmp, sizeof(RGBA));
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
 
@@ -12020,7 +12020,7 @@ namespace plasmaEffect5 {
             }
         }
 
-        render();
+        renderDrawBuffer();
     }
 
     void filterSinCos()
@@ -12035,7 +12035,7 @@ namespace plasmaEffect5 {
             }
         }
 
-        render();
+        renderDrawBuffer();
     }
 
     void run()
@@ -13602,7 +13602,7 @@ namespace softFireEffect {
                 }
             }
 
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
 
             readKeys();
@@ -13897,7 +13897,7 @@ namespace starEffect {
         while (!finished(SDL_SCANCODE_RETURN))
         {
             for (i = 0; i < MAXPOINT; i++) drawPoint(stars[i], 1);
-            render();
+            renderDrawBuffer();
             delay(FPS_30);
 
             for (i = 0; i < MAXPOINT; i++) drawPoint(stars[i], 0);
@@ -14097,7 +14097,7 @@ namespace star3dEffect {
         do {
             calcStars();
             drawStars();
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
             clearStars();
             moveStars(direction);
@@ -14551,7 +14551,7 @@ namespace thunderBoltEffect {
             }
 
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(15);
 
             readKeys();
@@ -14943,7 +14943,7 @@ namespace rippleEffect2 {
                 heighest[j] = uint8_t(lasth);
             }
 
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
         }
 
@@ -14991,7 +14991,7 @@ namespace waterFallEffect {
 
             shiftPalette(pal);
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
             ofs++;
         }
@@ -15109,7 +15109,7 @@ namespace wormEffect {
             for (int16_t i = 1; i < 16; i++) memcpy(&pal[(i - 1) << 4], &pal[i << 4], sizeof(tmp));
             memcpy(&pal[240], tmp, sizeof(tmp));
             setPalette(pal);
-            render();
+            renderDrawBuffer();
             delay(FPS_90);
         }
 

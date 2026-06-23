@@ -57,7 +57,7 @@ void showFontsDir(const char* path, const char* ext)
             }
 
             //display font contents on screen
-            render();
+            renderDrawBuffer();
             freeFont(0);
         }
 
@@ -103,7 +103,7 @@ void showFontsDir(const char* path, const char* ext)
         }
 
         //display font contents on screen
-        render();
+        renderDrawBuffer();
         freeFont(0);
     } while (!_findnext(hfile, &fileInfo));
 
