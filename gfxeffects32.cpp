@@ -2830,6 +2830,31 @@ void runRayCasting()
 
 namespace
 {
+    /* key binding
+    A -> burstType 0   basic peony
+    B -> burstType 1   three shells
+    C -> burstType 2   willow
+    D -> burstType 3   triple rainbow shell
+    E -> burstType 4   strobing crown
+    F -> burstType 5   silver palm
+    G -> burstType 6   gold chrysanthemum
+    H -> burstType 7   rainbow peony
+    I -> burstType 8   blue-white dahlia
+    J -> burstType 9   long golden spider
+    K -> burstType 10  crackling rain
+    L -> burstType 11  double shell
+    M -> burstType 12  red-gold weeping chrysanthemum
+    N -> burstType 13  orange/violet core
+    O -> burstType 14  white comet dahlia
+    P -> burstType 15  golden chrysanthemum
+    Q -> burstType 16  blue/pink crown
+    R -> burstType 17  red/violet filaments
+    S -> burstType 18  thick gold comets
+    T -> burstType 19  solid gold comets
+    U -> burstType 20  color shell
+    V -> random    
+    */
+
     constexpr int32_t MAX_FIREWORK_COUNT = 10;
     constexpr int32_t MAX_PARTICLE_COUNT = 800;
     constexpr int32_t MAX_TRAIL_LENGTH = 18;
