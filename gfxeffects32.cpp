@@ -4209,51 +4209,96 @@ static void drawMagicMirrorLine(int32_t cx, int32_t cy, double x1, double y1, do
     drawLine(cx - ix1, cy - iy1, cx - ix2, cy - iy2, color, BLEND_MODE_ADD);
 }
 
-static void drawMagicMirrorFan(int32_t cx, int32_t cy, int32_t frame)
+typedef struct
 {
-    const int32_t lineCount = 136;
-    const double time = frame * 0.033;
-    const double mirror = sin(time * 0.71);
-    const double swing = sin(time * 1.13);
-    const double fold = 0.5 + 0.5 * sin(time * 0.47 - M_PI * 0.55);
-    const double intro = clamp(frame / 34.0, 0.0, 1.0);
-    const double introSmooth = intro * intro * (3.0 - 2.0 * intro);
+    double x;
+    double y;
+    double dx;
+    double dy;
+} MAGIC_MIRROR_DOT;
 
-    for (int32_t i = 0; i < lineCount; i++)
+typedef struct
+{
+    MAGIC_MIRROR_DOT a;
+    MAGIC_MIRROR_DOT b;
+    MAGIC_MIRROR_DOT historyA[72];
+    MAGIC_MIRROR_DOT historyB[72];
+    int32_t head;
+    int32_t count;
+    int32_t colorOffset;
+} MAGIC_MIRROR_TRACE;
+
+static void initMagicMirrorDot(MAGIC_MIRROR_DOT& dot, double x, double y, double dx, double dy)
+{
+    dot.x = x;
+    dot.y = y;
+    dot.dx = dx;
+    dot.dy = dy;
+}
+
+static void updateMagicMirrorDot(MAGIC_MIRROR_DOT& dot, double minX, double minY, double maxX, double maxY)
+{
+    dot.x += dot.dx;
+    dot.y += dot.dy;
+
+    if (dot.x < minX)
     {
-        const double u = double(i) / (lineCount - 1);
-        const double ribbon = sin(u * M_PI);
-        const double twist = sin(time * 1.5 + u * M_PI * 3.2);
-        const double wave = sin(time * 0.9 + u * M_PI * 2.0);
-
-        const double spanA = 78.0 + 246.0 * u;
-        const double spanB = 46.0 + 272.0 * (1.0 - u);
-        const double pinch = 0.54 + 0.46 * fold;
-
-        const double x1 = spanA * (0.72 + 0.28 * mirror) + 34.0 * twist * ribbon;
-        const double y1 = -34.0 - 176.0 * (u * pinch) + 54.0 * wave * ribbon;
-        const double x2 = spanB * (1.02 - 0.32 * mirror) + 28.0 * wave * ribbon;
-        const double y2 = -42.0 - 168.0 * ((1.0 - u) * (1.0 - 0.34 * fold)) - 62.0 * swing * ribbon;
-
-        const int32_t hue = (frame * 2 + i * 5 + int32_t(80.0 * sin(time + u * 6.0))) & 0xff;
-        const double hotLine = 0.42 + 0.58 * pow(ribbon, 0.7);
-        const uint32_t color = fadeColor(hsv2rgb(hue, 255, 255), 205.0 * hotLine * introSmooth);
-        drawMagicMirrorLine(cx, cy, x1, y1, x2, y2, color);
+        dot.x = minX + (minX - dot.x);
+        dot.dx = -dot.dx;
+    }
+    else if (dot.x > maxX)
+    {
+        dot.x = maxX - (dot.x - maxX);
+        dot.dx = -dot.dx;
     }
 
-    for (int32_t i = 0; i < lineCount / 2; i++)
+    if (dot.y < minY)
     {
-        const double u = double(i) / (1.0 * lineCount / 2 - 1);
-        const double ribbon = sin(u * M_PI);
-        const double phase = time * 1.24 + u * M_PI * 2.5;
-        const double x1 = 18.0 + 302.0 * u + 34.0 * sin(phase) * ribbon;
-        const double y1 = -18.0 - 52.0 * fold - 132.0 * sin(u * M_PI * 0.74 + time * 0.58);
-        const double x2 = 28.0 + 292.0 * (1.0 - u) + 42.0 * cos(phase * 0.83) * ribbon;
-        const double y2 = -22.0 - 50.0 * (1.0 - fold) - 118.0 * cos(u * M_PI * 0.86 - time * 0.62);
+        dot.y = minY + (minY - dot.y);
+        dot.dy = -dot.dy;
+    }
+    else if (dot.y > maxY)
+    {
+        dot.y = maxY - (dot.y - maxY);
+        dot.dy = -dot.dy;
+    }
+}
 
-        const int32_t hue = (150 + frame * 3 + i * 7) & 0xff;
-        const uint32_t color = fadeColor(hsv2rgb(hue, 230, 255), 145.0 * introSmooth * (0.35 + 0.65 * ribbon));
-        drawMagicMirrorLine(cx, cy, x1, y1, x2, y2, color);
+static void pushMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace)
+{
+    trace.head = (trace.head + 1) % int32_t(sizeof(trace.historyA) / sizeof(trace.historyA[0]));
+    trace.historyA[trace.head] = trace.a;
+    trace.historyB[trace.head] = trace.b;
+    if (trace.count < int32_t(sizeof(trace.historyA) / sizeof(trace.historyA[0]))) trace.count++;
+}
+
+static void updateMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, double minX, double minY, double maxX, double maxY)
+{
+    updateMagicMirrorDot(trace.a, minX, minY, maxX, maxY);
+    updateMagicMirrorDot(trace.b, minX, minY, maxX, maxY);
+    pushMagicMirrorTrace(trace);
+}
+
+static void initMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, double ax, double ay, double adx, double ady, double bx, double by, double bdx, double bdy, int32_t colorOffset)
+{
+    initMagicMirrorDot(trace.a, ax, ay, adx, ady);
+    initMagicMirrorDot(trace.b, bx, by, bdx, bdy);
+    trace.head = -1;
+    trace.count = 0;
+    trace.colorOffset = colorOffset;
+}
+
+static void drawMagicMirrorTrace(const MAGIC_MIRROR_TRACE& trace, int32_t cx, int32_t cy, const uint32_t* palette, int32_t frame)
+{
+    constexpr int32_t MAGIC_MIRROR_HISTORY = int32_t(sizeof(trace.historyA) / sizeof(trace.historyA[0]));
+
+    for (int32_t i = 0; i < trace.count; i++)
+    {
+        const int32_t index = (trace.head - i + MAGIC_MIRROR_HISTORY) % MAGIC_MIRROR_HISTORY;
+        const double age = 1.0 - double(i) / max(1, trace.count - 1);
+        const double intensity = 78.0 + 142.0 * age;
+        const uint32_t color = fadeColor(palette[(frame + trace.colorOffset - i * 2) & 0xff], intensity);
+        drawMagicMirrorLine(cx, cy, trace.historyA[index].x, trace.historyA[index].y, trace.historyB[index].x, trace.historyB[index].y, color);
     }
 }
 
@@ -4262,12 +4307,42 @@ void magicMirrorDemo()
     if (!initScreen(640, 480, 32, 0, "Magic Mirror - Press Enter for next demo")) return;
     setRenderVSync(1);
 
+    constexpr int32_t MAGIC_MIRROR_TRACE_COUNT = 3;
+    MAGIC_MIRROR_TRACE traces[MAGIC_MIRROR_TRACE_COUNT] = { 0 };
+    uint32_t rainbow[SIZE_256] = { 0 };
+
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
+    const double minX = 6.0;
+    const double minY = 6.0;
+    const double maxX = double(cx - 8);
+    const double maxY = double(cy - 8);
+
+    for (int32_t i = 0; i < SIZE_256; i++) rainbow[i] = hsv2rgb(i, 255, 255);
+
+    initMagicMirrorTrace(traces[0], 304.0, 26.0, -3.30, 2.10, 36.0, 132.0, 2.55, 1.68, 0);
+    initMagicMirrorTrace(traces[1], 288.0, 218.0, -2.70, -1.95, 78.0, 40.0, 3.05, 2.38, 58);
+    initMagicMirrorTrace(traces[2], 24.0, 220.0, 2.20, -2.85, 270.0, 72.0, -3.18, 1.52, 126);
+
+    for (int32_t warmup = 0; warmup < 72; warmup++)
+    {
+        for (int32_t i = 0; i < MAGIC_MIRROR_TRACE_COUNT; i++)
+            updateMagicMirrorTrace(traces[i], minX, minY, maxX, maxY);
+    }
+
     int32_t frame = 0;
     do {
         clearDrawBuffer();
-        drawMagicMirrorFan(getCenterX(), getCenterY(), frame++);
+
+        for (int32_t i = 0; i < MAGIC_MIRROR_TRACE_COUNT; i++)
+        {
+            updateMagicMirrorTrace(traces[i], minX, minY, maxX, maxY);
+            drawMagicMirrorTrace(traces[i], cx, cy, rainbow, frame * 2);
+        }
+
+        frame++;
         renderDrawBuffer();
-        delay(FPS_60);
+        delay(65);
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();
@@ -4275,7 +4350,7 @@ void magicMirrorDemo()
 
 void gfxEffects()
 {
-    juliaSet();
+    /*juliaSet();
     mandelbrotSet();
     juliaExplorer();
     mandelbrotExporer();
@@ -4286,7 +4361,7 @@ void gfxEffects()
     basicDrawing();
     imageArithmetic();
     imageFillter();
-    crossFading();
+    crossFading();*/
     magicMirrorDemo();
     fireworksDemo();
     rayCasting();
