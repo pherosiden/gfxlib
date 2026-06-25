@@ -9564,7 +9564,7 @@ namespace kaleidoScopeEffect {
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             }
 
-            clearScreen();
+            clearDrawBuffer();
         } while (!keyDown(SDL_SCANCODE_RETURN));
 
         cleanup();
@@ -9723,7 +9723,7 @@ namespace kaleidoScopeEffect2 {
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
             }
 
-            clearScreen();
+            clearDrawBuffer();
             if (mode) scrollPalette(0, 255, 64);
         } while (!keyDown(SDL_SCANCODE_RETURN));
 
@@ -10665,7 +10665,7 @@ namespace lineBobEffect {
 
         do {
             cnt = 0;
-            clearScreen();
+            clearDrawBuffer();
             makeFunkyPalette();
 
             const int32_t cmx = getMaxX();
@@ -14083,7 +14083,7 @@ namespace star3dEffect {
 
         shiftPalette(pal);
         setPalette(pal);
-        clearScreen();
+        clearDrawBuffer();
 
         direction = true;
         speed = 2;

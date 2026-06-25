@@ -459,6 +459,7 @@ void        getViewPort(int32_t* x1, int32_t* y1, int32_t* x2, int32_t* y2);
 void        changeViewPort(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void        restoreViewPort();
 void        cleanup();
+void        clearDrawBuffer();
 void        renderDrawBuffer();
 void        renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* indices = NULL, int32_t indexCount = 0, SDL_BlendMode blendMode = SDL_BLENDMODE_ADD);
 bool        setRenderVSync(int32_t vsync);
@@ -473,8 +474,6 @@ int32_t     getDrawBufferHeight();
 void        messageBox(int32_t type, const char* fmt, ...);
 void        writeText(int32_t x, int32_t y, uint32_t txtColor, uint32_t mode, const char* format, ...);
 int32_t     drawText(const char* const str[], uint32_t count, int32_t ypos);
-
-void        clearScreen(uint32_t color = 0);
 
 //pixels function
 uint32_t    getPixel(int32_t x, int32_t y);

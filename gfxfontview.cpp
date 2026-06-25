@@ -46,7 +46,7 @@ void showFontsDir(const char* path, const char* ext)
                 if (y > cmy - height)
                 {
                     waitUserInput();
-                    clearScreen();
+                    clearDrawBuffer();
                     y = 10;
                 }
 
@@ -92,7 +92,7 @@ void showFontsDir(const char* path, const char* ext)
             if (y > cmy - height)
             {
                 waitUserInput();
-                clearScreen();
+                clearDrawBuffer();
                 y = 10;
             }
 

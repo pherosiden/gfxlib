@@ -1,4 +1,4 @@
-#include "gfxlib.h"
+﻿#include "gfxlib.h"
 
 #define SCR_WIDTH	640
 #define SCR_HEIGHT	480 
@@ -4196,9 +4196,86 @@ void fireworksDemo()
     cleanup();
 }
 
+static void drawMagicMirrorLine(int32_t cx, int32_t cy, double x1, double y1, double x2, double y2, uint32_t color)
+{
+    const int32_t ix1 = int32_t(round(x1));
+    const int32_t iy1 = int32_t(round(y1));
+    const int32_t ix2 = int32_t(round(x2));
+    const int32_t iy2 = int32_t(round(y2));
+
+    drawLine(cx + ix1, cy + iy1, cx + ix2, cy + iy2, color, BLEND_MODE_ADD);
+    drawLine(cx - ix1, cy + iy1, cx - ix2, cy + iy2, color, BLEND_MODE_ADD);
+    drawLine(cx + ix1, cy - iy1, cx + ix2, cy - iy2, color, BLEND_MODE_ADD);
+    drawLine(cx - ix1, cy - iy1, cx - ix2, cy - iy2, color, BLEND_MODE_ADD);
+}
+
+static void drawMagicMirrorFan(int32_t cx, int32_t cy, int32_t frame)
+{
+    const int32_t lineCount = 136;
+    const double time = frame * 0.033;
+    const double mirror = sin(time * 0.71);
+    const double swing = sin(time * 1.13);
+    const double fold = 0.5 + 0.5 * sin(time * 0.47 - M_PI * 0.55);
+    const double intro = clamp(frame / 34.0, 0.0, 1.0);
+    const double introSmooth = intro * intro * (3.0 - 2.0 * intro);
+
+    for (int32_t i = 0; i < lineCount; i++)
+    {
+        const double u = double(i) / (lineCount - 1);
+        const double ribbon = sin(u * M_PI);
+        const double twist = sin(time * 1.5 + u * M_PI * 3.2);
+        const double wave = sin(time * 0.9 + u * M_PI * 2.0);
+
+        const double spanA = 78.0 + 246.0 * u;
+        const double spanB = 46.0 + 272.0 * (1.0 - u);
+        const double pinch = 0.54 + 0.46 * fold;
+
+        const double x1 = spanA * (0.72 + 0.28 * mirror) + 34.0 * twist * ribbon;
+        const double y1 = -34.0 - 176.0 * (u * pinch) + 54.0 * wave * ribbon;
+        const double x2 = spanB * (1.02 - 0.32 * mirror) + 28.0 * wave * ribbon;
+        const double y2 = -42.0 - 168.0 * ((1.0 - u) * (1.0 - 0.34 * fold)) - 62.0 * swing * ribbon;
+
+        const int32_t hue = (frame * 2 + i * 5 + int32_t(80.0 * sin(time + u * 6.0))) & 0xff;
+        const double hotLine = 0.42 + 0.58 * pow(ribbon, 0.7);
+        const uint32_t color = fadeColor(hsv2rgb(hue, 255, 255), 205.0 * hotLine * introSmooth);
+        drawMagicMirrorLine(cx, cy, x1, y1, x2, y2, color);
+    }
+
+    for (int32_t i = 0; i < lineCount / 2; i++)
+    {
+        const double u = double(i) / (1.0 * lineCount / 2 - 1);
+        const double ribbon = sin(u * M_PI);
+        const double phase = time * 1.24 + u * M_PI * 2.5;
+        const double x1 = 18.0 + 302.0 * u + 34.0 * sin(phase) * ribbon;
+        const double y1 = -18.0 - 52.0 * fold - 132.0 * sin(u * M_PI * 0.74 + time * 0.58);
+        const double x2 = 28.0 + 292.0 * (1.0 - u) + 42.0 * cos(phase * 0.83) * ribbon;
+        const double y2 = -22.0 - 50.0 * (1.0 - fold) - 118.0 * cos(u * M_PI * 0.86 - time * 0.62);
+
+        const int32_t hue = (150 + frame * 3 + i * 7) & 0xff;
+        const uint32_t color = fadeColor(hsv2rgb(hue, 230, 255), 145.0 * introSmooth * (0.35 + 0.65 * ribbon));
+        drawMagicMirrorLine(cx, cy, x1, y1, x2, y2, color);
+    }
+}
+
+void magicMirrorDemo()
+{
+    if (!initScreen(640, 480, 32, 0, "Magic Mirror - Press Enter for next demo")) return;
+    setRenderVSync(1);
+
+    int32_t frame = 0;
+    do {
+        clearDrawBuffer();
+        drawMagicMirrorFan(getCenterX(), getCenterY(), frame++);
+        renderDrawBuffer();
+        delay(FPS_60);
+    } while (!finished(SDL_SCANCODE_RETURN));
+
+    cleanup();
+}
+
 void gfxEffects()
 {
-    /*juliaSet();
+    juliaSet();
     mandelbrotSet();
     juliaExplorer();
     mandelbrotExporer();
@@ -4209,7 +4286,8 @@ void gfxEffects()
     basicDrawing();
     imageArithmetic();
     imageFillter();
-    crossFading();*/
+    crossFading();
+    magicMirrorDemo();
     fireworksDemo();
     rayCasting();
     runRayCasting();

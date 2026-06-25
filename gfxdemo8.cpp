@@ -706,7 +706,7 @@ void graphDemo12()
             if (keyPressed(SDL_SCANCODE_RETURN)) break;
         }
 
-        clearScreen();
+        clearDrawBuffer();
     } while (!finished(SDL_SCANCODE_RETURN));
 }
 
@@ -1644,68 +1644,68 @@ void gfxDemoMix()
     sleepFor(2000);
     fadeRollo(2, 0);
 
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     setWindowTitle("Free Drawing");
     graphDemo0(cx, cy, int32_t(200 * ratio), int32_t(100 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
 
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo1(cx, cy, int32_t(160 * ratio), int32_t(40 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
 
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo2(cx, cy, int32_t(80 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo3(cx, cy, int32_t(80 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo4(cx, cy, int32_t(120 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo5(cmx / 7, cmy / 5 - 10, int32_t(28 * ratio), int32_t(90 * ratio), int32_t(62 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo6(cx, cy, int32_t(200 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo7(cx, cy, int32_t(200 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo8(cx, cy, int32_t(245 * ratio), int32_t(100 * ratio));
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     graphDemo9(cx, cy, 0.6 * ratio);
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     
     initDemo10(1, 4);
@@ -1723,7 +1723,7 @@ void gfxDemoMix()
     rotatePalette(64, 103, 40, FPS_90);
 
     setWindowTitle("Draw Polygon");
-    clearScreen();
+    clearDrawBuffer();
     makeLinearPalette();
     getPalette(pal1);
     clearPalette();
@@ -1731,7 +1731,7 @@ void gfxDemoMix()
     fadeIn(pal1, FPS_90);
     rotatePalette(16, 177, 162, FPS_90);
     
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
 
     setWindowTitle("Cycloidal Curves");
@@ -1753,7 +1753,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     sleepFor(2000);
 
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
 
     drawCylodiod(cmx / 7 - 20, cmy / 5 - 30, 80, 5, 1, rept, 40);
@@ -1774,28 +1774,28 @@ void gfxDemoMix()
     sleepFor(2000);
 
     setWindowTitle("Polygon Rotation");
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     rotatePolygon(points, 6, cx, cy, cx - 140, 100, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
     
     setWindowTitle("Randomize Polygon");
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     randomPoly(points, 12, cmx, cmy, 40, 20, 37);
     fadeIn(pal2, FPS_90);
     rotatePalette(37, 103, 67, FPS_90);
 
     setWindowTitle("Draw Hexagon");
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
     drawHexagon(points, 12, cx, cy, 35, cx - 140, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
 
     setWindowTitle("Fast Filled Circle");
-    clearScreen();
+    clearDrawBuffer();
     makePalette(0, 63, 32, 16);
     makePalette(64, 32, 63, 16);
     makePalette(128, 16, 16, 63);
@@ -1805,7 +1805,7 @@ void gfxDemoMix()
     fadeRollo(2, 0);
     
     setWindowTitle("Draw Line Bob Color");
-    clearScreen();
+    clearDrawBuffer();
     graphDemo12();
     fadeRollo(1, 0);
 
@@ -1818,7 +1818,7 @@ void gfxDemoMix()
     rotatePalette(16, 207, 192, FPS_90);
 
     setWindowTitle("Randomize Filled Polygon");
-    clearScreen();
+    clearDrawBuffer();
     makeLinearPalette();
     getPalette(pal1);
     clearPalette();
@@ -1827,7 +1827,7 @@ void gfxDemoMix()
     rotatePalette(16, 207, 192, FPS_90);
 
     setWindowTitle("Draw Copper Bar");
-    clearScreen();
+    clearDrawBuffer();
     makeRainbowPalette();
     getPalette(pal1);
     clearPalette();
@@ -1835,7 +1835,7 @@ void gfxDemoMix()
     fadeIn(pal1, FPS_90);
     rotatePalette(1, 255, 255, FPS_90);
 
-    clearScreen();
+    clearDrawBuffer();
     clearPalette();
 
     if (!loadFont("assets/sys8x16.xfn", 0)) return;
@@ -1852,7 +1852,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX2;
     resetParameters();
@@ -1865,7 +1865,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX3;
     resetParameters();
@@ -1878,7 +1878,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX4;
     resetParameters(); 
@@ -1891,7 +1891,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX5;
     resetParameters();
@@ -1904,7 +1904,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 45, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX11;
     FY = FY11;
@@ -1917,7 +1917,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX21;
     FY = FY21;
@@ -1930,7 +1930,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX31;
     FY = FY31;
@@ -1943,7 +1943,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     FX = FX41;
     FY = FY41;
@@ -1956,7 +1956,7 @@ void gfxDemoMix()
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 72, FPS_90);
     fadeMin(FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     freeFont(0);
     freeFont(1);
@@ -1978,7 +1978,7 @@ void gfxDemoMix()
 
     fadeIn(pal2, FPS_90);
     rotatePalette(32, 103, 250, FPS_90);
-    clearScreen();
+    clearDrawBuffer();
 
     setWindowTitle("Scrolling Led Font");
     setPalette(pal2);
@@ -1988,7 +1988,7 @@ void gfxDemoMix()
     writeText(cx - (getFontWidth(msgBanner) >> 1), cmy - getFontHeight(msgBanner) - 2, 40, 1, msgBanner);
     scrollLed(msgScroll);
     freeFont(0);
-    clearScreen();
+    clearDrawBuffer();
 
     setWindowTitle("Plasma Generating");
     displayPlasma();

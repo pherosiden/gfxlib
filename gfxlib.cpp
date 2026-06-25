@@ -927,7 +927,7 @@ int32_t getMinY()
 }
 
 //clear screen with color
-void clearScreenMix(uint32_t color)
+void clearDrawBufferMix()
 {
     const uint32_t msize = texHeight * texWidth;
 #ifdef _USE_ASM
@@ -937,8 +937,7 @@ void clearScreenMix(uint32_t color)
         shr     ecx, 2
         mov     ebx, msize
         and     ebx, 3
-        mov     al, byte ptr color
-        mov     ah, al
+        xor     ax, ax
         mov     dx, ax
         shl     eax, 16
         mov     ax, dx
@@ -949,7 +948,7 @@ void clearScreenMix(uint32_t color)
 #else
     //32-bytes alignment
     const int32_t aligned = msize >> 5;
-    const __m256i ymm0 = _mm256_set1_epi8(color);
+    const __m256i ymm0 = _mm256_set1_epi8(0);
     uint8_t* pixels = (uint8_t*)drawBuff;
 
     //loop for 32-bytes aligned
@@ -961,18 +960,17 @@ void clearScreenMix(uint32_t color)
 
     //have unaligned bytes?
     int32_t remainder = msize % 32;
-    while (remainder--) *pixels++ = color;
+    memset(pixels, 0, remainder);
 #endif
-    renderDrawBuffer();
 }
 
 //clear screen with color
-void clearScreen(uint32_t color)
+void clearDrawBuffer()
 {
     //mixed mode?
     if (bitsPerPixel == 8)
     {
-        clearScreenMix(color);
+        clearDrawBufferMix();
         return;
     }
 
@@ -981,7 +979,7 @@ void clearScreen(uint32_t color)
 #ifdef _USE_ASM
     __asm {
         mov         edi, drawBuff
-        movd        mm0, color
+        movd        mm0, 0
         mov         ecx, msize
         shr         ecx, 1
         jz          once
@@ -1001,7 +999,7 @@ void clearScreen(uint32_t color)
 #else
     //32-bytes alignment
     const int32_t aligned = msize >> 3;
-    const __m256i ymm0 = _mm256_set1_epi32(color);
+    const __m256i ymm0 = _mm256_set1_epi32(0);
     uint32_t* pixels = (uint32_t*)drawBuff;
     
     //loop for 32-bytes aligned
@@ -1013,9 +1011,8 @@ void clearScreen(uint32_t color)
 
     //have unaligned bytes?
     int32_t remainder = msize % 8;
-    while (remainder--) *pixels++ = color;
+    memset(pixels, 0, remainder * sizeof(uint32_t));
 #endif
-    renderDrawBuffer();
 }
 
 //plot a pixel at (x,y) with color
