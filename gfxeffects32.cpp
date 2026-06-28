@@ -1,4 +1,4 @@
-#include "gfxlib.h"
+﻿#include "gfxlib.h"
 
 #define SCR_WIDTH	640
 #define SCR_HEIGHT	480 
@@ -4205,7 +4205,6 @@ struct MAGIC_MIRROR_TRACE
     uint32_t color[MAGIC_MIRROR_TAIL];
     int32_t head;
     int32_t count;
-    int32_t colorOffset;
 };
 
 void initMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t x, int32_t y, int32_t dx, int32_t dy)
@@ -4234,7 +4233,6 @@ void initMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY)
     initMagicMirrorPoint(trace.b, random(0, maxX), -random(0, maxY), magicMirrorVelocity(), magicMirrorVelocity());
     trace.head = -1;
     trace.count = 0;
-    trace.colorOffset = random(256);
 }
 
 void bounceMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t maxX, int32_t maxY)
@@ -4265,10 +4263,10 @@ void bounceMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t maxX, int32_t max
     }
 }
 
-uint32_t magicMirrorColor(const MAGIC_MIRROR_TRACE& trace, int32_t lineIndex)
+uint32_t magicMirrorColor(int32_t lineIndex)
 {
     const int32_t block = lineIndex >= 0 ? lineIndex / MAGIC_MIRROR_SPEED : (lineIndex - (MAGIC_MIRROR_SPEED - 1)) / MAGIC_MIRROR_SPEED;
-    return hsv2rgb((trace.colorOffset + block * 13) & 0xff, 255, 255);
+    return hsv2rgb((block * 13) & 0xff, 255, 255);
 }
 
 void pushMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, uint32_t color)
@@ -4307,7 +4305,7 @@ void drawMagicMirrorTrace(const MAGIC_MIRROR_TRACE& trace, int32_t cx, int32_t c
 void warmupMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY)
 {
     initMagicMirrorTrace(trace, maxX, maxY);
-    for (int32_t i = 0; i < MAGIC_MIRROR_TAIL; i++) updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(trace, i - MAGIC_MIRROR_TAIL));
+    for (int32_t i = 0; i < MAGIC_MIRROR_TAIL; i++) updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(i - MAGIC_MIRROR_TAIL));
 }
 
 void magicMirrorDemo()
@@ -4332,7 +4330,7 @@ void magicMirrorDemo()
         delay(10);
 
         frame++;
-        updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(trace, frame));
+        updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();
