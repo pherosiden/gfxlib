@@ -1,4 +1,4 @@
-﻿#include "gfxlib.h"
+#include "gfxlib.h"
 
 #define SCR_WIDTH	640
 #define SCR_HEIGHT	480 
@@ -4190,10 +4190,10 @@ constexpr int32_t MAGIC_MIRROR_MAX_SPACE = 10;  //maximum pixels of space betwee
 
 struct MAGIC_MIRROR_POINT
 {
-    double x;
-    double y;
-    double dx;
-    double dy;
+    int32_t x;
+    int32_t y;
+    int32_t dx;
+    int32_t dy;
 };
 
 struct MAGIC_MIRROR_TRACE
@@ -4205,9 +4205,10 @@ struct MAGIC_MIRROR_TRACE
     uint32_t color[MAGIC_MIRROR_TAIL];
     int32_t head;
     int32_t count;
+    int32_t colorOffset;
 };
 
-void initMagicMirrorPoint(MAGIC_MIRROR_POINT& point, double x, double y, double dx, double dy)
+void initMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t x, int32_t y, int32_t dx, int32_t dy)
 {
     point.x = x;
     point.y = y;
@@ -4215,47 +4216,59 @@ void initMagicMirrorPoint(MAGIC_MIRROR_POINT& point, double x, double y, double 
     point.dy = dy;
 }
 
-void initMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, double scale)
+int32_t magicMirrorSpeed()
 {
-    const double space = MAGIC_MIRROR_MAX_SPACE * scale;
-    initMagicMirrorPoint(trace.a, 157.0 * scale, -379.0 * scale, 0.8 * space, -0.1 * space);
-    initMagicMirrorPoint(trace.b, 382.0 * scale, -349.0 * scale, 0.4 * space, -0.3 * space);
-    trace.head = -1;
-    trace.count = 0;
+    const int32_t space = MAGIC_MIRROR_MAX_SPACE;
+    return random(max(1, space / 10), max(1, space));
 }
 
-void bounceMagicMirrorPoint(MAGIC_MIRROR_POINT& point, double maxX, double maxY)
+int32_t magicMirrorVelocity()
+{
+    const int32_t speed = magicMirrorSpeed();
+    return random(2) ? speed : -speed;
+}
+
+void initMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY)
+{
+    initMagicMirrorPoint(trace.a, random(0, maxX), -random(0, maxY), magicMirrorVelocity(), magicMirrorVelocity());
+    initMagicMirrorPoint(trace.b, random(0, maxX), -random(0, maxY), magicMirrorVelocity(), magicMirrorVelocity());
+    trace.head = -1;
+    trace.count = 0;
+    trace.colorOffset = random(256);
+}
+
+void bounceMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t maxX, int32_t maxY)
 {
     point.x += point.dx;
     point.y += point.dy;
 
-    if (point.x < 0.0)
+    if (point.x < 0)
     {
         point.x = -point.x;
-        point.dx = -point.dx;
+        point.dx = magicMirrorSpeed();
     }
     else if (point.x > maxX)
     {
         point.x = maxX - (point.x - maxX);
-        point.dx = -point.dx;
+        point.dx = -magicMirrorSpeed();
     }
 
-    if (point.y > 0.0)
+    if (point.y > 0)
     {
         point.y = -point.y;
-        point.dy = -point.dy;
+        point.dy = -magicMirrorSpeed();
     }
     else if (point.y < -maxY)
     {
         point.y = -maxY - (point.y + maxY);
-        point.dy = -point.dy;
+        point.dy = magicMirrorSpeed();
     }
 }
 
-uint32_t magicMirrorColor(int32_t lineIndex)
+uint32_t magicMirrorColor(const MAGIC_MIRROR_TRACE& trace, int32_t lineIndex)
 {
     const int32_t block = lineIndex >= 0 ? lineIndex / MAGIC_MIRROR_SPEED : (lineIndex - (MAGIC_MIRROR_SPEED - 1)) / MAGIC_MIRROR_SPEED;
-    return hsv2rgb((block * 13) & 0xff, 255, 255);
+    return hsv2rgb((trace.colorOffset + block * 13) & 0xff, 255, 255);
 }
 
 void pushMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, uint32_t color)
@@ -4267,7 +4280,7 @@ void pushMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, uint32_t color)
     if (trace.count < MAGIC_MIRROR_TAIL) trace.count++;
 }
 
-void updateMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, double maxX, double maxY, uint32_t color)
+void updateMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY, uint32_t color)
 {
     pushMagicMirrorTrace(trace, color);
     bounceMagicMirrorPoint(trace.a, maxX, maxY);
@@ -4276,14 +4289,9 @@ void updateMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, double maxX, double maxY,
 
 void drawMagicMirrorSegment(int32_t cx, int32_t cy, const MAGIC_MIRROR_POINT& a, const MAGIC_MIRROR_POINT& b, uint32_t color)
 {
-    const int32_t ax = int32_t(round(a.x));
-    const int32_t ay = int32_t(round(a.y));
-    const int32_t bx = int32_t(round(b.x));
-    const int32_t by = int32_t(round(b.y));
-
     for (int32_t sx = -1; sx <= 1; sx += 2)
     {
-        for (int32_t sy = -1; sy <= 1; sy += 2) drawLine(cx + sx * ax, cy + sy * ay, cx + sx * bx, cy + sy * by, color, BLEND_MODE_ADD);
+        for (int32_t sy = -1; sy <= 1; sy += 2) drawLine(cx + sx * a.x, cy + sy * a.y, cx + sx * b.x, cy + sy * b.y, color, BLEND_MODE_ADD);
     }
 }
 
@@ -4296,10 +4304,10 @@ void drawMagicMirrorTrace(const MAGIC_MIRROR_TRACE& trace, int32_t cx, int32_t c
     }
 }
 
-void warmupMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, double maxX, double maxY, double scale)
+void warmupMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY)
 {
-    initMagicMirrorTrace(trace, scale);
-    for (int32_t i = 0; i < MAGIC_MIRROR_TAIL; i++) updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(i - MAGIC_MIRROR_TAIL));
+    initMagicMirrorTrace(trace, maxX, maxY);
+    for (int32_t i = 0; i < MAGIC_MIRROR_TAIL; i++) updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(trace, i - MAGIC_MIRROR_TAIL));
 }
 
 void magicMirrorDemo()
@@ -4309,12 +4317,11 @@ void magicMirrorDemo()
 
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
-    const double scale = min(cx / 512.0, cy / 384.0);
-    const double maxX = double(cx);
-    const double maxY = double(cy);
+    const int32_t maxX = cx;
+    const int32_t maxY = cy;
     MAGIC_MIRROR_TRACE trace = { 0 };
 
-    warmupMagicMirrorTrace(trace, maxX, maxY, scale);
+    warmupMagicMirrorTrace(trace, maxX, maxY);
 
     int32_t frame = 0;
     do {
@@ -4325,7 +4332,7 @@ void magicMirrorDemo()
         delay(10);
 
         frame++;
-        updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
+        updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(trace, frame));
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();
