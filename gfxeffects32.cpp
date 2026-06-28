@@ -4187,6 +4187,7 @@ void fireworksDemo()
 constexpr int32_t MAGIC_MIRROR_TAIL = 75;       //number of lines kept on screen before erasing
 constexpr int32_t MAGIC_MIRROR_SPEED = 25;      //number of lines drawn before changing color
 constexpr int32_t MAGIC_MIRROR_MAX_SPACE = 10;  //maximum pixels of space between lines
+constexpr int32_t MAGIC_MIRROR_MIN_SPACE = 2;   //minimum pixels of space between lines
 
 struct MAGIC_MIRROR_POINT
 {
@@ -4217,8 +4218,7 @@ void initMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t x, int32_t y, int32
 
 int32_t magicMirrorSpeed()
 {
-    const int32_t space = MAGIC_MIRROR_MAX_SPACE;
-    return random(max(1, space / 10), max(1, space));
+    return random(MAGIC_MIRROR_MIN_SPACE, MAGIC_MIRROR_MAX_SPACE);
 }
 
 int32_t magicMirrorVelocity()
@@ -4327,7 +4327,7 @@ void magicMirrorDemo()
         clearDrawBuffer();
         drawMagicMirrorTrace(trace, cx, cy);
         renderDrawBuffer();
-        delay(10);
+        delay(FPS_60);
 
         frame++;
         updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
