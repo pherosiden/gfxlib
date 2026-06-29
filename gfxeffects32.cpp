@@ -4328,7 +4328,7 @@ void magicMirrorDemo()
     int32_t mirror = MAGIC_MIRROR_BOTH; //0=NONE, 1=HORZ, 2=VERT, 3=BOTH
     mirror &= MAGIC_MIRROR_BOTH;
 
-    if (!initScreen(1024, 768, 32, 0, "Magic Mirror - Press Enter for next demo")) return;
+    if (!initScreen(1024, 768, 32, 0, "Magic Mirror Demo")) return;
     setRenderVSync(1);
 
     const int32_t cx = getCenterX();
