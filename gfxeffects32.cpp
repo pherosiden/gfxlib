@@ -4350,8 +4350,8 @@ void magicMirrorDemo()
         renderDrawBuffer();
         delay(FPS_60);
 
-        frame++;
         updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
+        frame++;
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();
