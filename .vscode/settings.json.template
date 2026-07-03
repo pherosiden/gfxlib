@@ -1,0 +1,35 @@
+{
+    "C_Cpp.enhancedColorization": "enabled",
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.autocompleteAddParentheses": true,
+    "editor.semanticHighlighting.enabled": true,
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true,
+        "rules": {
+            "variable:cpp": "#9CDCFE",
+            "variable.member:cpp": "#DDB96B",
+            "property:cpp": "#DDB96B",
+            "property.member:cpp": "#DDB96B",
+            "member:cpp": "#DDB96B"
+        }
+    },
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": [
+                    "variable.other.cpp",
+                    "variable.other.member.cpp",
+                    "variable.other.property.cpp",
+                    "variable.other.object.property.cpp"
+                ],
+                "settings": {
+                    "foreground": "#DDB96B"
+                }
+            }
+        ]
+    },
+    "files.associations": {
+        "*.h": "cpp"
+    }
+}

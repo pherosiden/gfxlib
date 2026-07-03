@@ -1547,13 +1547,256 @@ void displayPlasma()
     freeFont(0);
 }
 
-void gfxDemoMix()
+
+constexpr int32_t MAGIC_MIRROR_TAIL = 75;       //number of lines kept on screen before erasing
+constexpr int32_t MAGIC_MIRROR_SPEED = 25;      //number of lines drawn before changing color
+constexpr int32_t MAGIC_MIRROR_MAX_SPACE = 10;  //maximum pixels of space between lines
+constexpr int32_t MAGIC_MIRROR_MIN_SPACE = 2;   //minimum pixels of space between lines
+constexpr int32_t MAGIC_MIRROR_PALETTE_COUNT = 3;
+constexpr int32_t MAGIC_MIRROR_PALETTE_FRAMES = 1000;
+constexpr int32_t MAGIC_MIRROR_NONE = 0;
+constexpr int32_t MAGIC_MIRROR_HORZ = 1;
+constexpr int32_t MAGIC_MIRROR_VERT = 2;
+constexpr int32_t MAGIC_MIRROR_BOTH = MAGIC_MIRROR_HORZ | MAGIC_MIRROR_VERT;
+
+typedef void (*MAGIC_MIRROR_PALETTE_FUNC)();
+
+MAGIC_MIRROR_PALETTE_FUNC magicMirrorPalettes[MAGIC_MIRROR_PALETTE_COUNT] = {
+    makeRainbowPalette,
+    makeLinearPalette,
+    makeFunkyPalette
+};
+
+struct MAGIC_MIRROR_POINT
+{
+    int32_t x;
+    int32_t y;
+    int32_t dx;
+    int32_t dy;
+};
+
+struct MAGIC_MIRROR_TRACE
+{
+    MAGIC_MIRROR_POINT a;
+    MAGIC_MIRROR_POINT b;
+    MAGIC_MIRROR_POINT tailA[MAGIC_MIRROR_TAIL];
+    MAGIC_MIRROR_POINT tailB[MAGIC_MIRROR_TAIL];
+    uint32_t color[MAGIC_MIRROR_TAIL];
+    int32_t head;
+    int32_t count;
+};
+
+void initMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t x, int32_t y, int32_t dx, int32_t dy)
+{
+    point.x = x;
+    point.y = y;
+    point.dx = dx;
+    point.dy = dy;
+}
+
+int32_t magicMirrorSpeed()
+{
+    return random(MAGIC_MIRROR_MIN_SPACE, MAGIC_MIRROR_MAX_SPACE);
+}
+
+int32_t magicMirrorVelocity()
+{
+    const int32_t speed = magicMirrorSpeed();
+    return random(2) ? speed : -speed;
+}
+
+void initMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY)
+{
+    initMagicMirrorPoint(trace.a, random(0, maxX), random(0, maxY), magicMirrorVelocity(), magicMirrorVelocity());
+    initMagicMirrorPoint(trace.b, random(0, maxX), random(0, maxY), magicMirrorVelocity(), magicMirrorVelocity());
+    trace.head = -1;
+    trace.count = 0;
+}
+
+void bounceMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t maxX, int32_t maxY)
+{
+    point.x += point.dx;
+    point.y += point.dy;
+
+    if (point.x < 0)
+    {
+        point.x = -point.x;
+        point.dx = magicMirrorSpeed();
+    }
+    else if (point.x > maxX)
+    {
+        point.x = maxX - (point.x - maxX);
+        point.dx = -magicMirrorSpeed();
+    }
+
+    if (point.y < 0)
+    {
+        point.y = -point.y;
+        point.dy = magicMirrorSpeed();
+    }
+    else if (point.y > maxY)
+    {
+        point.y = maxY - (point.y - maxY);
+        point.dy = -magicMirrorSpeed();
+    }
+}
+
+uint32_t magicMirrorColor(int32_t lineIndex)
+{
+    const int32_t block = lineIndex >= 0 ? lineIndex / MAGIC_MIRROR_SPEED : (lineIndex - (MAGIC_MIRROR_SPEED - 1)) / MAGIC_MIRROR_SPEED;
+    return (block * 7) & 0xff;
+}
+
+void initMagicMirrorPaletteOrder(int32_t order[MAGIC_MIRROR_PALETTE_COUNT])
+{
+    for (int32_t i = 0; i < MAGIC_MIRROR_PALETTE_COUNT; i++) order[i] = i;
+
+    for (int32_t i = MAGIC_MIRROR_PALETTE_COUNT - 1; i > 0; i--)
+    {
+        const int32_t j = random(i + 1);
+        const int32_t tmp = order[i];
+        order[i] = order[j];
+        order[j] = tmp;
+    }
+}
+
+void setMagicMirrorPalette(const int32_t order[MAGIC_MIRROR_PALETTE_COUNT], int32_t index)
+{
+    magicMirrorPalettes[order[index % MAGIC_MIRROR_PALETTE_COUNT]]();
+}
+
+void pushMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, uint32_t color)
+{
+    trace.head = (trace.head + 1) % MAGIC_MIRROR_TAIL;
+    trace.tailA[trace.head] = trace.a;
+    trace.tailB[trace.head] = trace.b;
+    trace.color[trace.head] = color;
+    if (trace.count < MAGIC_MIRROR_TAIL) trace.count++;
+}
+
+void updateMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY, uint32_t color)
+{
+    pushMagicMirrorTrace(trace, color);
+    bounceMagicMirrorPoint(trace.a, maxX, maxY);
+    bounceMagicMirrorPoint(trace.b, maxX, maxY);
+}
+
+void drawMagicMirrorSegment(int32_t screenMaxX, int32_t screenMaxY, const MAGIC_MIRROR_POINT& a, const MAGIC_MIRROR_POINT& b, uint32_t color, int32_t mirror)
+{
+    const int32_t ax[2] = { a.x, screenMaxX - a.x };
+    const int32_t bx[2] = { b.x, screenMaxX - b.x };
+    const int32_t ay[2] = { a.y, screenMaxY - a.y };
+    const int32_t by[2] = { b.y, screenMaxY - b.y };
+    const int32_t xCount = (mirror & MAGIC_MIRROR_VERT) ? 2 : 1;
+    const int32_t yCount = (mirror & MAGIC_MIRROR_HORZ) ? 2 : 1;
+
+    for (int32_t xi = 0; xi < xCount; xi++)
+    {
+        for (int32_t yi = 0; yi < yCount; yi++)
+        {
+            drawLine(ax[xi], ay[yi], bx[xi], by[yi], color);
+        }
+    }
+}
+
+void drawMagicMirrorTrace(const MAGIC_MIRROR_TRACE& trace, int32_t screenMaxX, int32_t screenMaxY, int32_t mirror)
+{
+    for (int32_t i = trace.count - 1; i >= 0; i--)
+    {
+        const int32_t index = (trace.head - i + MAGIC_MIRROR_TAIL) % MAGIC_MIRROR_TAIL;
+        drawMagicMirrorSegment(screenMaxX, screenMaxY, trace.tailA[index], trace.tailB[index], trace.color[index], mirror);
+    }
+}
+
+void warmupMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t maxY)
+{
+    initMagicMirrorTrace(trace, maxX, maxY);
+    for (int32_t i = 0; i < MAGIC_MIRROR_TAIL; i++) updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(i - MAGIC_MIRROR_TAIL));
+}
+
+void magicMirrorDemo()
+{
+    int32_t manic = 1;                  //0=OFF, 1=ON
+    int32_t mirror = MAGIC_MIRROR_BOTH; //0=NONE, 1=HORZ, 2=VERT, 3=BOTH
+    mirror &= MAGIC_MIRROR_BOTH;
+
+    if (!initScreen(1024, 768, 8, 0, "Magic Mirror Demo")) return;
+    setRenderVSync(1);
+
+    const int32_t cx = getCenterX();
+    const int32_t cy = getCenterY();
+    const int32_t screenMaxX = getMaxX();
+    const int32_t screenMaxY = getMaxY();
+    manic = manic && mirror != MAGIC_MIRROR_NONE;
+    const int32_t maxX = (manic && (mirror & MAGIC_MIRROR_VERT)) ? cx : screenMaxX;
+    const int32_t maxY = (manic && (mirror & MAGIC_MIRROR_HORZ)) ? cy : screenMaxY;
+    int32_t paletteOrder[MAGIC_MIRROR_PALETTE_COUNT] = { 0 };
+    MAGIC_MIRROR_TRACE trace = { 0 };
+
+    initMagicMirrorPaletteOrder(paletteOrder);
+    setMagicMirrorPalette(paletteOrder, 0);
+    warmupMagicMirrorTrace(trace, maxX, maxY);
+
+    int32_t frame = 0;
+    int32_t paletteIndex = 0;
+    do {
+        readKeys();
+        clearDrawBuffer();
+        drawMagicMirrorTrace(trace, screenMaxX, screenMaxY, mirror);
+        renderDrawBuffer();
+        delay(FPS_60);
+        updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
+        frame++;
+        if (frame % MAGIC_MIRROR_PALETTE_FRAMES == 0)
+        {
+            paletteIndex = (paletteIndex + 1) % MAGIC_MIRROR_PALETTE_COUNT;
+            setMagicMirrorPalette(paletteOrder, paletteIndex);
+        }
+    } while (!finished(SDL_SCANCODE_RETURN));
+
+    cleanup();
+}
+
+void imageShowDemo()
+{
+    if (!initScreen(800, 600, 32, 0, "Image Show Demo")) return;
+    if (!loadFont("assets/fontvn.xfn", 0)) return;
+
+    char msgLoading[] = "D9ang ta3i du74 lie65u a3nh PNG & BMP 32bit ma2u, vui lo2ng d9o75i mo65t la1t....";
+
+    makeFont(msgLoading);
+    writeText(getCenterX() - (getFontWidth(msgLoading) >> 1), getCenterY() - (getFontHeight(msgLoading) >> 1), rgb(255, 255, 64), 0, msgLoading);
+    renderDrawBuffer();
+    sleepFor(2000);
+
+    setWindowTitle("Show PNG with alpha channel");
+    showPNG("assets/caibang.png");
+    sleepFor(2000);
+    fadeCircle(2, 0);
+
+    setWindowTitle("Show 32bit BMP image");
+    showBMP("assets/1lan32.bmp");
+    sleepFor(2000);
+    fadeCircle(3, 0);
+    
+    setWindowTitle("Mouse handle & Sprite pointer");
+    handleMouseButton();
+
+    setWindowTitle("Sprite Animation");
+    displaySprite("assets/smile24.png");
+
+    freeFont(0);
+    cleanup();    
+}
+
+void rasterDrawingDemo()
 {
     RGBA 	pal1[256] = { 0 };
     RGBA 	pal2[256] = { 0 };
     POINT2D	points[50] = { 0 };
 
-    double ratio = 0.0, rept = 0.0;
+    double rept = 0.0;
+    double ratio = 0.0;
 
     int32_t i = 0, j = 0;
 
@@ -1583,41 +1826,13 @@ void gfxDemoMix()
 
     char msgScroll[] = "*** Ca1m o7n ca1c ba5n d9a4 su73 du5ng chu7o7ng tri2nh na2y. Ba5n co1 the63 ta3i toa2n bo65 ma4 nguo62n cu3a chu7o7ng tri2nh ta5i d9i5a chi3 https://github.com/pherosiden/gfxlib. Chu1c Ca1c Ba5n Tha2nh Co6ng       ";
     char msgBanner[] = "Light Banner (c) 1998 - 2026 Nguye64n Ngo5c Va6n";
-    char msgLoading[] = "D9ang ta3i du74 lie65u a3nh PNG & BMP 32bit ma2u, vui lo2ng d9o75i mo65t la1t....";
 
-    if (!initScreen(800, 600, 32, 0, "GFX-Demo8")) return;
-    if (!loadFont("assets/fontvn.xfn", 0)) return;
+    if (!initScreen(800, 600, 8, 0, "Raster Drawing Demo")) return;
 
     const int32_t cmx = getMaxX();
     const int32_t cmy = getMaxY();
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
-
-    makeFont(msgLoading);
-    writeText(cx - (getFontWidth(msgLoading) >> 1), cy - getFontHeight(msgLoading), rgb(255, 255, 64), 0, msgLoading);
-    renderDrawBuffer();
-    sleepFor(2000);
-
-    setWindowTitle("Show PNG with alpha channel");
-    showPNG("assets/caibang.png");
-    sleepFor(2000);
-    fadeCircle(2, 0);
-
-    setWindowTitle("Show 32bit BMP image");
-    showBMP("assets/1lan32.bmp");
-    sleepFor(2000);
-    fadeCircle(3, 0);
-    
-    setWindowTitle("Mouse handle & Sprite pointer");
-    handleMouseButton();
-
-    setWindowTitle("Sprite Animation");
-    displaySprite("assets/smile24.png");
-
-    freeFont(0);
-    cleanup();
-
-    if (!initScreen(800, 600, 8, 0, "GFXLIB-Demo8")) return;
     const int32_t introY = cy - ((numTitles * CHR_HEIGHT + 20 + b * 2) >> 1);
 
     switch (getDrawBufferWidth())
@@ -1993,4 +2208,11 @@ void gfxDemoMix()
     setWindowTitle("Plasma Generating");
     displayPlasma();
     cleanup();
+}
+
+void gfxDemoMix()
+{
+    magicMirrorDemo();
+    imageShowDemo();
+    rasterDrawingDemo();
 }

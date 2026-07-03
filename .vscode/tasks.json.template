@@ -2,89 +2,71 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build Debug x64",
-            "type": "shell",
-            "command": "MSBuild.exe",
+            "label": "Build Debug",
+            "type": "process",
+            "command": "msbuild",
             "args": [
-                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "${workspaceFolder}/Launcher.sln",
                 "/t:Build",
                 "/p:Configuration=Debug",
                 "/p:Platform=x64",
                 "/m",
-                "/nologo",
-                "/verbosity:minimal"
+                "/v:minimal"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "options": {
+                "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            }
-        },
-        {
-            "label": "Build Release x64",
-            "type": "shell",
-            "command": "MSBuild.exe",
-            "args": [
-                "${workspaceFolder}\\visualc\\gfxlib.sln",
-                "/t:Build",
-                "/p:Configuration=Release",
-                "/p:Platform=x64",
-                "/m",
-                "/nologo",
-                "/verbosity:minimal"
-            ],
             "group": "build",
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "Rebuild Debug x64",
-            "type": "shell",
-            "command": "MSBuild.exe",
+            "label": "Build Release",
+            "type": "process",
+            "command": "msbuild",
             "args": [
-                "${workspaceFolder}\\visualc\\gfxlib.sln",
+                "${workspaceFolder}/Launcher.sln",
+                "/t:Build",
+                "/p:Configuration=Public",
+                "/p:Platform=x64",
+                "/m",
+                "/v:minimal"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Rebuild Debug",
+            "type": "process",
+            "command": "msbuild",
+            "args": [
+                "${workspaceFolder}/Launcher.sln",
                 "/t:Rebuild",
                 "/p:Configuration=Debug",
                 "/p:Platform=x64",
-                "/m",
-                "/nologo",
-                "/verbosity:minimal"
+                "/v:minimal"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "Clean: x64",
-            "type": "shell",
-            "command": "MSBuild.exe",
+            "label": "Rebuild Release",
+            "type": "process",
+            "command": "msbuild",
             "args": [
-                "${workspaceFolder}\\visualc\\gfxlib.sln",
-                "/t:Clean",
-                "/p:Configuration=Debug",
+                "${workspaceFolder}/Launcher.sln",
+                "/t:Rebuild",
+                "/p:Configuration=Public",
                 "/p:Platform=x64",
-                "/m",
-                "/nologo",
-                "/verbosity:minimal"
+                "/v:minimal"
             ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Build Debug Win32",
-            "type": "shell",
-            "command": "MSBuild.exe",
-            "args": [
-                "${workspaceFolder}\\visualc\\gfxlib.sln",
-                "/t:Build",
-                "/p:Configuration=Debug",
-                "/p:Platform=Win32",
-                "/m",
-                "/nologo",
-                "/verbosity:minimal"
-            ],
-            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": "$msCompile"
         }
     ]
