@@ -2850,14 +2850,15 @@ R -> burstType 17  red/violet filaments
 S -> burstType 18  thick gold comets
 T -> burstType 19  solid gold comets
 U -> burstType 20  color shell
-V -> random    
+V -> burstType 21  orange/violet chrysanthemum
+W -> random
 */
 
 constexpr int32_t MAX_FIREWORK_COUNT = 10;
 constexpr int32_t MAX_PARTICLE_COUNT = 800;
 constexpr int32_t MAX_TRAIL_LENGTH = 28;
 constexpr int32_t MAX_DENSE_COUNT = 2;
-constexpr int32_t BURST_COUNT = 21;
+constexpr int32_t BURST_COUNT = 22;
 constexpr int32_t RANDOM_BURST = BURST_COUNT;
 constexpr int32_t COLOR_SHELL_STATE2_AGE = 26;
 constexpr int32_t COLOR_SHELL_STATE3_AGE = 52;
@@ -2887,6 +2888,7 @@ struct FIREWORK_PARTICLE
     double headCoreStrength;
     double headHeatStrength;
     double headGlowStrength;
+    double trailGlowStrength;
     double trailFadePower;
     double waveAmplitude;
     uint32_t color;
@@ -3108,7 +3110,7 @@ void selectBurst()
     {
         if (!keyPressed(SDL_SCANCODE_A + i)) continue;
         burstSelection = i;
-        activeCount = (i >= 12 && i <= 20) ? MAX_DENSE_COUNT : MAX_FIREWORK_COUNT;
+        activeCount = (i >= 12 && i <= 21) ? MAX_DENSE_COUNT : MAX_FIREWORK_COUNT;
         const int32_t launchSpacing = (activeCount == MAX_DENSE_COUNT) ? 70 : 4;
         for (int32_t j = 0; j < activeCount; j++) scheduleFirework(j, 1 + j * launchSpacing);
         return;
@@ -3139,6 +3141,7 @@ void launchFirework(FIREWORK& firework, int32_t width, int32_t height)
     else if (firework.burstType == 18) firework.scale *= 1.10;
     else if (firework.burstType == 19) firework.scale *= 1.08;
     else if (firework.burstType == 20) firework.scale *= 1.08;
+    else if (firework.burstType == 21) firework.scale *= 1.10;
     
     const double densityScale = pow(screenScale, 0.58);
     if (firework.burstType == 1)
@@ -3155,6 +3158,7 @@ void launchFirework(FIREWORK& firework, int32_t width, int32_t height)
     else if (firework.burstType == 18) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 180));
     else if (firework.burstType == 19) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 186));
     else if (firework.burstType == 20) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 72) * 8);
+    else if (firework.burstType == 21) firework.particleCount = min(MAX_PARTICLE_COUNT, scaledRayCount(firework, 120) * 4);
     else if (firework.burstType == 0) firework.particleCount = min(MAX_PARTICLE_COUNT, int32_t(220 * densityScale + 0.5));
     else if (firework.burstType == 7) firework.particleCount = min(MAX_PARTICLE_COUNT, int32_t(225 * densityScale + 0.5));
     else if (firework.burstType == 10) firework.particleCount = min(MAX_PARTICLE_COUNT, int32_t(225 * densityScale + 0.5));
@@ -3276,6 +3280,13 @@ void launchFirework(FIREWORK& firework, int32_t width, int32_t height)
         firework.gravity = 0.018;
         firework.drag = 0.984;
     }
+    else if (firework.burstType == 21)
+    {
+        firework.primaryColor = 0xff8a28;     //orange-gold outer spokes
+        firework.secondaryColor = 0x8a63ff;   //violet-white inner spokes
+        firework.gravity = 0.082;
+        firework.drag = 0.988;
+    }
 
     firework.gravity *= firework.scale;
 
@@ -3294,6 +3305,7 @@ void launchFirework(FIREWORK& firework, int32_t width, int32_t height)
     firework.rocket.headCoreStrength = 0.9;
     firework.rocket.headHeatStrength = 1.0;
     firework.rocket.headGlowStrength = 0.0;
+    firework.rocket.trailGlowStrength = 0.0;
     firework.rocket.trailFadePower = 2.0;
     firework.rocket.waveAmplitude = (waveStyle == 0) ? 2.4 : (waveStyle == 1) ? 3.3 : 4.3;
     firework.rocket.color = 0xffd080;
@@ -3533,6 +3545,22 @@ void explodeFirework(FIREWORK& firework)
                                     : layer == 4 ? 4.5 : layer == 5 ? 5.35 : 6.25;
             speed = layerSpeed * sphereDepth * (1.0 + highLow * 0.045) * frand(0.97, 1.03);
         }
+        else if (firework.burstType == 21)
+        {
+            const int32_t layerCount = 4;
+            const int32_t rayCount = firework.particleCount / layerCount;
+            const int32_t layer = i / rayCount;
+            const int32_t ray = i % rayCount;
+            const double sector = M_PI * 2.0 / rayCount;
+            const double depthWave = 0.5 + 0.5 * sin(ray * 2.399963 + layer * 0.83);
+            const double sphereDepth = 0.88 + 0.16 * sqrt(max(0.0, depthWave));
+            angle = firework.burstRotation + (ray + layer * 0.18) * sector + frand(-0.026, 0.026);
+            const double layerSpeed = layer == 0 ? frand(2.35, 3.15)
+                                    : layer == 1 ? frand(4.05, 4.95)
+                                    : layer == 2 ? frand(5.85, 6.75)
+                                                 : frand(7.25, 8.15);
+            speed = layerSpeed * sphereDepth;
+        }
         else
         {
             //Bias speed outwards for a full but naturally uneven peony.
@@ -3558,6 +3586,7 @@ void explodeFirework(FIREWORK& firework)
         particle.headCoreStrength = 0.7;
         particle.headHeatStrength = 0.88;
         particle.headGlowStrength = 0.0;
+        particle.trailGlowStrength = 0.0;
         particle.trailFadePower = 2.0;
         particle.waveAmplitude = 0.0;
         particle.tipColor = 0;
@@ -3831,6 +3860,36 @@ void explodeFirework(FIREWORK& firework)
             particle.roundedHead = true;
             particle.solidHead = false;
         }
+        else if (firework.burstType == 21)
+        {
+            const int32_t rayCount = firework.particleCount / 4;
+            const int32_t layer = i / rayCount;
+            const int32_t ray = i % rayCount;
+            const int32_t colorWave = (ray * 7 + layer * 19) % 100;
+            if (layer == 0) particle.color = colorWave < 34 ? 0xfff0d2 : colorWave < 68 ? firework.secondaryColor : 0xd8c8ff;
+            else if (layer == 1) particle.color = colorWave < 42 ? 0xb884ff : colorWave < 70 ? 0xf0dcff : 0xffb470;
+            else if (layer == 2) particle.color = colorWave < 28 ? 0xffdf82 : colorWave < 76 ? firework.primaryColor : 0xffb040;
+            else particle.color = colorWave < 18 ? 0xfff0b8 : colorWave < 70 ? 0xff7428 : 0xffb13c;
+            particle.tipColor = layer >= 2 ? (colorWave < 34 ? 0xffffdc : 0xffdf8a) : (colorWave < 45 ? RGB_WHITE : 0xdacbff);
+            particle.headGlowColor = layer >= 2 ? 0xff7a24 : 0x7b4cff;
+            particle.headGlowStrength = layer >= 2 ? frand(0.82, 1.12) : frand(0.52, 0.78);
+            particle.trailGlowStrength = layer >= 2 ? frand(0.82, 1.12) : frand(0.44, 0.72);
+            particle.headCoreStrength = layer == 0 ? 0.82 : layer == 1 ? 0.72 : 0.60;
+            particle.headHeatStrength = layer >= 2 ? 0.82 : 0.70;
+            particle.trailStrength = layer == 0 ? frand(0.70, 0.92) : layer == 1 ? frand(0.78, 1.02)
+                                    : layer == 2 ? frand(0.92, 1.16) : frand(1.02, 1.28);
+            particle.trailFadePower = layer >= 2 ? frand(1.50, 1.86) : frand(1.72, 2.08);
+            particle.alphaRate = layer == 0 ? frand(1.65, 2.28) : layer == 1 ? frand(1.48, 2.10)
+                                : layer == 2 ? frand(1.30, 1.90) : frand(1.18, 1.72);
+            particle.sparkleRate = frand(0.12, 0.34);
+            particle.trailLength = layer == 0 ? 8 + rand() % 5 : layer == 1 ? 11 + rand() % 5
+                                    : layer == 2 ? 15 + rand() % 6 : 18 + rand() % 7;
+            particle.trailWidth = layer < 2 ? (rand() % 100 < 48 ? 2 : 1) : (rand() % 100 < 42 ? 4 : 3);
+            particle.trailEndWidth = 1;
+            particle.taperedHead = true;
+            particle.roundedHead = true;
+            particle.solidHead = false;
+        }
 
         //More particles provide fullscreen detail; keep sparks fine instead of enlarging them.
         particle.size = frand(0.0, 1.0) > ((firework.burstType >= 3) ? 0.58 : 0.78) ? 2 : 1;
@@ -3881,6 +3940,12 @@ void explodeFirework(FIREWORK& firework)
         {
             const int32_t rayCount = firework.particleCount / 8;
             particle.size = i < rayCount ? (rand() % 100 < 22 ? 2 : 1) : 1;
+        }
+        else if (firework.burstType == 21)
+        {
+            const int32_t rayCount = firework.particleCount / 4;
+            const int32_t layer = i / rayCount;
+            particle.size = layer < 2 ? (rand() % 100 < 42 ? 4 : 3) : (rand() % 100 < 55 ? 5 : 4);
         }
 
         if (firework.burstType <= 12)
@@ -4034,11 +4099,19 @@ void drawParticles(const FIREWORK_PARTICLE& particle, uint32_t color, int32_t ag
                 const double fade = brightness * pow(segmentScale, particle.trailFadePower) * particle.trailStrength;
                 const int32_t trailWidth = calcTrailWidth(particle, segmentScale);
 
-                if (particle.headGlowStrength > 0.0 && particle.headGlowColor != 0)
+                if (particle.headGlowColor != 0)
                 {
-                    const double bodyGlowWidth = trailWidth * 2.35;
-                    const uint32_t bodyGlowColor = fadeColor(particle.headGlowColor, fade * particle.headGlowStrength * 0.22);
-                    addTrailSegment(segmentX0, segmentY0, segmentX1, segmentY1, bodyGlowWidth, bodyGlowColor);
+                    const double glowStrength = particle.trailGlowStrength > 0.0 ? particle.trailGlowStrength : particle.headGlowStrength * 0.22;
+                    if (glowStrength > 0.0)
+                    {
+                        const double bodyGlowWidth = trailWidth * (particle.trailGlowStrength > 0.0 ? 3.45 : 2.35);
+                        const uint32_t bodyGlowColor = fadeColor(particle.headGlowColor, fade * glowStrength);
+                        addTrailSegment(segmentX0, segmentY0, segmentX1, segmentY1, bodyGlowWidth, bodyGlowColor);
+                        if (particle.trailGlowStrength > 0.0)
+                        {
+                            addTrailSegment(segmentX0, segmentY0, segmentX1, segmentY1, trailWidth * 1.65, fadeColor(particle.headGlowColor, fade * glowStrength * 0.72));
+                        }
+                    }
                 }
 
                 addTrailSegment(segmentX0, segmentY0, segmentX1, segmentY1, double(trailWidth), boostColor(fadeColor(solidTrailColor, fade), 1.18));
@@ -4050,11 +4123,19 @@ void drawParticles(const FIREWORK_PARTICLE& particle, uint32_t color, int32_t ag
         {
             const double fade = brightness * pow(trailScale, particle.trailFadePower) * particle.trailStrength;
             const int32_t trailWidth = calcTrailWidth(particle, trailScale);
-            if (particle.headGlowStrength > 0.0 && particle.headGlowColor != 0)
+            if (particle.headGlowColor != 0)
             {
-                const double bodyGlowWidth = trailWidth * 1.75;
-                const uint32_t bodyGlowColor = fadeColor(particle.headGlowColor, fade * particle.headGlowStrength * 0.22);
-                addTrailSegment(previousX, previousY, trailX, trailY, bodyGlowWidth, bodyGlowColor);
+                const double glowStrength = particle.trailGlowStrength > 0.0 ? particle.trailGlowStrength : particle.headGlowStrength * 0.22;
+                if (glowStrength > 0.0)
+                {
+                    const double bodyGlowWidth = trailWidth * (particle.trailGlowStrength > 0.0 ? 3.10 : 1.75);
+                    const uint32_t bodyGlowColor = fadeColor(particle.headGlowColor, fade * glowStrength);
+                    addTrailSegment(previousX, previousY, trailX, trailY, bodyGlowWidth, bodyGlowColor);
+                    if (particle.trailGlowStrength > 0.0)
+                    {
+                        addTrailSegment(previousX, previousY, trailX, trailY, trailWidth * 1.45, fadeColor(particle.headGlowColor, fade * glowStrength * 0.68));
+                    }
+                }
             }
 
             addTrailSegment(previousX, previousY, trailX, trailY, double(trailWidth), boostColor(fadeColor(color, fade), 1.3));
