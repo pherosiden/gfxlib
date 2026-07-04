@@ -1731,11 +1731,11 @@ void magicMirrorDemo()
     const int32_t maxX = (manic && (mirror & MAGIC_MIRROR_VERT)) ? cx : screenMaxX;
     const int32_t maxY = (manic && (mirror & MAGIC_MIRROR_HORZ)) ? cy : screenMaxY;
 
-    MAGIC_MIRROR_TRACE trace = { 0 };
-
     int32_t frame = 0;
     int32_t paletteIndex = random(MAGIC_MIRROR_PALETTE_COUNT);
     setMagicMirrorPalette(paletteIndex);
+
+    MAGIC_MIRROR_TRACE trace = { 0 };
     warmupMagicMirrorTrace(trace, maxX, maxY);
 
     do {
