@@ -1552,20 +1552,31 @@ constexpr int32_t MAGIC_MIRROR_TAIL = 75;       //number of lines kept on screen
 constexpr int32_t MAGIC_MIRROR_SPEED = 25;      //number of lines drawn before changing color
 constexpr int32_t MAGIC_MIRROR_MAX_SPACE = 10;  //maximum pixels of space between lines
 constexpr int32_t MAGIC_MIRROR_MIN_SPACE = 2;   //minimum pixels of space between lines
-constexpr int32_t MAGIC_MIRROR_PALETTE_COUNT = 3;
 constexpr int32_t MAGIC_MIRROR_PALETTE_FRAMES = 1000;
+
 constexpr int32_t MAGIC_MIRROR_NONE = 0;
 constexpr int32_t MAGIC_MIRROR_HORZ = 1;
 constexpr int32_t MAGIC_MIRROR_VERT = 2;
 constexpr int32_t MAGIC_MIRROR_BOTH = MAGIC_MIRROR_HORZ | MAGIC_MIRROR_VERT;
 
+constexpr int32_t MAGIC_MIRROR_MANIC_ON = 1;
+constexpr int32_t MAGIC_MIRROR_MANIC_OFF = 0;
+
 typedef void (*MAGIC_MIRROR_PALETTE_FUNC)();
 
-MAGIC_MIRROR_PALETTE_FUNC magicMirrorPalettes[MAGIC_MIRROR_PALETTE_COUNT] = {
+MAGIC_MIRROR_PALETTE_FUNC magicMirrorPalettes[] = {
     makeRainbowPalette,
     makeLinearPalette,
-    makeFunkyPalette
+    makeFunkyPalette,
+    makeNeonPalette,
+    makeSunsetPalette,
+    makeAuroraPalette,
+    makeOceanPalette,
+    makeCandyPalette,
+    makeRubyGoldPalette
 };
+
+constexpr int32_t MAGIC_MIRROR_PALETTE_COUNT = sizeof(magicMirrorPalettes) / sizeof(magicMirrorPalettes[0]);
 
 struct MAGIC_MIRROR_POINT
 {
@@ -1644,25 +1655,13 @@ void bounceMagicMirrorPoint(MAGIC_MIRROR_POINT& point, int32_t maxX, int32_t max
 uint32_t magicMirrorColor(int32_t lineIndex)
 {
     const int32_t block = lineIndex >= 0 ? lineIndex / MAGIC_MIRROR_SPEED : (lineIndex - (MAGIC_MIRROR_SPEED - 1)) / MAGIC_MIRROR_SPEED;
-    return (block * 7) & 0xff;
+    const uint32_t color = (block * 9) & 0xff;
+    return color ? color : 255;
 }
 
-void initMagicMirrorPaletteOrder(int32_t order[MAGIC_MIRROR_PALETTE_COUNT])
+void setMagicMirrorPalette(int32_t index)
 {
-    for (int32_t i = 0; i < MAGIC_MIRROR_PALETTE_COUNT; i++) order[i] = i;
-
-    for (int32_t i = MAGIC_MIRROR_PALETTE_COUNT - 1; i > 0; i--)
-    {
-        const int32_t j = random(i + 1);
-        const int32_t tmp = order[i];
-        order[i] = order[j];
-        order[j] = tmp;
-    }
-}
-
-void setMagicMirrorPalette(const int32_t order[MAGIC_MIRROR_PALETTE_COUNT], int32_t index)
-{
-    magicMirrorPalettes[order[index % MAGIC_MIRROR_PALETTE_COUNT]]();
+    magicMirrorPalettes[index % MAGIC_MIRROR_PALETTE_COUNT]();
 }
 
 void pushMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, uint32_t color)
@@ -1716,10 +1715,12 @@ void warmupMagicMirrorTrace(MAGIC_MIRROR_TRACE& trace, int32_t maxX, int32_t max
 
 void magicMirrorDemo()
 {
-    int32_t manic = 1;                  //0=OFF, 1=ON
-    int32_t mirror = MAGIC_MIRROR_BOTH; //0=NONE, 1=HORZ, 2=VERT, 3=BOTH
+    int32_t manic = MAGIC_MIRROR_MANIC_ON;  //0=OFF, 1=ON
+    int32_t mirror = MAGIC_MIRROR_BOTH;     //0=NONE, 1=HORZ, 2=VERT, 3=BOTH
+    
     mirror &= MAGIC_MIRROR_BOTH;
-
+    manic = manic && mirror != MAGIC_MIRROR_NONE;
+    
     if (!initScreen(1024, 768, 8, 0, "Magic Mirror Demo")) return;
     setRenderVSync(1);
 
@@ -1727,30 +1728,28 @@ void magicMirrorDemo()
     const int32_t cy = getCenterY();
     const int32_t screenMaxX = getMaxX();
     const int32_t screenMaxY = getMaxY();
-    manic = manic && mirror != MAGIC_MIRROR_NONE;
     const int32_t maxX = (manic && (mirror & MAGIC_MIRROR_VERT)) ? cx : screenMaxX;
     const int32_t maxY = (manic && (mirror & MAGIC_MIRROR_HORZ)) ? cy : screenMaxY;
-    int32_t paletteOrder[MAGIC_MIRROR_PALETTE_COUNT] = { 0 };
+
     MAGIC_MIRROR_TRACE trace = { 0 };
 
-    initMagicMirrorPaletteOrder(paletteOrder);
-    setMagicMirrorPalette(paletteOrder, 0);
+    int32_t frame = 0;
+    int32_t paletteIndex = random(MAGIC_MIRROR_PALETTE_COUNT);
+    setMagicMirrorPalette(paletteIndex);
     warmupMagicMirrorTrace(trace, maxX, maxY);
 
-    int32_t frame = 0;
-    int32_t paletteIndex = 0;
     do {
         readKeys();
         clearDrawBuffer();
         drawMagicMirrorTrace(trace, screenMaxX, screenMaxY, mirror);
         renderDrawBuffer();
-        delay(FPS_60);
+        delay(FPS_90);
         updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
         frame++;
         if (frame % MAGIC_MIRROR_PALETTE_FRAMES == 0)
         {
             paletteIndex = (paletteIndex + 1) % MAGIC_MIRROR_PALETTE_COUNT;
-            setMagicMirrorPalette(paletteOrder, paletteIndex);
+            setMagicMirrorPalette(paletteIndex);
         }
     } while (!finished(SDL_SCANCODE_RETURN));
 

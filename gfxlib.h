@@ -548,6 +548,13 @@ void        whitePalette();
 void        makeRainbowPalette();
 void        makeLinearPalette();
 void        makeFunkyPalette();
+void        makeNeonPalette();
+void        makeSunsetPalette();
+void        makeAuroraPalette();
+void        makeOceanPalette();
+void        makeCandyPalette();
+void        makeRubyGoldPalette();
+void        makeGradientPalette(const RGBA* stops, int32_t count);
 
 void        scrollPalette(int32_t from, int32_t to, int32_t step);
 void        rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t wtime);

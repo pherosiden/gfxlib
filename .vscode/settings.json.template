@@ -7,7 +7,7 @@
     "editor.semanticTokenColorCustomizations": {
         "enabled": true,
         "rules": {
-            "variable:cpp": "#9CDCFE",
+            "variable:cpp": "#8CC8E8",
             "variable.member:cpp": "#DDB96B",
             "property:cpp": "#DDB96B",
             "property.member:cpp": "#DDB96B",

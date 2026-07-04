@@ -9357,6 +9357,109 @@ void makeRainbowPalette()
     setPalette(pal);
 }
 
+//make gradient palette, keeping color 0 black for screen clearing
+void makeGradientPalette(const RGBA* stops, int32_t count)
+{
+    RGBA pal[256] = { 0 };
+
+    if (!stops || count <= 0) return;
+
+    pal[0].a = 255;
+    for (int32_t i = 1; i < 256; i++)
+    {
+        const int32_t scaled = (i - 1) * count;
+        const int32_t start = (scaled >> 8) % count;
+        const int32_t end = (start + 1) % count;
+        const int32_t blend = scaled & 0xff;
+
+        pal[i].r = uint8_t((stops[start].r * (256 - blend) + stops[end].r * blend) >> 8);
+        pal[i].g = uint8_t((stops[start].g * (256 - blend) + stops[end].g * blend) >> 8);
+        pal[i].b = uint8_t((stops[start].b * (256 - blend) + stops[end].b * blend) >> 8);
+        pal[i].a = 255;
+    }
+
+    setPalette(pal);
+}
+
+void makeNeonPalette()
+{
+    const RGBA stops[] = {
+        {  12,  10,  42, 255 },
+        {  32, 224, 255, 255 },
+        { 255,  45, 214, 255 },
+        { 255, 238,  90, 255 },
+        {  56, 255, 156, 255 }
+    };
+
+    makeGradientPalette(stops, sizeof(stops) / sizeof(stops[0]));
+}
+
+void makeSunsetPalette()
+{
+    const RGBA stops[] = {
+        {  28,   8,  54, 255 },
+        { 102,  32, 122, 255 },
+        { 242,  78,  96, 255 },
+        { 255, 169,  83, 255 },
+        { 255, 230, 148, 255 }
+    };
+
+    makeGradientPalette(stops, sizeof(stops) / sizeof(stops[0]));
+}
+
+void makeAuroraPalette()
+{
+    const RGBA stops[] = {
+        {   4,  18,  38, 255 },
+        {  20, 132, 124, 255 },
+        {  83, 255, 177, 255 },
+        { 178, 118, 255, 255 },
+        {  57,  68, 214, 255 }
+    };
+
+    makeGradientPalette(stops, sizeof(stops) / sizeof(stops[0]));
+}
+
+void makeOceanPalette()
+{
+    const RGBA stops[] = {
+        {   0,  14,  48, 255 },
+        {   0,  78, 132, 255 },
+        {   0, 188, 198, 255 },
+        { 135, 244, 214, 255 },
+        { 237, 255, 220, 255 }
+    };
+
+    makeGradientPalette(stops, sizeof(stops) / sizeof(stops[0]));
+}
+
+void makeCandyPalette()
+{
+    const RGBA stops[] = {
+        { 255,  82, 154, 255 },
+        { 255, 180, 104, 255 },
+        { 255, 244, 140, 255 },
+        { 115, 247, 190, 255 },
+        { 105, 194, 255, 255 },
+        { 188, 122, 255, 255 }
+    };
+
+    makeGradientPalette(stops, sizeof(stops) / sizeof(stops[0]));
+}
+
+void makeRubyGoldPalette()
+{
+    const RGBA stops[] = {
+        {  38,   2,  20, 255 },
+        { 116,  12,  42, 255 },
+        { 222,  48,  72, 255 },
+        { 255, 184,  72, 255 },
+        { 255, 244, 174, 255 }
+    };
+
+    makeGradientPalette(stops, sizeof(stops) / sizeof(stops[0]));
+}
+
 //scrolling current palette
 void scrollPalette(int32_t from, int32_t to, int32_t step)
 {
