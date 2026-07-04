@@ -1552,7 +1552,7 @@ constexpr int32_t MAGIC_MIRROR_TAIL = 75;       //number of lines kept on screen
 constexpr int32_t MAGIC_MIRROR_SPEED = 25;      //number of lines drawn before changing color
 constexpr int32_t MAGIC_MIRROR_MAX_SPACE = 10;  //maximum pixels of space between lines
 constexpr int32_t MAGIC_MIRROR_MIN_SPACE = 2;   //minimum pixels of space between lines
-constexpr int32_t MAGIC_MIRROR_PALETTE_FRAMES = 1000;
+constexpr int32_t MAGIC_MIRROR_PALETTE_FRAMES = 1280;
 
 constexpr int32_t MAGIC_MIRROR_NONE = 0;
 constexpr int32_t MAGIC_MIRROR_HORZ = 1;
