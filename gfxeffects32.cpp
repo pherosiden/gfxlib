@@ -2854,7 +2854,7 @@ V -> burstType 21  orange/violet chrysanthemum
 W -> random
 */
 
-constexpr int32_t MAX_FIREWORK_COUNT = 15;
+constexpr int32_t MAX_FIREWORK_COUNT = 20;
 constexpr int32_t MAX_PARTICLE_COUNT = 1000;
 constexpr int32_t MAX_TRAIL_LENGTH = 28;
 constexpr int32_t MAX_DENSE_COUNT = 2;
