@@ -3455,8 +3455,7 @@ void explodeFirework(FIREWORK& firework)
                                     : layer == 1 ? frand(2.70, 3.45)
                                     : layer == 2 ? frand(4.05, 4.85)
                                     : layer == 3 ? frand(5.35, 6.10)
-                                    : layer == 4 ? frand(6.55, 7.35)
-                                    : frand(7.85, 8.80);
+                                    : layer == 4 ? frand(6.55, 7.35) : frand(7.85, 8.80);
             speed = layerSpeed * (1.0 + spokeWave * (layer >= 3 ? 0.050 : 0.030));
         }
         else if (firework.burstType == 14)
@@ -3551,8 +3550,7 @@ void explodeFirework(FIREWORK& firework)
                                     : layer == 2 ? 2.95
                                     : layer == 3 ? 3.7
                                     : layer == 4 ? 4.5
-                                    : layer == 5 ? 5.35
-                                    : 6.25;
+                                    : layer == 5 ? 5.35 : 6.25;
             speed = layerSpeed * sphereDepth * (1.0 + highLow * 0.045) * frand(0.97, 1.03);
         }
         else if (firework.burstType == 21)
@@ -3587,8 +3585,7 @@ void explodeFirework(FIREWORK& firework)
                                     : layer == 3 ? frand(6.25, 7.05)
                                     : layer == 4 ? frand(7.45, 8.25)
                                     : layer == 5 ? frand(8.35, 9.10)
-                                    : layer == 6 ? frand(9.05, 9.85)
-                                    : frand(9.75, 10.70);
+                                    : layer == 6 ? frand(9.05, 9.85) : frand(9.75, 10.70);
             speed = layerSpeed * (1.0 + rayLong * (layer >= 5 ? 0.055 : 0.035));
         }
         else
@@ -3642,8 +3639,7 @@ void explodeFirework(FIREWORK& firework)
             particle.color = layer == 0 ? firework.primaryColor
                            : layer == 1 ? mixColor(firework.primaryColor, firework.secondaryColor, 0.25)
                            : layer == 2 ? mixColor(firework.primaryColor, firework.secondaryColor, 0.5)
-                           : layer == 3 ? mixColor(firework.primaryColor, firework.secondaryColor, 0.75)
-                           : firework.secondaryColor;
+                           : layer == 3 ? mixColor(firework.primaryColor, firework.secondaryColor, 0.75) : firework.secondaryColor;
         }
         else if (firework.burstType == 3) particle.color = fireworkPalette[(i / 7 + rand() % 3) % FIREWORK_COLOR_COUNT];
         else if (firework.burstType == 4 && i % 3 == 0) particle.color = RGB_WHITE;
@@ -3809,21 +3805,17 @@ void explodeFirework(FIREWORK& firework)
             }
             particle.trailStrength = layer == 0 ? frand(0.92, 1.18)
                                    : layer == 1 ? frand(0.72, 0.98)
-                                   : layer == 2 ? frand(0.58, 0.82)
-                                   : frand(0.45, 0.68);
+                                   : layer == 2 ? frand(0.58, 0.82) : frand(0.45, 0.68);
             particle.alphaRate = layer == 0 ? frand(1.55, 2.15)
                                : layer == 1 ? frand(1.45, 2.05)
-                               : layer == 2 ? frand(1.25, 1.85)
-                               : frand(1.1, 1.65);
+                               : layer == 2 ? frand(1.25, 1.85) : frand(1.1, 1.65);
             particle.headCoreStrength = layer == 0 ? 0.66
                                       : layer == 1 ? 0.54
-                                      : layer == 2 ? 0.42
-                                      : 0.32;
+                                      : layer == 2 ? 0.42 : 0.32;
             particle.sparkleRate = frand(0.16, 0.4);
             particle.trailLength = layer == 0 ? 6 + rand() % 4
                                  : layer == 1 ? 8 + rand() % 4
-                                 : layer == 2 ? 12 + rand() % 5
-                                 : 14 + rand() % 5;
+                                 : layer == 2 ? 12 + rand() % 5 : 14 + rand() % 5;
             particle.trailWidth = layer == 0 ? 3 : layer == 1 ? 2 : 1;
             particle.trailEndWidth = 1;
             particle.taperedHead = true;
@@ -3837,8 +3829,7 @@ void explodeFirework(FIREWORK& firework)
             particle.headGlowColor = headColor < 24 ? 0xff344d
                                    : headColor < 43 ? 0x55ff83
                                    : headColor < 58 ? 0xc75cff
-                                   : headColor < 72 ? 0x72cfff
-                                   : 0xffa52f;
+                                   : headColor < 72 ? 0x72cfff : 0xffa52f;
             particle.headGlowStrength = frand(0.92, 1.16);
             particle.headCoreStrength = frand(0.72, 0.94);
             particle.trailStrength = frand(0.9, 1.14);
@@ -3861,53 +3852,45 @@ void explodeFirework(FIREWORK& firework)
                            : layer == 1 ? 0xffbd3e
                            : layer == 2 ? 0xffc546
                            : layer == 3 ? 0xffcf54
-                           : layer == 4 ? 0xffda6d
-                           : (rand() % 100 < 24 ? 0xffeda8 : firework.primaryColor);
+                           : layer == 4 ? 0xffda6d : (rand() % 100 < 24 ? 0xffeda8 : firework.primaryColor);
             particle.tipColor = 0xffffdc;
             particle.headGlowColor = layer == 0 ? 0xffa728
                                    : layer == 1 ? 0xffae2c
                                    : layer == 2 ? 0xffb731
                                    : layer == 3 ? 0xffbf38
-                                   : layer == 4 ? 0xffc845
-                                   : 0xffd25a;
+                                   : layer == 4 ? 0xffc845 : 0xffd25a;
             particle.headGlowStrength = layer == 0 ? frand(1.18, 1.38)
                                       : layer == 1 ? frand(1.24, 1.46)
                                       : layer == 2 ? frand(1.30, 1.54)
                                       : layer == 3 ? frand(1.36, 1.62)
-                                      : layer == 4 ? frand(1.42, 1.70)
-                                      : frand(1.50, 1.82);
+                                      : layer == 4 ? frand(1.42, 1.70) : frand(1.50, 1.82);
             particle.headCoreStrength = frand(0.86, 1.0);
             particle.trailStrength = layer == 0 ? frand(0.92, 1.08)
                                     : layer == 1 ? frand(0.98, 1.14)
                                     : layer == 2 ? frand(1.02, 1.20)
                                     : layer == 3 ? frand(1.06, 1.24)
-                                    : layer == 4 ? frand(1.10, 1.30)
-                                    : frand(1.16, 1.38);
+                                    : layer == 4 ? frand(1.10, 1.30) : frand(1.16, 1.38);
             particle.trailFadePower = layer == 0 ? frand(1.72, 2.02)
                                     : layer == 1 ? frand(1.62, 1.92)
                                     : layer == 2 ? frand(1.52, 1.82)
                                     : layer == 3 ? frand(1.42, 1.70)
-                                    : layer == 4 ? frand(1.32, 1.58)
-                                    : frand(1.22, 1.46);
+                                    : layer == 4 ? frand(1.32, 1.58) : frand(1.22, 1.46);
             particle.alphaRate = layer == 0 ? frand(2.45, 3.12)
                                 : layer == 1 ? frand(2.25, 2.9)
                                 : layer == 2 ? frand(2.05, 2.72)
                                 : layer == 3 ? frand(1.88, 2.56)
-                                : layer == 4 ? frand(1.72, 2.42)
-                                : frand(1.58, 2.28);
+                                : layer == 4 ? frand(1.72, 2.42) : frand(1.58, 2.28);
             particle.sparkleRate = frand(0.1, 0.24);
             particle.trailLength = layer == 0 ? 8 + rand() % 2
                                  : layer == 1 ? 9 + rand() % 2
                                  : layer == 2 ? 9 + rand() % 2
                                  : layer == 3 ? 12 + rand() % 3
-                                 : layer == 4 ? 14 + rand() % 3
-                                 : 21 + rand() % 4;
+                                 : layer == 4 ? 14 + rand() % 3 : 21 + rand() % 4;
             particle.trailWidth = layer == 0 ? 3
                                 : layer == 1 ? 4
                                 : layer == 2 ? 5
                                 : layer == 3 ? 5
-                                : layer == 4 ? (rand() % 100 < 55 ? 6 : 5)
-                                : (rand() % 100 < 62 ? 6 : 5);
+                                : layer == 4 ? (rand() % 100 < 55 ? 6 : 5) : (rand() % 100 < 62 ? 6 : 5);
             particle.trailEndWidth = 1;
             particle.taperedHead = true;
             particle.roundedHead = true;
@@ -3924,8 +3907,7 @@ void explodeFirework(FIREWORK& firework)
                             : layer == 2 ? 0xffc82a
                             : layer == 3 ? 0xd9e83b
                             : layer == 4 ? 0x45d878
-                            : layer == 5 ? 0x2ed6aa
-                            : 0x3fa8ff;
+                            : layer == 5 ? 0x2ed6aa : 0x3fa8ff;
             particle.tipColor = 0;
             particle.headGlowColor = dot ? 0xffd52e : 0;
             particle.headGlowStrength = dot ? frand(0.48, 0.68) : 0.0;
@@ -3937,8 +3919,7 @@ void explodeFirework(FIREWORK& firework)
                                     : layer == 2 ? 0.93
                                     : layer == 3 ? 0.96
                                     : layer == 4 ? 1.0
-                                    : layer == 5 ? 1.03
-                                    : 1.06;
+                                    : layer == 5 ? 1.03 : 1.06;
             particle.trailFadePower = dot ? 3.0 : frand(1.35, 1.65);
             particle.alphaRate = dot ? frand(2.1, 2.8) : frand(1.45, 2.0);
             particle.sparkleRate = dot ? frand(0.16, 0.32) : frand(0.08, 0.2);
@@ -3948,12 +3929,10 @@ void explodeFirework(FIREWORK& firework)
                                     : layer == 2 ? 15 + rand() % 4
                                     : layer == 3 ? 13 + rand() % 4
                                     : layer == 4 ? 11 + rand() % 4
-                                    : layer == 5 ? 10 + rand() % 3
-                                    : 9 + rand() % 3;
+                                    : layer == 5 ? 10 + rand() % 3 : 9 + rand() % 3;
             particle.trailWidth = dot ? 1
                                 : layer <= 1 ? (rand() % 100 < 42 ? 4 : 3)
-                                : layer <= 3 ? (rand() % 100 < 28 ? 4 : 3)
-                                : (rand() % 100 < 68 ? 3 : 2);
+                                : layer <= 3 ? (rand() % 100 < 28 ? 4 : 3) : (rand() % 100 < 68 ? 3 : 2);
             particle.trailEndWidth = 1;
             particle.taperedHead = !dot;
             particle.roundedHead = true;
@@ -3972,24 +3951,21 @@ void explodeFirework(FIREWORK& firework)
             particle.tipColor = layer >= 2 ? (colorWave < 34 ? 0xffffdc : 0xffdf8a) : (colorWave < 45 ? RGB_WHITE : 0xdacbff);
             particle.headGlowColor = layer >= 2 ? 0xff7a24 : 0x7b4cff;
             particle.headGlowStrength = layer >= 2 ? frand(0.82, 1.12) : frand(0.52, 0.78);
-            particle.trailGlowStrength = layer >= 2 ? frand(0.82, 1.12) : frand(0.44, 0.72);
+            particle.trailGlowStrength = layer >= 2 ? frand(0.66, 0.94) : frand(0.36, 0.62);
             particle.headCoreStrength = layer == 0 ? 0.82 : layer == 1 ? 0.72 : 0.60;
             particle.headHeatStrength = layer >= 2 ? 0.82 : 0.70;
             particle.trailStrength = layer == 0 ? frand(0.70, 0.92)
                                    : layer == 1 ? frand(0.78, 1.02)
-                                   : layer == 2 ? frand(0.92, 1.16)
-                                   : frand(1.02, 1.28);
+                                   : layer == 2 ? frand(0.92, 1.16) : frand(1.02, 1.28);
             particle.trailFadePower = layer >= 2 ? frand(1.50, 1.86) : frand(1.72, 2.08);
             particle.alphaRate = layer == 0 ? frand(1.65, 2.28)
                                : layer == 1 ? frand(1.48, 2.10)
-                               : layer == 2 ? frand(1.30, 1.90)
-                               : frand(1.18, 1.72);
+                               : layer == 2 ? frand(1.30, 1.90) : frand(1.18, 1.72);
             particle.sparkleRate = frand(0.12, 0.34);
-            particle.trailLength = layer == 0 ? 8 + rand() % 5
-                                 : layer == 1 ? 11 + rand() % 5
-                                 : layer == 2 ? 15 + rand() % 6
-                                 : 18 + rand() % 7;
-            particle.trailWidth = layer < 2 ? (rand() % 100 < 48 ? 2 : 1) : (rand() % 100 < 42 ? 4 : 3);
+            particle.trailLength = layer == 0 ? 7 + rand() % 4
+                                 : layer == 1 ? 10 + rand() % 4
+                                 : layer == 2 ? 13 + rand() % 5 : 16 + rand() % 6;
+            particle.trailWidth = layer < 2 ? (rand() % 100 < 34 ? 2 : 1) : (rand() % 100 < 36 ? 3 : 2);
             particle.trailEndWidth = 1;
             particle.taperedHead = true;
             particle.roundedHead = true;
@@ -4012,21 +3988,16 @@ void explodeFirework(FIREWORK& firework)
             particle.headCoreStrength = layer >= 5 ? frand(0.10, 0.18) : frand(0.03, 0.08);
             particle.headHeatStrength = layer >= 5 ? 0.20 : 0.12;
             particle.trailStrength = layer < 2 ? frand(0.88, 1.04)
-                                   : layer < 5 ? frand(1.02, 1.20)
-                                   : frand(1.24, 1.48);
+                                   : layer < 5 ? frand(1.02, 1.20) : frand(1.24, 1.48);
             particle.trailFadePower = layer < 2 ? frand(1.50, 1.82)
-                                    : layer < 5 ? frand(1.28, 1.56)
-                                    : frand(1.08, 1.30);
+                                    : layer < 5 ? frand(1.28, 1.56) : frand(1.08, 1.30);
             particle.alphaRate = layer < 2 ? frand(1.42, 1.90)
-                               : layer < 5 ? frand(1.18, 1.60)
-                               : frand(0.95, 1.32);
+                               : layer < 5 ? frand(1.18, 1.60) : frand(0.95, 1.32);
             particle.sparkleRate = layer >= 5 ? frand(0.08, 0.22) : frand(0.14, 0.30);
             particle.trailLength = layer < 2 ? 16 + rand() % 5
-                                 : layer < 5 ? 20 + rand() % 5
-                                 : 22 + rand() % 6;
+                                 : layer < 5 ? 20 + rand() % 5 : 22 + rand() % 6;
             particle.trailWidth = layer < 2 ? (rand() % 100 < 70 ? 2 : 3)
-                                : layer < 5 ? (rand() % 100 < 50 ? 4 : 3)
-                                : (rand() % 100 < 72 ? 6 : 5);
+                                : layer < 5 ? (rand() % 100 < 50 ? 4 : 3) : (rand() % 100 < 72 ? 6 : 5);
             particle.trailEndWidth = 1;
             particle.taperedHead = true;
             particle.roundedHead = true;
@@ -4070,8 +4041,7 @@ void explodeFirework(FIREWORK& firework)
             const int32_t layer = i / rayCount;
             particle.size = layer == 0 ? (rand() % 100 < 38 ? 4 : 3)
                           : layer == 1 ? (rand() % 100 < 35 ? 3 : 2)
-                          : layer == 2 ? (rand() % 100 < 18 ? 2 : 1)
-                          : 1;
+                          : layer == 2 ? (rand() % 100 < 18 ? 2 : 1) : 1;
         }
         else if (firework.burstType == 18)
         {
@@ -4084,8 +4054,7 @@ void explodeFirework(FIREWORK& firework)
             int32_t rayCount = 1;
             calcSolidGoldLayer(i, firework.particleCount, layer, layerStart, rayCount);
             particle.size = layer < 2 ? (rand() % 100 < 24 ? 5 : 4)
-                          : layer < 4 ? (rand() % 100 < 38 ? 5 : 4)
-                          : (rand() % 100 < 54 ? 5 : 4);
+                          : layer < 4 ? (rand() % 100 < 38 ? 5 : 4) : (rand() % 100 < 54 ? 5 : 4);
         }
         else if (firework.burstType == 20)
         {
@@ -4103,8 +4072,7 @@ void explodeFirework(FIREWORK& firework)
             const int32_t rayCount = firework.particleCount / 8;
             const int32_t layer = i / rayCount;
             particle.size = layer < 2 ? (rand() % 100 < 20 ? 3 : 2)
-                          : layer < 5 ? (rand() % 100 < 30 ? 4 : 3)
-                          : (rand() % 100 < 55 ? 5 : 4);
+                          : layer < 5 ? (rand() % 100 < 30 ? 4 : 3) : (rand() % 100 < 55 ? 5 : 4);
         }
 
         if (firework.burstType <= 12)
@@ -4375,22 +4343,19 @@ void drawFirework(const FIREWORK& firework)
                                                : layer == 2 ? 0xffbd28
                                                : layer == 3 ? 0xffe832
                                                : layer == 4 ? 0x43d84f
-                                               : layer == 5 ? 0x2bd4a5
-                                               : 0x3d8dff;
+                                               : layer == 5 ? 0x2bd4a5 : 0x3d8dff;
                     const uint32_t state2Color = layer == 0 ? 0xff9a28
                                                : layer == 1 ? 0xe7df36
                                                : layer == 2 ? 0xbce23c
                                                : layer == 3 ? 0x6dde4d
                                                : layer == 4 ? 0x33cfa0
-                                               : layer == 5 ? 0x348eff
-                                               : 0x794cff;
+                                               : layer == 5 ? 0x348eff : 0x794cff;
                     const uint32_t state3Color = layer == 0 ? 0xff3424
                                                : layer == 1 ? 0xffa52a
                                                : layer == 2 ? 0xffd02c
                                                : layer == 3 ? 0x43d94c
                                                : layer == 4 ? 0x30c2b0
-                                               : layer == 5 ? 0x405fff
-                                               : 0xb848ff;
+                                               : layer == 5 ? 0x405fff : 0xb848ff;
                     color = mixColor(mixColor(state1Color, state2Color, state2Blend), state3Color, state3Blend);
                 }
             }
