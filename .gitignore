@@ -9,6 +9,7 @@ visualc
 !visualc/gfxicon.ico
 .vs
 .agents
+.codex
 .vscode/*
 !.vscode/*.template
 
