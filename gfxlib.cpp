@@ -641,14 +641,12 @@ void renderGeometry(const SDL_Vertex* vertices, int32_t vertexCount, const int* 
 {
     SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(sdlRenderer);
-
     if (vertices && vertexCount > 0)
     {
         SDL_SetRenderDrawBlendMode(sdlRenderer, blendMode);
         SDL_RenderGeometry(sdlRenderer, NULL, vertices, vertexCount, indices, indexCount);
         SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_NONE);
     }
-
     SDL_RenderPresent(sdlRenderer);
 }
 
