@@ -4528,7 +4528,8 @@ void fireworksDemo()
 
 void gfxEffects()
 {
-    /*juliaSet();
+    fireworksDemo();
+    juliaSet();
     mandelbrotSet();
     juliaExplorer();
     mandelbrotExporer();
@@ -4539,8 +4540,7 @@ void gfxEffects()
     basicDrawing();
     imageArithmetic();
     imageFillter();
-    crossFading();*/
-    fireworksDemo();
+    crossFading();
     rayCasting();
     runRayCasting();
 }
