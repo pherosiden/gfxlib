@@ -1719,7 +1719,7 @@ void magicMirrorDemo()
     int32_t mirror = MAGIC_MIRROR_BOTH;     //0=NONE, 1=HORZ, 2=VERT, 3=BOTH
     
     mirror &= MAGIC_MIRROR_BOTH;
-    manic = manic && mirror != MAGIC_MIRROR_NONE;
+    manic = manic & (mirror != MAGIC_MIRROR_NONE);
     
     if (!initScreen(1024, 768, 8, 0, "Magic Mirror Demo")) return;
     setRenderVSync(1);
@@ -1792,7 +1792,7 @@ void rasterDrawingDemo()
 {
     RGBA 	pal1[256] = { 0 };
     RGBA 	pal2[256] = { 0 };
-    POINT2D	points[50] = { 0 };
+    POINT2D	tpoints[50] = { 0 };
 
     double rept = 0.0;
     double ratio = 0.0;
@@ -1990,21 +1990,21 @@ void rasterDrawingDemo()
     setWindowTitle("Polygon Rotation");
     clearDrawBuffer();
     clearPalette();
-    rotatePolygon(points, 6, cx, cy, cx - 140, 100, 20, 40);
+    rotatePolygon(tpoints, 6, cx, cy, cx - 140, 100, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
     
     setWindowTitle("Randomize Polygon");
     clearDrawBuffer();
     clearPalette();
-    randomPoly(points, 12, cmx, cmy, 40, 20, 37);
+    randomPoly(tpoints, 12, cmx, cmy, 40, 20, 37);
     fadeIn(pal2, FPS_90);
     rotatePalette(37, 103, 67, FPS_90);
 
     setWindowTitle("Draw Hexagon");
     clearDrawBuffer();
     clearPalette();
-    drawHexagon(points, 12, cx, cy, 35, cx - 140, 20, 40);
+    drawHexagon(tpoints, 12, cx, cy, 35, cx - 140, 20, 40);
     fadeIn(pal2, FPS_90);
     rotatePalette(40, 103, 64, FPS_90);
 
