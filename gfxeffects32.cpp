@@ -4494,7 +4494,7 @@ void updateFirework(int32_t index, int32_t width, int32_t height)
 
 void fireworksDemo()
 {
-    if (!initScreen(640, 480, 32, 0, "Fireworks Demo", 0, 1)) return;
+    if (!initScreen(1024, 768, 32, 0, "Fireworks Demo", 0, 1)) return;
     setRenderVSync(1);
 
     const int width = getDrawBufferWidth();
@@ -4520,7 +4520,6 @@ void fireworksDemo()
             updateFirework(i, width, height);
         }
         renderGeometry(vertices.data(), int32_t(vertices.size()), indices.data(), int32_t(indices.size()), SDL_BLENDMODE_ADD);
-        delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN));
 
     cleanup();
