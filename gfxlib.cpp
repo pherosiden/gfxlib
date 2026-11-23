@@ -126,8 +126,8 @@ uint8_t*        keyStates = 0;                      //key input states
 //the "keyPressed" status map
 std::map<int32_t, int32_t> keyStatus;               //key input status
 
-//default 8-bits palette entries for mixed mode, SDL3 initialized with black palette
-SDL_Color basePalette[256] = {
+//default 6-bit RGB palette; convert a copy before use with SDL
+const SDL_Color basePalette[256] = {
     { 0,  0,  0, 0}, { 0,  0, 42, 0}, { 0, 42,  0, 0}, { 0, 42, 42, 0}, {42,  0,  0, 0}, {42,  0, 42, 0}, {42, 21,  0, 0}, {42, 42, 42, 0}, {21, 21, 21, 0}, {21, 21, 63, 0}, {21, 63, 21, 0}, {21, 63, 63, 0}, {63, 21, 21, 0}, {63, 21, 63, 0}, {63, 63, 21, 0}, {63, 63, 63, 0},
     { 0,  0,  0, 0}, { 5,  5,  5, 0}, { 8,  8,  8, 0}, {11, 11, 11, 0}, {14, 14, 14, 0}, {17, 17, 17, 0}, {20, 20, 20, 0}, {24, 24, 24, 0}, {28, 28, 28, 0}, {32, 32, 32, 0}, {36, 36, 36, 0}, {40, 40, 40, 0}, {45, 45, 45, 0}, {50, 50, 50, 0}, {56, 56, 56, 0}, {63, 63, 63, 0},
     { 0,  0, 63, 0}, {16,  0, 63, 0}, {31,  0, 63, 0}, {47,  0, 63, 0}, {63,  0, 63, 0}, {63,  0, 47, 0}, {63,  0, 31, 0}, {63,  0, 16, 0}, {63,  0,  0, 0}, {63, 16,  0, 0}, {63, 31,  0, 0}, {63, 47,  0, 0}, {63, 63,  0, 0}, {47, 63,  0, 0}, {31, 63,  0, 0}, {16, 63,  0, 0},
@@ -506,12 +506,13 @@ bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
             return false;
         }
 
-        //make default palette and retrive the surface palette
-        shiftPalette(basePalette);
+        //convert a copy so repeated initialization preserves the base palette
+        RGBA pal[256] = { 0 };
+        getBasePalette(pal);
         SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
 
         //set default palette to surface
-        if (palette && !SDL_SetPaletteColors(palette, basePalette, 0, 256))
+        if (palette && !SDL_SetPaletteColors(palette, pal, 0, 256))
         {
             messageBox(GFX_ERROR, "Failed to initialize palette colors: %s", SDL_GetError());
             return false;
@@ -9231,10 +9232,11 @@ void whitePalette()
     renderDrawBuffer();
 }
 
-//build default 256 colors palette
+//build default 256 colors palette with 8-bit RGB channels
 void getBasePalette(RGBA* pal)
 {
     memcpy(pal, basePalette, sizeof(basePalette));
+    shiftPalette(pal);
 }
 
 //make linear palette (7 circles color)
