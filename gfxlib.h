@@ -443,7 +443,7 @@ void        sleepFor(uint64_t ms);
 
 //video and render functions
 bool        getDisplaySize(int32_t* width, int32_t* height);
-bool        initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "", int32_t resizeable = 0, int32_t fullscreen = 0);
+bool        initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "", bool resizeable = false, bool fullscreen = false);
 
 int32_t     getCenterX();
 int32_t     getCenterY();

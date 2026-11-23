@@ -414,7 +414,7 @@ bool getDisplaySize(int32_t* width, int32_t* height)
 }
 
 //initialize graphic video system
-bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, int32_t resizeable, int32_t fullscreen)
+bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, bool resizeable, bool fullscreen)
 {
     //initialize SDL video mode only
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -429,9 +429,9 @@ bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
         int32_t resWidth = 0, resHeight = 0;
         if (getDisplaySize(&resWidth, &resHeight))
         {
+            scaled = 0;
             width = resWidth;
             height = resHeight;
-            scaled = 0;
         }
     }
     
@@ -506,12 +506,12 @@ bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
             return false;
         }
 
-        //convert a copy so repeated initialization preserves the base palette
+        //convert a copy of the base palette
         RGBA pal[256] = { 0 };
         getBasePalette(pal);
-        SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
 
         //set default palette to surface
+        SDL_Palette* palette = SDL_CreateSurfacePalette(sdlSurface);
         if (palette && !SDL_SetPaletteColors(palette, pal, 0, 256))
         {
             messageBox(GFX_ERROR, "Failed to initialize palette colors: %s", SDL_GetError());

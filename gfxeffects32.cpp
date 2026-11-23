@@ -4494,7 +4494,7 @@ void updateFirework(int32_t index, int32_t width, int32_t height)
 
 void fireworksDemo()
 {
-    if (!initScreen(1024, 768, 32, 0, "Fireworks Demo", 0, 1)) return;
+    if (!initScreen(1024, 768, 32, 0, "Fireworks Demo", false, true)) return;
     setRenderVSync(1);
 
     const int width = getDrawBufferWidth();
