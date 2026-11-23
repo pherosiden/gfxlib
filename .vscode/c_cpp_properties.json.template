@@ -2,7 +2,7 @@
     "configurations": [
         {
             "name": "MSVC Debug x64",
-            "compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+            "compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe",
             "intelliSenseMode": "windows-msvc-x64",
             "cppStandard": "c++14",
             "cStandard": "c17",
@@ -17,8 +17,8 @@
                 "${workspaceFolder}",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
-                "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.51.36231/include",
-                "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.51.36231/atlmfc/include",
+                "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.52.37025/include",
+                "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.52.37025/atlmfc/include",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um",
@@ -29,8 +29,8 @@
                 "path": [
                     "${workspaceFolder}",
                     "${workspaceFolder}/include",
-                    "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.51.36231/include",
-                    "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.51.36231/atlmfc/include",
+                    "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.52.37025/include",
+                    "C:/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/MSVC/14.52.37025/atlmfc/include",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um",
