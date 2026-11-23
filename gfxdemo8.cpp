@@ -1743,7 +1743,6 @@ void magicMirrorDemo()
         clearDrawBuffer();
         drawMagicMirrorTrace(trace, screenMaxX, screenMaxY, mirror);
         renderDrawBuffer();
-        delay(FPS_90);
         updateMagicMirrorTrace(trace, maxX, maxY, magicMirrorColor(frame));
         frame++;
         if (frame % MAGIC_MIRROR_PALETTE_FRAMES == 0)
