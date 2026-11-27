@@ -256,7 +256,6 @@ void fireDemo1()
 
         //Update the texture and render it.
         renderDrawBuffer();
-        delay(FPS_90);
     }
 
     cleanup();
@@ -320,7 +319,6 @@ void fireDemo2()
 
         //draw the buffer
         renderDrawBuffer();
-        delay(FPS_90);
     }
 
     free(pixels);
@@ -790,9 +788,6 @@ void rayCasting()
             planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
             planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
         }
-
-        //correct frames rate
-        delay(FPS_60);
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
@@ -1757,7 +1752,6 @@ void tunnelDemo()
             }
         }
 
-        delay(FPS_30);
         renderDrawBuffer();
     }
 
@@ -2813,8 +2807,6 @@ void runRayCasting()
         //show/hide maze
         if (keyPressed(SDL_SCANCODE_TAB)) showMaze = !showMaze;
 
-        //correct frames rate
-        delay(FPS_30);
     } while (!keyDown(SDL_SCANCODE_RETURN));
 
     //cleanup...
@@ -4495,7 +4487,6 @@ void updateFirework(int32_t index, int32_t width, int32_t height)
 void fireworksDemo()
 {
     if (!initScreen(1024, 768, 32, 0, "Fireworks Demo", false, true)) return;
-    setRenderVSync(1);
 
     const int width = getDrawBufferWidth();
     const int height = getDrawBufferHeight();

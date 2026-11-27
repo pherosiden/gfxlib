@@ -443,7 +443,7 @@ void        sleepFor(uint64_t ms);
 
 //video and render functions
 bool        getDisplaySize(int32_t* width, int32_t* height);
-bool        initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, int32_t scaled = 0, const char* text = "", bool resizeable = false, bool fullscreen = false);
+bool        initScreen(int32_t width = SCREEN_WIDTH, int32_t height = SCREEN_HEIGHT, int32_t bpp = 8, bool scaled = false, const char* text = "", bool vsync = true, bool resizeable = false, bool fullscreen = false);
 
 int32_t     getCenterX();
 int32_t     getCenterY();
@@ -557,15 +557,15 @@ void        makeRubyGoldPalette();
 void        makeGradientPalette(const RGBA* stops, int32_t count);
 
 void        scrollPalette(int32_t from, int32_t to, int32_t step);
-void        rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t wtime);
+void        rotatePalette(int32_t from, int32_t to, int32_t loop);
 
-void        fadeIn(const RGBA* dest, uint32_t wtime);
-void        fadeOut(const RGBA* dest, uint32_t wtime);
-void        fadeMax(uint32_t wtime);
-void        fadeMin(uint32_t wtime);
+void        fadeIn(const RGBA* dest);
+void        fadeOut(const RGBA* dest);
+void        fadeMax();
+void        fadeMin();
 void        fadeDown(RGBA* pal);
-void        fadeCircle(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
-void        fadeRollo(int32_t dir, uint32_t col, uint32_t mswait = FPS_90);
+void        fadeCircle(int32_t dir, uint32_t col);
+void        fadeRollo(int32_t dir, uint32_t col);
 void        fadeOutImage(GFX_IMAGE* img, uint8_t step);
 
 //some FX-effect functions

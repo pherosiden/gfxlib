@@ -414,7 +414,7 @@ bool getDisplaySize(int32_t* width, int32_t* height)
 }
 
 //initialize graphic video system
-bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, const char* title, bool resizeable, bool fullscreen)
+bool initScreen(int32_t width, int32_t height, int32_t bpp, bool scaled, const char* title, bool vsync, bool resizeable, bool fullscreen)
 {
     //initialize SDL video mode only
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -429,7 +429,7 @@ bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
         int32_t resWidth = 0, resHeight = 0;
         if (getDisplaySize(&resWidth, &resHeight))
         {
-            scaled = 0;
+            scaled = false;
             width = resWidth;
             height = resHeight;
         }
@@ -544,6 +544,13 @@ bool initScreen(int32_t width, int32_t height, int32_t bpp, int32_t scaled, cons
     if (!gfxBuff)
     {
         messageBox(GFX_ERROR, "Error initialize GFXLIB memory!");
+        return false;
+    }
+
+    //enable v-sync
+    if (vsync && !setRenderVSync(1))
+    {
+        messageBox(GFX_ERROR, "Failed to enable v-sync: %s", SDL_GetError());
         return false;
     }
 
@@ -5071,7 +5078,7 @@ void randomPolygon(const int32_t cx, const int32_t cy, const int32_t avgRadius, 
 }
 
 //FX-effect: fade circle
-void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
+void fadeCircle(int32_t dir, uint32_t col)
 {
     int32_t i = 0, x = 0, y = 0;
 
@@ -5085,7 +5092,6 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                 for (x = 0; x <= cmaxX / 40; x++) fillCircle(x * 40 + 20, y * 40 + 20, i, col);
             }
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -5100,7 +5106,6 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                 }
             }
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -5115,7 +5120,6 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                 }
             }
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -5130,7 +5134,6 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
                 }
             }
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -5140,7 +5143,7 @@ void fadeCircle(int32_t dir, uint32_t col, uint32_t mswait)
 }
 
 //FX-effect: fade Rollo
-void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
+void fadeRollo(int32_t dir, uint32_t col)
 {
     int32_t i = 0, j = 0;
 
@@ -5151,7 +5154,6 @@ void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
         {
             for (j = 0; j <= cmaxY / 10; j++) horizLine(0, j * 20 + i, cmaxX, col);
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -5160,7 +5162,6 @@ void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
         {
             for (j = 0; j <= cmaxX / 10; j++) vertLine(j * 20 + i, 0, cmaxY, col);
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -5173,7 +5174,6 @@ void fadeRollo(int32_t dir, uint32_t col, uint32_t mswait)
                 if (j * 10 < cmaxY) horizLine(0, j * 20 + i, cmaxX, col);
             }
             renderDrawBuffer();
-            delay(mswait);
         }
         break;
 
@@ -9037,7 +9037,7 @@ void getPalette(RGBA* pal)
 }
 
 //FX-effect: palette rotation
-void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
+void rotatePalette(int32_t from, int32_t to, int32_t loop)
 {
     RGBA tmp = { 0 };
 
@@ -9056,7 +9056,6 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
             memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
             renderDrawBuffer();
-            delay(ms);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9071,7 +9070,6 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
             memcpy(&pal[to], &tmp, sizeof(RGBA));
             setPalette(pal);
             renderDrawBuffer();
-            delay(ms);
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9080,7 +9078,7 @@ void rotatePalette(int32_t from, int32_t to, int32_t loop, int32_t ms)
 }
 
 //FX-effect: palette fade-in
-void fadeIn(const RGBA* dest, uint32_t ms)
+void fadeIn(const RGBA* dest)
 {
     RGBA src[256] = { 0 };
     getPalette(src);
@@ -9096,7 +9094,6 @@ void fadeIn(const RGBA* dest, uint32_t ms)
         }
         setPalette(src);
         renderDrawBuffer();
-        delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9104,7 +9101,7 @@ void fadeIn(const RGBA* dest, uint32_t ms)
 }
 
 //FX-effect: palette fade-out
-void fadeOut(const RGBA* dest, uint32_t ms)
+void fadeOut(const RGBA* dest)
 {
     RGBA src[256] = { 0 };
     getPalette(src);
@@ -9120,7 +9117,6 @@ void fadeOut(const RGBA* dest, uint32_t ms)
         }
         setPalette(src);
         renderDrawBuffer();
-        delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9128,7 +9124,7 @@ void fadeOut(const RGBA* dest, uint32_t ms)
 }
 
 //FX-effect: palette fade-max
-void fadeMax(uint32_t ms)
+void fadeMax()
 {
     RGBA src[256] = { 0 };
     getPalette(src);
@@ -9143,7 +9139,6 @@ void fadeMax(uint32_t ms)
         }
         setPalette(src);
         renderDrawBuffer();
-        delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9151,7 +9146,7 @@ void fadeMax(uint32_t ms)
 }
 
 //FX-effect: palette fade-min
-void fadeMin(uint32_t ms)
+void fadeMin()
 {
     RGBA src[256] = { 0 };
     getPalette(src);
@@ -9166,7 +9161,6 @@ void fadeMin(uint32_t ms)
         }
         setPalette(src);
         renderDrawBuffer();
-        delay(ms);
         readKeys();
         if (keyDown(SDL_SCANCODE_RETURN)) break;
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -11010,7 +11004,6 @@ void handleMouseButton()
         }
 
         renderDrawBuffer();
-        delay(FPS_60);
     } while (!finished(SDL_SCANCODE_RETURN) && !done);
 
     //release mouse bitmap and callback handler

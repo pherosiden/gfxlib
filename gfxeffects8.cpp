@@ -87,7 +87,7 @@ namespace juliaSetEffect {
         makePalette(1);
         renderDrawBuffer();
         waitUserInput();
-        rotatePalette(1, 255, 0, 10);
+        rotatePalette(1, 255, 0);
         cleanup();
     }
 
@@ -134,7 +134,7 @@ namespace juliaSetEffect {
         makePalette(0);
         renderDrawBuffer();
         waitUserInput();
-        rotatePalette(1, 255, 0, 10);
+        rotatePalette(1, 255, 0);
         cleanup();
     }
 
@@ -157,10 +157,10 @@ namespace fadePaletteEffect {
         if (!loadPNG(vbuff, src, "assets/arnold.png")) return;
 
         setPalette(dst);
-        fadeIn(src, FPS_90);
-        fadeMax(FPS_90);
-        fadeOut(src, FPS_90);
-        fadeMin(FPS_90);
+        fadeIn(src);
+        fadeMax();
+        fadeOut(src);
+        fadeMin();
         cleanup();
     }
 }
@@ -294,7 +294,6 @@ namespace bumpMapEffect {
             getMouseState(&x, &y, &lmb);
             bumpScreen(x >> 1, y >> 1);
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
         showMouseCursor();
@@ -357,7 +356,6 @@ namespace fireBumpEffect {
         {
             autoBump();
             renderBuffer(vbuff2, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -423,7 +421,6 @@ namespace circleEffect {
             memcpy(vbuff2, vbuff3, IMAGE_SIZE);
             for (int16_t i = 0; i < 38; i++) paintCircle(x >> 1, y >> 1, i);
             renderBuffer(vbuff2, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
         showMouseCursor();
@@ -523,8 +520,6 @@ namespace crossFadeEffect {
 
                 setPalette(pal);
                 renderDrawBuffer();
-                delay(FPS_60);
-
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -548,8 +543,6 @@ namespace crossFadeEffect {
 
                 setPalette(pal);
                 renderDrawBuffer();
-                delay(FPS_60);
-                
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -753,8 +746,6 @@ namespace rainEffect {
         }
 #endif
         renderDrawBuffer();
-        delay(FPS_90);
-
         readKeys();
         if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         if (keyDown(SDL_SCANCODE_RETURN)) aborts = 1;
@@ -1625,7 +1616,6 @@ namespace waterEffect {
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
             page ^= 1;
             frames++;
-            delay(FPS_90);
         }
 
         messageBox(GFX_INFO, "%.2f frames per second.", (1000.0 * frames) / getElapsedTime(tmstart));
@@ -1774,7 +1764,6 @@ namespace skyEffect {
             }
 
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_60);
 
             for (x = 0; x < 2; x++)
             {
@@ -2197,7 +2186,6 @@ namespace phongShaderEffect {
 
             renderBuffer(vbuff, SCREEN_MIDX, SCREEN_MIDY);
             memset(vbuff, 0, IMAGE_SIZE);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -2504,7 +2492,6 @@ namespace plasmaTextureEffect {
             memset(vbuff, 0, IMAGE_SIZE);
             drawCube();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -2672,7 +2659,6 @@ namespace fireDownEffect {
 
             blurBuffer();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             frames++;
         }
     }
@@ -2983,7 +2969,6 @@ namespace fireTextureEffect {
             motionBlur();
             drawCube();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -3210,7 +3195,6 @@ namespace fireTextureEffect2 {
 
             motionBlur();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
     }
 
@@ -3463,7 +3447,6 @@ namespace fireTextureEffect3 {
 
             motionBlur();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
     }
 
@@ -3662,7 +3645,6 @@ namespace tunnelEffect {
             makeTunnel();
             tunnelBlur();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
     }
 
@@ -4485,7 +4467,6 @@ namespace textureMappingEffect {
             sortPoints();
             drawPoints();
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             deg1 = (deg1 + 1) % 360;
@@ -4575,7 +4556,6 @@ namespace bitmapRotateEffect {
         {
             drawScreen(x, y, dist, rot & 0xff);
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             y += 128;
             rot += dir;
@@ -5543,7 +5523,6 @@ namespace intro16kDemo {
             }
 
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             beatFunc = (beatFunc * 7) >> 3;
             frames++;
@@ -5611,7 +5590,6 @@ namespace intro16kDemo {
             for (i = 0; i < 38; i++) vertices[i].color = ((scenes[i].y * 3) >> 1) + IMAGE_MIDX;
             drawScene(38, 18, IMAGE_MIDX, IMAGE_MIDY);
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames <= 160);
 
@@ -5655,7 +5633,6 @@ namespace intro16kDemo {
             sat = range(60 - frames * 3, 0, 60) + beatFunc;
             setPalette();
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 280);
     }
@@ -5806,7 +5783,6 @@ namespace intro16kDemo {
             }
 
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 840);
     }
@@ -6016,7 +5992,6 @@ namespace intro16kDemo {
 
             tunnelBlur();
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 920);
     }
@@ -6118,7 +6093,6 @@ namespace intro16kDemo {
 
             drawScene(4, 4, IMAGE_MIDX, IMAGE_MIDY + (128 - ((3 * frames / 5) & 0xff) - sinTab[(3 * frames / 5) & 0xff]));
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 950);
     }
@@ -6346,7 +6320,6 @@ namespace intro16kDemo {
             if (frames & 32) printString(1, "VOTE!", 224, 172, 192 + beatFunc, 240 + beatFunc, 0);
 
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 550);
 
@@ -6443,7 +6416,6 @@ namespace intro16kDemo {
             printString(1, "And now", 96, 70, 255, 254, 0);
             printString(1, "some greetz...", 32, 100, 255, 254, 0);
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 140);
     }
@@ -6732,7 +6704,6 @@ namespace intro16kDemo {
             }
 
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 1440);
     }
@@ -6814,7 +6785,6 @@ namespace intro16kDemo {
 
             fireBlur();
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && frames < 660);
     }
@@ -6840,7 +6810,6 @@ namespace intro16kDemo {
             br1 = uint8_t(range(400 - frames, 0, 100));
             setPalette();
             flipBuffer();
-            delay(FPS_90);
             frames++;
         } while (!finished(SDL_SCANCODE_RETURN) && br1);
     }
@@ -6928,7 +6897,6 @@ namespace textScrollingEffect {
 
                 j = (j + SPEED) % LEN;
                 renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-                delay(FPS_90);
 
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) return;
@@ -7084,7 +7052,6 @@ namespace EMSEffect {
         {
             EMS2RAM(vmem, handle[i]);
             renderDrawBuffer();
-            delay(FPS_90);
             if (i++ >= 14) i = 0;
         }
 
@@ -7315,7 +7282,6 @@ namespace fillterEffect {
         do {
             drawPicture();
             renderBuffer(dbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             readKeys();
             if (keyDown(SDL_SCANCODE_A))        translate(1);
@@ -7721,7 +7687,6 @@ namespace fireworkEffect {
             for (i = 0; i < NUM_ARROWS; i++) handleArrow(arrows[i]);
             if (cnt > 1000) cnt = 0;
             renderDrawBuffer();
-            delay(FPS_60);
         }
 
         cleanup();
@@ -7804,7 +7769,6 @@ namespace candleEffect {
             }
 
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(1);
         }
 
         cleanup();
@@ -7903,7 +7867,6 @@ namespace fireEffect {
         {
             doFire();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         memset(vbuff[MAX_HEIGHT], 0, IMAGE_WIDTH);
@@ -7912,7 +7875,6 @@ namespace fireEffect {
         {
             doQuit();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -7988,7 +7950,6 @@ namespace fireEffect2 {
             updateSeed();
             extendFlames();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -8117,7 +8078,6 @@ namespace fireEffect3 {
         {
             doFire();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(4);
         }
 
         cleanup();
@@ -8245,7 +8205,6 @@ namespace fireEffect4 {
             interpolation();
             purgeBuff();
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -8426,7 +8385,6 @@ namespace fireEffect5 {
             memcpy(dbuff, vmem, IMAGE_SIZE);
             makeBlood(k);
             renderBuffer(dbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             kk++;
             if (kk == 10)
@@ -8531,7 +8489,6 @@ namespace fireEffect6 {
             }
 
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             readKeys();
 
             if (!random(150) || keyDown(SDL_SCANCODE_SPACE)) memset(&flames[random(WIDTH - 10)], 255, 10);
@@ -8619,7 +8576,6 @@ namespace fireEffect7 {
             interpolation();
             putFire();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -8767,7 +8723,6 @@ namespace fireEffect8 {
         {
             pierra();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -8846,7 +8801,6 @@ namespace holeEffect1 {
             }
 
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -8946,7 +8900,6 @@ namespace holeEffect2 {
             y = YMOV + (y & 0xff);
 
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             memset(vmem, 0, IMAGE_SIZE);
         }
 
@@ -9454,8 +9407,6 @@ namespace holeEffect3 {
             memset(vbuff, 0, IMAGE_SIZE);
             drawHole(art);
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
-
             readKeys();
             if (keyDown(SDL_SCANCODE_1)) art = 0;
             if (keyDown(SDL_SCANCODE_2)) art = 1;
@@ -9553,8 +9504,6 @@ namespace kaleidoScopeEffect {
                     if (hc > END_COLOR) hc = START_COLOR;
 
                     renderDrawBuffer();
-                    delay(FPS_90);
-                    
                     readKeys();
                     if (keyDown(SDL_SCANCODE_RETURN)) break;
                     if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -9705,7 +9654,6 @@ namespace kaleidoScopeEffect2 {
                     drawLineBob(cx + ya, cy + x1, cx + yb, cy + x2);
 
                     renderDrawBuffer();
-                    delay(FPS_90);
 
                     x1 = (x1 + xv1) % md;
                     y1 = (y1 + yv1) % md;
@@ -9778,7 +9726,6 @@ namespace fastFillCircleEffect {
             const uint32_t col = (rand() % 4) * MAX_RAD;
             for (uint32_t i = 0; i < MAX_RAD; i++) fillCircle(x + ((MAX_RAD - i) >> 1), y + ((MAX_RAD - i) >> 1), (MAX_RAD - i) << 1, i + col);
             renderDrawBuffer();
-            delay(FPS_90);
         }
 
         cleanup();
@@ -9843,7 +9790,6 @@ namespace flagsEffect {
             displayMap();
             putImage();
             renderBuffer(vbuff2, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             memset(vbuff2, 0, IMAGE_SIZE);
             index += FSPEED;
         }
@@ -9917,7 +9863,6 @@ namespace flagsEffect2 {
             }
 
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             memset(vmem, 0, IMAGE_SIZE);
         }
 
@@ -9968,7 +9913,6 @@ namespace lakeEffect {
             calcWater();
             memcpy(&dbuff[IMAGE_HEIGHT - STARTY][0], water, STARTY * IMAGE_WIDTH);
             renderBuffer(dbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -10193,7 +10137,6 @@ namespace landScapeEffect {
             }
 
             renderBuffer(dbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
         showMouseCursor();
@@ -10286,7 +10229,6 @@ namespace lensEffect {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             circleStretch(x - RDS, y - RDS, x, y, RDS);
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             x += xadd;
             y += yadd;
@@ -10440,7 +10382,6 @@ namespace zoomInEffect {
 
             construct(m, x, y);
             renderBuffer(vbuff2, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
         showMouseCursor();
@@ -10596,7 +10537,6 @@ namespace zoomOutEffect {
             const int16_t y = ypostab[ypos & 0xff];
             printGlass(x, y);
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             oldx = x;
             oldy = y;
             xpos += xadd;
@@ -11055,7 +10995,6 @@ namespace lineBlurEffect {
             drawLine(points.x0, points.y0, points.x1, points.y1, 245);
             blurLine();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -11313,7 +11252,6 @@ namespace pixelMorphingEffect {
         }
 
         renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-        delay(FPS_90);
     }
 
     void doPicture()
@@ -11535,7 +11473,6 @@ namespace pierraEffect {
             plotLine(20, 170, 300, 170, 55);
             motionBlur();
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(2);
         }
     }
 
@@ -11671,7 +11608,6 @@ namespace plasmaEffect1 {
         {
             drawPlasma();
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             angle = (angle + 1) & 0xff;
         }
 
@@ -11761,7 +11697,6 @@ namespace plasmaEffect2 {
             pixelBob(&bob1x, &bob1y);
             pixelBob(&bob2x, &bob2y);
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -11800,7 +11735,6 @@ namespace plasmaEffect3 {
             memcpy(&pal[255], &tmp, sizeof(RGBA));
             setPalette(pal);
             renderDrawBuffer();
-            delay(FPS_90);
         }
         cleanup();
     }
@@ -11897,7 +11831,6 @@ namespace plasmaEffect4 {
         {
             showPlasma();
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             changeAngle();
         }
 
@@ -12003,7 +11936,6 @@ namespace plasmaEffect5 {
             memcpy(&pal[y], &tmp, sizeof(RGBA));
             setPalette(pal);
             renderDrawBuffer();
-            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN));
 
         cleanup();
@@ -12119,7 +12051,6 @@ namespace rippleEffect {
             updateWave();
             drawRipples();
             renderBuffer(dbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -12435,7 +12366,6 @@ namespace rotateMapEffect {
             qsort(drawOrder, vertices, 2, compare);
             drawFaces();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             memset(vbuff, 0, IMAGE_SIZE);
         }
 
@@ -12515,7 +12445,6 @@ namespace scaleMapEffect {
             memcpy(vbuff1, vbuff2, IMAGE_SIZE);
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, IMAGE_MIDX - (x >> 1), IMAGE_MIDY - (y >> 1), IMAGE_MIDX - (x >> 1) + x, IMAGE_MIDY - (y >> 1) + y);
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             if (z < 16 || z > 114) zadd = -zadd;
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12553,7 +12482,6 @@ namespace scaleMapEffect {
 
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, x1, y1, x2, y2);
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
         } while (!keyDown(SDL_SCANCODE_RETURN) && !keyDown(SDL_SCANCODE_1) && !keyDown(SDL_SCANCODE_3));
@@ -12568,7 +12496,6 @@ namespace scaleMapEffect {
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, 40, IMAGE_MIDY - costab[i], 140, IMAGE_MIDY + costab[i]);
             rectStretch(0, 0, MAX_WIDTH, MAX_HEIGHT, 230 - costab[i], 50, 230 + costab[i], 150);
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             i = (i + 6) % 256;
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12702,8 +12629,6 @@ namespace shadeBobEffect {
                 makeShadeBob(xp, h - yp);
                 makeShadeBob(w - xp, h - yp);
                 renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-                delay(FPS_90);
-
                 readKeys();
                 if (keyDown(SDL_SCANCODE_RETURN)) break;
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -12807,7 +12732,6 @@ namespace shadePatternEffect {
                 points[arrpos].y = newy;
                 drawShadeBob(newx, newy);
                 renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-                delay(FPS_90);
                 oldx = newx;
                 oldy = newy;
                 arrpos++;
@@ -12842,7 +12766,6 @@ namespace shadePatternEffect {
         do {
             drawShadeBob(points[arrpos].x, points[arrpos].y);
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             arrpos++;
             if (arrpos >= arrmax) arrpos = 0;
         } while (!finished(SDL_SCANCODE_RETURN));
@@ -13001,8 +12924,6 @@ namespace shadeBobSinEffect {
             for (x = 0; x < IMAGE_WIDTH; x++) vbuff[y][x] = 0;
             for (x = 0; x < IMAGE_WIDTH; x++) vbuff[MAX_HEIGHT - y][x] = 0;
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
-
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -13105,7 +13026,6 @@ namespace snowFallEffect {
 
             updateFlakes();
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -13603,7 +13523,6 @@ namespace softFireEffect {
             }
 
             renderDrawBuffer();
-            delay(FPS_90);
 
             readKeys();
             if (keyDown(SDL_SCANCODE_A) && incx < 74) incx += 4;
@@ -13788,7 +13707,6 @@ namespace spriteEffect {
             }
 
             renderBuffer(vbuff1, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_30);
 
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -13898,7 +13816,6 @@ namespace starEffect {
         {
             for (i = 0; i < MAXPOINT; i++) drawPoint(stars[i], 1);
             renderDrawBuffer();
-            delay(FPS_30);
 
             for (i = 0; i < MAXPOINT; i++) drawPoint(stars[i], 0);
 
@@ -13967,7 +13884,6 @@ namespace star2dEffect {
         {
             moveStar();
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -14098,7 +14014,6 @@ namespace star3dEffect {
             calcStars();
             drawStars();
             renderDrawBuffer();
-            delay(FPS_90);
             clearStars();
             moveStars(direction);
             if (bounce) bounceStars();
@@ -14357,7 +14272,6 @@ namespace fontEffect2 {
             calcPos();
             drawBitmap(bitmap[0]);
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             index = (index + 4) % 230;
         }
 
@@ -14476,7 +14390,6 @@ namespace fontEffect3 {
             newRows(text[newrow], row, MAX_WIDTH);
             memcpy(&vmem[sintab[index]][0], bitmap, 9600);
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
             index = (index + 2) % IMAGE_MIDY;
         }
 
@@ -14552,8 +14465,6 @@ namespace thunderBoltEffect {
 
             setPalette(pal);
             renderDrawBuffer();
-            delay(15);
-
             readKeys();
             if (keyDown(SDL_SCANCODE_RETURN)) break;
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -14667,7 +14578,6 @@ namespace scrollingEffect {
                 }
 
                 renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-                delay(FPS_90);
 
                 readKeys();
                 if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -14813,7 +14723,6 @@ namespace voxelEffect {
             memcpy(vbuff, sky, IMAGE_SIZE);
             drawView();
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
 
             readKeys();
             if (keyDown(SDL_SCANCODE_ESCAPE)) quit();
@@ -14944,7 +14853,6 @@ namespace rippleEffect2 {
             }
 
             renderDrawBuffer();
-            delay(FPS_90);
         }
 
         cleanup();
@@ -14992,7 +14900,6 @@ namespace waterFallEffect {
             shiftPalette(pal);
             setPalette(pal);
             renderDrawBuffer();
-            delay(FPS_90);
             ofs++;
         }
 
@@ -15071,7 +14978,6 @@ namespace winterEffect {
             }
 
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         }
 
         cleanup();
@@ -15110,7 +15016,6 @@ namespace wormEffect {
             memcpy(&pal[240], tmp, sizeof(tmp));
             setPalette(pal);
             renderDrawBuffer();
-            delay(FPS_90);
         }
 
         cleanup();
@@ -15506,7 +15411,6 @@ namespace rayCastingEffect {
             if (showMaze) drawMaze();
 
             renderBuffer(vbuff, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_60);
 
             readKeys();
             checkEvalKeys();
@@ -15548,7 +15452,6 @@ namespace chain4Effect {
             getMouseState(&x, &y, &lmb);
             moveTo(x >> 1, y >> 1);
             renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(FPS_90);
         } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
         showMouseCursor();
@@ -15598,7 +15501,6 @@ namespace hardwareScrollEffect {
         }
 
         renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
-        delay(FPS_90);
     }
 
     void quit()
@@ -15625,7 +15527,6 @@ namespace hardwareScrollEffect {
         {
             scroll(addx);
             renderBuffer(vmem[0], IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(3);
             x += addx;
             if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
         }
@@ -15656,7 +15557,6 @@ namespace copper3Effect {
         {
             scroll(addx);
             renderBuffer(vmem, IMAGE_WIDTH, IMAGE_HEIGHT);
-            delay(3);
             x += addx;
             if (x == 0 || x == IMAGE_WIDTH) addx = -addx;
         }

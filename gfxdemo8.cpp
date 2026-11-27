@@ -650,7 +650,6 @@ void graphDemo11()
         const int32_t col = (rand() % 4) << 6;
         for (int32_t i = 0; i < 64; i++) fillCircle(x + (64 - i) / 2, y + (64 - i) / 2, (64 - i) * 2, i + col);
         renderDrawBuffer();
-        delay(FPS_90);
         frames++;
     }
 }
@@ -1338,7 +1337,6 @@ void scrollLed(const char *msg)
                     else putPixel(font->hdr.subData.width + zx * (i + 2), sy + zy * (j + 2) + 4, 0);
                 }
             }
-            delay(10);
         }
         renderDrawBuffer();
         if (++m >= len) break;
@@ -1434,7 +1432,6 @@ void displaySprite(const char *fname)
         dy++;
         getImage(alignedSize(x0), y0, spr.mWidth, spr.mHeight, &img2);
         putSprite(alignedSize(x0), y0, 0, &spr);
-        delay(FPS_60);
         frames++;
     }
 
@@ -1508,7 +1505,6 @@ void displayPlasma()
         createPlasma(&dx, &dy, sint, cost, &src);
         putImage(alignedSize(x), y, &src);
         renderDrawBuffer();
-        delay(FPS_90);
 
         //check limitation
         if (decx) x--; else x++;
@@ -1538,7 +1534,6 @@ void displayPlasma()
         endPos = drawText(greets, count, ypos--);
         if (endPos <= 98) fadeDown(pal);
         renderDrawBuffer();
-        delay(FPS_90);
     } while (ypos > -32767 && endPos > -30 && !finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
@@ -1722,7 +1717,6 @@ void magicMirrorDemo()
     manic = manic & (mirror != MAGIC_MIRROR_NONE);
     
     if (!initScreen(1024, 768, 8, 0, "Magic Mirror Demo")) return;
-    setRenderVSync(1);
 
     const int32_t cx = getCenterX();
     const int32_t cy = getCenterY();
@@ -1853,7 +1847,7 @@ void rasterDrawingDemo()
     writeText(cx - (getFontWidth(msgWelcome[3]) >> 1), msgY + 170, 35, 1, msgWelcome[3]);
     writeText(cx - (getFontWidth(msgWelcome[4]) >> 1), cmy - 70, 35, 1, msgWelcome[4]);
     freeFont(0);
-    fadeIn(pal2, FPS_90);
+    fadeIn(pal2);
     sleepFor(2000);
     fadeRollo(2, 0);
 
@@ -1861,62 +1855,62 @@ void rasterDrawingDemo()
     clearPalette();
     setWindowTitle("Free Drawing");
     graphDemo0(cx, cy, int32_t(200 * ratio), int32_t(100 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
 
     clearDrawBuffer();
     clearPalette();
     graphDemo1(cx, cy, int32_t(160 * ratio), int32_t(40 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
 
     clearDrawBuffer();
     clearPalette();
     graphDemo2(cx, cy, int32_t(80 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo3(cx, cy, int32_t(80 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo4(cx, cy, int32_t(120 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo5(cmx / 7, cmy / 5 - 10, int32_t(28 * ratio), int32_t(90 * ratio), int32_t(62 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo6(cx, cy, int32_t(200 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo7(cx, cy, int32_t(200 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo8(cx, cy, int32_t(245 * ratio), int32_t(100 * ratio));
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
     graphDemo9(cx, cy, 0.6 * ratio);
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
     
     clearDrawBuffer();
     clearPalette();
@@ -1932,8 +1926,8 @@ void rasterDrawingDemo()
     
     initDemo10(4, 7);
     for (i = 0; i <= 19; i++) graphDemo10(cx + (cx >> 1), cy + (cy >> 1), 130 - (i << 2), 130 - (i << 2), 64 + i);
-    fadeIn(pal2, FPS_90);
-    rotatePalette(64, 103, 40, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(64, 103, 40);
 
     setWindowTitle("Draw Polygon");
     clearDrawBuffer();
@@ -1941,8 +1935,8 @@ void rasterDrawingDemo()
     getPalette(pal1);
     clearPalette();
     drawPolygon(cx, cy, cx - 140, 11, 1);
-    fadeIn(pal1, FPS_90);
-    rotatePalette(16, 177, 162, FPS_90);
+    fadeIn(pal1);
+    rotatePalette(16, 177, 162);
     
     clearDrawBuffer();
     clearPalette();
@@ -1963,7 +1957,7 @@ void rasterDrawingDemo()
     drawCylodiod(cmx / 3 + 30, cmy - 100, 80, 4, 1, rept, 40);
     drawCylodiod(cx + 90, cmy - 100, 80, 4, 2, rept, 40);
     drawCylodiod(cmx - 100, cmy - 100, 80, 4, 3, rept, 40);
-    fadeIn(pal2, FPS_90);
+    fadeIn(pal2);
     sleepFor(2000);
 
     clearDrawBuffer();
@@ -1983,29 +1977,29 @@ void rasterDrawingDemo()
     drawCylodiod(cmx / 3 + 30, cmy - 100, 80, 6, 2, rept, 40);
     drawCylodiod(cx + 90, cmy - 100, 80, 6, 3, rept, 40);
     drawCylodiod(cmx - 100, cmy - 100, 80, 6, 4, rept, 40);
-    fadeIn(pal2, FPS_90);
+    fadeIn(pal2);
     sleepFor(2000);
 
     setWindowTitle("Polygon Rotation");
     clearDrawBuffer();
     clearPalette();
     rotatePolygon(tpoints, 6, cx, cy, cx - 140, 100, 20, 40);
-    fadeIn(pal2, FPS_90);
-    rotatePalette(40, 103, 64, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(40, 103, 64);
     
     setWindowTitle("Randomize Polygon");
     clearDrawBuffer();
     clearPalette();
     randomPoly(tpoints, 12, cmx, cmy, 40, 20, 37);
-    fadeIn(pal2, FPS_90);
-    rotatePalette(37, 103, 67, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(37, 103, 67);
 
     setWindowTitle("Draw Hexagon");
     clearDrawBuffer();
     clearPalette();
     drawHexagon(tpoints, 12, cx, cy, 35, cx - 140, 20, 40);
-    fadeIn(pal2, FPS_90);
-    rotatePalette(40, 103, 64, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(40, 103, 64);
 
     setWindowTitle("Fast Filled Circle");
     clearDrawBuffer();
@@ -2027,8 +2021,8 @@ void rasterDrawingDemo()
     getPalette(pal1);
     clearPalette();
     graphDemo13();
-    fadeIn(pal1, FPS_90);
-    rotatePalette(16, 207, 192, FPS_90);
+    fadeIn(pal1);
+    rotatePalette(16, 207, 192);
 
     setWindowTitle("Randomize Filled Polygon");
     clearDrawBuffer();
@@ -2036,8 +2030,8 @@ void rasterDrawingDemo()
     getPalette(pal1);
     clearPalette();
     graphDemo14();
-    fadeIn(pal1, FPS_90);
-    rotatePalette(16, 207, 192, FPS_90);
+    fadeIn(pal1);
+    rotatePalette(16, 207, 192);
 
     setWindowTitle("Draw Copper Bar");
     clearDrawBuffer();
@@ -2045,8 +2039,8 @@ void rasterDrawingDemo()
     getPalette(pal1);
     clearPalette();
     graphDemo15();
-    fadeIn(pal1, FPS_90);
-    rotatePalette(1, 255, 255, FPS_90);
+    fadeIn(pal1);
+    rotatePalette(1, 255, 255);
 
     clearDrawBuffer();
     clearPalette();
@@ -2062,9 +2056,9 @@ void rasterDrawingDemo()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 45, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 45);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX2;
@@ -2075,9 +2069,9 @@ void rasterDrawingDemo()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 45, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 45);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX3;
@@ -2088,9 +2082,9 @@ void rasterDrawingDemo()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 45, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 45);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX4;
@@ -2101,9 +2095,9 @@ void rasterDrawingDemo()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 45, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 45);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX5;
@@ -2114,9 +2108,9 @@ void rasterDrawingDemo()
     dessineFonction();
     affichage(15);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 45, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 45);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX11;
@@ -2127,9 +2121,9 @@ void rasterDrawingDemo()
     familleDesCourbesEnV();
     affichage(14);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX21;
@@ -2140,9 +2134,9 @@ void rasterDrawingDemo()
     familleDesCourbesEnV();
     affichage(14);
     
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX31;
@@ -2153,9 +2147,9 @@ void rasterDrawingDemo()
     familleDesCourbesEnV();
     affichage(14);
     
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
+    fadeMin();
     clearDrawBuffer();
 
     FX = FX41;
@@ -2166,9 +2160,9 @@ void rasterDrawingDemo()
     familleDesCourbesEnV();
     affichage(14);
     
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 72, FPS_90);
-    fadeMin(FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 72);
+    fadeMin();
     clearDrawBuffer();
 
     freeFont(0);
@@ -2189,8 +2183,8 @@ void rasterDrawingDemo()
     fillEllipse(cx, j - introY, a, b, 50);
     writeText(cx - (getFontWidth(logo) >> 1), j - introY - CHR_WIDTH, 32, 1, logo);
 
-    fadeIn(pal2, FPS_90);
-    rotatePalette(32, 103, 250, FPS_90);
+    fadeIn(pal2);
+    rotatePalette(32, 103, 250);
     clearDrawBuffer();
 
     setWindowTitle("Scrolling Led Font");

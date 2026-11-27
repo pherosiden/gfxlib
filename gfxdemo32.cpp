@@ -35,7 +35,6 @@ void runExit()
         fadeOutImage(&img, 8);
         putImage(0, 0, &img);
         renderDrawBuffer();
-        delay(10);
     }
 
     //cleanup...
@@ -66,7 +65,6 @@ void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
     //don't delay each character
     if (fullSpeed)
     {
-        delay(10);
         putImage(sx, sy, img);
         for (i = 0; i < MAX_TEXT_LINE; i++) writeText(sx + 10, sy + 10 + i * 10, RGB_GREY127, 2, texts[i]);
         renderDrawBuffer();
@@ -80,7 +78,6 @@ void showText(int32_t sx, int32_t sy, const GFX_IMAGE *img, const char *str)
             putImage(sx, sy, img);
             for (i = 0; i < MAX_TEXT_LINE - 1; i++) writeText(sx + 10, sy + 10 + i * 10 + y, RGB_GREY127, 2, texts[i]);
             renderDrawBuffer();
-            delay(10);
         }
 
         x = 0;
@@ -235,7 +232,6 @@ void runBlocking(int32_t sx, int32_t sy)
         brightnessImage(&img2, &img2, uint8_t(255.0 - double(dec) / (fade1.mWidth >> 2) * 255.0));
         putImage(sx, sy, &img2);
         renderDrawBuffer();
-        delay(FPS_60);
     } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
 
     //save current background
@@ -266,7 +262,6 @@ void runBlocking(int32_t sx, int32_t sy)
         putImage(sx + posx, sy + posy, &img3);
         putImage(sx + posx, sy + posy, &img2, BLEND_MODE_ALPHA);
         renderDrawBuffer();
-        delay(FPS_60);
     } while (dec > 0 && !finished(SDL_SCANCODE_RETURN));
 
     //cleanup...
@@ -313,7 +308,6 @@ void runScaleUpImage(int32_t sx, int32_t sy)
         restoreDrawBuffer();
         putImage(sx, sy, &img2);
         renderDrawBuffer();
-        delay(FPS_90);
 
         //save current buffer for next step
         memcpy(img1.mData, img2.mData, img2.mSize);
@@ -345,7 +339,6 @@ void runCrossFade(int32_t sx, int32_t sy)
         blendImage(&img, &fade1, &fade2, val);
         putImage(sx, sy, &img);
         renderDrawBuffer();
-        delay(FPS_90);
 
         //check for change direction
         if (up) i--; else i++;
@@ -371,7 +364,6 @@ void runAddImage(int32_t sx, int32_t sy)
         restoreDrawBuffer();
         putImage(sx, sy, &img);
         renderDrawBuffer();
-        delay(FPS_90);
         clearImage(&img);
     } while (step > 0 && !finished(SDL_SCANCODE_RETURN));
 }
@@ -404,7 +396,6 @@ void runRotateImage(int32_t sx, int32_t sy)
         rotateImage(&img, &fade2, tables, fade2.mWidth >> 1, fade2.mHeight >> 1, degree % 360, 1);
         putImage(sx, sy, &img);
         renderDrawBuffer();
-        delay(FPS_90);
         degree++;
     }
 
@@ -433,7 +424,6 @@ void runFastRotateImage(int32_t sx, int32_t sy)
         rotateImage(&img, &fade2, degree % 360, INTERPOLATION_TYPE_BILINEAR);
         putImage(sx, sy, &img);
         renderDrawBuffer();
-        delay(FPS_90);
         degree++;
     }
 
@@ -481,7 +471,6 @@ void runAntiAliased(int32_t sx, int32_t sy)
         putImage(sx, sy, &dst);
         fadeOutImage(&dst, 4);
         renderDrawBuffer();
-        delay(FPS_90);
     }
 
     //cleanup...
@@ -554,7 +543,6 @@ void runLensFlare(GFX_IMAGE* outImg)
         //timing for input and FPS counter
         oldTime = time;
         time = getTime();
-        delay(1);
     } while (!finished(SDL_SCANCODE_RETURN) && !lmb);
 
     //capture current screen
@@ -589,7 +577,6 @@ void runBumpImage()
         bumpImage(&dst, &bumpchn, &bumpimg, lx, ly);
         putImage(0, 0, &dst);
         renderDrawBuffer();
-        delay(FPS_90);
         clearImage(&dst);
         cnt++;
     }
@@ -715,7 +702,6 @@ void runPlasmaScale(int32_t sx, int32_t sy)
         scaleImage(&screen, &plasma, INTERPOLATION_TYPE_BICUBIC);
         putImage(sx, sy, &screen);
         renderDrawBuffer();
-        delay(FPS_90);
         frames++;
     }
 
